@@ -1,0 +1,43 @@
+{
+ "case": "STE-E04",
+ "arm": "core",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Diferencia entre los modos**\n\n- `replace` es el default. Pisa el valor completo de cada campo que mandás. No lee nada antes.\n- `append` conserva el contenido actual de los campos `html` y `text` y pone el nuevo debajo, registro por registro. Los demás tipos de campo se reemplazan igual que en `replace`.\n\nUsá `append` cuando te pidan *agregar* o *completar*. Mandá solo el contenido nuevo. Un write plano en prosa larga borra lo que escribió una persona, y el chatter no guarda el valor anterior.\n\n**Detalles de `append`**\n\n- En `html` concatena HTML crudo. Links, clases e imágenes de Odoo sobreviven.\n- En `text` separa con una línea en blanco.\n- `<p><br></p>` cuenta como vacío. Un campo con solo una imagen cuenta como contenido.\n- Si falla la lectura previa o el schema, devuelve `append_precheck_failed` y no escribe nada. Sin el valor actual, un append sería un replace.\n- Un valor no-string en un campo appendable (por ejemplo `{\"description\": false}`) se rechaza con `append_requires_text`. Para vaciar un campo, usá `replace`.\n\n**Si falla a mitad de camino**\n\nEl append es un write por registro, no una transacción. Hay dos casos:\n\n- **Falla el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada). Reintentá la llamada entera.\n- **Falla el registro k, tras escribir otros antes:** los ya escritos no se revierten. El error es `append_partially_applied` y trae:\n  - `written_ids`: los que se escribieron. No los reintentes.\n  - `failed_id`: el que falló.\n  - `pending_ids`: el conjunto a reintentar. Incluye al fallido, porque tampoco se escribió.\n\nReintentá solo con `pending_ids`, así no duplicás contenido. Los ids escritos también quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4388,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 721,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4388,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 721,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4388,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4388
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

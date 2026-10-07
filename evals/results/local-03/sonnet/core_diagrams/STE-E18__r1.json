@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Resumen:** el modelo guarda la memoria y el sistema la inyecta cada turno como un header corto. El cuerpo completo se lee solo si el modelo lo pide.\n\n```\n┌────────────┐ guarda ┌─────────────────┐  >50 en el scope  ┌──────────────────┐\n│   Modelo   │───────►│ DB (user o      │──────────────────►│ Borra la más     │\n└────────────┘        │ workspace)      │  misma transacción│ vieja created_at │\n      ▲               └────────┬────────┘                   └──────────────────┘\n      │ read(id)               │ cada turno\n      │                        ▼\n      │               ┌─────────────────┐  sí   ┌──────────────────────┐\n      │               │ ¿headers > 12K  │──────►│ rapidfuzz vs mensaje │\n      │               │ chars?          │       │ actual, queda top-N  │\n      │               └────────┬────────┘       └──────────┬───────────┘\n      │                      no│                           │\n      │                        ▼                           ▼\n      │               ┌───────────────────────────────────────┐\n      └───────────────│ System prompt: Workspace + User memory│\n        marca [read]  └───────────────────────────────────────┘\n```\n\n**1. Guardado.** Cada scope tiene un tope de 50 memorias: por usuario (user-scope) o por workspace (workspace-scope). Al agregar la 51ª, la DB borra la más vieja por `created_at` en la misma transacción. La evicción es silenciosa para el usuario, pero la respuesta del tool le avisa al modelo.\n\n**2. Header por turno.** `_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta un header por memoria. Va después del bloque `CURRENT USER` y antes del bloque de proyecto.\n- El header es el título más el summary, si existe.\n- Sin summary, usa los primeros 250 caracteres del body.\n- Si el body supera 250 caracteres y no hay summary, el header termina en `... [read]`.\n\n**3. Body bajo demanda.** Si el modelo necesita el contenido completo de una memoria `[read]`, llama `manage_memory(action='read', id=...)`.\n\n**4. Muchas memorias.**\n- El costo por turno queda en ~3K tokens para 50 memorias de tamaño máximo.\n- Si los headers suman más de `_MEMORY_BUDGET_CHARS` (12K chars), rapidfuzz puntúa cada header contra el mensaje actual del usuario. Se quedan solo los top-N.\n\n**Salvedad:** el material no muestra la acción que usa el modelo para guardar. Solo documenta `read`. Fijate en el código de `manage_memory` cuál es.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4273,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1360,
+  "output_tokens_details": {
+   "thinking_tokens": 420
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4273,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1360,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4273,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4273
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

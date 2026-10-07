@@ -1,6 +1,6 @@
 ## sonnet
 
-| métrica | baseline | breve | nucleo_plus | nucleo_diag | nucleo_ste | completo |
+| metric | baseline | terse | core_plus | core_diagrams | core_vocab | full_v1 |
 |---|---|---|---|---|---|---|
 | n | 54 | 54 | 54 | 54 | 54 | 54 |
 | reader_coverage | 54/54 | 54/54 | 54/54 | 54/54 | 54/54 | 54/54 |
@@ -26,24 +26,24 @@
 | diagram_rate_flat | 0 | 0 | 0 | 0.22 | 0 | 0.93 |
 | diagram_errors | 0 | 0 | 0 | 1 | 0 | 4 |
 
-Cambio contra `breve` (mediana por caso, IC 95%):
+Change vs `terse` (per-case median, 95% CI):
 
-- nucleo_plus_vs_breve: {'tokens_to_understand': {'median': 0.062, 'ci95': [-0.011, 0.092], 'n': 54}, 'words_total': {'median': 0.006, 'ci95': [-0.05, 0.071], 'n': 54}}
-- nucleo_diag_vs_breve: {'tokens_to_understand': {'median': 0.048, 'ci95': [-0.021, 0.104], 'n': 54}, 'words_total': {'median': -0.059, 'ci95': [-0.088, 0.01], 'n': 54}}
-- nucleo_ste_vs_breve: {'tokens_to_understand': {'median': -0.006, 'ci95': [-0.067, 0.07], 'n': 54}, 'words_total': {'median': -0.01, 'ci95': [-0.065, 0.059], 'n': 54}}
-- completo_vs_breve: {'tokens_to_understand': {'median': 0.147, 'ci95': [0.044, 0.308], 'n': 54}, 'words_total': {'median': -0.053, 'ci95': [-0.142, -0.015], 'n': 54}}
+- core_plus_vs_terse: {'tokens_to_understand': {'median': 0.062, 'ci95': [-0.011, 0.092], 'n': 54}, 'words_total': {'median': 0.006, 'ci95': [-0.05, 0.071], 'n': 54}}
+- core_diagrams_vs_terse: {'tokens_to_understand': {'median': 0.048, 'ci95': [-0.021, 0.104], 'n': 54}, 'words_total': {'median': -0.059, 'ci95': [-0.088, 0.01], 'n': 54}}
+- core_vocab_vs_terse: {'tokens_to_understand': {'median': -0.006, 'ci95': [-0.067, 0.07], 'n': 54}, 'words_total': {'median': -0.01, 'ci95': [-0.065, 0.059], 'n': 54}}
+- full_v1_vs_terse: {'tokens_to_understand': {'median': 0.147, 'ci95': [0.044, 0.308], 'n': 54}, 'words_total': {'median': -0.053, 'ci95': [-0.142, -0.015], 'n': 54}}
 
-Preferencia a ciegas (cada brazo contra `breve`):
+Blind preference (each arm vs `terse`):
 
-- completo: {'completo': 22, 'tie': 0, 'breve': 32, 'n': 54}
-- nucleo_plus: {'nucleo_plus': 24, 'tie': 1, 'breve': 29, 'n': 54}
-- nucleo_ste: {'nucleo_ste': 28, 'tie': 1, 'breve': 25, 'n': 54}
-- nucleo_diag: {'nucleo_diag': 24, 'tie': 1, 'breve': 29, 'n': 54}
+- core_vocab: {'core_vocab': 28, 'tie': 1, 'terse': 25, 'n': 54}
+- core_plus: {'core_plus': 24, 'tie': 1, 'terse': 29, 'n': 54}
+- full_v1: {'full_v1': 22, 'tie': 0, 'terse': 32, 'n': 54}
+- core_diagrams: {'core_diagrams': 24, 'tie': 1, 'terse': 29, 'n': 54}
 
-Preferencia a ciegas (cada brazo contra `baseline`, Claude Code sin nada):
+Blind preference (each arm vs `baseline`, plain Claude Code):
 
-- completo: {'completo': 24, 'tie': 0, 'baseline': 30, 'n': 54}
-- nucleo_plus: {'nucleo_plus': 35, 'tie': 0, 'baseline': 19, 'n': 54}
-- nucleo_ste: {'nucleo_ste': 34, 'tie': 0, 'baseline': 20, 'n': 54}
-- nucleo_diag: {'nucleo_diag': 37, 'tie': 0, 'baseline': 17, 'n': 54}
-- breve: {'breve': 33, 'tie': 0, 'baseline': 21, 'n': 54}
+- core_vocab: {'core_vocab': 34, 'tie': 0, 'baseline': 20, 'n': 54}
+- terse: {'terse': 33, 'tie': 0, 'baseline': 21, 'n': 54}
+- core_plus: {'core_plus': 35, 'tie': 0, 'baseline': 19, 'n': 54}
+- full_v1: {'full_v1': 24, 'tie': 0, 'baseline': 30, 'n': 54}
+- core_diagrams: {'core_diagrams': 37, 'tie': 0, 'baseline': 17, 'n': 54}

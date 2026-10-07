@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "terse",
+ "arm_hash": "54a865d10e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Versiones**\n- Cada `save` sobre un artifact existente crea una versión nueva (v(n+1)) y mueve `current_version_id`.\n- Hay dos punteros: `current_version_id` (la última) y `published_version_id` (la que se muestra por el link).\n\n**Si editás un artifact ya compartido**\n- Quien tiene el link **no ve el cambio**: la ruta por token sirve siempre `published_version`.\n- El result del save trae `unpublished_changes: true` y el viewer interno muestra un banner. Ese viewer navega por `current_version`, con selector de versiones.\n- Para que el cambio llegue al link, hay que hacer `publish(version?)`. Sin argumento publica la última.\n- Para revertir, se publica una versión anterior.\n- Excepción: el primer `save` (sin `artifact_id`) crea la v1 y la publica automáticamente.\n\n**Si solo se refrescan los datos**\n- Se crea una versión solo-data (`content` nulo). El contenido efectivo de la versión `n` se resuelve hacia atrás por separado: el último `content` no nulo ≤ n y el último `data` no nulo ≤ n. Por eso el diseño no se rompe.\n- Antes de escribir, `data` se valida contra el `data_schema` guardado (claves requeridas y tipos). Si no encaja, se rechaza.\n- Esa versión nueva también es una versión más, así que no se publica sola. El link sigue mostrando lo publicado hasta que hagas `publish`. El material no lo dice explícito para refrescos, pero se deduce de la regla de `save` con `artifact_id`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3901,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 557,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3901,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 557,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 3901,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3901
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

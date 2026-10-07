@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "core_plus",
+ "arm_hash": "56317c7d75",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Salen dos avisos: uno a 7 días del vencimiento y otro el día que vence, ambos a las 12:00 UTC (9 h en Argentina). Al vencer, el workspace pasa a `free` solo si no tiene suscripción viva.\n\n**Avisos (default `{7, 0}`)**\n- **Cuándo:** el cron diario `_run_trial_expiry` corre a las 12:00 UTC. Los hitos salen de `billing_trial_warning_days_list`.\n- **A quién:** owners y admins siempre, aunque estén en `billing_tier = 'none'`. También reciben todos los miembros con asiento (`billing_tier <> 'none'`).\n- **Extensión de prueba:** la marca es el par `trial_warning_for` + `trial_warning_days`. Si extendés la prueba, cambia la fecha de fin y los avisos vuelven a salir.\n- **Chat:** `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence, sin suscripción viva**\n- El workspace queda en `plan='free'`.\n- Se evalúa el exceso (miembros u otros límites del plan free).\n- Sale el mail de prueba vencida a los mismos destinatarios.\n- Si hay exceso, `account_status` pasa a `restricted` con motivo `trial_expired_with_excess`. Eso bloquea MCP y chat.\n\n**Con suscripción viva**\n- Se limpian los flags de trial.\n- No sale ningún mail de vencimiento, porque no cambió nada visible para el owner. El cobro se anuncia con su propio recibo, que va solo a los owners.\n- La tabla no dice qué hace el cron con el workspace en este caso, más allá de limpiar los flags. Si querés confirmar que el `plan` no cambia, mirá `_run_trial_expiry`.\n\n**Dudas sobre el material**\n- El aviso de \"por vencer\" con suscripción viva no está claro. El texto solo dice que al vencer no se manda nada. Si el cron también envía el aviso de la semana en ese caso, hay que verificarlo en el código.\n- La tabla de `account_status` no indica cuándo se levanta `restricted`. Solo menciona la reactivación post-pago como origen de `active`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4595,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 788,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4595,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 788,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4595,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4595
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

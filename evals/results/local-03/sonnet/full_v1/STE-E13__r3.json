@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "full_v1",
+ "arm_hash": "cf2e9fca76",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n hoy        vence - 7 d                  vence (día 0)          después\n  │             │                             │                    │\n  │       aviso \"por vencer\"            aviso, todavía funciona    │\n  │       (12:00 UTC)                   (12:00 UTC)                │\n  │                                           │                    │\n  │                          ┌────────────────┴───────────────┐    │\n  │                          ▼                                ▼    │\n  │                  sin suscripción viva         con suscripción viva\n  │                  plan='free'                  se limpian los flags\n  │                  se evalúa exceso             de trial\n  │                  sale el mail \"vencida\"       no sale ningún mail\n  │                  puede quedar `restricted`    el cobro manda su recibo\n```\n\n**Avisos y cuándo**\n- El cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina).\n- Los hitos por defecto son 7 días antes y el día que vence. Salen de `billing_trial_warning_days_list`.\n- Si extienden la prueba, el aviso vuelve a salir. La marca es el par `trial_warning_for` + `trial_warning_days`.\n\n**A quién**\n- Owners y admins: siempre, aunque estén en `billing_tier = 'none'`.\n- Todo miembro con asiento (`billing_tier <> 'none'`): el asistente deja de responder para todo el equipo, y esa persona puede pedir el pago.\n- Después de vencer, `PlanLapsedBanner` avisa en el chat a quien perdió el asistente.\n\n**Qué pasa al vencer sin suscripción**\n- El workspace pasa a `plan='free'`.\n- El cron evalúa el exceso sobre los límites del plan free.\n- Con exceso, el estado puede pasar a `account_status='restricted'`, con motivo `trial_expired_with_excess`. Eso bloquea el MCP y el chat.\n- Sale el mail de prueba vencida.\n\n**Con suscripción viva**\n- Cambia poco: el cron solo limpia los flags de trial.\n- No sale ningún aviso nuevo. El owner no ve ningún cambio y el cobro se anuncia con su propio recibo.\n\nEl material no dice si el día 0 también manda mail a quien ya tiene suscripción viva. Por la regla de arriba, no manda.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10313,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1171,
+  "output_tokens_details": {
+   "thinking_tokens": 377
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10313,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1171,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10313,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10313
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

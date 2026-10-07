@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La migración destructiva se aplica solo en el deploy real de `staging` o `main`. En el PR environment se saltea sin registrarse. Poné `-- destructive: true` cerca del inicio del archivo.\n\n```sql\n-- destructive: true\nALTER TABLE chats DROP COLUMN legacy_field;\n```\n\n(Nombres de tabla y columna de ejemplo.)\n\n```\n┌──────────────┐   ┌───────────────┐   ┌──────────────────┐   ┌─────────────────┐\n│ PR env       │──►│ merge a       │──►│ deploy staging   │──►│ deploy main     │\n│ (Railway)    │   │ staging       │   │ (rama staging)   │   │ (prod)          │\n│ SALTEA       │   │               │   │ APLICA           │   │ APLICA          │\n└──────────────┘   └───────────────┘   └──────────────────┘   └─────────────────┘\n```\n\n**Dónde se aplica**\n- **PR env:** la saltea y no la registra en `_migrations`. El PR env comparte la base de staging con el servicio de staging, que corre el código viejo. Aplicarla ahí rompería ese código para todos.\n- **Deploy de `staging` o `main`:** la aplica, si `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y `RAILWAY_GIT_BRANCH` es `staging` o `main`. Como no quedó registrada, este deploy post-merge la corre.\n- **CI y tests:** `scripts/apply_migrations.py` la aplica en bases efímeras (postgres de servicio del workflow, container e2e, pytest). Ahí `MIGRATIONS_ALLOW_DESTRUCTIVE=1` o `allow_destructive=True` activan el opt-in.\n- **`make migrate` local:** la saltea, porque apunta a la base de desarrollo compartida entre worktrees y no activa el flag.\n\n**Cuidado**\n- Un PR env hereda el flag de staging. Por eso el runner exige también la rama, y falla cerrado si hay marcadores de Railway sin rama. Un preview aplicó `0180_chat_ga` por no tener ese chequeo.\n- Si el archivo no lleva el marker, se trata como aditivo y el PR env lo aplica contra la base compartida.\n- Las migraciones aditivas del mismo PR sí se aplican en staging desde el preview. Eso tiene consecuencias al mergear y al renombrar archivos: [`docs/infra-ci-cd.md` § Un PR preview escribe en la base de staging](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4542,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 923,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4542,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 923,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4542,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4542
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

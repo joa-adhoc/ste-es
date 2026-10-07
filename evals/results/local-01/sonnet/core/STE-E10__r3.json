@@ -1,0 +1,43 @@
+{
+ "case": "STE-E10",
+ "arm": "core",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El orden es este:\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si no permite la operación, el tool se corta ahí. No llega al gate de runtime.\n2. **`evaluate_permission`**, en cuatro pasos:\n   1. `workspace_tool_approvals` con `deny` → DENY. Es un piso del admin. Ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` de `(user, workspace, tool)`. Si hay fila, esa `action` gana. Este paso se saltea en canales sin identidad personal.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila:\n      - Recurso en `approval` (`\"ask\"` o `\"always\"`) → ASK.\n      - Recurso sin `approval` → ALLOW.\n      - Tools de conector sin declaración en el REGISTRY: heurística de verbos y annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: el admin puso \"ask\" y el miembro \"allow\"\n\nGana el miembro: ejecuta sin preguntar. El paso 2.1 solo bloquea con `deny`. El `ask` del admin recién se mira en el paso 2.3, y el paso 2.2 corta antes con la fila del usuario.\n\nDos salvedades:\n- Si el admin hubiera puesto `deny`, ese `deny` ganaría.\n- La preferencia del miembro vale solo en ese workspace. Si el miembro no tiene fila, aplica el `ask` del admin.\n\n## Caso 2: agent por webhook\n\nEl canal `webhook` no tiene identidad personal (`personal_identity_applies` es falso). El turno corre con la identidad prestada de un miembro. El paso 2.2 se saltea entero.\n\nEntonces la política es la grilla del workspace:\n- `deny` del admin → DENY.\n- `allow` o `ask` del admin → se aplica.\n- Sin fila → default por recurso.\n\nLa preferencia \"allow\" del miembro prestado no cuenta. El mismo vale para `exposure` y `scheduled`.\n\nUna cosa que el material no aclara: qué pasa con un ASK en un canal sin humano, como el webhook. No hay quien responda. Verificá en `permissions.py` o en `client_facing_core.py` si se trata como DENY o queda colgado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4383,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 839,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4383,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 839,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4383,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4383
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

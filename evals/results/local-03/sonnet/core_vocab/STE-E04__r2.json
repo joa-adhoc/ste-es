@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`replace` pisa el campo completo. `append` conserva el contenido actual de los campos `html` y `text` y pone el nuevo abajo.\n\n**Diferencia**\n\n- `mode=\"replace\"` es el default. No lee nada previo y pisa todo lo que mandás.\n- `mode=\"append\"` lee el valor actual de cada registro y concatena el nuevo. Aplica solo a campos `html` y `text` de `values`. Los demás tipos de campo se reemplazan igual.\n- Usá `append` cuando te piden *agregar* o *completar* una descripción. Mandá solo el contenido nuevo.\n- Un `write` plano en `description` o `task_description` borra lo que escribió una persona. Esos campos no dejan rastro en el chatter.\n\n**Si `append` falla a mitad de camino con varios registros**\n\nEl `append` es un `write` por registro, no una transacción. Los registros ya escritos no se revierten.\n\n- **Falla en el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada). Reintentá la llamada entera.\n- **Falla en el registro k, con alguno escrito antes:** devuelve `append_partially_applied` con:\n  - `written_ids`: ya escritos. No los reintentes, duplicarías contenido.\n  - `failed_id`: el que falló.\n  - `pending_ids`: el conjunto a reintentar. Incluye `failed_id`, porque tampoco se escribió.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`.\n\n**Otros errores de `append`**\n\n- `append_precheck_failed`: falló la lectura previa o no se pudo resolver el schema. No escribe nada, porque sin el valor actual un `append` sería un `replace`.\n- `append_requires_text`: mandaste un valor no-string en un campo appendable, por ejemplo `{\"description\": false}`. Para vaciar el campo usá `mode=\"replace\"`.\n\n**Detalles del concatenado**\n\n- Concatena HTML crudo. Los links a registros, clases e imágenes embebidas sobreviven.\n- En campos `text` separa con una línea en blanco.\n- Un rich text vaciado desde la UI (`<p><br></p>`) cuenta como vacío. Un campo con solo una imagen cuenta como contenido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4611,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 801,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4611,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 801,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4611,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4611
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

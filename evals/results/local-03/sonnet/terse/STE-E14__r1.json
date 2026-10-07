@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "terse",
+ "arm_hash": "54a865d10e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Pipeline de insights diarios\n\n**Context Assembler** → arma el contexto con 6 consultas en paralelo bajo RLS del usuario: perfil del workspace, perfil del usuario, memoria (workspace y usuario), conversaciones de los últimos 7 días (título + último mensaje, sin resumen LLM) e historial de insights de los últimos 14 días (señal de dedup). Entrega un bundle en markdown de ~2–4K tokens.\n\n**Etapa 1 – Planner** (Gemini Flash, JSON estructurado, temp 1.0) → recibe el bundle y devuelve `PlannerOutput(hypotheses, silence_reason)`: 0–N hipótesis, cada una con su registro (`dato`, `celebracion`, `observacion`, `alerta`, `analisis`).\n\n**Etapa 2 – Investigator** (agente Pydantic AI, tools de solo lectura) → investiga cada hipótesis, hasta 3 en paralelo (`Semaphore(3)`). Los topes dependen del registro:\n- `dato`/`celebracion`: 4 iteraciones, 6 tool calls\n- `observacion`: 8 / 15\n- `alerta`/`analisis`: 12 / 25\n\n  Cada hipótesis tiene un presupuesto de tiempo de `(watchdog_sec - 30) / n_hipótesis`. Devuelve `InvestigationFindings`.\n\n**Etapa 3 – Synthesizer + guards** → convierte los findings en teasers (LLM JSON, temp 1.0) y los pasa por 3 capas en secuencia:\n1. **ResponseGuard (regex):** rechaza patrones como \"cliente A\", \"seguramente\", `<cliente>`, `NOMBRE_`, `[nombre]`.\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` debe aparecer en el resumen combinado del investigador con `partial_ratio >= 75`.\n3. **LLM Judge:** mismo modelo, temp 0, devuelve `{grounded, reason}`. Si el judge falla por infraestructura, el teaser pasa.\n\nEl resultado final son 0–2 teasers, que se hacen upsert en la tabla `insights`.\n\n## Cuándo termina sin mostrar nada\n\n- **Planner sin hipótesis:** silencio válido (`silence_reason`), no se genera nada.\n- **Todos los teasers rechazados** por las guards: `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl material no define qué pasa si el Investigator agota el tiempo o los topes sin findings útiles, ni si el Synthesizer devuelve 0 teasers por sí mismo. En esos casos el resultado probablemente también sea vacío, pero eso es una inferencia mía, no algo documentado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4417,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1000,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4417,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1000,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4417,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4417
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults es un wrapper 1→1, y eso no califica por ningún eje, salvo que cumpla uno de los casos de abajo.\n\n**Criterio:** la tool nativa necesita cumplir al menos uno de (a), (b), (c) o (d). Para tu caso:\n\n- **(a) No componible:** no aplica. `odoo_create` con los defaults ya lo resuelve.\n- **(b) Gate o identidad propia:**\n  - **(b2)** aplica solo si el gate `create` de la tool es más fino que el `create` genérico. Por ejemplo, una whitelist limitada a ese modelo.\n  - **(b1)** (approval propio) aplica solo si la tool corre en chat.\n- **(c) Procedimiento crítico:** aplica solo si saltear un paso tiene costo de compliance real.\n- **(d) Eficiencia:** no aplica. Es 1 call, y el umbral duro excluye los wrappers 1→1 aunque ahorren tokens de esquema.\n\n**Qué cambia con el MCP saliente:** (b1) y (c) pierden validez, porque el router MCP ignora `requires_approval` y no hay turno donde forzar pasos. En MCP solo te quedan (a), (b2) y (d).\n\nSi tu único motivo para la tool nativa es un approval o una policy propia, solo vale en chat. Es el caso de `odoo_schedule_activity`, que se pasó a skill por esto.\n\n**Cómo decidir:**\n1. ¿Los defaults se resuelven con un `odoo_create` más instrucciones en la skill? Entonces es skill.\n2. ¿Necesitás un gate más fino que `create` genérico, por ejemplo restringido a ese modelo? Entonces es tool nativa por (b2), y vale en chat y en MCP.\n3. ¿Querés approval propio? Es (b1). Si la tool también se expone por MCP, ese approval no se aplica ahí. Agregala a `MCP_EXCLUDED_TOOLS` o aceptá que en MCP no hay approval.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4673,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 722,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4673,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 722,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4673,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4673
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

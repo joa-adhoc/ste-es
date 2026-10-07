@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup` desde el worktree. Después hacé dos cosas según lo que toca tu branch.\n\n```bash\nmake worktree-setup\n```\n\nEste comando linkea al clone principal lo que no viaja en git: `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`. Sin esos links, `make test` falla con \"Venv no encontrado\".\n\n**Dependencia de Python nueva:**\n- No corras `make install` en el worktree. Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te avisa.\n- Instalá la dependencia en el clone principal. Si no querés tocarlo, borrá el link de `tuqui_core/.venv` y armá un venv propio en el worktree.\n\n**Cambios en `web/package.json`:**\n- Los `node_modules` linkeados son del clone principal. Corré `npm ci` en el worktree antes de `make test-web`.\n\nDespués corré los tests:\n\n```bash\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/\nmake lint                                     # ruff check + format check\n```",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4236,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 499,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4236,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 499,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4236,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4236
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

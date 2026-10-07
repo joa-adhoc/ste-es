@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "full_v1",
+ "model": "sonnet",
+ "run": 2,
+ "result": "```\nreplace (default)               append\nvalor actual: \"A\"               valor actual: \"A\"\nenvío:        \"B\"                envío:        \"B\"\n      │                                │\n      ▼                                ▼\n no lee nada                     lee el valor actual (pre-read)\n resultado: \"B\"  ✗ pisa \"A\"      resultado: \"A\" + \"B\"  ✓\n```\n\n```\nappend sobre 4 registros: ids 1, 2, 3, 4\n\n 1 ──► ✓ escrito\n 2 ──► ✓ escrito\n 3 ──► ✗ falla   ◄ acá\n 4 ──► no se intenta\n\n error: append_partially_applied\n   written_ids: [1, 2]\n   failed_id:   3\n   pending_ids: [3, 4]   ◄ reintentá solo estos\n```\n\n**Diferencia**\n\n- `replace` es el default. Pisa el campo con lo que mandás y no lee el valor previo.\n- `append` conserva el contenido actual y pone el nuevo abajo, por registro. Solo vale para campos `html` y `text`. Los demás tipos se reemplazan igual en los dos modos.\n- Usá `append` cuando te piden *agregar* o *completar*. Mandá solo el contenido nuevo.\n- El motivo: un `write` plano en `description` borra lo que escribió una persona. Esos campos no dejan rastro en el chatter.\n\n**Si falla a mitad de camino**\n\n- El `append` es un write por registro, no una transacción. Los registros ya escritos no se revierten.\n- Si falla el registro k después de escribir otros, la tool devuelve `append_partially_applied`.\n- `pending_ids` incluye al registro fallido, porque tampoco se escribió. Reintentá solo con `pending_ids`. Si reintentás con todos los ids, duplicás contenido en los de `written_ids`.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`.\n- Si falla el primer registro, no se escribió nada. El error sale como un write fallido común (`invalid_values` o la excepción original). Ahí reintentá la llamada entera.\n\n**Dos protecciones más**\n\n- Si falla el pre-read o el schema, `append` devuelve `append_precheck_failed` y no escribe. Sin el valor actual, un `append` sería un `replace`.\n- Un valor que no es texto (por ejemplo `{\"description\": false}`) se rechaza con `append_requires_text`. Para vaciar un campo usá `mode=\"replace\"`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10185,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1013,
+  "output_tokens_details": {
+   "thinking_tokens": 158
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10185,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1013,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10185,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10185
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "cf2e9fca76"
+}

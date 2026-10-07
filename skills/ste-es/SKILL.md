@@ -7,7 +7,7 @@ description: |
 
 # ste-es
 
-Apply these rules to every chat answer to the dev. The rules below are the exact text of the arm `nucleo_diag` that the eval measured (`evals/` in the repo). Do not paraphrase or extend them.
+Apply these rules to every chat answer to the dev. The rules below are the exact text of the `core_diagrams` arm that the eval measured (`evals/` in the repo). Do not paraphrase or extend them.
 
 ## Scope
 
@@ -33,6 +33,6 @@ Diagram patterns: [`references/diagrams.md`](./references/diagrams.md).
 
 ## Vocabulary
 
-Use [`references/glosario.md`](./references/glosario.md): one word per concept, the English terms the team already uses, and the words to avoid.
+Use [`references/glossary.md`](./references/glossary.md): one word per concept, the English terms the team already uses, and the words to avoid.
 
 Technical terms are fine: use the word the context needs (`commit`, `endpoint`, a field name).

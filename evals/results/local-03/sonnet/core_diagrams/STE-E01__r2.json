@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Tu migración tiene que ser idempotente, habilitar RLS con su policy, y tener un test de aislamiento y un modelo Pydantic.\n\n**1. Creá el archivo de migración**\n\n```bash\nsupabase migration new <descripcion>\n```\n\nQueda en `supabase/migrations/NNNN_descripcion.sql`.\n\n**2. Escribí el SQL idempotente con RLS**\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- ...tus columnas\n    created_at   timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\n- Usá `IF NOT EXISTS` en tablas e índices. Usá el bloque `DO $$` en las policies.\n- `ENABLE ROW LEVEL SECURITY` ya es idempotente. No hace falta guardarlo.\n- Los nombres de columnas, el índice y el de la policy son ejemplos míos. Ajustalos a tu caso.\n\n**3. Agregá el test de aislamiento**\n\nVa en `tuqui_core/tests/test_rls.py`. La regla de RLS lo exige.\n\n**4. Creá el modelo Pydantic**\n\nTiene que corresponder a la tabla.\n\n**Reglas que el review mira**\n\n- No filtres por `workspace_id` solo en el application layer. RLS es la defensa principal.\n- Una tabla sin `workspace_id` es una excepción. Discutilo antes de abrir el PR.\n\n**Ojo con el preview del PR**\n\n- El preview corre tus migraciones contra la base de staging real, no contra una copia.\n- Tu migración se aplica ahí al abrir el PR.\n- Si renombrás el archivo, se aplica de nuevo, porque el tracking es por nombre.\n- Por eso la idempotencia es obligatoria. Evitá renombrar la migración una vez abierto el PR.\n- Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4514,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1274,
+  "output_tokens_details": {
+   "thinking_tokens": 286
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4514,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1274,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4514,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4514
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

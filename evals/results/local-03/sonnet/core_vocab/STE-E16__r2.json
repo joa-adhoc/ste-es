@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si editás un artifact ya compartido, el link sigue mostrando la versión publicada anterior. Un `save` con `artifact_id` no cambia lo que ve quien tiene el link.\n\n**Qué hace cada operación**\n\n- `save` sin `artifact_id` crea la v1 y la publica. El link nace funcionando.\n- `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`. No mueve `published_version_id`.\n  - El result trae `unpublished_changes: true`.\n  - El viewer interno muestra un banner.\n- `publish(version?)` mueve `published_version_id`. Sin argumento publica la última versión.\n- Para revertir, publicá una versión anterior con `publish(n)`.\n\n**Quién ve qué**\n\n- La ruta por token sirve siempre `published_version`.\n- El viewer interno navega por `current_version`, con selector de versión.\n\n**Qué pasa cuando solo se refrescan los datos**\n\n- Un refresh crea una versión solo-data, con `content` en `NULL`.\n- `service._effective_version` resuelve cada campo por separado hacia atrás. Toma el último `content IS NOT NULL` ≤ n y el último `data IS NOT NULL` ≤ n.\n- El diseño no se rompe: el template se hereda de la versión anterior y solo cambia el snapshot.\n- Si el `save` trae `data`, `validate_data_against_schema` lo valida contra el `data_schema` almacenado. Valida required keys y tipos de properties. Si el shape no coincide, rechaza antes de escribir.\n- Los caps son 1 MB para `content` y 1 MB para `data` serializada. Pasarse da error.\n\nUn refresh de datos también es un `save` con `artifact_id`. Por eso no llega al link hasta que hagas `publish`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4336,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 623,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4336,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 623,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4336,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4336
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

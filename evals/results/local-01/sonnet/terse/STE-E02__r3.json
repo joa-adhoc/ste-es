@@ -1,0 +1,43 @@
+{
+ "case": "STE-E02",
+ "arm": "terse",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Depende de quién consuma `description` del conector. Según tu material:\n\n**Si sólo la SPA lo pinta (cards, listados):** alcanza con tocar el cliente, más la migración y la API para que devuelva el mapa.\n**Si además entra a un prompt LLM, un mail o sale por MCP:** hay que resolver también en el backend, con la misma cadena de fallback.\n\nPreguntate eso primero. Si no estás seguro, revisá dónde se lee `description` de conectores en el backend.\n\n## Pasos de punta a punta\n\n1. **Migración:** ya existe una de referencia, `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Revisá si ya cubre tu caso. Si no:\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   La columna `description` legacy no se toca. Si tenés datos en un `description_en`, portalos como en `0206_features_i18n.sql`.\n\n2. **API (backend, sí hay que tocarlo):** el serializer devuelve `description_i18n` entero junto con `description`, sin filtrar por idioma. Para escribir y leer usá lo que ya está en `tuqui_core/i18n.py`:\n   - `normalize_i18n_keys` al guardar.\n   - `decode_i18n` al leer, porque asyncpg puede devolver `str` o dict.\n\n3. **Front (lectura):**\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas el fallback a mano. La cadena es `idioma exacto → en → legacy`.\n\n4. **Editor admin:** dos inputs (ES / EN). Al guardar, mandá `description_i18n` con las claves no vacías y espejá la legacy con `es || en`. Referencia: `AdminAgentEditorPage.tsx:95-115`.\n\n5. **Backend (sólo si aplica, por prompt, mail o MCP):** resolvé con `lang → en → legacy`. Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n\n6. **Caché:** sólo si resolvés en el server, el `queryKey` de react-query tiene que incluir el idioma.\n\n## Respuesta corta\n\nCon sólo cliente no alcanza: el backend se toca igual para el endpoint de lectura/escritura (normalizar, decodificar y devolver el mapa). Lo que sólo se agrega si el campo se consume fuera de la SPA es la resolución de idioma en el server.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4242,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 892,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4242,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 892,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4242,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4242
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

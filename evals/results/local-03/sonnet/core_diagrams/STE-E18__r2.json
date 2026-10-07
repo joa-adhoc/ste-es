@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Una memoria se guarda con un tope de 50 por scope, entra al prompt de cada turno como header corto, y el body completo se lee solo cuando el modelo lo pide.\n\n```\n┌──────────────┐   ┌───────────────────┐   ┌───────────────────────┐\n│ Guardado     │──►│ Cap: 50 por scope │──►│ _load_chat_setup      │\n│ (modelo)     │   │ FIFO por          │   │ inyecta headers en el │\n└──────────────┘   │ created_at        │   │ system prompt         │\n                   └───────────────────┘   └───────────┬───────────┘\n                                                       │\n                       ┌───────────────────────────────┴──────┐\n                       ▼                                      ▼\n          ┌────────────────────────┐        ┌─────────────────────────────┐\n          │ Headers ≤ 12K chars    │        │ Headers > 12K chars         │\n          │ van todos              │        │ rapidfuzz vs mensaje actual │\n          └────────────────────────┘        │ y se queda con el top-N     │\n                                            └─────────────────────────────┘\n                       │\n                       ▼\n          ┌─────────────────────────────────────────┐\n          │ Header con \"[read]\" → el modelo llama   │\n          │ manage_memory(action='read', id=...)    │\n          └─────────────────────────────────────────┘\n```\n\n**Guardado y eviction**\n- El tope es de 50 memorias por scope: por usuario en user-scope, por workspace en workspace-scope.\n- Al agregar la 51ª, se borra la más vieja por `created_at` en la misma transacción de DB.\n- La eviction es silenciosa para el usuario. Al modelo se le avisa en la respuesta del tool.\n- El material no describe cómo el modelo dispara el guardado.\n\n**Entrada al prompt (cada turno)**\n- `_load_chat_setup` en `tuqui_core/chat/agent.py` inyecta los headers después del bloque `CURRENT USER` y antes del bloque de proyecto.\n- Primero va `# Workspace memory (shared with team)` y después `# User memory (personal)`.\n- El header es `title + summary`. Sin summary, usa el body hasta 250 caracteres.\n- Si el body supera 250 caracteres y no hay summary, el header termina en `... [read]`.\n\n**Muchas memorias**\n- El peor caso son 50 memorias de tamaño máximo, unos 3K tokens por turno.\n- Si los headers superan `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), rapidfuzz puntúa cada header contra el mensaje actual del usuario y se queda con el top-N.\n- El material no define N. Tampoco aclara si el límite aplica por scope o al total.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4271,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1119,
+  "output_tokens_details": {
+   "thinking_tokens": 168
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4271,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1119,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4271,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4271
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

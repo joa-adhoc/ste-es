@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 1,
+ "result": "`connect_odoo` valida las credenciales contra Odoo, guarda todo en `workspaces` y, de forma opcional, vincula al Member que conecta con un `res.users`. Si cambia la URL, además desvincula a todos los members.\n\n## Recorrido\n\n1. **Endpoint:** `POST /workspaces/{slug}/odoo` exige auth de owner/admin y llama a `workspaces.service.connect_odoo(slug, payload, current_user_id)`.\n2. **Autenticación:** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`.\n3. **Chequeo de admin:** `_verify_odoo_admin_group` llama a `res.users.has_group(uid, 'base.group_system')`. Lanza `ValueError` si el usuario no es admin de sistema en Odoo.\n4. **Versión:** `JsonRpcTransport.get_version(url)` devuelve `detected_version`. Lanza `ValueError` si falla la detección o si la major es menor que `MIN_SUPPORTED`.\n5. **Modo de vinculación:** `_resolve_link_mode(...)` decide `auto`, `manual` o `none` (ver abajo).\n6. **Persistencia:** un `UPDATE workspaces` guarda `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`.\n   - El workspace pasa a \"conectado\".\n   - El rol `owner` no cambia.\n   - Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) rechaza el `UPDATE` y la API responde 409.\n7. **Cambio de URL:** si `url_changed`, se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner.\n8. **Vinculación del Member:** si el modo es `auto` o `manual`, un `UPDATE workspace_members` setea `odoo_user_id = linked_uid` para `(workspace_id, current_user_id)`. Después se lanza `asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))`.\n9. **Respuesta:** `WorkspaceConnectOdooResult` extiende `WorkspaceRead` y agrega `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## A qué usuario de Odoo vincula\n\n| Modo | Cuándo aplica | Resultado |\n|---|---|---|\n| `auto` | Default si `current_user.email == odoo_login` | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y bindea el Member a ese id |\n| `none` | Default si los emails no coinciden | El Member queda sin `odoo_user_id` |\n\nEl owner no necesita identidad en Odoo, así que `none` es válido. Puede haber varios owners.\n\n## Si cambia la URL\n\n- El código asume que una identidad guardada puede apuntar a otra instancia, así que limpia `odoo_user_id` y `odoo_api_key` de todos los members.\n- `members_invalidated` devuelve cuántos members se limpiaron. Vale 0 si la URL no cambió.\n- `warning` trae el mensaje que muestra la UI.\n- El paso 8 corre después de la limpieza. En `auto` o `manual`, quien conecta queda re-vinculado. Los demás members tienen que volver a vincularse.\n\n## Dudas del material\n\n- El material no muestra dónde se obtiene `database.uuid`. Verificá en el código si se lee en `connect_odoo` o en otro paso. Lo que confirma el flujo es que el 409 sale del índice único al hacer el `UPDATE`.\n- No queda claro si el `UPDATE workspaces` y el limpiado de members comparten transacción. Fijate en el código, porque define qué pasa si falla el paso 8.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4754,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1704,
+  "output_tokens_details": {
+   "thinking_tokens": 256
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4754,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1704,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4754,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4754
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

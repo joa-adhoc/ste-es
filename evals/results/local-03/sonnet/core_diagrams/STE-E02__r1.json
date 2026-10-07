@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Tocás el backend aunque resuelvas en el cliente, pero solo para guardar y devolver el mapa.** La resolución del idioma en el backend la necesitás únicamente si la descripción entra a un prompt LLM, a un mail o sale por MCP.\n\nAntes de empezar, fijate si ya existe `supabase/migrations/0201_platform_connectors_description_i18n.sql`. El material la cita como referencia para este mismo campo.\n\n**1. Migración**\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\nDejá `description` como está. Es la columna legacy y el último eslabón del fallback.\n\n**2. Backend (siempre)**\n- **Al escribir:** pasá el mapa por `normalize_i18n_keys` de `tuqui_core/i18n.py`. Baja las claves a dos letras minúsculas y tira las vacías.\n- **Al leer:** pasá el valor por `decode_i18n`. asyncpg devuelve JSONB como `str` o como dict según el pool.\n- **El serializer:** devolvé `description_i18n` entero junto con `description`. No filtres por idioma.\n- No reimplementes ninguno de los dos helpers.\n\n**3. Front (si solo lo pinta la SPA)**\n```tsx\nlocalizedField(row.description_i18n, row.description, i18n.language)\n```\nNo escribas el fallback a mano. La cadena es `idioma exacto → en → legacy`.\n\n**4. Editor de admin**\nPoné dos inputs (ES / EN). Al guardar, mandá `description_i18n` solo con las claves no vacías. Espejá la legacy con `es || en`:\n```ts\ndescription_i18n: { es, en },   // filtrá las vacías\ndescription: es || en,\n```\nReferencia: `AdminAgentEditorPage.tsx:95-115`.\n\n**5. Backend con resolución (solo si el consumidor no es la SPA)**\n- Resolvé con la misma cadena `lang → en → legacy`.\n- Tomá `lang` de `resolve_response_language(workspace_id, user_id)`.\n- No leas `Accept-Language`.\n- Si además la SPA lo pinta, hacé las dos cosas con la misma cadena. Ese es el caso de `agents`.\n\n**6. Caché**\nSi resolviste en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resolvés en el cliente, no hace falta.\n\nPara decidir entre 3 y 5, buscá dónde se lee `description` de los conectores. Si aparece en un prompt, un mail o la herramienta MCP, necesitás el paso 5.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4746,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1290,
+  "output_tokens_details": {
+   "thinking_tokens": 378
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4746,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1290,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4746,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4746
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

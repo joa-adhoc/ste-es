@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "full_v1",
+ "arm_hash": "cf2e9fca76",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\nContext Assembler ──► Planner ──► Investigator ──► Synthesizer ──► Guards ──► upsert\n (6 queries, RLS)    hipótesis    findings         teasers        3 capas     0-2 teasers\n                        │             │                              │\n                        ✗ silencio    ✗ sin findings                 ✗ todo rechazado\n```\n\n## Qué hace cada etapa\n\n1. **Context Assembler** (`context_assembler.py`): corre 6 queries en paralelo con el RLS del miembro. Trae `workspace_profiles`, `user_profiles`, memoria del workspace, memoria personal, conversaciones de los últimos 7 días e `insight_history` de los últimos 14 días. Arma un bundle en markdown de unos 2–4K tokens.\n2. **Planner** (`planner.py`): usa Gemini Flash con salida JSON y temperatura 1.0. Lee el bundle y devuelve `PlannerOutput(hypotheses, silence_reason)`.\n3. **Investigator** (`investigator.py`): un agente de Pydantic AI valida cada hipótesis con tools de solo lectura (las que no tienen `approval`). Devuelve `InvestigationFindings`.\n4. **Synthesizer** (`synthesizer.py`): un LLM con salida JSON y temperatura 1.0 convierte los findings en teasers.\n5. **Guards** (`guards.py`): tres capas en orden filtran los teasers.\n6. El pipeline hace upsert de 0 a 2 teasers en la tabla `insights`.\n\n## Qué pasa una etapa a la otra\n\n| De → a | Qué pasa |\n|---|---|\n| Assembler → Planner | El bundle en markdown. |\n| Planner → Investigator | De 0 a N hipótesis, cada una con su registro. |\n| Investigator → Synthesizer | `InvestigationFindings` por hipótesis. |\n| Synthesizer → Guards | Los teasers candidatos. |\n| Guards → upsert | Los teasers que pasaron las 3 capas. |\n\nEl registro de cada hipótesis define el tope del Investigator:\n\n| Registro | `max_iterations` | `max_tool_calls` | reasoning |\n|---|---|---|---|\n| `dato`, `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta`, `analisis` | 12 | 25 | medium |\n\n- El Investigator corre hasta 3 hipótesis a la vez (`asyncio.Semaphore(3)`).\n- Cada hipótesis tiene un presupuesto de `(watchdog_sec - 30) / n_hypotheses` segundos.\n\n## Capas de guards\n\n1. **ResponseGuard** (regex): rechaza patrones sospechosos como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` y `\"[nombre]\"`.\n2. **StringGrounding** (rapidfuzz): cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen del Investigator con `partial_ratio >= 75`.\n3. **LLM Judge**: usa el mismo modelo que el Synthesizer, con temperatura 0. Devuelve `{grounded, reason}`. Si el judge falla por infraestructura, el teaser pasa.\n\n## Cuándo termina sin mostrar nada\n\n- **El Planner no devuelve hipótesis.** Es un silencio válido: `hypotheses` queda vacío, `silence_reason` explica por qué y no se genera ningún teaser.\n- **Los guards rechazan todos los teasers.** El Synthesizer devuelve `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl material no define qué pasa en estos casos:\n- El Investigator se queda sin presupuesto de tiempo o de tools.\n- El Synthesizer no produce ningún teaser.\n- Falla el Planner.\n\nPara esos casos hay que leer el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10424,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1404,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10424,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1404,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10424,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10424
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

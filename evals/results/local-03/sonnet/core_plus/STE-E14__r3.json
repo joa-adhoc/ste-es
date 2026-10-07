@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "core_plus",
+ "arm_hash": "56317c7d75",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los insights diarios salen de un pipeline de 3 etapas, precedido por un armado de contexto. Termina con 0 a 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n## Context Assembler (`context_assembler.py`)\n- **Qué hace:** corre 6 consultas en paralelo bajo el RLS del usuario.\n- **Fuentes:** `workspace_profiles`, `user_profiles`, `memory` (scope workspace), `memory` (scope usuario), `chat_conversations` (últimos 7 días: título y último mensaje, sin resumen por LLM) e `insight_history` (últimos 14 días, para evitar repetir datos).\n- **Qué pasa a la siguiente etapa:** un bundle en markdown de ~2–4K tokens.\n\n## Etapa 1: Planner (`planner.py`)\n- **Qué hace:** propone hipótesis a investigar. Usa `platform_config.insights_planner_model`, o el modelo por defecto de la plataforma si no está configurado. El prompt es `INSIGHTS_PLANNER_PROMPT`.\n- **Qué pasa a la siguiente etapa:** `PlannerOutput(hypotheses, silence_reason)`, con 0 a N hipótesis.\n\n## Etapa 2: Investigator (`investigator.py`)\n- **Qué hace:** un agente Pydantic AI investiga cada hipótesis con tools de solo lectura (sin `approval`).\n- **Límites por registro** (`REGISTER_CAPS`):\n  - `dato` y `celebracion`: 4 iteraciones y 6 tool calls.\n  - `observacion`: 8 iteraciones y 15 tool calls.\n  - `alerta` y `analisis`: 12 iteraciones y 25 tool calls.\n- **Concurrencia:** hasta 3 hipótesis a la vez (`asyncio.Semaphore(3)`).\n- **Tiempo por hipótesis:** `(watchdog_sec - 30) / n_hypotheses`.\n- **Qué pasa a la siguiente etapa:** `InvestigationFindings`.\n\n## Etapa 3: Synthesizer + Guards (`synthesizer.py`, `guards.py`)\n- **Qué hace:** el LLM genera teasers a partir de los findings. Después se aplican 3 guards en orden:\n  1. **ResponseGuard (regex):** rechaza patrones como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` y `\"[nombre]\"`.\n  2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado del investigator con `partial_ratio >= 75`.\n  3. **LLM Judge:** usa el mismo modelo que el synthesizer, con temperatura cero, y devuelve `{grounded, reason}`. Si el judge falla por infraestructura, el teaser pasa.\n- **Salida:** de 0 a 2 teasers.\n\n## Cuándo termina sin mostrar nada\n- **Silencio del Planner:** devuelve 0 hipótesis. Es un silencio válido y no se generan teasers. El motivo queda en `silence_reason`.\n- **Todos los teasers rechazados:** el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. Un teaser se rechaza si falla cualquiera de los 3 guards.\n\nEl material no dice qué pasa si el Investigator no encuentra nada, si se agota el tiempo o los límites de un registro, o si el Synthesizer devuelve 0 teasers por sí mismo. Confirmalo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4710,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1304,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4710,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1304,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4710,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4710
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

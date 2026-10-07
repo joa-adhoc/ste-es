@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Tu migración tiene que crear la tabla, activar RLS, definir la policy y ser idempotente. Además necesitás un test y un modelo Pydantic.\n\n**Pasos**\n\n1. Creá el archivo con `supabase migration new <nombre>`. Queda en `supabase/migrations/` como `NNNN_descripcion.sql`.\n2. Escribí la migración. Tiene que correr varias veces sin error.\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n4. Creá el modelo Pydantic de la tabla.\n\n**Migración**\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- tus columnas\n    created_at timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\nLas columnas, el índice sobre `workspace_id` y el nombre de la policy son ejemplos míos. El material no los exige.\n\n**Qué mira el review**\n\n- Usá `CREATE TABLE IF NOT EXISTS` y `CREATE INDEX IF NOT EXISTS`.\n- Envolvé `CREATE POLICY` en `DO $$ ... IF NOT EXISTS ... $$`.\n- `ENABLE ROW LEVEL SECURITY` ya es idempotente. No hace falta guardia.\n- La policy usa exactamente `workspace_id = current_setting('app.current_workspace_id')::uuid`.\n- No filtres por `workspace_id` solo en el application layer. RLS es la defensa principal.\n- Agregá el test en `tests/test_rls.py`.\n\n**Cuidado con el preview del PR**\n\n- El preview corre tus migraciones contra la base de staging. Es la misma base, no una copia.\n- La migración se aplica ahí apenas abrís el PR.\n- Si renombrás el archivo, se aplica de nuevo. El tracking es por nombre de archivo.\n- Elegí el nombre definitivo antes de abrir el PR.\n- Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\nSi la tabla no llevara `workspace_id`, discutilo antes con el equipo. Es una excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4451,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1171,
+  "output_tokens_details": {
+   "thinking_tokens": 104
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4451,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1171,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4451,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4451
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

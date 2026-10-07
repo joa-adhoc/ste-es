@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El flujo va en tres actores: el front inicia y recibe el redirect final, el backend firma el `state` e intercambia tokens, y el provider autentica y emite el `code`. Si algunas habilidades no contestan tras el intercambio, el usuario queda conectado con una advertencia. Solo se borra el token si ninguna contesta.\n\n## Flujo paso a paso\n\n**Preparación (admin)**\n1. El admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n**Inicio (front → backend)**\n2. El user abre `/connectors` y clickea **Connect**.\n3. El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve el `authorize_url` con:\n   - un `state` firmado con AES-GCM, TTL de 10 min, con payload `{server_id, user_id, issued_at, nonce}`. Opcionalmente suma `code_verifier` (PKCE) y `scope_profile` (platform connectors).\n   - `access_type=offline` y `prompt=consent`. Google solo emite refresh tokens si están ambos. El primero los pide. El segundo fuerza re-issue en cada authorize, así un disconnect+reconnect no queda sin refresh. Los otros providers ignoran params desconocidos (RFC 6749 §3.1).\n   - `resource` (RFC 8707), solo si el server declaró su URI canónica.\n\n**Autorización (front → provider)**\n4. El front redirige al provider. El user se autentica y consiente.\n5. El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**Callback (backend ↔ provider)**\n6. El backend valida el `state`. Luego intercambia `code` por tokens en `token_url` (con `resource` si está guardado). Guarda los tokens encriptados en `user_mcp_oauth_tokens`.\n7. El backend corre la prueba de humo (ver abajo).\n8. El backend redirige al SPA:\n   - `/w/{slug}/settings/connectors?connected={server_id}` si el dueño es un user.\n   - `/w/{slug}/settings/members/{member_id}?connected=...` si el dueño es una cuenta de servicio. El landing sale del dueño, no de un `return_to`.\n\n**Después de conectar**\n- `refresh_if_expired` corre al construir los toolsets. Refresca si quedan menos de 60 s de validez, y manda `resource` si está guardado.\n\n## Sobre `resource` (RFC 8707)\n\nViaja en los pasos 3, 6 y el refresh. Sale de `OAuthPerUserConfig.resource`, que escribe el discovery. El backend lo manda solo si está guardado. Los conectores anteriores al campo siguen andando sin indicator. Un valor adivinado es peor que ninguno, porque un AS que valida rechaza cualquier valor desconocido.\n\n## Si algunas habilidades no contestan\n\nDespués del intercambio, el callback introspecta **todas** las habilidades habilitadas en paralelo:\n\n| Resultado | Qué pasa | Redirect |\n|---|---|---|\n| Ninguna contesta | El token no sirve: se borra | `connect_error=<motivo>` (banner de error) |\n| Alguna contesta | El user queda conectado | `connect_warning=<habilidades>` (banner de conexión parcial) |\n\nDesconectar por una habilidad rota sería peor que el estado parcial, que el user sí puede usar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4684,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1222,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4684,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1222,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4684,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4684
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

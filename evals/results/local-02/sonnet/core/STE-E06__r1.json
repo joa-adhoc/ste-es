@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "core",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Qué pasa:** los worktrees comparten la misma DB local. Tu compañero corrió migraciones de su rama, probablemente una destructiva que borró columnas. Tu código todavía lee esas columnas, así que tus tests fallan con `UndefinedColumnError`.\n\nEl lock de `flock` no ayuda acá. Evita corridas simultáneas, pero no aísla el esquema. La DB queda con la unión de las migraciones de los dos worktrees.\n\n**Arreglo inmediato:** corré `make migrate-reset`. Arma una base desde cero en unos 3 segundos. No uses `npx supabase db reset`: aborta en los prefijos numéricos repetidos.\n\nOjo: si tu compañero corre tests después con su rama, le rompe la base a él. Mientras compartan DB, el problema vuelve.\n\n**Para que no se repita:** dale a tu worktree su propia base.\n\n1. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`. El archivo está gitignoreado.\n2. Cambiá ahí la URL de la base por una propia de tu worktree.\n3. Corré `make migrate-reset` para crearla.\n\n**Sobre el lock:** seguí usándolo por ahora. Para soltarlo con un `TEST_LOCK` distinto, necesitás base **y** Redis propios. Para el Redis, poné un `REDIS_URL` con un índice de base propio. No uses el 15 (default compartido de `.env.test`) ni el 0 (servidor de desarrollo). Aislar solo uno de los dos recursos no alcanza.\n\nPedile lo mismo a tu compañero, para que cada worktree tenga su base.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4365,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 587,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4365,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 587,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4365,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4365
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "258f981e66"
+}

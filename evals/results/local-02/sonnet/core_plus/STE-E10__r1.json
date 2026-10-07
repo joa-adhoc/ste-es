@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "core_plus",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El orden es: (1) `workspace_write_models`, (2) el evaluator en `evaluate_permission`, (3) `tool.execute()`. Dentro del evaluator, el deny del workspace gana siempre.\n\n## Orden de decisión\n\n1. **`workspace_write_models`**: si el admin no permitió la operación sobre ese modelo, el tool corta acá. No llega al evaluator.\n2. **`evaluate_permission`**, en este orden:\n   1. `workspace_tool_approvals` con `deny` → **DENY**. Es un piso: ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` para `(user_id, workspace_id, tool_name)`: si hay fila, esa `action` gana. Se saltea en `exposure`, `webhook` y `scheduled`.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila: **ASK** si el recurso está en `approval` (`\"ask\"` o `\"always\"`), **ALLOW** si no. Para tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**: se audita en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin \"ask\", miembro \"allow\"\n\nGana el miembro: el tool corre sin preguntar. Eso vale solo si el admin puso `ask`, no `deny`.\n\n- El paso 1 solo mira `deny`, así que `ask` no lo dispara.\n- El paso 2 encuentra la fila del miembro con `allow` y corta ahí.\n- El `ask` del admin (paso 3) nunca se evalúa.\n\nSi el admin quiere forzar la pregunta, tiene que poner `deny`, o el miembro no debe tener fila propia. `ask` del admin es un default, no un piso.\n\nEste caso asume un canal con identidad personal, como el chat normal. Además, la preferencia del miembro solo aplica en ese workspace.\n\n## Caso 2: agent por webhook\n\nLa preferencia personal no cuenta. El paso 2.2 se saltea entero porque `webhook` no tiene identidad personal (`ChannelProfile.personal_identity_applies`). El turno corre con la identidad prestada de un miembro, pero esa preferencia no es política del canal.\n\nLa decisión sale de la grilla del workspace:\n\n- `deny` del workspace → DENY.\n- `allow` → ALLOW.\n- `ask` → ASK.\n- Sin fila → default por recurso.\n\nFijate en qué pasa con un ASK en un canal sin humano. El material no dice cómo se resuelve ese ASK en `webhook` o `scheduled`. Revisá `chat/client_facing_core.py` o el handler del canal para confirmarlo antes de asumir que se bloquea o se aprueba solo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4462,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 987,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4462,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 987,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4462,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4462
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

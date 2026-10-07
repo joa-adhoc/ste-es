@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "full_v1_no_diagrams",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Diferencia\n\nUn `write` de Odoo pisa el valor completo del campo. En campos de texto largo (`description`, `task_description`, notas internas) eso es irreversible: el chatter no guarda el valor anterior.\n\n| Modo | Qué hace |\n|---|---|\n| `replace` (default) | Pisa lo que mandás. No lee el valor previo. |\n| `append` | Lee el valor actual de los campos `html` y `text`, y pone el contenido nuevo abajo. Lo hace por registro. |\n\n- En los dos modos, los campos de otros tipos se reemplazan igual.\n- Si el pedido es \"agregar\" o \"completar\", el LLM manda `append` con solo el contenido nuevo.\n- `append` exige texto. Para vaciar un campo mandá `mode=\"replace\"`. Con `{\"description\": false}` en `append`, la tool responde `append_requires_text`.\n\n## Si el append falla a mitad de camino\n\nEl append es un write por registro, no una transacción. Hay dos casos.\n\n1. **Falla el primer registro.** No se escribió nada. La tool devuelve un error común (`invalid_values` o la excepción). Reintentá la llamada entera.\n2. **Falla el registro k, con otros ya escritos.** Los anteriores no se revierten. La tool devuelve `append_partially_applied` con:\n   - `written_ids`: los registros ya escritos.\n   - `failed_id`: el registro que falló.\n   - `pending_ids`: los registros a reintentar. Incluye a `failed_id`, porque tampoco se escribió.\n\nReintentá solo con `pending_ids`. Si reintentás todo, los de `written_ids` reciben el contenido dos veces.\n\nLos ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.\n\nHay otro fallo: si el pre-read falla o no se resuelve el schema, la tool devuelve `append_precheck_failed` y no escribe. Sin el valor actual, un `append` sería un `replace`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8734,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 734,
+  "output_tokens_details": {
+   "thinking_tokens": 41
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8734,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 734,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8734,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8734
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -130,7 +130,7 @@ def table(summary):
             "contradicted", "incorrect", "violations_per100", "voseo_share",
             "diagram_rate_structure", "diagram_rate_flat", "diagram_errors"]
     arms = [a for a in ARM_ORDER if a in summary]
-    lines = ["| métrica | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
+    lines = ["| metric | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
     for c in cols:
         lines.append(f"| {c} | " + " | ".join(str(summary[a][c]) for a in arms) + " |")
     return "\n".join(lines)
@@ -161,12 +161,12 @@ def main():
         report[model] = {"arms": summary, "deltas": deltas, "pairwise": pairwise(args.run_id, model),
                          "pairwise_vs_baseline": pairwise(args.run_id, model, "baseline")}
         md += [f"## {model}", "", table(summary), "",
-               f"Cambio contra `{REFERENCE}` (mediana por caso, IC 95%):", ""]
+               f"Change vs `{REFERENCE}` (per-case median, 95% CI):", ""]
         md += [f"- {k}: {v}" for k, v in deltas.items()]
-        md += ["", f"Preferencia a ciegas (cada brazo contra `{REFERENCE}`):", ""]
+        md += ["", f"Blind preference (each arm vs `{REFERENCE}`):", ""]
         md += [f"- {k}: {v}" for k, v in report[model]["pairwise"].items()]
         if report[model]["pairwise_vs_baseline"]:
-            md += ["", "Preferencia a ciegas (cada brazo contra `baseline`, Claude Code sin nada):", ""]
+            md += ["", "Blind preference (each arm vs `baseline`, plain Claude Code):", ""]
             md += [f"- {k}: {v}" for k, v in report[model]["pairwise_vs_baseline"].items()]
         md.append("")
     out = RESULTS / args.run_id

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "terse",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué poner en el archivo:** la línea `-- destructive: true` cerca del inicio de la migración que dropea la columna. Sin eso, el runner la trata como aditiva y la aplica en cualquier lado.\n\n**Qué pasa en cada etapa:**\n\n1. **PR env (Railway):** comparte la base de staging con el servicio de staging, que sigue con el código viejo. Aunque el PR env herede `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, el runner mira también `RAILWAY_GIT_BRANCH`. Como la rama no es `staging` ni `main`, **saltea la migración sin registrarla** en `_migrations`. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado y también la saltea. Las migraciones aditivas del mismo PR sí se aplican a la base de staging desde el preview.\n2. **CI y local (`scripts/apply_migrations.py`):** se aplica solo donde la base es efímera y no la comparte nadie, o sea el postgres de servicio del workflow, el container del stack e2e y la base de pytest. Esas bases activan el opt-in con `MIGRATIONS_ALLOW_DESTRUCTIVE=1` o `allow_destructive=True`. **`make migrate` no la aplica**, porque apunta a la base de desarrollo local compartida entre worktrees.\n3. **Deploy de staging o `main` tras el merge:** se cumplen las dos condiciones (flag en `1` y rama `staging` o `main`), así que ahí se aplica y se registra. Como nunca se registró antes, no se pierde.\n\n**Cuidado:** si tu PR también trae migraciones aditivas, esas ya van a estar aplicadas en staging desde el preview. Revisá `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\" para las consecuencias al mergear o renombrar archivos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4036,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 673,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4036,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 673,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4036,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4036
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "54a865d10e"
+}

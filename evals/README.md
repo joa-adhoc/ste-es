@@ -1,30 +1,32 @@
-# Eval de ste-es
+# ste-es eval
 
-Mide si las reglas de ste-es cumplen el objetivo: que la respuesta sea sencilla, concisa y directa, para que el dev no tenga que repreguntar ("resumime", "dame un ejemplo"), sin perder hechos y sin gastar más tokens.
+Measures whether the ste-es rules meet their goal: an answer that is simple, concise and direct, so the dev does not have to ask again ("resumime", "dame un ejemplo"), without losing facts and without spending more tokens.
 
-## Brazos
+## Arms
 
-Todos usan el system prompt por defecto de Claude Code. Solo cambia el texto que se suma con `--append-system-prompt`. Cada brazo es un archivo congelado en `arms/`: editar la skill no cambia un brazo que ya tiene respuestas. Para medir una versión nueva, se agrega un brazo nuevo.
+Every arm keeps Claude Code's default system prompt. Only the text added with `--append-system-prompt` changes. Each arm is a frozen file in `arms/`: editing the skill never changes an arm that already has answers. To measure a new version, add a new arm.
 
-| Brazo | Texto agregado |
+| Arm | Added text |
 |---|---|
-| `baseline` | ninguno: Claude Code sin nada |
-| `breve` | "Respondé de forma concisa." Es la referencia de la preferencia a ciegas. |
-| `nucleo` | regla 0 y 4 reglas |
-| `nucleo_plus` | `nucleo` + respuesta en la primera oración + ejemplo concreto |
-| `nucleo_diag` | `nucleo_plus` + diagramas solo con 3 o más partes relacionadas, sin repetir en el texto |
-| `nucleo_ste` | `nucleo_plus` + una palabra un significado + verbos simples |
-| `completo` | foto de STE-ES v1 (13 reglas, glosario y diagramas) del 6-oct-2026 |
-| `skill_v2` | foto de la skill publicada: cuerpo de `SKILL.md` (reglas de `nucleo_diag` sin cambios + alcance) y el glosario de la skill. Todavía sin medir. |
-| `completo_sin_diag` | `completo` sin la parte de diagramas. Defecto conocido: todavía menciona diagramas en la introducción y termina con "No uses diagramas", así que da instrucciones contradictorias. Solo está en `local-02`. |
+| `baseline` | none: plain Claude Code |
+| `terse` | "Respondé de forma concisa." The reference for blind preference. |
+| `core` | rule 0 and 4 rules |
+| `core_plus` | `core` + answer in the first sentence + concrete example |
+| `core_diagrams` | `core_plus` + diagrams only for 3 or more related parts, not repeated in the text |
+| `core_vocab` | `core_plus` + one word per concept + simple verbs |
+| `full_v1` | snapshot of STE-ES v1 (13 rules, glossary and diagrams) from 2026-10-06 |
+| `full_v1_no_diagrams` | `full_v1` without the diagram part. Known flaw: it still mentions diagrams in its intro and ends with "No uses diagramas", so its instructions contradict each other. Only in `local-02`. |
+| `skill_v2` | snapshot of the published skill: the body of `SKILL.md` (the `core_diagrams` rules unchanged, plus scope) and the glossary. Not measured yet. |
 
-Cada respuesta guarda el hash de su brazo. Cada veredicto guarda el modelo, la configuración y el hash del texto que juzgó: si alguno cambia, se rehace en vez de reutilizarse.
+Each answer stores the hash of its arm. Each verdict stores the model, the settings and the hash of the text it judged: if any of them changes, the verdict is redone instead of reused.
 
-## Aislamiento
+Arm texts, cases and the judge, reader and grader prompts are in Spanish, because the answers being measured are in Spanish.
 
-Cada respuesta corre con `claude -p` en un directorio vacío, sin settings de usuario (hooks, plugins), sin MCP, sin conectores de claude.ai y sin web. Las tools nativas quedan prendidas: son iguales en todos los brazos y el material va dentro del prompt. Antes de empezar, un canario le pide al modelo las instrucciones extra que recibió, y la corrida se corta si aparece algo del entorno del usuario.
+## Isolation
 
-## Correr
+Each answer runs with `claude -p` in an empty directory, with no user settings (hooks, plugins), no MCP servers, no claude.ai connectors and no web access. Native tools stay on: they are the same in every arm, and the material is inside the prompt. Before a run, a canary asks the model which extra instructions it received, and the run stops if anything from the user's own setup shows up.
+
+## Run
 
 ```bash
 python3 run.py --run-id local-03 --models sonnet --runs 3
@@ -35,32 +37,32 @@ python3 comprehension.py --run-id local-03 --model sonnet
 python3 measure.py --run-id local-03
 ```
 
-Las corridas se retoman: lo que ya existe se saltea. Cada invocación de `run.py` agrega una línea a `results/<run>/runs.jsonl`. `results/` y `judge/` se commitean como fuente de los números.
+Runs resume: whatever exists is skipped. Each `run.py` call appends a line to `results/<run>/runs.jsonl`. `results/` and `judge/` are committed as the source of the numbers.
 
-## Métricas
+## Metrics
 
-**Objetivo:**
+**Goal:**
 
-| Métrica | Fuente |
+| Metric | Source |
 |---|---|
-| Comprensión: 3 preguntas de control por caso, contestadas solo con la respuesta y corregidas contra una clave | `comprehension.py` |
-| Tasa de repregunta, por tipo (resumen, ejemplo, aclaración, dato) | `reader.py`: un lector lee solo la pregunta y la respuesta, 3 veces; decide la mayoría y se informa el acuerdo |
-| Respuesta en la primera oración | `reader.py` |
-| Tokens hasta entender: respuesta + repregunta generada con el mismo brazo. Se informa solo si todas las respuestas del brazo tienen lectura completa. | `reader.py`, uso de Claude |
-| Tokens de entrada: lo que las reglas suman a cada llamada | uso de Claude |
+| Comprehension: 3 control questions per case, answered from the answer alone and graded against a key | `comprehension.py` |
+| Follow-up rate, by type (summary, example, clarification, missing fact) | `reader.py`: a reader sees only the question and the answer, 3 times; the majority decides and agreement is reported |
+| Answer in the first sentence | `reader.py` |
+| Tokens to understand: the answer plus the follow-up answer from the same arm. Reported only when every answer of the arm has a complete reading. | `reader.py`, Claude usage |
+| Input tokens: what the rules add to each call | Claude usage |
 
-**Guarda** (un brazo no gana si las empeora):
+**Guard** (an arm does not win if it makes these worse):
 
-| Métrica | Fuente |
+| Metric | Source |
 |---|---|
-| Hechos y condiciones conservados, afirmaciones incorrectas | `judge.py` |
-| Preferencia a ciegas de cada brazo contra `breve` y contra `baseline` | `judge.py`, orden A/B al azar |
+| Facts and conditions kept, incorrect claims | `judge.py` |
+| Blind preference of each arm against `terse` and against `baseline` | `judge.py`, random A/B order |
 
-**Diagnóstico** (`lint.py`, determinístico): palabras totales y de prosa, violaciones cada 100 palabras (oraciones de más de 25 palabras, punto y coma, gerundios, relleno, nominalizaciones, tuteo), voseo y diagramas en casos con estructura y sin ella.
+**Diagnostics** (`lint.py`, deterministic): total and prose words, violations per 100 words (sentences over 25 words, semicolons, gerunds, filler, nominalizations, tuteo), voseo, and diagrams in cases with and without structure.
 
-## Límites
+## Limits
 
-- El linter mide las reglas de STE-ES, así que favorece a los brazos con reglas por diseño.
-- Las heurísticas de voseo y gerundio son aproximadas.
-- El juez, el lector y el generador son modelos de Claude. El lector simula a un dev, no lo reemplaza.
-- Los casos los escribió quien arma las reglas.
+- The linter checks the ste-es rules, so it favors arms with rules by design.
+- The voseo and gerund heuristics are approximate.
+- The judge, the reader and the generator are all Claude models. The reader simulates a dev; it does not replace one.
+- The cases were written by the people who wrote the rules.

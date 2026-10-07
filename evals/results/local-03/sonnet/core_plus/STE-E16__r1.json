@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "core_plus",
+ "arm_hash": "56317c7d75",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Si editás un artifact ya compartido, el link sigue mostrando la versión publicada anterior. La edición crea una versión nueva, pero no la publica.\n\n**Qué pasa al guardar**\n- `save` sin `artifact_id` crea la v1 y la publica. El link nace funcionando.\n- `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`. No mueve `published_version_id`.\n- El result trae `unpublished_changes: true`, y el viewer muestra un banner.\n\n**Qué ve cada uno**\n- Quien tiene el link (ruta por token) ve siempre `published_version`.\n- Quien entra por el viewer interno ve `current_version` y puede cambiar de versión con el selector.\n\n**Cómo publicar o revertir**\n- `publish(version?)` mueve el puntero publicado. Sin argumento, publica la última versión.\n- Para revertir, publicá una versión anterior.\n\n**Qué pasa cuando solo se refrescan los datos**\n- `content` es el template (la página completa). `data` es un snapshot JSON opcional.\n- Un refresh de datos crea una versión solo-data, con `content` en NULL. El diseño no se rompe.\n- Cada versión resuelve su efectivo hacia atrás, por separado. Toma el último `content IS NOT NULL` ≤ n y el último `data IS NOT NULL` ≤ n (`service._effective_version`).\n- Al renderizar, el front inyecta `data` en `<script type=\"application/json\" id=\"tuqui-data\">`. El template lo lee con `JSON.parse(document.getElementById('tuqui-data').textContent)`.\n\n**Validaciones**\n- Un `save` sobre un artifact existente con `data` valida contra el `data_schema` almacenado. Chequea keys required y tipos de properties.\n- Si el shape no es compatible, rechaza antes de escribir.\n- Los caps son fail-loud: `content` ≤ 1 MB y `data` serializada ≤ 1 MB.\n\n**No está claro en el material:** si un refresh de datos publica solo o deja `unpublished_changes: true`. Por la regla general de `save`, debería quedar sin publicar. Confirmalo en el código antes de apoyarte en eso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4194,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 768,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4194,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 768,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4194,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4194
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

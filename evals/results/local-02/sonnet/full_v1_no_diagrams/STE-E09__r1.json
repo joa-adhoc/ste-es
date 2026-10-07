@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "full_v1_no_diagrams",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Flujo completo\n\n| # | Actor | Qué pasa |\n|---|---|---|\n| 1 | Admin | Registra el server con `auth_type=oauth_per_user`. Carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. |\n| 2 | Front | El miembro abre `/connectors` y clickea **Connect**. |\n| 3 | Front y backend | El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con un `state` firmado. |\n| 4 | Front | Redirige al provider. |\n| 5 | Provider | Autentica al miembro y redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. |\n| 6 | Backend | Valida el `state`, cambia el `code` por tokens en `token_url` y guarda los tokens encriptados en `user_mcp_oauth_tokens`. |\n| 7 | Backend | Redirige al SPA con el resultado. |\n| 8 | Backend | Cada vez que arma los toolsets, `refresh_if_expired` renueva el token si quedan menos de 60 s de validez. |\n\n### Detalle del paso 3\n\n- El `state` va encriptado con AES-GCM y vence a los 10 minutos.\n- Su payload es `{server_id, user_id, issued_at, nonce}`.\n- Puede traer también un `code_verifier` de PKCE y un `scope_profile` (este último solo en platform connectors).\n- La URL incluye `access_type=offline` y `prompt=consent`.\n- Google emite refresh tokens solo si están los dos params. `prompt=consent` fuerza un token nuevo en cada authorize, así que un disconnect y reconnect no deja al miembro sin refresh.\n- Los otros providers ignoran los params que no conocen (RFC 6749 §3.1).\n\n### Detalle del paso 7\n\n- Landing normal: `/w/{slug}/settings/connectors?connected={server_id}`.\n- Si el dueño es una cuenta de servicio: `/w/{slug}/settings/members/{member_id}?connected=...`.\n- El landing sale del dueño del token. No hay un `return_to` aparte.\n\n### El `resource` de RFC 8707\n\n- Viaja en los pasos 3, 6 y 8.\n- El backend lo manda solo si el discovery lo guardó en `OAuthPerUserConfig.resource`.\n- Los conectores creados antes de ese campo siguen sin `resource`.\n- El backend no adivina el valor. Un AS que valida el `resource` rechaza cualquier URI que no reconozca.\n\n## Si algunas habilidades no contestan\n\nDespués del intercambio, el callback introspecta en paralelo todas las habilidades habilitadas.\n\n| Resultado | Qué hace el backend | Qué ve el miembro |\n|---|---|---|\n| Ninguna contesta | Borra el token: no sirve para nada. | Redirect con `connect_error=<motivo>`. La card muestra el banner de error. |\n| Alguna contesta | Conserva el token. | Redirect con `connect_warning=<habilidades>`. La card muestra el banner de conexión parcial. |\n\nEl caso parcial deja al miembro conectado a propósito. Desconectarlo por una habilidad rota sería peor que dejarle el estado parcial, porque con ese estado todavía puede usar las habilidades que funcionan.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8807,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1485,
+  "output_tokens_details": {
+   "thinking_tokens": 306
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8807,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1485,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8807,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8807
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "core_diagrams",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Quien tiene el link sigue viendo la versión publicada, no tu edición. La ruta por token sirve siempre `published_version`.\n\n**Al editar un artifact ya compartido**\n- `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`.\n- No mueve `published_version_id`, así que el link que circuló no cambia.\n- El result devuelve `unpublished_changes: true` y el viewer muestra un banner.\n- El viewer interno navega por `current_version`, con selector. Vos ves la nueva versión, el del link no.\n\n**Para que el link muestre el cambio**\n- Corré `publish()`: mueve el puntero a la última versión.\n- `publish(version)` apunta a una versión puntual. Publicar una versión anterior es el revert.\n\n**Primer save**\n- `save` sin `artifact_id` crea la v1 y la publica. Así crear→compartir no da 404.\n\n**Refresh de datos**\n- Crea una versión solo-data (`content` nulo) y no puede romper el diseño.\n- El efectivo de la versión `n` se resuelve por separado hacia atrás. Toma el último `content IS NOT NULL` ≤ n y el último `data IS NOT NULL` ≤ n (`service._effective_version`).\n- El front inyecta `data` como `<script type=\"application/json\" id=\"tuqui-data\">`. El template lo lee con `JSON.parse(document.getElementById('tuqui-data').textContent)`.\n- Un `save` con `data` sobre un artifact existente se valida contra el `data_schema` almacenado (`validate_data_against_schema`). Si el shape no es compatible, rechaza antes de escribir.\n- Un refresh es una versión más. El link sigue en `published_version` hasta que publiques.\n\n**Límites:** `content` ≤ 1 MB y `data` serializada ≤ 1 MB (`models.CONTENT_MAX_BYTES` / `DATA_MAX_BYTES`). Pasarse falla con error.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4405,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 682,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4405,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 682,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4405,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4405
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

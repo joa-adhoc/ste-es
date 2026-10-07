@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "core_plus",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Hacés dos cosas mal: corrés `pytest` desde la raíz, y dejás la expresión de `-k` sin comillas.\n\n**Forma correcta:** usá `make` desde la raíz y poné comillas internas en `ARGS`.\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\n**Error 1: `pytest` en la raíz.** La config (`asyncio_mode`, loop scopes, markers, `testpaths`) vive en `tuqui_core/pyproject.toml`. Desde la raíz pytest no la ve, pierde el modo asyncio y colecta `evals/tests`. El resultado fue un mar de fallas falsas (medido: 2302 failed / 2111 passed). El `conftest.py` de la raíz corta esa invocación con un mensaje.\n\nSi querés pytest crudo, hacé esto:\n\n```bash\ncd tuqui_core\npytest -k \"a or b\"\n```\n\nSi el código lee `os.environ` directo, cargá `.env.test` como hace el Makefile.\n\n**Error 2: `-k a or b` sin comillas.** El shell parte la expresión en tres argumentos. Pytest lee `or` como un path y falla con `file or directory not found: or`. `make` expande `ARGS` literal, así que las comillas internas sí funcionan.\n\n**Otros comandos útiles:**\n\n```bash\nmake test ARGS=\"tests/test_rls.py -k policy\"  # paths relativos a tuqui_core/\nmake test-rls\nmake test-web\nmake test-evals\nmake lint\n```\n\n**Salvedad:** `pytest tuqui_core/tests/test_x.py` desde la raíz corre bien, porque pytest resuelve el rootdir en `tuqui_core`. Pero se saltea el lock del Makefile. Preferí `make test`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4190,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 611,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4190,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 611,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4190,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4190
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

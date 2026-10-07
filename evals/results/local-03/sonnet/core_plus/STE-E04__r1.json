@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "core_plus",
+ "model": "sonnet",
+ "run": 1,
+ "result": "`replace` pisa el campo entero. `append` conserva lo que ya hay y agrega el contenido nuevo abajo.\n\n**Diferencia**\n- `replace` (default) escribe lo que mandás y no lee nada antes. Si el campo tenía texto de una persona, se pierde sin rastro en el chatter.\n- `append` lee el valor actual de cada registro y concatena el nuevo. Aplica solo a campos `html` y `text`. Los demás tipos se reemplazan igual en los dos modos.\n- Usá `append` cuando te piden *agregar* o *completar*. Mandá solo el contenido nuevo.\n\n```python\nodoo_write(model=\"project.task\", ids=[1, 2, 3],\n           values={\"description\": \"<p>Nota nueva</p>\"}, mode=\"append\")\n```\n\n**Si el append falla a mitad de camino**\n\nEl append es un write por registro, no una transacción. Los registros ya escritos no se revierten.\n\n- **Falla en el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción). Reintentá la llamada entera.\n- **Falla en el registro k, con alguno escrito antes:** el error es `append_partially_applied`. Trae tres listas:\n  - `written_ids`: ya escritos. No los reintentes, duplicarías contenido.\n  - `failed_id`: el que falló.\n  - `pending_ids`: los que faltan, **incluido `failed_id`**. Reintentá solo estos.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.\n\n**Otros errores que cortan antes de escribir**\n- `append_precheck_failed`: falló la lectura previa o no se pudo resolver el schema. No escribe nada, porque sin el valor actual el append sería un replace.\n- `append_requires_text`: mandaste un valor no-string en un campo appendable, por ejemplo `{\"description\": false}`. Para vaciar un campo, usá `mode=\"replace\"`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4467,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 691,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4467,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 691,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4467,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4467
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "core_vocab",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Salen dos avisos: uno 7 días antes del vencimiento y otro el día que vence. Los dos van a owners, admins y miembros con asiento. Al vencer, el workspace pasa a `free` solo si no tiene suscripción viva.\n\n**Cuándo**\n- `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina).\n- Los hitos salen de `platform_config.billing_trial_warning_days_list`. El default es `{7, 0}`.\n- El de 7 días avisa que la prueba por vencer. El de 0 días llega el día del vencimiento, cuando el workspace todavía funciona.\n- Si extienden la prueba, vuelve a avisar. La marca de lo enviado es el par `trial_warning_for` + `trial_warning_days`, no un flag.\n\n**A quién**\n- Owners y admins reciben el aviso siempre, aunque estén en `billing_tier = 'none'`.\n- También lo recibe todo miembro con asiento (`billing_tier <> 'none'`), porque el asistente deja de responder para todo el equipo.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa al vencer, sin suscripción viva**\n- El workspace pasa a `plan='free'`.\n- El sistema evalúa si hay exceso.\n- Sale el mail de prueba vencida.\n- Si hay exceso, `account_status` pasa a `restricted` con `account_status_reason = trial_expired_with_excess`. Eso bloquea MCP y chat.\n- Sin exceso, el material no dice que cambie `account_status`.\n\n**Si ya tiene suscripción viva**\n- El sistema limpia los flags de trial.\n- No manda ningún mail. Para el owner no cambió nada visible, y el cobro se anuncia con su propio recibo.\n- El material no aclara si los avisos de 7 y 0 días salen igual antes del vencimiento. Fijate en `_run_trial_expiry`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4735,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 701,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4735,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 701,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4735,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4735
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
