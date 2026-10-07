@@ -15,7 +15,7 @@ Todos usan el system prompt por defecto de Claude Code. Solo cambia el texto que
 | `nucleo_diag` | `nucleo_plus` + diagramas solo con 3 o más partes relacionadas, sin repetir en el texto |
 | `nucleo_ste` | `nucleo_plus` + una palabra un significado + verbos simples |
 | `completo` | foto de STE-ES v1 (13 reglas, glosario y diagramas) del 6-oct-2026 |
-| `skill_v2` | foto de la skill publicada (`skills/ste-es/SKILL.md` + `references/diagrams.md`). Todavía sin medir. |
+| `skill_v2` | foto de la skill publicada: cuerpo de `SKILL.md` (reglas de `nucleo_diag` sin cambios + alcance) y el glosario de adhoc-way. Todavía sin medir. |
 | `completo_sin_diag` | `completo` sin la parte de diagramas. Defecto conocido: todavía menciona diagramas en la introducción y termina con "No uses diagramas", así que da instrucciones contradictorias. Solo está en `local-02`. |
 
 Cada respuesta guarda el hash de su brazo. Cada veredicto guarda el modelo, la configuración y el hash del texto que juzgó: si alguno cambia, se rehace en vez de reutilizarse.

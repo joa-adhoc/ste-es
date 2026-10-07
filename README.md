@@ -6,7 +6,7 @@ Estilo de respuesta para agentes (Claude Code, Codex, Gemini) que le hablan a un
 
 ## Qué es
 
-Un núcleo de 7 reglas, sacado de ASD-STE100 (el inglés controlado de los manuales de aviones) y de lo que midió el eval, más diagramas de texto solo cuando la respuesta tiene estructura:
+Las reglas son el texto exacto del brazo `nucleo_diag` que midió el eval: un núcleo sacado de ASD-STE100 (el inglés controlado de los manuales de aviones) y del propio eval, más diagramas de texto solo cuando la respuesta tiene estructura. El vocabulario es el [glosario de adhoc-way](https://github.com/ingadhoc/adhoc-way/blob/main/templates/glosario.md).
 
 0. La precisión gana: ninguna regla justifica perder un dato o una condición.
 1. La respuesta va en la primera oración.
