@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Hacés dos cosas mal: corrés `pytest` crudo desde la raíz y dejás la expresión de `-k` sin comillas.\n\n**Forma correcta, desde la raíz:**\n\n```bash\nmake test                                # toda la suite unit\nmake test ARGS='-k \"a or b\"'             # filtro con expresión\nmake test ARGS=\"tests/test_rls.py -k policy\"   # paths relativos a tuqui_core/\n```\n\n**Error 1: `make test ARGS=-k a or b`.** El shell parte la expresión en tres palabras. Pytest lee `or` como un path y falla con `file or directory not found: or`. Las comillas internas (`'-k \"a or b\"'`) lo arreglan, porque `ARGS` se expande literal en la receta.\n\n**Error 2: `pytest` desde la raíz.** La config vive en `tuqui_core/pyproject.toml` (`asyncio_mode`, loop scopes, markers, `testpaths`). Desde la raíz pytest no la ve, pierde el modo asyncio y colecta `evals/tests`. El resultado son miles de fallas falsas (medido: 2302 failed / 2111 passed). El `conftest.py` de la raíz corta esa invocación con un mensaje.\n\nEse bloqueo no cubre todo: `pytest tuqui_core/tests/test_x.py` desde la raíz sí corre, pero se saltea el lock del Makefile.\n\nSi necesitás pytest crudo, hacé `cd tuqui_core`. Si el código lee `os.environ` directo, cargá `.env.test` como hace el Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4399,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 546,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4399,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 546,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4399,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4399
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Primero un Context Assembler que arma el bundle de contexto del usuario (6 consultas en paralelo bajo RLS). Luego tres etapas: Etapa 1 – Planner (Gemini Flash, devuelve hipótesis o silence_reason), Etapa 2 – Investigator (agente Pydantic AI de solo lectura que investiga cada hipótesis, hasta 3 en paralelo), Etapa 3 – Synthesizer + guards (convierte hallazgos en teasers y los filtra con ResponseGuard, StringGrounding y LLM Judge, en ese orden). El resultado son 0 a 2 teasers guardados con upsert en la tabla insights.",
+  "Termina sin mostrar nada en dos casos: (1) el Planner no genera hipótesis, que es un silencio válido explicado por silence_reason y no genera ningún teaser; (2) todos los teasers son rechazados por los guards, con resultado SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\"). El texto no aclara qué pasa si el Investigator se queda sin tiempo o iteraciones, ni si fallan el Synthesizer o el Planner.",
+  "Si el juez falla por infraestructura, el teaser pasa."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6760db27fb",
+  "control": "2010a7802d"
+ }
+}

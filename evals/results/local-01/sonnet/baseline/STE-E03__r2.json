@@ -1,0 +1,43 @@
+{
+ "case": "STE-E03",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Desde el worktree nuevo:\n\n1. **`make worktree-setup`**: linkea al clone principal lo que no viaja en git (`tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect`, `.env.eval`). Sin esto, `make test` falla con \"Venv no encontrado\".\n\n2. **Para la dependencia de Python nueva**: **no corras `make install` en el worktree**. Escribiría en el venv del clone principal y le repuntaría el editable install (el target se niega y te avisa). Tenés dos opciones:\n   - Instalarla en el clone principal, o\n   - Borrar el link del `.venv` en el worktree y armarte un venv propio ahí.\n\n   Ojo: como el `.venv` es compartido, si no hacés una de las dos, los tests del worktree no van a ver la dependencia nueva.\n\n3. **Para `web/package.json`**: corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal, así que sin esto el frontend testea contra las dependencias de otro branch.\n\n   Un detalle: `npm ci` sobre un `node_modules` que es un symlink podría escribir en el del clone principal. Por eso conviene borrar primero el link de `web/node_modules` (y `node_modules` si hace falta) en el worktree. El material no lo aclara, así que verificalo antes de correrlo.\n\n4. **Correr los tests**:\n   ```bash\n   make test                                     # unit (igual que el job `test` de CI)\n   make test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\n   make test-rls                                 # aislamiento multi-tenant\n   make test-web                                 # frontend (vitest)\n   make test-evals                               # unit tests de evals/ (no los benchmarks)\n   make lint                                     # ruff check + format check\n   ```\n\nEl código que se ejecuta sigue siendo el del worktree aunque el `.venv` sea del clone principal, porque los paquetes tienen `__init__.py` y la raíz del worktree entra primero en `sys.path`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3789,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 761,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3789,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 761,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3789,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3789
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

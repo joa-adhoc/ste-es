@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "completo",
+ "arm_hash": "cf2e9fca76",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n GUARDAR                      CAP                      CADA TURNO\n┌────────────────┐     ┌──────────────────┐     ┌──────────────────────┐\n│ modelo llama   │────►│ 50 por scope     │────►│ _load_chat_setup     │\n│ manage_memory  │     │ la 51 borra la   │     │ arma los headers     │\n└────────────────┘     │ más vieja (FIFO) │     └──────────┬───────────┘\n                       └──────────────────┘                │\n                                                           ▼\n LEER BAJO DEMANDA                                ┌──────────────────────┐\n┌────────────────┐     ┌──────────────────┐       │ ¿headers > 12K chars?│\n│ manage_memory  │◄────│ header con       │       └───┬──────────────┬───┘\n│ action='read'  │     │ `... [read]`     │        no │              │ sí\n└────────────────┘     └──────────────────┘           ▼              ▼\n                                                 todos al      rapidfuzz deja\n                                                 prompt        los top-N según\n                                                               el mensaje actual\n```\n\n**Guardar y cap.** Cada scope guarda hasta 50 memorias. El scope es el miembro (memoria personal) o el workspace (memoria compartida). La memoria 51 borra la más vieja por `created_at`, en la misma transacción. El borrado es silencioso para el miembro. El modelo se entera por el mensaje de la respuesta del tool.\n\n**Entrada al prompt.** En cada turno, `_load_chat_setup` inyecta un header por memoria. Va después del bloque `CURRENT USER` y antes del bloque del proyecto. Hay dos secciones: `# Workspace memory` y `# User memory`.\n\n**Qué trae el header:**\n- El título, más el `summary` si existe.\n- Sin `summary`, trae el body hasta 250 caracteres.\n- Si el body pasa de 250 caracteres y no hay `summary`, el header termina en `... [read]`.\n\n**Body completo.** Si el modelo necesita el contenido de una memoria con `[read]`, llama `manage_memory(action='read', id=...)`.\n\n**Cuando hay muchas.** El tope de 50 y los headers acotan el costo a unos 3K tokens por turno. Si los headers suman más de 12K caracteres (`_MEMORY_BUDGET_CHARS`), `rapidfuzz` puntúa cada header contra el mensaje actual. Solo entran los de mayor puntaje.\n\nEl material no dice cuánto vale N. Tampoco dice si el límite de 12K cuenta las dos secciones juntas o por separado. Lo más probable es que cuente las dos juntas, porque habla de \"total header chars\". Confirmalo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9782,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1425,
+  "output_tokens_details": {
+   "thinking_tokens": 483
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9782,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1425,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 9782,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9782
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

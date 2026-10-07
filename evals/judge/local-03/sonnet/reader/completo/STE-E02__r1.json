@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Los pasos 1 y 2 (migración y API que devuelve description_i18n) ya son backend, así que no entiendo en qué caso alcanzaría 'solo el cliente'. ¿Te referís a que el backend extra (el paso 5, resolver el idioma en el server) solo hace falta si la descripción entra a un prompt, un mail o MCP? Y si es así, ¿cómo confirmo rápido en el código si pasa alguna de esas tres cosas?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Quién consume hoy la descripción de los conectores: solo la SPA, o también un prompt, un mail o el MCP saliente? ¿Y la migración 0201 ya cubre la tabla de conectores? Sin eso no puedo decidir si alcanza con el cliente. Tampoco entiendo cómo el paso 2 (API y serializer devolviendo description_i18n) cabe en un caso de 'solo cliente'."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Los pasos 1 y 2 (migración y API que devuelve description_i18n) ya son backend, así que no entiendo en qué caso alcanzaría 'solo el cliente'. ¿Te referís a que el backend extra (el paso 5, resolver el idioma en el server) solo hace falta si la descripción entra a un prompt, un mail o MCP? Y si es así, ¿cómo confirmo rápido en el código si pasa alguna de esas tres cosas?",
+ "followup_answer": "Sí, tenés razón. Mi frase era imprecisa. Migración y API son backend siempre. \"Solo el cliente\" se refería a la resolución del idioma:\n\n```\nmigración + API (mapa entero)  ──► siempre, backend\nresolver el idioma             ──► cliente (SPA)\n                               ──► backend, solo si hay prompt, mail o MCP saliente\n```\n\nEntonces sí: el paso 5 es lo único opcional.\n\n**Cómo confirmarlo rápido:**\n\n1. Mirá qué existe ya. El nombre de la migración `0201_platform_connectors_description_i18n.sql` sugiere que la columna ya está:\n   ```\n   rg -n \"description_i18n\" supabase/migrations tuqui_core tuqui/web/src\n   ```\n2. Listá quién lee la tabla en el backend:\n   ```\n   rg -n \"platform_connectors\" tuqui_core\n   ```\n3. En cada archivo que aparezca, seguí el campo `description` hasta su destino. Si llega a un builder de prompt, a una plantilla de mail o a la lista de tools que sale por MCP, tenés que resolver en el server.\n   ```\n   rg -n \"description\" <archivo del paso 2>\n   ```\n4. Si solo llega al serializer de la API, alcanza con el cliente.\n\nNo corrí estos comandos: este directorio no tiene el repo de Tuqui. Si querés, pasame la ruta y los corro yo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11123,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1029,
+  "output_tokens_details": {
+   "thinking_tokens": 534
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11123,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1029,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 11123,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11123
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cb8f225a3a"
+ }
+}

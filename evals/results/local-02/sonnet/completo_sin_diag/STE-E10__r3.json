@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`**: si el admin no permite el modelo, el tool se corta. Nunca llega al gate.\n2. **`evaluate_permission`** (`tuqui_core/chat/permissions.py`), en este orden:\n   1. `workspace_tool_approvals` con `deny` → **DENY**. Es un piso: ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` del miembro: si hay fila, esa acción gana.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default: **ASK** si el recurso tiene `approval` (`\"ask\"` o `\"always\"`), **ALLOW** si no. Los tools de conector sin declaración usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**: se audita en `tool_usage_log` con `permission_action`.\n\n## Tus dos casos\n\n**Admin en \"ask\", miembro en \"allow\":** gana el miembro y el tool se ejecuta sin preguntar. El paso 2.2 corre antes que el 2.3. Solo un `deny` del admin bloquea al miembro. Si el admin quiere forzar la pregunta, no le alcanza con `ask`.\n\n**Agent por webhook:** el canal no tiene identidad personal (`personal_identity_applies` es falso). El evaluator saltea el paso 2.2 entero. La preferencia del miembro prestado no cuenta. Decide la grilla del workspace:\n- Con `deny`, bloquea.\n- Con `ask` o `allow`, aplica esa acción.\n- Sin fila, aplica el default.\n\nEl material no dice qué pasa con un **ASK** en un canal sin persona que responda. Revisá `chat/client_facing_core.py` o el código del evaluator para confirmarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8729,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1092,
+  "output_tokens_details": {
+   "thinking_tokens": 458
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8729,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1092,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8729,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8729
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

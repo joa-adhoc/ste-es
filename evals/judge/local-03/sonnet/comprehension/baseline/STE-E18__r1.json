@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más antigua según created_at, en la misma transacción de base de datos que agrega la nueva (tope de 50 por scope, FIFO puro). La expulsión es silenciosa para el usuario, pero el modelo se entera por un mensaje en la respuesta de la herramienta. Se borra la más vieja sin importar si se usa mucho o es importante.",
+  "En cada turno entran solo los headers de las memorias de los scopes workspace y user: título + summary si existe, si no los primeros 250 caracteres del body (con '... [read]' al final si el body pasa de 250 caracteres y no hay summary), más el id. El resto (el body completo) llega a demanda: si la memoria está marcada con [read] y el modelo necesita el contenido completo, llama a manage_memory(action='read', id=...).",
+  "Si el total de caracteres de los headers supera _MEMORY_BUDGET_CHARS (12K, unos 3K tokens), rapidfuzz puntúa cada header contra el mensaje actual del usuario y se conservan solo las top-N más relevantes. Las que quedan fuera dependen de la similitud textual con el mensaje, no de su importancia, y puede notarse si una memoria útil no se parece léxicamente a la consulta. El texto no aclara si el límite se aplica por scope o al total."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "51fc0a7d5d",
+  "control": "2fefeeffdf"
+ }
+}

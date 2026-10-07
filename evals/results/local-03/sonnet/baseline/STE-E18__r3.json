@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Ciclo de vida de una memoria\n\n## 1. Guardado\nEl modelo llama a `manage_memory` para crear una memoria. Cada una pertenece a un **scope**:\n- **user**: personal de cada usuario.\n- **workspace**: compartida con el equipo.\n\nSe guarda con `created_at`, título, cuerpo y, opcionalmente, un `summary`.\n\n## 2. Tope y expulsión (cap + FIFO)\n- Máximo **50 memorias por scope**.\n- Al agregar la 51.ª, se borra la más antigua según `created_at`. Todo ocurre en la **misma transacción de DB**.\n- La expulsión es \"silenciosa\" para el usuario, pero el modelo se entera por un mensaje en la respuesta del tool.\n- El criterio es la antigüedad de creación, no el uso ni la relevancia. Una memoria vieja pero muy útil se pierde igual.\n\n## 3. Entrada al prompt (cada turno)\nEn `_load_chat_setup` (`tuqui_core/chat/agent.py`), el system prompt se arma con los bloques de memoria. Van después de `CURRENT USER` y antes del bloque de proyecto:\n- `# Workspace memory (shared with team)`\n- `# User memory (personal)`\n\nSe usa **carga progresiva** en dos niveles:\n\n| Nivel | Qué entra | Cuándo |\n|---|---|---|\n| **Header** | `título + (summary, o si no hay, los primeros 250 caracteres del cuerpo)` | Todos los turnos |\n| **Body** | Contenido completo | Bajo demanda |\n\n- Si el cuerpo supera 250 caracteres y no hay `summary`, el header termina en `... [read]`.\n- Cuando el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`.\n- Cada línea incluye el `id`, que es lo que el modelo usa para leerla.\n\n## 4. Qué pasa cuando hay muchas\nHay dos límites que actúan en capas:\n\n1. **Cap de 50 por scope**, que limita cuántas existen.\n2. **Budget guard**: si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), se puntúan los headers contra el mensaje actual del usuario con **rapidfuzz** y se conservan solo los top-N más parecidos.\n\nCon el máximo de 50 memorias de tamaño máximo, el costo por turno queda acotado a unos ~3K tokens.\n\n## Matices a tener en cuenta\n- Las memorias recortadas por el budget guard **no se borran**. Solo quedan fuera del prompt de ese turno, y pueden volver a entrar en otro turno según el mensaje.\n- rapidfuzz mide similitud de texto, no semántica. Una memoria relevante pero con vocabulario distinto al del mensaje puede quedar afuera.\n- Con el cap actual, el budget guard solo se activa si los headers son largos. Si hay `summary` cortos, es probable que entren las 50.\n- El material no aclara si el cap de 50 se cuenta por separado en cada scope (parece que sí) ni cómo se reparte el budget entre ambos bloques.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3759,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1131,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3759,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1131,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3759,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3759
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,42 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente cuando el evaluator devuelve ASK en un canal sin humano como webhook o scheduled: se bloquea, se auto-aprueba o se encola para aprobación? ¿Dónde se resuelve eso en el código (client_facing_core.py o el handler del canal)?",
+ "type_note": null,
+ "followup_answer": "No puedo confirmarlo: el directorio de trabajo está vacío y no existen `permissions.py` ni `client_facing_core.py`. El material que me pasaste tampoco dice qué pasa con un ASK en un canal sin humano. Cualquier respuesta entre \"bloquea\", \"auto-aprueba\" o \"encola\" sería inventada.\n\nLo único que el material respalda: el paso 2.2 se saltea en `exposure`, `webhook` y `scheduled`, y en esos canales la política es la grilla del workspace. Un ASK sale de esa grilla o del default por recurso. El material no dice quién lo resuelve después.\n\nPara encontrarlo, corré esto en el repo de `tuqui_core`:\n\n```bash\ngrep -rn \"personal_identity_applies\" tuqui_core/\ngrep -rn \"evaluate_permission\" tuqui_core/\ngrep -rniE \"PermissionAction\\.ASK|action == .ask.|asked.granted|pending_approval\" tuqui_core/\n```\n\nFijate en tres lugares:\n\n- **Callers de `evaluate_permission`:** el código que recibe el ASK y decide qué hacer con él. Ahí debería estar la rama por canal.\n- **`ChannelProfile`:** buscá un campo tipo `can_prompt_user` o `interactive`, aparte de `personal_identity_applies`.\n- **`tool_usage_log.permission_action`:** mirá qué valores admite. Si hay algo como `denied_no_human` o `auto_approved`, ese es el comportamiento real.\n\nSi me das acceso al repo o pegás esos fragmentos, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5911,
+  "cache_read_input_tokens": 37575,
+  "output_tokens": 790,
+  "output_tokens_details": {
+   "thinking_tokens": 59
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5911,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 558,
+    "cache_read_input_tokens": 21581,
+    "cache_creation_input_tokens": 324,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 324
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

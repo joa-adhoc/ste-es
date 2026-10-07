@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta dice que el preview del PR escribe en la base de staging real y que hay otras consecuencias en docs/infra-ci-cd.md (sección 'Un PR preview escribe en la base de staging'), pero no las cuenta. ¿Me podés pasar el contenido de esa sección? Necesito saber qué más tengo que cuidar antes de abrir el PR (por ejemplo, qué pasa con los datos o con migraciones que fallan a medio aplicar en staging) y si hay algún paso extra obligatorio para la migración."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material remite a docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging para otras consecuencias de que el preview escriba en staging y vos no pudiste leerlo. ¿Me pasás ese contenido (o me decís qué dice), en particular qué pasa con los datos de la tabla y cómo se limpia o revierte si la migración ya se aplicó en staging, antes de que abra el PR?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me dijiste que el preview de mi PR escribe en la base de staging y que hay otras consecuencias en docs/infra-ci-cd.md, pero vos no tenés acceso a ese archivo. ¿Me podés pasar el contenido de esa sección (\"Un PR preview escribe en la base de staging\") o decirme qué otras restricciones aplican, por ejemplo si hay cosas que no tengo que hacer en la migración (DROP, datos de prueba, ALTER sobre tablas existentes) o cómo limpiar lo que quede en staging si me equivoco?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La respuesta dice que el preview del PR escribe en la base de staging real y que hay otras consecuencias en docs/infra-ci-cd.md (sección 'Un PR preview escribe en la base de staging'), pero no las cuenta. ¿Me podés pasar el contenido de esa sección? Necesito saber qué más tengo que cuidar antes de abrir el PR (por ejemplo, qué pasa con los datos o con migraciones que fallan a medio aplicar en staging) y si hay algún paso extra obligatorio para la migración.",
+ "followup_answer": "No te puedo pasar esa sección: `docs/infra-ci-cd.md` no existe en este entorno. El directorio de trabajo (`/tmp/ste-es-eval-m4o5_f36`) está vacío, no es un repo git y no tiene ningún archivo de tuqui. Tampoco puedo buscar fuera de ese directorio. Cualquier detalle que te diera sobre su contenido sería inventado.\n\nDel material que me pasaste solo sale esto:\n\n- El preview del PR corre las migraciones contra la misma base de staging, con el `DATABASE_ADMIN_URL` de staging.\n- La migración se aplica al abrir el PR y se vuelve a aplicar si renombrás el archivo, porque el tracking es por nombre.\n- Por eso la migración tiene que ser idempotente.\n\nLo siguiente es inferencia mía, no viene del documento:\n\n- **Migración que falla a medio aplicar.** No sé si cada migración corre en una transacción ni si el runner la marca como aplicada. Si no hay transacción, puede quedar la tabla creada sin RLS o sin policy en staging. Mientras tanto, esa tabla con `workspace_id` estaría expuesta.\n- **Datos.** Cualquier `INSERT`, seed o backfill que pongas en la migración queda en staging real, así que no pongas datos de prueba ahí.\n- **Tabla huérfana.** Si cerrás el PR sin mergear, la tabla probablemente queda en staging, y no sé si hay limpieza automática.\n\nEsas tres cosas tenés que confirmarlas en el doc. Pegame la sección acá y te digo si hay algún paso extra obligatorio para la migración. También podés ponerme el archivo en el directorio de trabajo y lo leo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5799,
+  "cache_read_input_tokens": 58844,
+  "output_tokens": 932,
+  "output_tokens_details": {
+   "thinking_tokens": 80
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5799,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 609,
+    "cache_read_input_tokens": 21582,
+    "cache_creation_input_tokens": 202,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 202
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a6be9cccdd"
+ }
+}

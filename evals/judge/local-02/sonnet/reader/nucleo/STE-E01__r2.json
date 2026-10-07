@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "aclaracion",
+ "followup": "Hay una contradicción: decís que ENABLE ROW LEVEL SECURITY es idempotente y no necesita guarda, pero la policy sí. ¿Y además hace falta FORCE ROW LEVEL SECURITY o GRANTs para que la policy aplique al rol que usa la app? Y como el preview escribe en la base de staging real, ¿cómo evito romper staging si la migración falla a medias o si hay que revertirla? ¿Podés darme un ejemplo completo del SQL de la migración (tabla, índice, RLS y policy) tal como lo espera el review?",
+ "followup_answer": "**No hay contradicción.** `ENABLE ROW LEVEL SECURITY` repetido es un no-op en Postgres. `CREATE POLICY` no tiene `IF NOT EXISTS` y falla si la policy ya existe. Por eso la policy lleva guarda y el `ENABLE` no.\n\n**FORCE y GRANTs.** El material no los menciona, así que no puedo confirmar qué espera el review. Esto es Postgres general:\n- RLS no aplica al dueño de la tabla, salvo que uses `FORCE ROW LEVEL SECURITY`.\n- RLS tampoco aplica a superusers ni a roles con `BYPASSRLS`. En Supabase, `service_role` lo tiene.\n- Si la app conecta con alguno de esos roles, la policy no filtra nada.\n- Los GRANTs son aparte. El rol de la app necesita `SELECT/INSERT/UPDATE/DELETE` sobre la tabla. RLS filtra encima de eso.\n- Fijate con qué rol conecta la app y cómo lo cubre `test_rls.py`. Ese test debería fallar si la policy no aplica.\n- Si la app no setea `app.current_workspace_id`, `current_setting` tira error. Eso es lo esperable.\n\n**Migración fallida o reversión en staging.** El material no define un procedimiento. Lo que sí dice es que el preview aplica la migración en la base real de staging y que renombrar el archivo la reaplica. Leé la sección \"Un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`. Ahí están las consecuencias completas.\n\nHasta ahí, esto es lo que te recomiendo, y no sé si lo exige el review:\n- Envolvé la migración en `BEGIN; ... COMMIT;`. Así, si falla a medias, no queda a medio aplicar. Verificá si el runner ya abre una transacción por archivo.\n- No renombres ni edites un archivo ya aplicado. Corregí con una migración nueva.\n- Para revertir, escribí una migración nueva que haga el `DROP`. Preguntá al equipo si hay convención de rollback.\n- No uses `CREATE INDEX CONCURRENTLY`. No corre dentro de una transacción.\n\n**Ejemplo.** Sigue el material. Cambié nombres y columnas por placeholders. Asumo que `workspaces(id)` existe, así que verificalo.\n\n```sql\nBEGIN;\n\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL REFERENCES workspaces(id),\n    nombre       text NOT NULL,\n    created_at   timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE schemaname = 'public'\n          AND tablename  = 'mi_tabla'\n          AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n\n-- Solo si el rol de la app es dueño de la tabla (verificar):\n-- ALTER TABLE mi_tabla FORCE ROW LEVEL SECURITY;\n-- GRANT SELECT, INSERT, UPDATE, DELETE ON mi_tabla TO <rol_app>;\n\nCOMMIT;\n```\n\nDespués del SQL, te faltan el test en `tuqui_core/tests/test_rls.py` y el modelo Pydantic.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5196,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 2114,
+  "output_tokens_details": {
+   "thinking_tokens": 710
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5196,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2114,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5196,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5196
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja por `created_at` (FIFO), en la misma transacción de DB en la que se agrega la nueva. La eviction es silenciosa para el usuario, pero el modelo recibe un aviso en la respuesta del tool. Es por antigüedad de creación, no por uso.",
+  "Entran dos bloques (`# Workspace memory (shared with team)` y `# User memory (personal)`), inyectados en `_load_chat_setup` después de `CURRENT USER` y antes del bloque de proyecto. Cada memoria entra como un header: título + (summary, o si no hay, los primeros 250 caracteres del body) + el `id`. El resto del contenido (el body completo) llega bajo demanda: si el body supera 250 caracteres y no hay summary, el header termina en `... [read]` y el modelo llama a `manage_memory(action='read', id=...)` para traerlo.",
+  "Si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes. Las demás no se inyectan en ese turno, pero siguen guardadas."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ecb4e75a72",
+  "control": "2fefeeffdf"
+ }
+}

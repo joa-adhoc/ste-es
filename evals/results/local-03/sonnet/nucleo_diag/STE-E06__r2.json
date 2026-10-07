@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los worktrees comparten la misma DB local. La rama de tu compañero aplicó una migración destructiva y le sacó columnas a un esquema que tu código todavía lee. Por eso ves `UndefinedColumnError` en tests que no tocaste.\n\n```\n┌────────────┐   migraciones A   ┌──────────────┐   migraciones B   ┌────────────┐\n│ tu worktree│──────────────────►│  DB local    │◄──────────────────│ worktree   │\n│            │                   │ (compartida) │                   │ del compañero│\n└────────────┘                   └──────────────┘                   └────────────┘\n                                  esquema = unión de A y B\n```\n\nEl `flock` de los targets solo evita corridas simultáneas. No aísla el esquema.\n\n**Arreglo inmediato:** recreá la base desde cero (~3 s).\n\n```bash\nmake migrate-reset\n```\n\nNo uses `npx supabase db reset`. Aborta con los prefijos de migración repetidos (hoy hay 25). `make migrate-reset` usa `scripts/apply_migrations.py`, que sí los maneja. Solo toca bases locales.\n\nOjo: si tu compañero corre tests después, su rama puede pisar tu esquema otra vez. Mientras la base sea compartida, esto se repite.\n\n**Para que no vuelva a pasar:** dale a tu worktree su propia base.\n\n1. Copiá el ejemplo:\n   ```bash\n   cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n   ```\n2. Editá `tuqui_core/.env.test.local` y apuntá la URL de la base a una propia (por ejemplo, un nombre distinto por worktree). Los nombres exactos de las variables están en el `.example`.\n3. Corré `make migrate-reset` para crearla.\n\nEl archivo está gitignoreado y se carga encima de `.env.test`.\n\n**Redis:** si querés soltar el lock y correr en paralelo con tu compañero, necesitás base **y** Redis propios. Aislar solo uno no alcanza. Para Redis, poné un `REDIS_URL` con un índice propio en el mismo servidor. No uses el 15 (default compartido de `.env.test`) ni el 0 (servidor de desarrollo). Después, usá un `TEST_LOCK` distinto en cada worktree.\n\nSi solo aislás la base y dejás el Redis compartido, mantené el lock. Los tests siguen pisándose por Redis.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4659,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 848,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4659,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 848,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4659,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4659
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

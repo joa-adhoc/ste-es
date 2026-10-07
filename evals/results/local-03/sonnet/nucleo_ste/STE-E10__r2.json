@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "nucleo_ste",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El orden es: `workspace_write_models`, luego `evaluate_permission`, luego `tool.execute()`.\n\n**Orden de decisión**\n\n1. `workspace_write_models`: si el admin no permite la operación sobre ese modelo, el tool corta antes del gate runtime.\n2. `evaluate_permission(ctx)` en `tuqui_core/chat/permissions.py`:\n   1. `workspace_tool_approvals` con `deny` → DENY. Ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` para `(user_id, workspace_id, tool_name)`: si hay fila, ese `action` gana. Este paso se saltea en canales sin identidad personal.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por tool: ASK si el recurso está en `approval` (`\"ask\"` o `\"always\"`), ALLOW si no. Los tools de conector sin declaración en el REGISTRY usan la heurística de verbos y las annotations MCP.\n3. `tool.execute()`, auditado en `tool_usage_log` con `permission_action`.\n\n**Caso 1: admin en \"ask\", miembro en \"allow\"**\n\nEl resultado es ALLOW. El paso 2.1 solo bloquea con `deny`. Con `ask`, el admin no llega a ser piso. La fila del miembro en `user_tool_approvals` gana en el paso 2.2, antes de que se lea la fila del admin en 2.3.\n\nSi el admin quiere que nadie lo saltee, tiene que poner `deny`. Con `ask` solo fija el default del workspace.\n\nEsto vale solo en canales con identidad personal. Además, el paso 1 igual se aplica: si `workspace_write_models` no permite el modelo, el miembro no llega al gate.\n\n**Caso 2: agent por webhook**\n\nLa preferencia del miembro no cuenta. El paso 2.2 se saltea entero en `exposure`, `webhook` y `scheduled`. El turno corre con la identidad prestada de un miembro (`chat/client_facing_core.py`), y esa preferencia no es política del canal. `ChannelProfile.personal_identity_applies` define esto.\n\nEntonces se evalúa así:\n\n- `deny` del workspace → DENY.\n- Si no, la fila de `workspace_tool_approvals` (`allow` o `ask`).\n- Si no hay fila, el default por tool.\n\nSi el admin puso `ask` y el agent corre por webhook, el resultado es ASK. Con el material que tengo, no sé qué hace el sistema cuando no hay un usuario presente para responder. Fijate en el código de `client_facing_core.py` o en el handler de ASK de esos canales.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4608,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 931,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4608,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 931,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4608,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4608
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

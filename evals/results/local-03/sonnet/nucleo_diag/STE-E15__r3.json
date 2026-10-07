@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`connect_odoo` autentica contra Odoo, exige admin de sistema, detecta la versión, decide el vínculo del Member, guarda las credenciales en `workspaces` y limpia los members si cambió la URL.\n\n```\nPOST /workspaces/{slug}/odoo  (owner/admin)\n │\n ▼\n┌──────────────────────┐   ┌─────────────────────────┐   ┌────────────────────┐\n│ _authenticate_odoo   │──►│ _verify_odoo_admin_group│──►│ get_version(url)   │\n│ → admin_uid          │   │ base.group_system       │   │ → detected_version │\n└──────────────────────┘   └─────────────────────────┘   └─────────┬──────────┘\n                                                                   │\n                                                                   ▼\n┌──────────────────────┐   ┌─────────────────────────┐   ┌────────────────────┐\n│ sync_user_api_key    │◄──│ limpia members (si URL  │◄──│ _resolve_link_mode │\n│ (asyncio task)       │   │ cambió) + UPDATE member │   │ + UPDATE workspaces│\n└──────────────────────┘   └─────────────────────────┘   └────────────────────┘\n```\n\n**Pasos**\n\n1. `_authenticate_odoo` autentica `url, db, login, api_key` vía `JsonRpcTransport.authenticate` y obtiene `admin_uid`.\n2. `_verify_odoo_admin_group` llama `res.users.has_group(uid, 'base.group_system')`. Lanza `ValueError` si no es admin de sistema.\n3. `get_version(url)` detecta la versión. Lanza `ValueError` si falla o si el major es menor que `MIN_SUPPORTED`.\n4. `_resolve_link_mode` decide el vínculo del Member (ver abajo).\n5. `UPDATE workspaces` guarda `odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version`. El rol `owner` no cambia.\n6. Si otro workspace ya tiene el mismo `database.uuid`, responde 409. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n7. Si la URL cambió, limpia `odoo_user_id` y `odoo_api_key` de todos los members.\n8. Si el modo es `auto` o `manual`, actualiza `workspace_members.odoo_user_id` del usuario actual y lanza `sync_user_api_key` en segundo plano con `asyncio.create_task`.\n\n**A qué usuario de Odoo vincula**\n\n| Modo | Cuándo | Resultado |\n|---|---|---|\n| `auto` | Default si `current_user.email == odoo_login` | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` + `link_odoo_user_id` | Verifica que ese `res.users` exista y bindea el Member a ese id |\n| `none` | Default si los emails no coinciden | El Member queda sin `odoo_user_id` |\n\nLa vinculación es opcional. El owner no necesita identidad en Odoo.\n\n**Si cambia la URL**\n\n- Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner. Los ids pueden apuntar a otra instancia.\n- `members_invalidated` en la respuesta cuenta cuántos se limpiaron. Es 0 si la URL no cambió.\n- Después de limpiar, el paso 8 re-vincula al usuario actual si el modo es `auto` o `manual`.\n\n**Respuesta:** `WorkspaceConnectOdooResult` (extiende `WorkspaceRead`) con `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\nEl material no aclara si el 409 por `database.uuid` ocurre antes o después del `UPDATE`. Tampoco aclara si los members limpiados deben reconectarse a mano. Verificalo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4821,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1405,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4821,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1405,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4821,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4821
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

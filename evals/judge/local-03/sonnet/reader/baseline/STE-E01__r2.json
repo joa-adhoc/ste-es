@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me quedó una duda clave: la respuesta dice que las consecuencias completas de que el preview del PR corra la migración contra la base de staging están en docs/infra-ci-cd.md, pero ese doc no lo tiene. ¿Me podés pasar esa sección (o resumirme qué pasa si la migración falla o se re-aplica en staging, y cómo conviene nombrar el archivo para no tener que renombrarlo)? Además, ¿cuál es el número NNNN que me toca para la migración y cómo se llama exactamente la función/setting de workspace que usan las policies en tuqui (app.current_workspace_id es solo un ejemplo)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me pasás el contenido de docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging? No lo tengo y ahí están las consecuencias completas de que el preview corra la migración contra staging. Además, ¿el nombre del archivo es NNNN_descripcion.sql o el timestamp que genera `supabase migration new`? Necesito saber cuál es para no rebotar en el review."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me faltan dos cosas para quedarme tranquilo: ¿me podés pasar el contenido de docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging (consecuencias del preview escribiendo en staging), y confirmarme el nombre real de la policy y la forma exacta de la condición de RLS (¿app.current_workspace_id es lo que usa tuqui?) para no inventarlos en la migración?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Me quedó una duda clave: la respuesta dice que las consecuencias completas de que el preview del PR corra la migración contra la base de staging están en docs/infra-ci-cd.md, pero ese doc no lo tiene. ¿Me podés pasar esa sección (o resumirme qué pasa si la migración falla o se re-aplica en staging, y cómo conviene nombrar el archivo para no tener que renombrarlo)? Además, ¿cuál es el número NNNN que me toca para la migración y cómo se llama exactamente la función/setting de workspace que usan las policies en tuqui (app.current_workspace_id es solo un ejemplo)?",
+ "followup_answer": "Busqué en el directorio de trabajo y está vacío. No hay repo de tuqui, ni `docs/infra-ci-cd.md`, ni `supabase/migrations/`, ni `test_rls.py`. Por eso no puedo pasarte esa sección ni darte el número real. Te separo lo que sé de lo que no.\n\n## Lo que el material sí dice sobre staging\n\n- El preview del PR corre las migraciones contra la base de staging. Usa el `DATABASE_ADMIN_URL` de staging, el mismo que usa el runner. No es una copia, es la misma base.\n- La migración se aplica al abrir el PR.\n- Se vuelve a aplicar si renombrás el archivo, porque el tracking es por nombre de archivo.\n\n## Lo que no puedo darte\n\nEsto está en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging` y no lo tengo. No voy a inventarlo:\n- Qué pasa si la migración falla a mitad en staging: si queda a medias, si bloquea otros PRs o cómo se limpia.\n- Si hay un procedimiento de rollback o limpieza cuando cerrás un PR sin mergear.\n- Una convención oficial de nombres para no renombrar.\n\nSobre el nombre, lo único que se deduce del material es esto. Como el tracking es por nombre de archivo, cada renombre es una migración \"nueva\" para el runner. Conviene dejar fijo el nombre antes del primer push. Si colisiona el número NNNN con otro PR, también te obliga a renombrar. Es una inferencia mía, no una regla documentada.\n\n## El número NNNN\n\nNo lo puedo saber desde acá. Lo más seguro es:\n- Correr `supabase migration new <nombre>`, que genera el nombre.\n- Mirar el último archivo en `supabase/migrations/` de `main`, y de los PRs abiertos si pueden chocar.\n\n## El setting de workspace\n\nEl material solo muestra `current_setting('app.current_workspace_id')::uuid`. Eso aparece como la forma exigida de la policy, no como ejemplo mío. Mi respuesta anterior lo puso en el SQL tal cual viene del material.\n- Es lo único que puedo respaldar.\n- Para confirmar que es el nombre vigente, copiá la policy de una tabla existente en `supabase/migrations/`, o fijate en `test_rls.py` cómo se setea.\n\n## Qué hacer\n\nPasame el contenido de `docs/infra-ci-cd.md` (esa sección), o apuntame al repo. Con eso te resumo el comportamiento ante fallos y te confirmo el número y el setting. Si no, preguntale a quien mantiene CI/infra antes de abrir el PR.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5618,
+  "cache_read_input_tokens": 37243,
+  "output_tokens": 1203,
+  "output_tokens_details": {
+   "thinking_tokens": 53
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5618,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 950,
+    "cache_read_input_tokens": 21258,
+    "cache_creation_input_tokens": 345,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 345
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "78e85bf184"
+ }
+}

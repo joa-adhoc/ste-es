@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando el Planner falla, cuando el Investigator se queda sin tiempo o iteraciones o falla en una hipótesis, y cuando el Synthesizer no genera teasers? ¿En esos casos el resultado también queda vacío, o se muestra algo parcial? Necesito la lista completa de casos en que no se muestra nada, no solo los dos documentados."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta no cubre qué pasa si el Investigator se queda sin tiempo o iteraciones, si falla una hipótesis, si el Synthesizer no genera teasers o si falla el Planner. ¿Podés confirmar en investigator.py y synthesizer.py (y en el orquestador) qué ocurre en cada caso: termina vacío, reintenta o lanza un error?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator se queda sin tiempo o iteraciones, falla en una hipótesis, o cuando falla el Planner o el Synthesizer no genera teasers? ¿El pipeline termina vacío, reintenta o lanza un error?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente cuando el Planner falla, cuando el Investigator se queda sin tiempo o iteraciones o falla en una hipótesis, y cuando el Synthesizer no genera teasers? ¿En esos casos el resultado también queda vacío, o se muestra algo parcial? Necesito la lista completa de casos en que no se muestra nada, no solo los dos documentados.",
+ "followup_answer": "No puedo darte esa lista completa. El directorio de trabajo está vacío y no tengo `planner.py`, `investigator.py`, `synthesizer.py` ni `guards.py`. El material que me pasaste solo documenta dos casos de resultado vacío y no dice nada de los demás.\n\n**Documentado en el material**\n1. El Planner devuelve 0 hipótesis. Es un silencio válido y queda `silence_reason`.\n2. Todos los teasers son rechazados por los guards. Devuelve `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\n**Lo que no está documentado**\n- **Falla del Planner**, por ejemplo una excepción, un JSON inválido o un timeout. No sé si se propaga el error, si se trata como silencio o si hay un reintento.\n- **El Investigator se queda sin tiempo o sin iteraciones.** Hay límites (`max_iterations`, `max_tool_calls`, presupuesto de tiempo), pero el material no dice qué se devuelve al alcanzarlos. Pueden ser findings parciales, la hipótesis descartada o un error.\n- **Falla de una hipótesis en el Investigator.** No sé si se aísla y las demás siguen, o si cancela todo el lote.\n- **El Synthesizer no genera teasers.** No sé si es un caso aparte de `synth_all_rejected` ni qué `debug_note` deja.\n- **Qué pasa con el upsert cuando no hay teasers.** Tampoco sé si el watchdog global corta el pipeline entero.\n\nNo voy a inferir ese comportamiento: sería inventarlo, y vos necesitás la lista exacta.\n\n**Cómo cerrarlo**\n- Pasame el código de esas cuatro etapas y del orquestador que las llama, o la ruta al repo. Con eso te armo la lista completa con referencias a archivo y línea.\n- Mientras tanto, estos son los puntos a buscar en el código:\n  - los `try/except` alrededor de cada etapa;\n  - el uso de `asyncio.gather` con o sin `return_exceptions`;\n  - el manejo de `UsageLimitExceeded` en Pydantic AI;\n  - el `asyncio.timeout` o el watchdog;\n  - cómo se arma el `debug_note` en cada salida temprana.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6344,
+  "cache_read_input_tokens": 37963,
+  "output_tokens": 1068,
+  "output_tokens_details": {
+   "thinking_tokens": 70
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6344,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 809,
+    "cache_read_input_tokens": 21978,
+    "cache_creation_input_tokens": 351,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 351
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0bff82269d"
+ }
+}

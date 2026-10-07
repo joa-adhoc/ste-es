@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "completo",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n workspace_write_models ──✗──► bloquea (el tool ni llega al evaluator)\n          │ allow\n          ▼\n evaluate_permission\n   1. workspace_tool_approvals = deny ──✗──► DENY (piso)\n          │ no\n          ▼\n   2. user_tool_approvals ──► si hay fila, gana  ◄── caso 1\n          │ sin fila, o canal sin identidad personal ◄── caso 2\n          ▼\n   3. workspace_tool_approvals (allow / ask)\n          │ sin fila\n          ▼\n   4. default: recurso en approval → ASK, si no → ALLOW\n          │\n          ▼\n tool.execute() ──► tool_usage_log (permission_action)\n```\n\n**Caso 1: admin `ask`, miembro `allow`.**\n- El paso 1 solo mira `deny`. Un `ask` del admin no es piso.\n- El paso 2 encuentra la fila del miembro y su `allow` gana.\n- Resultado: el tool se ejecuta sin preguntar.\n- Si el admin hubiera puesto `deny`, ese `deny` ganaría sobre el `allow` del miembro.\n- Antes de todo esto, `workspace_write_models` debe permitir el modelo. Si no, el tool se bloquea sin llegar al evaluator.\n\n**Caso 2: agent por webhook.**\n- `webhook` es un canal sin identidad personal. El paso 2 se saltea entero.\n- El `allow` del miembro cuya identidad usa el turno no cuenta.\n- Rige la grilla del workspace: `deny` bloquea, `allow` ejecuta y `ask` da ASK.\n- Sin fila, rige el default: ASK si el recurso está en `approval`, ALLOW si no.\n- En tu caso, con el admin en `ask`, el resultado es ASK.\n\nEl material no dice qué pasa con un ASK en un webhook, porque no hay nadie para responder. Revisá `chat/client_facing_core.py` para confirmarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10176,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 961,
+  "output_tokens_details": {
+   "thinking_tokens": 267
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10176,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 961,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10176,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10176
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "cf2e9fca76"
+}

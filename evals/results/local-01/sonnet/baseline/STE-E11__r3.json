@@ -1,0 +1,43 @@
+{
+ "case": "STE-E11",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué poner en el archivo:** la línea `-- destructive: true` cerca del inicio de la migración. Sin ese marker, el runner la trata como aditiva y la aplica en cualquier lado, incluido el PR preview.\n\n**Recorrido de la migración:**\n\n1. **PR environment de Railway (preview): NO se aplica.** El PR env comparte la base con staging, y staging sigue corriendo el código viejo, que se rompería sin esa columna. El runner la saltea y **no la registra** en `_migrations`. Se aplica solo si se cumplen las dos condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y** la rama de deploy (`RAILWAY_GIT_BRANCH`) es `staging` o `main`. El PR env hereda el flag de staging, pero su rama no es `staging` ni `main`, así que el gate la bloquea. Si hay marcadores de Railway pero no hay rama estampada, también falla cerrado.\n\n2. **Deploy a staging tras el merge: SÍ se aplica.** La rama es `staging` (o `main`) y el flag está activo. Como no quedó registrada antes, entra en este momento.\n\n3. **Deploy a prod (`main`): SÍ se aplica**, bajo las mismas dos condiciones, si prod no la aplicó antes.\n\n**CI y local (`scripts/apply_migrations.py`):** el mismo contrato, pero el opt-in va por base:\n- **Sí se aplica** en las bases efímeras: el postgres de servicio de cada workflow, el container del stack e2e y la base de pytest. Ahí el flag está activo (`MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest).\n- **No se aplica** con `make migrate`. Ese comando apunta a la base de desarrollo local, que se comparte entre worktrees, y no activa el flag.\n\n**Cosas a tener en cuenta:**\n- Las migraciones aditivas, en cambio, **sí** se aplican a la base de staging desde el preview del PR. Eso tiene consecuencias al mergear y al renombrar archivos, y están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".\n- Un marker faltante es el error grave: el preview dropearía la columna en la base compartida y rompería staging para todos, como pasó con `0180_chat_ga`.\n- Si tu migración deja al código anterior sin poder correr, aunque no sea un `DROP` literal (un rename, por ejemplo), también necesita el marker.\n- Como la migración destructiva recién se aplica al deployar tras el merge, el código nuevo de tu PR no debería depender de que el drop ya haya ocurrido durante el preview.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4026,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 970,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4026,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 970,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4026,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4026
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

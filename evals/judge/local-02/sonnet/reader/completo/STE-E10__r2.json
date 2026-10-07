@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "En el caso del webhook el resultado es ASK, pero ahí no hay nadie que responda. ¿Qué hace el sistema en ese caso: bloquea la tool, la ejecuta igual o la deja pendiente de aprobación? ¿Y se loguea en tool_usage_log de alguna forma distinta?",
+ "followup_answer": "No tengo el código. No hay `client_facing_core.py` ni `permissions.py` en este directorio, y no es un repo git.\n\nNo sé qué hace el sistema con un ASK en un webhook. El material que me pasaste no lo dice. Las tres opciones que preguntás (bloquear, ejecutar, dejar pendiente) son posibles, y elegir una sería inventar.\n\n```\nwebhook ──► evaluate_permission ──► ASK ──► ¿?\n                                            ├─ bloquea\n                                            ├─ ejecuta\n                                            └─ queda pendiente\n                                      ◄ acá falta el dato\n```\n\nLo que sí sé del material:\n\n- `evaluate_permission` devuelve ASK. La decisión de qué hacer con ese ASK ocurre después.\n- `tool_usage_log` tiene una columna `permission_action`. No sé si guarda un valor distinto para este caso.\n\nPara responderlo, mirá estos puntos:\n\n1. En `tuqui_core/chat/client_facing_core.py`, buscá dónde se consume el resultado de `evaluate_permission` para canales sin persona.\n2. En `ChannelProfile`, fijate si hay un campo sobre aprobaciones interactivas, además de `personal_identity_applies`.\n3. En el código que escribe `tool_usage_log`, fijate qué valores toma `permission_action`.\n\nSi me pasás la ruta del repo o pegás esos fragmentos, lo traigo con el código a la vista.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 11685,
+  "cache_read_input_tokens": 70667,
+  "output_tokens": 886,
+  "output_tokens_details": {
+   "thinking_tokens": 75
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11685,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 507,
+    "cache_read_input_tokens": 27513,
+    "cache_creation_input_tokens": 166,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 166
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

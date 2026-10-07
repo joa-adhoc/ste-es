@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción de los conectores se consume sólo en la SPA, o también entra a un prompt LLM, a un mail o sale por MCP? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya agrega la columna description_i18n o tengo que crear otra?",
+   "note": "La primera oración es condicional: no responde si hay que tocar el backend. Depende de un dato que la respuesta me manda a verificar a mí."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción de los conectores se usa en algún prompt LLM, mail o sale por MCP, o sólo la muestra la SPA? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya agrega la columna description_i18n a platform_connectors, o tengo que crear otra?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción de los conectores sale por MCP, entra a algún prompt LLM o se manda en mails, o sólo la pinta la SPA? Y de paso, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega la columna description_i18n a platform_connectors, o tengo que crear una nueva?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿La descripción de los conectores se consume sólo en la SPA, o también entra a un prompt LLM, a un mail o sale por MCP? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya agrega la columna description_i18n o tengo que crear otra?",
+ "followup_answer": "No puedo confirmar ninguna de las dos cosas: el directorio de trabajo (`/tmp/ste-es-eval-b6kaa64m`) está vacío y no tengo el repo. No existen `supabase/migrations/0201_platform_connectors_description_i18n.sql` ni el código de conectores.\n\n**¿Quién consume la descripción?** Lo tenés que verificar vos en el repo. Corré esto desde la raíz:\n\n```bash\ngrep -rn \"description\" --include=*.py . | grep -i connector\n```\n\n- Si la descripción entra a un prompt, a un mail o a la superficie MCP saliente, tocá también el backend (paso 5).\n- Si sólo aparece en serializers que la devuelven a la SPA, alcanza con migración, API y cliente.\n\n**¿La migración 0201 ya agrega `description_i18n`?** Abrí el archivo y buscá esta línea:\n\n```bash\ngrep -n \"description_i18n\" supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n\n- Si hay un `ADD COLUMN description_i18n JSONB`, no crees otra migración. Pasá directo al serializer y al front.\n- Si falta, o la columna está en otra tabla, creá una migración nueva con el siguiente número libre.\n\nPor el nombre, es probable que 0201 ya agregue la columna. Eso es una suposición, no lo leí. Si me pasás el repo o pegás el contenido del archivo, lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 6203,
+  "cache_read_input_tokens": 81399,
+  "output_tokens": 923,
+  "output_tokens_details": {
+   "thinking_tokens": 66
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6203,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 508,
+    "cache_read_input_tokens": 22035,
+    "cache_creation_input_tokens": 162,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 162
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d6c19242da"
+ }
+}

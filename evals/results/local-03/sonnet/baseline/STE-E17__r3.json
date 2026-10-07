@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Esto sale solo del material que pegaste. No abrí el código, así que los detalles que el material no cubre los marco como no confirmados.\n\n## Camino de la falla hasta el modelo\n\n1. **La tool lanza una excepción.** Puede ser un `ToolError` propio, por ejemplo el de `require_adapter` en `tools/base.py` cuando nadie conectó Odoo. También puede ser una excepción Python o httpx cualquiera.\n2. **`_wrap_tool` en `agent.py` la captura.**\n   - Si es un `ToolError`, lo usa tal cual.\n   - Si no, `classify_unknown(exc)` la mapea a un `ErrorClass`.\n3. **Se serializa para el modelo.** `exc.for_llm()` devuelve `\"[TOOL_ERROR class=X]: message\"`. Ese string vuelve como resultado de la tool, así que el modelo ve la clase y el mensaje. Ya no ve el string genérico anterior.\n4. **El modelo decide qué hacer.** La clase le da pista de qué conviene:\n   - `RATE_LIMIT` puede traer `retry_after_seconds`.\n   - `INVALID_INPUT` sugiere corregir los argumentos.\n   - `PERMISSION` y `NOT_FOUND` sugieren no insistir.\n   - `CONNECTION` es un Odoo caído (falla el transporte).\n   - `ODOO_NOT_CONNECTED` es que no hay credenciales para este run. El texto es distinto a propósito, para no decirle \"conexión caída\" a quien nunca conectó su Odoo.\n\n## Corte cuando el modelo repite lo mismo\n\n`DoomLoopGuard` (`guards.py`, `THRESHOLD=3`) lleva un contador por clave:\n\n```\n\"{tool_name}|{hash(args)}|{error_class}\"\n```\n\n- Cada falla llama a `record(tool_name, args, ok=False, error_class)` y suma 1 a su clave.\n- Cuando el contador llega a 3 o más, `record` devuelve `True`. Entonces `_wrap_tool` devuelve un error `FATAL` en vez del error normal y bloquea los siguientes calls idénticos.\n- **Un éxito de cualquier tool limpia todos los contadores**, no solo el de esa clave.\n- `CONNECTION` y `ODOO_NOT_CONNECTED` las corta el guard igual que a las demás, cada una con su propio aviso.\n\n## Consecuencias de la clave\n\n- Cambiar los argumentos da otro hash y reinicia la cuenta para esa variante. Un modelo que va variando el input no dispara el corte hasta repetir una variante 3 veces.\n- Como `error_class` está en la clave, el mismo call que falla primero con `TRANSIENT` y luego con `CONNECTION` cuenta por separado.\n- Un éxito en cualquier lado resetea todo. Un modelo que alterna una tool que anda con otra que falla siempre nunca llegaría al umbral.\n\n## Lo que el material no aclara\n\n- Si el bloqueo se chequea antes de ejecutar la tool, o solo después de fallar. \"Impide más calls idénticos\" sugiere lo primero.\n- Si el `FATAL` del guard también sale en formato `[TOOL_ERROR class=FATAL]`.\n- Si el contador se reinicia por run o vive más tiempo.\n\nSi me indicás dónde está el repo, lo verifico en `agent.py` y `guards.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3839,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1641,
+  "output_tokens_details": {
+   "thinking_tokens": 437
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3839,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1641,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3839,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3839
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

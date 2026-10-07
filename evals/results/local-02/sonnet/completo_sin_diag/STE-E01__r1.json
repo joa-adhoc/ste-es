@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Seguí estos pasos en orden.\n\n1. Creá la migración con `supabase migration new <nombre>`. El archivo queda en `supabase/migrations/` con el nombre `NNNN_descripcion.sql`.\n2. Escribí la migración idempotente. Tiene que correr varias veces sin error.\n3. Agregá RLS en la misma migración, porque la tabla lleva `workspace_id`.\n4. Escribí el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n5. Creá el modelo Pydantic de la tabla.\n\n**Qué tiene que tener la migración**\n\n- La tabla con `CREATE TABLE IF NOT EXISTS`, con la columna `workspace_id`.\n- Cada índice con `CREATE INDEX IF NOT EXISTS`.\n- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. Este comando ya es idempotente.\n- La policy dentro de un bloque idempotente:\n\n```sql\nDO $$ BEGIN\n  IF NOT EXISTS (...) THEN\n    CREATE POLICY ... USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nEl `IF NOT EXISTS (...)` consulta `pg_policies` por el nombre de la policy y de la tabla. El material no define esa consulta, así que completala vos.\n\n**Por qué la idempotencia importa**\n\n- El preview de tu PR corre las migraciones contra la base de staging. No es una copia, es la misma base.\n- Tu migración se aplica en staging cuando abrís el PR.\n- Si renombrás el archivo, se aplica de nuevo, porque el tracking es por nombre de archivo.\n- Elegí el nombre final antes de abrir el PR.\n- Los detalles están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\n**Lo que rebota el review**\n\n- No filtres por `workspace_id` solo en el application layer. RLS es la línea de defensa principal.\n- Una tabla con `workspace_id` sin RLS, sin policy o sin test.\n- Una tabla sin `workspace_id`. Es una excepción: discutila antes de escribirla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8570,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 975,
+  "output_tokens_details": {
+   "thinking_tokens": 187
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8570,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 975,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8570,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8570
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

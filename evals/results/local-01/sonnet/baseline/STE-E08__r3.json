@@ -1,0 +1,43 @@
+{
+ "case": "STE-E08",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Recomendación: skill**, salvo que el \"con algunos defaults\" esconda algo que lo mueva a otro eje.\n\n**Aplicando el criterio**\n\nUn `odoo_create` con defaults sobre un modelo es, por construcción, un wrapper 1→1 de `odoo_create`:\n\n- **(a) No componible:** falla. Se logra con `odoo_create` pasando los valores.\n- **(b) Gate/identidad propia:** solo cuenta si el gate es más fino que el `create` genérico.\n  - Si querés approval propio, es (b1) y vale solo en chat.\n  - Si querés una whitelist restringida a ese modelo, es (b2) y vale en chat y MCP. Es el caso de `odoo_copy` o `odoo_message_post`.\n  - Un gate `create` por modelo ya lo da la whitelist genérica. Eso no es más fino.\n- **(c) Procedimiento crítico:** solo si saltarse un paso tiene costo real de compliance. Con defaults no suele aplicar.\n- **(d) Eficiencia:** el umbral duro lo descarta. Una sola call genérica no califica aunque ahorre tokens de esquema.\n\nEs el mismo caso que `odoo_schedule_activity`, que ya se degradó a skill. La skill lleva los defaults, el modelo y los campos obligatorios como instrucciones, y llama a `odoo_create`.\n\n**Cuándo sí sería tool nativa**\n\n- **(b2):** el modelo es sensible y no querés abrir `create` genérico sobre él. La tool tiene una whitelist propia y reduce el blast radius. Esto vale en chat y en MCP.\n- **(d):** el \"create\" en realidad son ≥3 calls: por ejemplo resolver un partner, buscar un default dependiente de datos, crear y luego postear. Ahí ya no es 1→1.\n- **(a):** necesita un efecto que las genéricas no dan, como algo en el embed.\n\n**¿Cambia algo si se expone por el MCP saliente?**\n\nSí, pero solo en un sentido: **te quita argumentos, no te da ninguno**. En MCP no hay approval ni turno donde forzar pasos, así que (b1) y (c) no cuentan. Si tu justificación era \"quiero que pida aprobación\", en MCP no existe y la tool queda sin razón de ser. Solo sobreviven (a), (b2) y (d).\n\nOtra consecuencia: las skills son un store propio de Tuqui, así que no llegan al MCP saliente. Si querés que un cliente MCP externo tenga esos defaults, una skill no lo resuelve. Eso pasa por (b2) o (d), o por no exponerlo y dejar que el cliente use `odoo_create`.\n\n**Para decidir**\n\nRespondé esto: ¿esta tool restringe algo que `odoo_create` permitiría (b2), o junta ≥3 pasos (d)? Si ninguna es sí, es skill. Si es (b2), tool nativa, y registrala en el ítem de la tabla con ese eje. Si solo es (b1), tool nativa en chat y agregala a `MCP_EXCLUDED_TOOLS`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4226,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1090,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4226,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1090,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4226,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4226
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

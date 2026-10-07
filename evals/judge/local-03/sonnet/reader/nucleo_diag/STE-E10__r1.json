@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook, ¿qué pasa concretamente cuando el resultado es ASK y no hay ningún humano que pueda responder: se bloquea, se deniega automáticamente o se ejecuta igual? Necesito saberlo para decidir si el admin debe poner `deny` o `allow` explícito en ese tool."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook, el resultado queda en ASK, pero no hay nadie que pueda responder. ¿Qué pasa en ese caso: se bloquea, se ejecuta igual, queda pendiente o falla? ¿Cómo lo resuelve el ChannelProfile del canal webhook?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del webhook, el agent queda en `ask` pero no hay ningún humano que responda. ¿Qué hace `evaluate_permission` en ese caso: lo trata como deny, lo auto-aprueba, o queda colgado? ¿Hay algo en `ChannelProfile` que lo resuelva?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "En el caso del agent por webhook, ¿qué pasa concretamente cuando el resultado es ASK y no hay ningún humano que pueda responder: se bloquea, se deniega automáticamente o se ejecuta igual? Necesito saberlo para decidir si el admin debe poner `deny` o `allow` explícito en ese tool.",
+ "followup_answer": "No pude buscar el código, y el material no responde esto. No sé qué pasa con un ASK sin humano, así que no te lo voy a inventar.\n\n**Recomendación:** poné `allow` o `deny` explícito en los tools que el webhook pueda usar. Así el resultado no depende de un ASK sin respuesta.\n\n- **`deny`** si el webhook no debería ejecutar ese tool. En canales sin identidad personal, el `deny` del workspace aplica siempre.\n- **`allow`** si querés que lo ejecute sin supervisión. Es una decisión de política del admin, y vale para todos los canales del workspace.\n\nPara confirmar el comportamiento real del ASK, revisá estos puntos:\n1. En `tuqui_core/chat/permissions.py`, buscá qué hace el llamador cuando `evaluate_permission` devuelve ASK.\n2. En `ChannelProfile`, fijate si hay un campo tipo \"puede preguntar\" o \"interactivo\" para `webhook`.\n3. En `tool_usage_log`, filtrá por `permission_action` en corridas de webhook. Ahí vas a ver qué pasó en la práctica.\n\nSi me pasás el directorio del código o los fragmentos relevantes, lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5868,
+  "cache_read_input_tokens": 37581,
+  "output_tokens": 627,
+  "output_tokens_details": {
+   "thinking_tokens": 70
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5868,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 429,
+    "cache_read_input_tokens": 21587,
+    "cache_creation_input_tokens": 275,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 275
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "83fe177200"
+ }
+}

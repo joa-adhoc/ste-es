@@ -1,0 +1,44 @@
+{
+ "case": "STE-E05",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, ya no es así. Ahora se corre local lo que tocaste y la suite completa la deja al CI.\n\n**Qué hacer ahora**\n- Mientras iterás y antes de pushear, corré `make test ARGS=<lo que tocaste>` y `make lint`.\n- El CI corre la suite completa.\n\n**Por qué cambió**\n- La guía anterior pedía la suite completa porque CI no devolvía resultados antes de lo que tardaba correrla local.\n- Eso dejó de ser cierto. El job de `test` bajó de ~11 min a ~4, por bcrypt configurable en tests (PR #829) y los runners arm64.\n- Además, una corrida local completa te bloquea la máquina, y el CI corre en paralelo sin molestarte.\n- Al caerse el argumento, cayó la recomendación.\n\n**Cuándo sí conviene correrla entera**\n1. **Cambios transversales.** Si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, el cambio arrastra ~76% de los archivos de test según el grafo de imports. En ese caso \"lo que tocaste\" ya no es un subconjunto útil.\n2. **Agentes de IA** (por ejemplo yo). Se corre la suite completa **una sola vez antes de entregar**, no en cada iteración. Un agente no tiene el criterio del autor para elegir el subconjunto, e iterar contra CI genera pushes de ruido.\n\n**Regla general:** no pushees a ciegas varias veces esperando que CI adivine. Si algo falla en CI y no sabés por qué, reproducilo local antes del siguiente push.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3849,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 569,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3849,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 569,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3849,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3849
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "da39a3ee5e"
+}

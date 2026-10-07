@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como que una habilidad \"no contesta\" en la prueba de humo (timeout, 401/403, error del tool, respuesta vacía)? ¿Qué timeout se usa? ¿Y qué pasa si el conector no tiene ninguna habilidad habilitada: se considera que ninguna contestó y se borra el token?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta exactamente como que una habilidad \"no contesta\" en la prueba de humo (timeout, 401/403, error de la tool, respuesta vacía) y con qué timeout? Además, si el server no tiene ninguna habilidad habilitada, ¿se considera que \"ninguna contesta\" y se borra el token, o queda conectado?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué cuenta como que una habilidad \"no contesta\" en la prueba de humo (timeout, 401/403, error del tool, respuesta vacía)? ¿Qué timeout se usa? ¿Y qué pasa si el conector no tiene ninguna habilidad habilitada: se considera que ninguna contestó y se borra el token?",
+ "followup_answer": "El material no define ninguna de las tres cosas, así que no puedo confirmarlas sin inventar.\n\n**Lo que el material sí dice**\n- El callback introspecta **todas** las habilidades habilitadas en paralelo.\n- \"Ninguna contesta\" borra el token y manda `connect_error=<motivo>`.\n- \"Alguna contesta\" conserva el token y manda `connect_warning=<habilidades>`.\n\n**Lo que el material no dice**\n- **Qué cuenta como \"no contesta\":** no distingue timeout, 401/403, error del tool ni respuesta vacía. Tampoco aclara si \"introspectar\" es un `tools/list` o una llamada a un tool.\n- **El timeout:** no hay valor. No sé si es uno global o uno por habilidad.\n- **Cero habilidades habilitadas:** no hay regla. \"Ninguna contesta\" se cumple vacuamente, pero el material no confirma que el código lo trate así. Podría borrar el token, o saltarse la prueba y conectar.\n\nEsto último es el caso más riesgoso. Si la lógica es `if not any(results)`, una lista vacía borra el token y devuelve `connect_error`.\n\nPara confirmarlo, buscá en el backend el handler de `GET /api/mcp-oauth/callback`. Fijate en estos puntos:\n\n```bash\nrg -n \"connect_warning|connect_error\" --type py\n```\n\n- La condición exacta de éxito de cada habilidad (excepción, status HTTP o contenido de la respuesta).\n- El timeout de la introspección, ya sea en `asyncio.wait_for`, `httpx.Timeout` o una constante.\n- Si hay una rama especial para la lista vacía antes de evaluar `any(...)`.\n\nEl repo no está en `/tmp/ste-es-eval-mvdz5n3d`. Si me das la ruta, lo reviso y te respondo con el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5962,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 834,
+  "output_tokens_details": {
+   "thinking_tokens": 185
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5962,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 834,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5962,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5962
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cc26fe0c33"
+ }
+}

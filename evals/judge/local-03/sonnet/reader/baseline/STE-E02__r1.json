@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude saber si hace falta tocar el backend: ¿quién lee `description` de los conectores fuera de la SPA (prompt, mail, MCP)? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega `description_i18n`? Si me confirmás esas dos cosas, o me pasás el código, sé qué pasos hacer y cuáles saltear.",
+   "_note": "La primera oración es condicional (\"depende de quién consuma\") y no responde la pregunta binaria; además la respuesta admite que no verificó el consumo real ni el contenido de la 0201."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude confirmar quién consume hoy la descripción de los conectores fuera de la SPA. ¿Se lee `description` de los conectores en algún prompt, mail o endpoint MCP? Y la migración 0201_platform_connectors_description_i18n.sql: ¿ya agrega `description_i18n`? Con eso decido si alcanza con el cliente o hay que tocar el backend."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude saber si alcanza con el cliente: ¿hoy se lee `description` de los conectores fuera de la SPA (prompt, mail, MCP)? Y, ¿la migración 0201 ya agrega `description_i18n`? Con esos dos datos sé si hay que tocar el backend y si me salteo el paso 1."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "No pude saber si hace falta tocar el backend: ¿quién lee `description` de los conectores fuera de la SPA (prompt, mail, MCP)? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega `description_i18n`? Si me confirmás esas dos cosas, o me pasás el código, sé qué pasos hacer y cuáles saltear.",
+ "followup_answer": "No puedo confirmarte ninguna de las dos cosas: el directorio de trabajo (`/tmp/ste-es-eval-udbqi_zw`) está vacío. No hay repo, ni `supabase/migrations/`, ni `tuqui_core/`. Lo único que tengo es el material que pegaste.\n\nPara que no dependas de mí, estos son los dos chequeos que podés correr en la raíz del repo.\n\n**1. ¿La 0201 ya agrega `description_i18n`?**\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\nBuscá un `ADD COLUMN ... description_i18n JSONB` sobre la tabla de conectores. Por el nombre del archivo es muy probable que sí, pero no lo vi. Si está, saltá el paso 2 (migración). Si además portaba datos de una columna `_en`, tampoco tenés que hacer nada ahí.\n\n**2. ¿Quién lee `description` de conectores fuera de la SPA?**\n```bash\ngrep -rnE \"description\" --include=*.py . | grep -iE \"connector\" | grep -v migrations\n```\nDespués revisá si esos resultados alimentan alguno de estos tres consumidores:\n- **Prompt LLM:** armado de prompts o tool definitions con la descripción del conector.\n- **Mail:** templates o notificaciones que la incluyan.\n- **MCP saliente:** la superficie que expone conectores como tools o recursos.\n\nQué hacer según el resultado:\n- **Ninguno la lee:** alcanza con el cliente. Seguí los pasos 2, 3 y 4 de mi respuesta anterior: API que manda el mapa, `localizedField` en el front y editor con dos inputs.\n- **Alguno la lee:** hacé también el paso 5. Resolvé en el backend con `lang → en → legacy`, y tomá `lang` de `resolve_response_language(workspace_id, user_id)`. Después incluí el idioma en el `queryKey` si terminás resolviendo en el server.\n\nSi me pasás el repo (o lo montás en este directorio), lo reviso yo y te digo qué pasos saltear.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5725,
+  "cache_read_input_tokens": 37388,
+  "output_tokens": 960,
+  "output_tokens_details": {
+   "thinking_tokens": 65
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5725,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 745,
+    "cache_read_input_tokens": 21403,
+    "cache_creation_input_tokens": 307,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 307
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a91fb8bc46"
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Las descripciones de los conectores se usan sólo en la SPA o también entran a un prompt LLM, a un mail o salen por MCP? Y la migración 0201_platform_connectors_description_i18n.sql que mencionás: ¿ya agrega description_i18n a platform_connectors o es para otra tabla, así no creo una duplicada?",
+ "followup_answer": "No pude verificar ninguna de las dos cosas: el directorio de trabajo (`/tmp/ste-es-eval-39nb235c`) está vacío. No hay migraciones ni código del backend ni del front.\n\n**Migración 0201.** Sólo sé lo que dice el material: `0201_platform_connectors_description_i18n.sql` figura como referencia para este patrón. Por el nombre, agrega `description_i18n` a `platform_connectors`. No vi el contenido, así que no lo afirmo. Antes de crear otra, corré esto en tu repo:\n\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\ngrep -rn \"description_i18n\" supabase/migrations/\n```\n\nSi el `ALTER TABLE` apunta a `platform_connectors`, la migración ya existe. En ese caso no crees otra, y revisá que esté aplicada en tu entorno.\n\n**Quién consume la descripción.** Tampoco puedo confirmarlo. Buscá los usos en el backend:\n\n```bash\ngrep -rn \"platform_connectors\" --include=*.py . | grep -i description\ngrep -rn \"\\.description\" --include=*.py tuqui_core/ | grep -i connector\n```\n\n- Si la descripción aparece en un prompt, en un template de mail o en la respuesta de una tool MCP, el backend la consume. Tenés que resolverla ahí con `lang → en → legacy`.\n- Si sólo la devuelve un endpoint de listado y la pinta la SPA, alcanza con el cliente.\n\nSi me pasás el repo o los resultados de esos `grep`, te confirmo ambas cosas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5778,
+  "cache_read_input_tokens": 37345,
+  "output_tokens": 884,
+  "output_tokens_details": {
+   "thinking_tokens": 92
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5778,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 563,
+    "cache_read_input_tokens": 21351,
+    "cache_creation_input_tokens": 421,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 421
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

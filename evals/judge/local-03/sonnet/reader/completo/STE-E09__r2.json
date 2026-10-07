@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta arranca con un diagrama y no con una explicación directa. ¿Podés darme en una o dos frases el resumen del flujo (front → backend → provider) y qué pasa si algunas habilidades no contestan? Además, hay una contradicción: en el diagrama la prueba de humo corre después de guardar los tokens, pero en la lista de pasos no aparece como paso. ¿En qué orden ocurre realmente y en qué paso se borra el token si ninguna contesta?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "La respuesta arranca con un diagrama sin ninguna oración que resuma el flujo. ¿Me la podés dar en 3-4 líneas: qué hace cada actor (front, backend, provider), y qué pasa si después del intercambio algunas habilidades no contestan (ninguna → se borra el token y hay error; alguna → queda conectado con aviso parcial)? Además, en el paso 8 mencionás `resource` pero el flujo numerado termina en el refresh, y la prueba de humo no aparece en la lista: ¿en qué paso exacto corre y cómo se relaciona con el redirect de `connected=`?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta arranca con un diagrama y no con una explicación directa. ¿Podés darme en una o dos frases el resumen del flujo (front → backend → provider) y qué pasa si algunas habilidades no contestan? Además, hay una contradicción: en el diagrama la prueba de humo corre después de guardar los tokens, pero en la lista de pasos no aparece como paso. ¿En qué orden ocurre realmente y en qué paso se borra el token si ninguna contesta?",
+ "followup_answer": "**Resumen:** El front pide `GET /start`, el backend devuelve una `authorize_url` con `state` firmado y el front redirige al provider. El provider vuelve al callback del backend con `code` y `state`. El backend cambia el `code` por tokens, los guarda y prueba las habilidades antes de redirigir al SPA. Si ninguna habilidad contesta, el backend borra el token y el redirect lleva `connect_error`. Si alguna contesta, el miembro queda conectado y el redirect lleva `connect_warning`.\n\n**Orden real:** tenés razón, la lista omitió la prueba de humo. El diagrama mostraba el orden correcto. Todo ocurre dentro del callback:\n\n```\nvalida `state` ─► code → tokens ─► guarda tokens ─► prueba de humo ─► redirect\n   (paso 6)         (paso 6)        (paso 6)        (sin número)      (paso 7)\n                                                         │\n                                          ninguna contesta ──► borra el token ✗\n```\n\nEl material no numera la prueba de humo. Ocurre entre el paso 6 y el paso 7. El borrado no es un paso aparte: es la rama \"ninguna contesta\" de esa prueba, y pasa antes del redirect. Que el material diga \"se borra\" implica que el token ya estaba guardado. No dice el instante exacto del borrado dentro del callback.\n\nUna imprecisión mía: escribí que `connect_warning` lista las habilidades que fallaron. El material solo dice `connect_warning=<habilidades>`, sin aclarar si son las que fallaron o las que contestaron.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11686,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 983,
+  "output_tokens_details": {
+   "thinking_tokens": 436
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11686,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 983,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 11686,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11686
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a65ccac0be"
+ }
+}

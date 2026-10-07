@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "¿Qué comando exacto corro para instalar la dependencia de Python nueva en el clone principal, si ahí el pyproject es el de otra rama? ¿Y cuáles son los pasos concretos de la alternativa, la de borrar el link del .venv y armar un venv propio en el worktree?",
+ "followup_answer": "El material no trae el comando exacto. Lo que sigue es una inferencia mía: verificá la ruta del `pyproject` y los extras en el `Makefile` (target `install`).\n\n**Opción A: instalar en el clone principal**\n\nSi el `pyproject` del clone principal es de otra rama, no tiene tu dependencia. No uses `make install` ahí: instalaría lo de esa rama. Instalá el paquete por nombre en el venv del clone principal:\n\n```bash\ncd <clone-principal>\ntuqui_core/.venv/bin/pip install \"<paquete>==<version>\"\n```\n\n- Si el venv usa `uv`, el equivalente es `uv pip install --python tuqui_core/.venv/bin/python \"<paquete>==<version>\"`.\n- Fijate que la versión coincida con la de tu `pyproject`.\n- Esta opción afecta a todos los worktrees, porque comparten el `.venv`.\n- Desinstalá o actualizá la dependencia cuando cambies de rama.\n\n**Opción B: venv propio en el worktree**\n\nEsta opción aísla tu rama y no toca el clone principal.\n\n1. Entrá al worktree: `cd <worktree>`.\n2. Borrá el link, sin barra final: `rm tuqui_core/.venv`. Con la barra final, `rm` podría tocar el venv del clone principal.\n3. Corré `make install`. El target se negaba porque el venv era un link, y sin el link debería funcionar. Si se niega igual, seguí con el paso 4.\n4. Creá el venv a mano: `python3 -m venv tuqui_core/.venv`.\n5. Instalá desde el `pyproject` del worktree, que sí tiene tu dependencia: `tuqui_core/.venv/bin/pip install -e \"tuqui_core[dev]\"`. Ajustá los extras según el `Makefile`.\n6. Corré `make test`.\n\nNo vuelvas a correr `make worktree-setup` en ese worktree: volvería a linkear el `.venv` del clone principal.\n\nRecomiendo la opción B. Con ella, tu dependencia nueva no contamina las demás ramas.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10372,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1345,
+  "output_tokens_details": {
+   "thinking_tokens": 618
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10372,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1345,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10372,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10372
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

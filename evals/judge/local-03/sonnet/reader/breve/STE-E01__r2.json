@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dos cosas que no me quedan claras: 1) ¿Qué consecuencias concretas tiene que el preview corra contra la base de staging real (por ejemplo, qué pasa si mi migración falla a mitad, tiene datos de prueba o necesita rollback), y cómo las evito? 2) ¿Cuál es la ruta correcta del test de RLS (tuqui_core/tests/test_rls.py o tests/test_rls.py) y qué tiene que verificar exactamente, y qué debe incluir el modelo Pydantic?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que las consecuencias completas de que el preview corra contra la base de staging real están en docs/infra-ci-cd.md, pero no me las contaste. ¿Qué pasa concretamente si la migración falla o deja la tabla a medias en staging, y cómo lo revierto? Además, ¿cuál es la ruta correcta del test de RLS (tuqui_core/tests/test_rls.py o tests/test_rls.py), y qué tiene que cubrir el modelo Pydantic?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta dice que las consecuencias de que el preview corra contra la base de staging real están en docs/infra-ci-cd.md, pero no las explica. ¿Qué pasa concretamente si mi migración tiene un error o es destructiva, y cómo la limpio o la revierto en staging? Además, ¿cuál es la ruta correcta del test de RLS (tuqui_core/tests/test_rls.py o tests/test_rls.py), qué campos o convenciones debe tener el modelo Pydantic, y qué nombre/formato debe llevar la policy y el NNNN de la migración?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Dos cosas que no me quedan claras: 1) ¿Qué consecuencias concretas tiene que el preview corra contra la base de staging real (por ejemplo, qué pasa si mi migración falla a mitad, tiene datos de prueba o necesita rollback), y cómo las evito? 2) ¿Cuál es la ruta correcta del test de RLS (tuqui_core/tests/test_rls.py o tests/test_rls.py) y qué tiene que verificar exactamente, y qué debe incluir el modelo Pydantic?",
+ "followup_answer": "No tengo el repo acá (el directorio está vacío), así que me baso solo en el material. Donde el material no dice algo, lo marco.\n\n**1) Consecuencias de que el preview corra contra staging real**\n\nLo que el material confirma:\n- Tu migración se aplica en staging al abrir el PR. No es una copia, es la misma base que usa el runner.\n- Si renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre.\n\nDe ahí se deduce lo siguiente (es inferencia mía, no texto del material):\n- **Falla a mitad:** puede quedar staging con la migración aplicada a medias, según si el runner la envuelve en una transacción. Eso no lo sé. Es la razón práctica de la idempotencia: después de arreglar el archivo, volver a correr no debería romper nada.\n- **Datos de prueba:** cualquier `INSERT` o seed que pongas queda en staging, que comparten otros. No metas datos de prueba en la migración.\n- **Rollback:** no hay rollback automático al cerrar el PR. Si necesitás deshacer algo, hay que hacerlo a mano o con otra migración.\n- **Cambios destructivos:** evitá `DROP`, `ALTER` que reescriba columnas o cualquier cosa que rompa la rama de staging mientras otros la usan.\n\nCómo evitarlo:\n- Probá la migración primero en local con `supabase db reset` o equivalente, y correla dos veces para confirmar la idempotencia.\n- Hacé la migración solo aditiva (tabla nueva, índices, RLS).\n- No renombres el archivo después de abrir el PR. Si tenés que cambiarlo, agregá otra migración.\n- Leé la sección completa en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`, donde están las consecuencias y el procedimiento oficial. Ahí deberían estar los detalles de la transacción y la limpieza.\n\n**2) Test de RLS y modelo Pydantic**\n\n- **Ruta:** el material es inconsistente. La regla de RLS dice `tests/test_rls.py` y el paso 4 dice `tuqui_core/tests/test_rls.py`. Probablemente la segunda sea la ruta completa desde la raíz del repo. Confirmalo mirando dónde existe el archivo y qué tests ya tiene, y seguí ese patrón.\n- **Qué verificar:** el material solo pide un \"test de aislamiento\" y no da más detalle. Lo razonable es:\n  - Con `app.current_workspace_id` = A, solo ves filas de A.\n  - Con B, no ves las de A.\n  - No se puede insertar ni actualizar una fila con el `workspace_id` de otro workspace.\n  - Sin la variable seteada, no se devuelve nada o falla.\n  \n  Copiá la estructura de los tests existentes en ese archivo.\n- **Modelo Pydantic:** el material solo dice \"crear el modelo correspondiente\". Debería reflejar todas las columnas de la tabla, incluido `workspace_id: UUID`. Seguí la convención de los otros modelos del repo (ubicación, base class, nombres).\n\nSi me pasás acceso al repo o el contenido de `docs/infra-ci-cd.md` y de `test_rls.py`, te confirmo los detalles exactos.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5321,
+  "cache_read_input_tokens": 37023,
+  "output_tokens": 1408,
+  "output_tokens_details": {
+   "thinking_tokens": 136
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5321,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1161,
+    "cache_read_input_tokens": 21029,
+    "cache_creation_input_tokens": 286,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 286
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c3fd462b92"
+ }
+}

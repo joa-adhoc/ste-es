@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "completo",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\nPR abierto        CI                 preview (PR env)        staging           prod\n    │              │                       │                    │                │\n    ▼              ▼                       ▼                    ▼                ▼\n migración ──► BD efímera ✓         flag heredado=1        rama `staging`    rama `main`\n destructive   (apply_migrations)   rama = la del PR       flag=1            flag=1 (?)\n                aplica              ✗ saltea, sin          ✓ aplica y        ✓ aplica y\n                                      registrar              registra          registra\n```\n\n**Qué pasa en cada lugar**\n\n- **CI:** `scripts/apply_migrations.py` aplica la migración. Las bases efímeras activan `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, porque nadie más las usa.\n- **Preview:** el runner saltea la migración y no la registra en `_migrations`. El preview hereda el flag de staging, pero su rama no es `staging` ni `main`. La base de staging sigue intacta y el código viejo sigue corriendo.\n- **Merge a `staging`:** el deploy de la rama `staging` cumple las dos condiciones. El runner aplica la migración y la registra.\n- **Prod:** el deploy de `main` aplica la migración solo si el flag vale 1 ahí. El material no dice cuánto vale en prod, así que confirmalo.\n- **Local:** `make migrate` no activa el flag, así que saltea la migración. La base de desarrollo se comparte entre worktrees.\n\n**Qué poner en el archivo**\n\nAgregá esta línea cerca del inicio de la migración:\n\n```sql\n-- destructive: true\n```\n\nSin esa línea, el preview aplica el `DROP COLUMN` en la base de staging. Eso rompe el código viejo de staging para todos.\n\n**Aviso**\n\nSi el mismo PR trae migraciones aditivas, el preview **sí** las aplica en la base de staging. Esas no llevan marker. Mirá `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\" para las consecuencias al mergear y al renombrar un archivo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10049,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1140,
+  "output_tokens_details": {
+   "thinking_tokens": 407
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10049,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1140,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10049,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10049
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "cf2e9fca76"
+}

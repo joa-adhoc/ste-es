@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "Para la dependencia de Python no me quedan los comandos: ¿cuáles son exactos para armar el venv propio en el worktree (borrar el link `tuqui_core/.venv`, crear el venv, instalar el proyecto en editable más la dependencia nueva)? Y con `npm ci`: si `node_modules` es un link al clone principal, ¿no me lo pisa o borra allá? ¿Tengo que quitar el link antes?",
+ "followup_answer": "Para el venv propio, copiá los comandos del target `install` del Makefile. El material no dice cómo instala el proyecto, así que estos comandos son una suposición.\n\n**Python (corré desde la raíz del worktree):**\n\n```bash\nrm tuqui_core/.venv                      # sin \"/\" final: borra solo el symlink\npython3 -m venv tuqui_core/.venv\nmake -n install                          # mostrá qué corre el target; copiá esos pasos\ntuqui_core/.venv/bin/pip install -e \"tuqui_core[dev]\"   # ajustá path y extras a lo que muestre el Makefile\n```\n\n- **Sin \"/\" final:** con `rm tuqui_core/.venv/` fallaría o tocaría el destino. Antes de borrar, confirmá que es un link con `ls -ld tuqui_core/.venv`.\n- **Dependencia nueva:** si ya está declarada en tu branch (`pyproject.toml` o `requirements`), el `pip install -e` la instala.\n- **Con `make install`:** puede seguir negándose si detecta el worktree linkeado. Si pasa, usá los pasos que viste con `make -n`.\n- **`make worktree-setup`:** no lo vuelvas a correr, porque puede re-linkear el `.venv`.\n\n**`npm ci`:** sí, quitá el link antes. No sé con certeza si `npm ci` borra el symlink o el contenido del destino. Si borrara el destino, rompería el `node_modules` del clone principal.\n\n```bash\nls -ld web/node_modules                  # verificá que sea un link (lrwxrwxrwx)\nrm web/node_modules                      # sin \"/\" final\ncd web && npm ci\n```\n\n- **`node_modules` de la raíz:** solo tocá el de `web/`. El de la raíz sigue linkeado y `npm ci` en `web/` no lo toca.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4730,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1208,
+  "output_tokens_details": {
+   "thinking_tokens": 568
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4730,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1208,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4730,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4730
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

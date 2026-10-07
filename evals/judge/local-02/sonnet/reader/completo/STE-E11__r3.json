@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Cuánto vale MIGRATIONS_ALLOW_DESTRUCTIVE en prod (deploy de `main`)? Necesito saber si la migración con `-- destructive: true` se aplica ahí o se saltea, y dónde lo verifico (variable de entorno del deploy, config o doc).",
+ "followup_answer": "No sé cuánto vale en prod. El material no lo dice, y el directorio de trabajo no tiene el repo, así que no pude buscarlo.\n\n```\ndeploy de `main`\n      │\n      ├─ ¿rama = `main`?                  ✓ (RAILWAY_GIT_BRANCH)\n      │\n      └─ ¿MIGRATIONS_ALLOW_DESTRUCTIVE=1? ?  ◄ acá falta el dato\n              │\n              ├─ sí ──► aplica y registra\n              └─ no ──► saltea, sin registrar\n```\n\nUn dato corrige mi respuesta anterior. Escribí \"flag=1 (?)\" para prod y lo traté como probable. Era una suposición. Con el flag en 0 o sin definir, el runner saltea la migración sin registrarla. Tampoco falla el deploy.\n\n**Dónde verificarlo**\n\n1. Las variables del servicio de prod en Railway. Buscá `MIGRATIONS_ALLOW_DESTRUCTIVE` en el environment de prod.\n2. `docs/infra-ci-cd.md`. Es la doc de CI/CD que cita el material.\n3. `tuqui_core/db/migrate.py`. Ahí está la lógica del gate y se ve qué hace si falta la variable.\n\n**Cómo confirmarlo después del release**\n\nConsultá la tabla `_migrations` en la base de prod. Si tu archivo no figura, el runner lo saltó. Los logs del deploy también deberían mostrar el salto.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11206,
+  "cache_read_input_tokens": 42906,
+  "output_tokens": 772,
+  "output_tokens_details": {
+   "thinking_tokens": 130
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11206,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 523,
+    "cache_read_input_tokens": 26912,
+    "cache_creation_input_tokens": 288,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 288
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

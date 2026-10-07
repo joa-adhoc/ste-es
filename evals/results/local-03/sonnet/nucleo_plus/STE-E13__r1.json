@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "nucleo_plus",
+ "arm_hash": "56317c7d75",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Salen dos avisos de prueba: uno a 7 días del vencimiento y otro el día que vence. Si hay suscripción viva, el día del vencimiento no sale ningún mail.\n\n**Cuándo**\n- El cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina).\n- Los hitos vienen de `billing_trial_warning_days_list`. El default es `{7, 0}`.\n- El primer aviso sale a 7 días del fin, o sea la semana que viene. El segundo sale el día del fin, mientras el workspace todavía funciona.\n- Si extendés la prueba, vuelve a avisar. El sistema marca lo enviado con el par `trial_warning_for` (fecha de fin avisada) y `trial_warning_days` (hito más chico enviado). Con un flag simple, una prueba extendida quedaba sin avisos hasta el corte.\n\n**A quién**\n- Los owners y admins siempre reciben el aviso, aunque estén en `billing_tier = 'none'`. Un equipo en prueba puede no tener a nadie con asiento.\n- También lo recibe todo miembro con asiento (`billing_tier <> 'none'`). Si el asistente se corta, se corta para todo el equipo, y quien no puede pagar puede pedirlo.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence, sin suscripción viva**\n- El workspace pasa a `plan='free'`.\n- El sistema evalúa si hay exceso sobre los límites del plan free y sale el mail de prueba vencida.\n- Con exceso, `account_status` pasa a `restricted`, con motivo `trial_expired_with_excess`. Eso bloquea MCP y chat.\n- Sin exceso, el texto no dice que el estado cambie.\n\n**Con suscripción viva**\n- El sistema limpia los flags de trial y no manda nada.\n- Para el owner no cambia nada visible, y el cobro se anuncia con su propio recibo.\n\n**Qué no dice el material**\n- No dice si los avisos de 7 días y de 0 días se saltean con suscripción viva. Solo dice que al vencer no sale nada.\n- No dice qué pasa si alguien crea la suscripción entre los dos avisos. Confirmalo en `scheduler/billing_cron.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4591,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 828,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4591,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 828,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4591,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4591
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

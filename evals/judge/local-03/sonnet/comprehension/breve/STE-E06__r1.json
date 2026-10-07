@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la DB de tests local es compartida entre worktrees. Un compañero con una rama que tiene una migración destructiva (por ejemplo, borra una columna) corre sus tests, y el conftest aplica esa migración sobre la DB compartida. Cuando corrés los tuyos, el esquema ya no tiene columnas que tu código todavía lee y aparece UndefinedColumnError. No es un problema de tu código.",
+  "No. El lock (flock) sólo evita que dos corridas pisen la DB a la vez, pero no aísla el esquema.",
+  "Arreglo inmediato: correr `make migrate-reset` en tu worktree, que arma la DB desde cero con las migraciones de tu rama en unos 3 segundos (no usar `npx supabase db reset`, que aborta por los prefijos numéricos repetidos). Para que no se repita: copiar `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local` (gitignoreado), declarar ahí una base propia con nombre distinto del de los demás worktrees y correr `make migrate-reset` para crearla. Cada compañero debería hacer lo mismo en su worktree. Opcionalmente, para soltar el lock, hay que aislar también el Redis con un `REDIS_URL` con un índice de base propio (ni el 15 ni el 0) y usar un `TEST_LOCK` distinto; si no se aíslan ambos recursos, se deja el lock como está."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "2c3621486b",
+  "control": "d71584ce60"
+ }
+}

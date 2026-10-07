@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python nueva, ¿cuáles son los comandos exactos para borrar el link del .venv en el worktree y armar un venv propio (crear el venv, instalar con el editable install y la dependencia nueva) de modo que `make test` lo reconozca sin tocar el del clone principal?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python me decís que borre el link del .venv y arme un venv propio, pero make install se niega en el worktree. ¿Cuáles son los comandos concretos para crear ese venv, instalar tuqui_core en modo editable con la dependencia nueva y que make test lo use, sin tocar el venv del clone principal?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python me dejaste dos opciones sin comandos. ¿Me pasás los pasos exactos para armar el venv propio en el worktree: cómo borro el link de .venv, cómo creo el venv e instalo en modo editable con la dependencia nueva, y si después `make install` ya funciona o tengo que usar pip directo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Para la dependencia de Python nueva, ¿cuáles son los comandos exactos para borrar el link del .venv en el worktree y armar un venv propio (crear el venv, instalar con el editable install y la dependencia nueva) de modo que `make test` lo reconozca sin tocar el del clone principal?",
+ "followup_answer": "El material no trae esos comandos exactos. Dice solo que podés \"borrar el link y armarte un venv propio\". Lo de abajo es inferencia mía, así que confirmalo contra el target `install` del `Makefile`.\n\n```bash\n# Desde la raíz del worktree\nrm tuqui_core/.venv        # sin \"/\" final: borra el symlink, no el contenido del clone principal\npython3 -m venv tuqui_core/.venv\n```\n\nAntes de instalar, mirá qué hace `make install` y copiá esos pasos a mano:\n\n```bash\ngrep -n -A15 '^install:' Makefile\n```\n\nLo más probable es algo así (la ruta, los extras y el archivo de requirements son supuestos):\n\n```bash\ncd tuqui_core\n.venv/bin/pip install -e \".[dev]\"    # o: pip install -r requirements*.txt && pip install -e .\n.venv/bin/pip install <dependencia-nueva>   # o mejor, agregala al pyproject/requirements y reinstalá\ncd ..\nmake test\n```\n\n- **Versión de Python:** usá la misma que el clone principal. Fijate con `tuqui_core/.venv/bin/python -V` en el clone principal.\n- **Reconocimiento del venv:** `make test` falla con \"Venv no encontrado\" si no ve `tuqui_core/.venv`. Un venv real en esa ruta debería alcanzar. No sé si además chequea que sea un symlink, así que verificalo en el `Makefile`.\n- **Dependencia declarada:** agregala al archivo de dependencias del repo, no solo con `pip install`. Si no, el CI no la va a tener.\n- **`worktree-setup`:** si lo volvés a correr, puede re-linkear el `.venv` y pisar el tuyo. Revisá su script antes de repetirlo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4503,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 906,
+  "output_tokens_details": {
+   "thinking_tokens": 282
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4503,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 906,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4503,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4503
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c842d33c10"
+ }
+}

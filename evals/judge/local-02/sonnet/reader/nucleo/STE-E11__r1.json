@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "aclaracion",
+ "followup": "En el último párrafo decís que si renombro un archivo o mergeo 'hay consecuencias' con las migraciones aditivas, pero no decís cuáles. ¿Qué pasa exactamente en cada caso, y qué tengo que hacer para no romper staging? Además, si mi preview se rompe porque el código nuevo espera que la columna ya no exista, ¿cómo lo manejo?",
+ "followup_answer": "No puedo leer `docs/infra-ci-cd.md`: no tengo acceso al repo, y el material solo lo cita. Por eso no te puedo decir qué pasa exactamente al mergear o al renombrar. Mi párrafo anterior fue vago porque el material también lo es. Prefiero no inventar el detalle.\n\n**Lo que sí sale del material:**\n- Una migración aditiva se aplica a la base de staging desde el preview del PR. Se registra en `_migrations` con el nombre del archivo.\n- Esa base la comparte el servicio de staging, que sigue con el código anterior.\n- El material dice que merge y renombrado traen consecuencias. No dice cuáles.\n\n**Lo que es una inferencia mía, no confirmada:**\n- El runner trackea por nombre de archivo. Si renombrás un archivo ya aplicado, es plausible que lo vea como migración nueva y lo corra de nuevo.\n- Al mergear, la migración ya figura aplicada por el preview. Es plausible que el deploy real la saltee.\n- Verificalo en el doc antes de actuar.\n\n**Qué hacer:**\n1. Leé la sección \"Un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`. Ahí está la respuesta exacta.\n2. Hasta entonces, no renombres archivos de migración ya aplicados desde el preview.\n3. Escribí las migraciones aditivas para que se puedan reaplicar sin romper nada (por ejemplo, `IF NOT EXISTS`). Esto también es una precaución mía, no una regla del material.\n\n**Si tu preview se rompe porque el código espera que la columna ya no exista:**\nEl material no cubre este caso. Lo que sí dice es que el preview no puede aplicar la migración destructiva. El preview comparte base con staging, que corre el código viejo, y el runner la saltea a propósito. Opciones razonables:\n- Partí el cambio en dos PRs. En el primero, el código deja de usar la columna y sigue funcionando con ella presente. En el segundo, la migración que la dropea.\n- Con esa división, el preview funciona sin que la columna haya desaparecido.\n- Si no podés partirlo, aceptá que el preview falla en esa parte. Validá el cambio en CI o e2e, donde las bases efímeras sí aplican la migración destructiva.\n\nSi me pasás el contenido de la sección del doc, te armo la respuesta exacta.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5480,
+  "cache_read_input_tokens": 37106,
+  "output_tokens": 1117,
+  "output_tokens_details": {
+   "thinking_tokens": 145
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5480,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 842,
+    "cache_read_input_tokens": 21112,
+    "cache_creation_input_tokens": 362,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 362
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

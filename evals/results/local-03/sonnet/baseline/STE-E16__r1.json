@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Cómo funcionan las versiones\n\n**Cada `save` sobre un artifact existente crea una versión nueva** (v(n+1)) y mueve `current_version_id`. Pero **no toca `published_version_id`**, que es lo que ve quien tiene el link.\n\n### Si editás un artifact ya compartido\n\n- **Quien tiene el link** (ruta por token) sigue viendo siempre la `published_version`. No ve tus cambios hasta que publiques.\n- **Vos** (viewer interno) navegás por `current_version`, con un selector de versiones, y ves un banner de que hay cambios sin publicar.\n- El resultado del `save` trae `unpublished_changes: true`.\n- Para que el link muestre lo nuevo, llamás `publish(version?)`. Por defecto publica la última.\n- **Revert** = publicar una versión anterior.\n\nExcepción: el primer `save` (sin `artifact_id`) crea la v1 **y la publica**, así el link no da 404 al compartir.\n\n### Si solo se refrescan los datos\n\nUn refresh de datos crea una **versión solo-data** (con `content` nulo). Cada versión guarda:\n\n- `content`: el template, o sea la página completa.\n- `data`: un snapshot JSON opcional, que se inyecta como `<script id=\"tuqui-data\">`.\n\nPara resolver qué se muestra en la versión `n`, `content` y `data` se buscan **por separado hacia atrás**: el último `content` no nulo ≤ n y el último `data` no nulo ≤ n. Entonces:\n\n- La versión solo-data hereda el diseño de la anterior y sólo cambia los datos, así que **no puede romper el diseño**.\n- Antes de escribir, los datos se validan contra el `data_schema` guardado (claves requeridas y tipos). Si el shape no es compatible, se rechaza.\n- Hay límites estrictos: `content` ≤ 1 MB y `data` serializada ≤ 1 MB.\n\n### Un matiz\n\nEl material no dice explícitamente si un refresh de datos se publica solo. Por cómo está descrito, un refresh crea una versión como cualquier otra `save`, y el link seguiría mostrando lo publicado hasta que se haga `publish`. Conviene confirmarlo en el código si importa para dashboards regenerables.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3891,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 786,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3891,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 786,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3891,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3891
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

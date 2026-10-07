@@ -1,0 +1,43 @@
+{
+ "case": "STE-E09",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Flujo OAuth por usuario para conectores MCP\n\n## 0. Alta (admin)\nEl admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Si el discovery encontró la protected-resource metadata, también queda guardado `OAuthPerUserConfig.resource` (RFC 8707).\n\n## 1. Front → Backend: inicio\n1. El usuario abre `/connectors` y clickea **Connect**.\n2. El front llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. El backend arma y devuelve la `authorize_url` con:\n   - **`state` firmado** (AES-GCM, TTL 10 min). Payload: `{server_id, user_id, issued_at, nonce}`, más `code_verifier` (PKCE) y `scope_profile` (platform connectors) si aplica.\n   - **`access_type=offline` + `prompt=consent`**. Google solo emite refresh token con ambos: el primero lo pide, el segundo fuerza re-emisión en cada authorize, así un disconnect+reconnect no queda sin refresh. Los demás providers ignoran params desconocidos (RFC 6749 §3.1).\n   - **`resource`** (RFC 8707), solo si está guardado.\n\n## 2. Front → Provider\nEl front redirige al usuario a esa URL. El usuario se autentica y consiente en el provider.\n\n## 3. Provider → Backend: callback\nEl provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\nEl backend:\n1. **Valida el state**: descifra, verifica TTL y recupera `server_id`, `user_id` y, si hay, `code_verifier` y `scope_profile`.\n2. **Intercambia** `code` → tokens contra `token_url` (con `code_verifier` si hay PKCE, y `resource` si está guardado).\n3. **Guarda** los tokens encriptados en `user_mcp_oauth_tokens`.\n\n## 4. Prueba de humo\nCon los tokens ya guardados, el callback introspecta **todas** las habilidades habilitadas del server, en paralelo. El resultado define el redirect.\n\n## 5. Redirect al SPA\n- Caso normal: `/w/{slug}/settings/connectors?connected={server_id}`.\n- Si el dueño es una cuenta de servicio: `/w/{slug}/settings/members/{member_id}?connected=...`. El destino sale del dueño, no de un `return_to` aparte.\n\n## 6. Después: refresh proactivo\nAl construir los toolsets, `refresh_if_expired` renueva el token si quedan < 60 s de validez (enviando `resource` si está guardado).\n\n---\n\n## ¿Qué pasa si algunas habilidades no contestan?\n\n| Resultado de la prueba | Estado del usuario | Redirect | UI |\n|---|---|---|---|\n| **Ninguna** contesta | Desconectado: el token se **borra** | `connect_error=<motivo>` | Banner de error en la card |\n| **Alguna** contesta | **Conectado** | `connect_warning=<habilidades>` (las que fallaron) | Banner de conexión parcial |\n\nEl criterio es que un token que no sirve para nada no tiene sentido conservarlo, pero desconectar al usuario por una sola habilidad rota sería peor que dejarlo en un estado parcial en el que sí puede usar las demás.\n\n## Sobre `resource` (RFC 8707)\nViaja en los pasos de authorize (3), exchange (6) y refresh (8) **solo si el server lo declaró**. Los conectores creados antes de que existiera el campo siguen funcionando sin indicator. Mandar un valor adivinado es peor que omitirlo, porque un AS que valida `resource` rechaza cualquier valor que no reconozca.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4241,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1336,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4241,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1336,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4241,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4241
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

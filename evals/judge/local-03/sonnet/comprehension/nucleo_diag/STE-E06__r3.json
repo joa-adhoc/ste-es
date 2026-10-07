@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la DB local de tests es compartida entre worktrees, y la rama de tu compañero aplicó migraciones destructivas que dejaron un esquema sin columnas que tu código todavía lee, lo que produce UndefinedColumnError.",
+  "No. El flock de los targets (test, test-rls, etc.) solo evita corridas simultáneas; no aísla el esquema, así que la DB queda con la unión de las migraciones de ambos worktrees. (El texto habla de flock en los targets, no menciona específicamente un lock de pytest.)",
+  "Arreglo inmediato: correr `make migrate-reset` en tu worktree (arma una base desde cero en ~3 segundos; no usar `npx supabase db reset`, que aborta en los prefijos numéricos repetidos). Es solo un parche mientras compartan base. Para que no se repita: dar a cada worktree su propia base: copiar `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, editarlo apuntando la URL de la base a una propia (con el nombre de variable del .example) y correr `make migrate-reset`; el compañero hace lo mismo con otra base. Para correr en paralelo sin lock, además se necesita un Redis propio (un índice distinto en `REDIS_URL`, no el 15 ni el 0) y un `TEST_LOCK` distinto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "0a83d682b2",
+  "control": "d71584ce60"
+ }
+}

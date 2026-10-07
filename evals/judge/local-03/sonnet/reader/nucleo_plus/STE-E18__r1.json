@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración dice que se descarta la más vieja al pasar el tope de 50, pero el punto 4 dice que cuando hay muchas se filtran por relevancia con rapidfuzz si se pasa el presupuesto de 12K caracteres. ¿Cuál es el comportamiento real y cómo se relacionan ambos mecanismos? Además, con 50 memorias por scope y headers de ~250 caracteres, el máximo sería unos 25K caracteres entre los dos scopes, así que ¿el guard de presupuesto se activa en la práctica? ¿Y el 'top-N' tiene un valor fijo o depende del presupuesto?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando los headers superan el presupuesto de 12K caracteres, ¿cuántas memorias (top-N) se conservan exactamente y cómo se decide N? Además, ¿el mensaje de la tool que le avisa al modelo de la eviction qué dice, y se puede evitar el borrado de la más vieja si es importante?",
+   "first_sentence_note": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La primera oración dice que se descarta la más vieja al pasar el tope de 50, pero el punto 4 dice que cuando hay muchas se filtran por relevancia con rapidfuzz si se pasa el presupuesto de 12K caracteres. ¿Cuál es el comportamiento real y cómo se relacionan ambos mecanismos? Además, con 50 memorias por scope y headers de ~250 caracteres, el máximo sería unos 25K caracteres entre los dos scopes, así que ¿el guard de presupuesto se activa en la práctica? ¿Y el 'top-N' tiene un valor fijo o depende del presupuesto?",
+ "followup_answer": "Son dos mecanismos independientes. La eviction FIFO borra de la base de datos al guardar. El guard de presupuesto solo filtra qué entra al prompt de un turno y no borra nada.\n\n- **FIFO (al escribir):** al agregar la 51ª memoria de un scope, la base borra la más vieja por `created_at`. Esa memoria se pierde para siempre.\n- **Guard (al armar el prompt):** si los headers superan `_MEMORY_BUDGET_CHARS` (12K), `rapidfuzz` los puntúa contra el mensaje actual y se queda con los más relevantes. Las demás siguen guardadas y pueden volver en otro turno.\n\n**¿Se activa el guard en la práctica?** Sí, cuando hay muchas memorias con headers largos. Tu cuenta es correcta, y además corrige mi respuesta anterior:\n\n- 50 headers de 250 caracteres suman 12.5K, es decir ~3K tokens, pero eso vale por scope. Con ambos scopes llenos son ~25K caracteres (~6K tokens) antes del guard.\n- Cada línea además lleva el prefijo `[scope / key]` y el `(id=<uuid>)`, unos 60 a 80 caracteres extra. Un header \"máximo\" pesa ~320 caracteres, así que el guard ya se activa con unas 37 memorias de ese tamaño.\n- Con summaries cortos (~100 caracteres) hacen falta ~70 memorias o más, y el guard casi nunca corre.\n\nEntonces el \"~3K tokens\" del material es el techo que impone el guard, no el que resulta solo de los topes de 50.\n\n**¿El top-N es fijo?** El material no lo dice, así que no puedo confirmarlo. Lo más probable es que dependa del presupuesto: ordenar por score y sumar headers hasta llegar a 12K caracteres. Tampoco aclara si el presupuesto es por scope o compartido entre ambos. Fijate en `_load_chat_setup`, en `tuqui_core/chat/agent.py`, o buscá `_MEMORY_BUDGET_CHARS` en el repo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5010,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1290,
+  "output_tokens_details": {
+   "thinking_tokens": 551
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5010,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1290,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5010,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5010
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "46c19ca7ea"
+ }
+}

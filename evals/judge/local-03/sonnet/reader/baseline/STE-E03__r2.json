@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para armar el venv propio en el worktree (borrar el link de .venv, crear el venv, instalar tuqui_core en editable con la dependencia nueva) y para borrar los links de node_modules antes de correr npm ci? Así no tengo que improvisar ni arriesgarme a escribir en el clone principal."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para armar el venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv, instalar tuqui_core en editable con la dependencia nueva) y para borrar los symlinks de node_modules antes de `npm ci`? No quiero adivinar y pisar el venv o los node_modules del clone principal."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para armar un venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv e instalar en editable con la dependencia nueva) sin tocar el del clone principal, ya que make install se niega a correr ahí? Y lo mismo para web: ¿qué comandos exactos uso para sacar el symlink de web/node_modules y correr npm ci sin escribir en el del clone principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para armar el venv propio en el worktree (borrar el link de .venv, crear el venv, instalar tuqui_core en editable con la dependencia nueva) y para borrar los links de node_modules antes de correr npm ci? Así no tengo que improvisar ni arriesgarme a escribir en el clone principal.",
+ "followup_answer": "Estos son los comandos, corridos desde la raíz del worktree. El material no dice cómo arma el venv `make install`, así que dejé un paso para copiar ese comando en vez de adivinarlo.\n\n**Antes de borrar nada, verificá que sean symlinks:**\n```bash\nls -ld tuqui_core/.venv node_modules web/node_modules\n```\nCada línea tiene que mostrar `->` apuntando al clone principal. Si alguna no es un link, no la borres.\n\n**1. Venv propio**\n```bash\n# Borrar solo el link. Sin -r, sin -f y SIN barra final.\nrm tuqui_core/.venv\n\n# Crear el venv. Usá la misma versión de Python que el del clone principal.\npython3 -m venv tuqui_core/.venv\n\n# Ver cómo instala `make install`, para replicarlo (extras, requirements, etc.)\ngrep -n -A12 '^install' Makefile\n```\nDespués instalá con el pip del venv nuevo, usando siempre la ruta explícita. Si `make install` hace un editable simple, queda así:\n```bash\ntuqui_core/.venv/bin/python -m pip install -e ./tuqui_core\n```\nSi el Makefile usa extras (`[dev]`) o un requirements aparte, agregalos igual. Tu dependencia nueva entra por el `pyproject.toml` o el requirements del branch, así que se instala con ese mismo comando.\n\n**2. node_modules propios**\n```bash\nrm node_modules web/node_modules    # solo los links\n(cd web && npm ci)\n```\nEl `node_modules` de la raíz solo hace falta borrarlo si ahí también tenés un `package.json` que cambiaste. Si no, dejá el link. Si lo necesitás propio, corré `npm ci` también en la raíz.\n\n**3. Verificar que no tocaste el clone principal**\n```bash\nreadlink -f tuqui_core/.venv web/node_modules   # deben quedar dentro del worktree\ntuqui_core/.venv/bin/python -c \"import tuqui_core; print(tuqui_core.__file__)\"   # debe ser una ruta del worktree\nmake test\nmake test-web\n```\n\n**Advertencias**\n- **No uses `rm -rf tuqui_core/.venv/` con barra final.** Algunos `rm` siguen el link y vacían el venv del clone principal.\n- **No vuelvas a correr `make worktree-setup`.** Probablemente re-linkee lo que borraste. Si lo necesitás, rehacé estos pasos después.\n- **No corras `make install`.** Con el venv propio puede que ya no se niegue, pero eso no lo confirma el material. Usá el pip directo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4702,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1550,
+  "output_tokens_details": {
+   "thinking_tokens": 631
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4702,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1550,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4702,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4702
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fee5e4c1de"
+ }
+}

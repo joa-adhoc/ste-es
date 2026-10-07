@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos (dashboard regenerable), ¿la versión solo-data se publica sola o queda sin publicar hasta que llame a publish? Es decir, ¿quien tiene el link ve los datos nuevos o sigue viendo los viejos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh solo-data (fase 2) queda sin publicar hasta que se llame a `publish`, o actualiza directamente `published_version` para que el link vea los datos nuevos?",
+   "reason": "La primera oración responde que el link sigue viendo la versión publicada. Pero falta confirmar qué ve el link tras un refresh de datos, que era la segunda mitad de la pregunta; la respuesta solo lo infiere."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh solo-data (fase 2) también queda sin publicar hasta que llamo a publish, o actualiza automáticamente lo que ve quien tiene el link? ¿Y cómo me doy cuenta de si el link está mostrando datos viejos?",
+   "note": "La primera oración responde la pregunta principal (el link sigue viendo published_version). Falta confirmar el comportamiento del refresh de datos respecto de la publicación, que la respuesta admite que es una inferencia."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando se refrescan solo los datos (dashboard regenerable), ¿la versión solo-data se publica sola o queda sin publicar hasta que llame a publish? Es decir, ¿quien tiene el link ve los datos nuevos o sigue viendo los viejos?",
+ "followup_answer": "El material no lo dice, así que no puedo darte una respuesta firme.\n\n**Lo que sí está documentado**\n- Un `save` con `artifact_id` crea la v(n+1) y mueve solo `current_version_id`. No toca `published_version_id`.\n- La ruta por token sirve siempre `published_version`.\n- El refresh de datos crea una versión solo-data. Se describe como una restricción de diseño de la fase 2 (que no pueda romper el template), no como un flujo ya especificado.\n\n**Lo que no está documentado**\n- No dice si el refresh pasa por `save` o por otro camino.\n- No dice si el refresh llama a `publish` automáticamente.\n- No dice si el refresh tiene una regla propia de publicación.\n\n**Qué pasa según el caso**\n- Si el refresh usa `save` con `artifact_id` y nadie publica, quien tiene el link sigue viendo los datos viejos. Aparecería `unpublished_changes: true` y el banner en el viewer interno.\n- Si el refresh publica solo, el link muestra los datos nuevos. Pero eso tendría que estar implementado explícitamente, y el material no lo menciona.\n\nPara un dashboard regenerable, el segundo caso suele ser lo que se quiere. Si el link se queda con datos viejos hasta que alguien publique, el dashboard pierde gran parte de su sentido.\n\nPara cerrarlo hay que mirar el código. Los lugares a revisar son `service.save` (si publica según el tipo de versión) y el job o endpoint de refresh (si llama a `publish`). Si me das acceso al repo, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4801,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 748,
+  "output_tokens_details": {
+   "thinking_tokens": 194
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4801,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 748,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4801,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4801
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5b8849fe3c"
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "case": "STE-E02",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Depende de quién consume la descripción. Según tu regla, la decisión es esta:\n\n- **Sólo la SPA la muestra** (cards, listados): alcanza con el cliente. La API manda el mapa entero y el front resuelve el idioma.\n- **También entra a un prompt LLM, un mail o sale por MCP**: hay que tocar el backend, y el cliente también si además se pinta.\n\nLa descripción de conectores casi seguro se pinta en la SPA. Si además se expone por MCP o se mete en un prompt, tenés que resolverla en el backend. Confirmalo antes de empezar.\n\nPor el nombre del archivo `0201_platform_connectors_description_i18n.sql`, parece que la migración y la columna ya existen. Verificá si ya está aplicada y si el serializer ya devuelve `description_i18n`. Si es así, te saltás los pasos 1 y 2.\n\n## Punta a punta (caso sólo SPA)\n\n1. **Migración**, en el próximo número libre de `supabase/migrations/`:\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` como está.\n\n2. **Escritura (backend)**: aunque no resuelvas idioma, el endpoint que guarda tiene que aceptar `description_i18n` y pasarlo por `normalize_i18n_keys` de `tuqui_core/i18n.py`. No lo re-implementes.\n\n3. **Lectura (backend)**: el serializer devuelve `description_i18n` junto con `description`, sin filtrar por idioma. Si lo leés con asyncpg, pasalo por `decode_i18n`, porque puede venir como `str` o como dict.\n\n4. **Front, al mostrar**:\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas la cadena de fallback a mano. Es `idioma → en → legacy`.\n\n5. **Editor de admin**: dos inputs (ES / EN). Al guardar, mandá `description_i18n` sólo con las claves no vacías y espejá la legacy con `es || en`. Tomá de modelo `AdminAgentEditorPage.tsx:95-115`.\n\n6. **Caché**: no hace falta cambiar el `queryKey`, porque no resolvés en el server.\n\n## Respuesta corta\n\nPara sólo SPA tenés que tocar el backend igual, pero poco: la migración y que la API guarde y devuelva el mapa. No agrega lógica de idioma. El backend con resolución propia (`resolve_response_language`, misma cadena de fallback, `queryKey` con idioma) sólo entra si la descripción llega a un prompt, un mail o MCP.\n\nSi me pasás el repo, reviso el estado actual y lo implemento.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4234,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 966,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4234,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 966,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4234,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4234
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

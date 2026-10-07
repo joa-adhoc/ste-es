@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Los environments de staging y main (prod) tienen MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Si no lo tienen, ¿qué pasa con la migración con `-- destructive: true` en el deploy: falla, se saltea o queda pendiente? Necesito saberlo para estar seguro de que llega a prod."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod (el deploy de main) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Sin eso no sé si el drop llega a prod o se saltea ahí también, y la respuesta me dice que lo confirme yo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en los environments de staging y main (prod) en Railway? Si no lo estuviera, ¿mi migración con `-- destructive: true` se saltearía en el deploy o fallaría?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Los environments de staging y main (prod) tienen MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Si no lo tienen, ¿qué pasa con la migración con `-- destructive: true` en el deploy: falla, se saltea o queda pendiente? Necesito saberlo para estar seguro de que llega a prod.",
+ "followup_answer": "**Se saltea sin registrarla. No falla y queda pendiente.** El material dice que en cualquier caso donde no se cumplen las dos condiciones, el runner la saltea sin registrarla en `_migrations`. Cada deploy siguiente la reevalúa.\n\n**Si prod no tiene el flag:** la migración nunca llega a prod. Cada deploy la saltea, y el código nuevo corre contra la columna todavía presente. El material no describe ninguna alerta ni error para ese caso, así que no podés contar con que alguien lo note.\n\n**Qué sabemos de cada environment:**\n- **Staging:** probablemente lo tiene. El PR env \"hereda el flag de staging\", y así un preview aplicó `0180_chat_ga`.\n- **Prod (`main`):** el material no lo dice. Tenés que verificarlo.\n\n**Cómo asegurarte de que llega a prod:**\n1. Revisá las variables del environment de prod en Railway y buscá `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Con la CLI: `railway variables --environment <prod> | grep MIGRATIONS_ALLOW_DESTRUCTIVE`.\n2. Después del deploy a `main`, confirmá que el nombre del archivo aparece en la tabla `_migrations`. Si no aparece, se salteó.\n3. Después del deploy a `staging`, hacé la misma verificación.\n\nSi prod no tiene el flag, pedile a quien administra el environment que lo setee. Ese cambio afecta a todas las migraciones destructivas futuras, no solo a la tuya.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5476,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1034,
+  "output_tokens_details": {
+   "thinking_tokens": 480
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5476,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1034,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5476,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5476
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "53aabeb03c"
+ }
+}

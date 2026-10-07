@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa las letras (a), (b1), (b2), (c) y (d) como criterios, pero nunca las define, y (a) ni aparece en el diagrama. ¿Me decís qué significa cada una con una frase? Y confirmame: para mi caso, ¿la conclusión es skill salvo que no quiera dar `create` genérico sobre ese modelo?",
+ "followup_answer": "**Qué significa cada letra** (una tool nativa necesita cumplir al menos una):\n\n- **(a) No componible:** las tools genéricas no logran lo que hace la tool. Ejemplo: leer bytes binarios o correr el sandbox.\n- **(b1) Approval o identidad de policy propia:** la tool pide approval propio, con menos blast radius que la genérica. Solo vale en chat, porque el router MCP ignora `requires_approval`.\n- **(b2) Whitelist más fina:** el gate de la tool es más estrecho que `create` o `execute` genérico. Vale en chat y en MCP.\n- **(c) Procedimiento crítico:** si el LLM saltea un paso, el costo es real (compliance dura). Solo vale en chat, porque el MCP no tiene un turno donde forzar pasos.\n- **(d) Eficiencia o determinismo:** la tool reemplaza 3 o más calls, o un loop sin cota, con una sola call determinista. Un wrapper 1→1 nunca califica.\n\nEl diagrama anterior omitió (a). Su primera pregunta (\"¿Se logra con tools genéricas?\") la cubre: si la respuesta es no, la tool es nativa. Tu caso responde sí, así que el diagrama sigue por la rama que dibujé.\n\n**Tu conclusión es correcta, con dos matices:**\n\n1. Es **skill** salvo que no quieras dar `create` genérico sobre ese modelo. Ese es el caso (b2), y vale también en MCP.\n2. Hay dos excepciones más:\n   - **(d)** si los \"defaults\" implican 3 o más calls. Por ejemplo, buscar IDs relacionados antes de crear. Un `create` con valores fijos es 1 call, así que no califica.\n   - **(b1) o (c)** si necesitás approval propio o un paso obligatorio. En ese caso la tool es solo para chat y va en `MCP_EXCLUDED_TOOLS`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11057,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1051,
+  "output_tokens_details": {
+   "thinking_tokens": 375
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11057,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1051,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 11057,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11057
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

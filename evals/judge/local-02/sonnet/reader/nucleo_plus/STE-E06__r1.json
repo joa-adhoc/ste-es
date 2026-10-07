@@ -1,0 +1,42 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Cuáles son los nombres exactos de las variables de la base de datos que tengo que poner en tuqui_core/.env.test.local (y un ejemplo de valor para una base propia del worktree)? Me dijiste que mire el .env.test.local.example porque el material no las lista, pero necesito saberlas para configurar mi base y que migrate-reset la cree.",
+ "type_note": null,
+ "followup_answer": "No tengo los nombres exactos y prefiero no inventarlos. El material no los lista, y no pude buscar el archivo en esta máquina (el permiso para el `find` fue denegado).\n\nSacalos del repo, en este orden:\n\n```bash\ncat tuqui_core/.env.test.local.example   # los nombres que el override espera\ncat tuqui_core/.env.test                 # la base compartida actual: copiá el nombre de la variable\ngrep -rn \"DATABASE_URL\\|DB_\" scripts/reset_database.py scripts/apply_migrations.py\n```\n\nEl `grep` te dice qué variable lee `migrate-reset`. Es la que tenés que sobrescribir.\n\nCasi seguro es una URL de conexión, pero no lo confirmo. Si lo es, el valor tiene esta forma, con un nombre de base distinto por worktree:\n\n```\npostgresql://USER:PASS@localhost:PORT/tuqui_test_mi_worktree\n```\n\nCopiá `USER`, `PASS` y `PORT` de `.env.test`. Cambiá solo el nombre de la base.\n\nSi pegás acá el contenido de `.env.test.local.example` y de `.env.test`, te armo el `.env.test.local` exacto.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5500,
+  "cache_read_input_tokens": 37207,
+  "output_tokens": 623,
+  "output_tokens_details": {
+   "thinking_tokens": 84
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5500,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 421,
+    "cache_read_input_tokens": 21213,
+    "cache_creation_input_tokens": 281,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 281
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

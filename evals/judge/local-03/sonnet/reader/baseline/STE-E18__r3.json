@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no aclara si el cap de 50 es por scope y cómo se reparte el budget de 12K entre el bloque de workspace y el de user. ¿Cuál es el comportamiento real en el código de `_load_chat_setup`: el budget se aplica por bloque o al total, y cuántos top-N se conservan cuando se activa el guard?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dos cosas no me cierran: ¿cuántas memorias entran realmente al prompt por turno y cómo se reparte el budget de 12K caracteres entre el bloque de workspace y el de user? Y si el cap de 50 es por scope, ¿cuál es el peor caso con ambos scopes llenos? Pasame el valor de top-N y el código de ese reparto en `_load_chat_setup`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El material no aclara si el cap de 50 es por scope y cómo se reparte el budget de 12K entre el bloque de workspace y el de user. ¿Cuál es el comportamiento real en el código de `_load_chat_setup`: el budget se aplica por bloque o al total, y cuántos top-N se conservan cuando se activa el guard?",
+ "followup_answer": "No puedo responder con el comportamiento real del código, porque no tengo acceso a `tuqui_core`. El directorio de trabajo (`/tmp/ste-es-eval-b5hm6bip`) está vacío y no es un repo git. Las búsquedas fuera de ese directorio están bloqueadas. No hay ningún `agent.py` ni `_MEMORY_BUDGET_CHARS` que pueda leer.\n\n**Lo que el material sí dice**\n- El cap de 50 es por scope: \"per user for user-scope, per workspace for workspace-scope\". Esto sí queda aclarado, así que mi nota anterior (\"parece que sí\") puede afirmarse.\n- El budget guard compara \"total header chars\" con `_MEMORY_BUDGET_CHARS` (12K). El material no dice si \"total\" es la suma de ambos bloques o cada bloque por separado.\n- Sobre el top-N solo dice que rapidfuzz puntúa los headers contra el mensaje actual y \"keeps top-N\". No indica el valor de N, si es fijo o se calcula hasta llenar el presupuesto, ni si se aplica por bloque.\n\n**Lo que el material no permite deducir**\n- Con el texto de \"total header chars\" y el cálculo de \"~3K tokens para 50 memorias\", la lectura más natural es un presupuesto global. Pero 50 memorias por scope son hasta 100 en total, y el cálculo del material solo cubre 50. Eso sugiere que el cálculo no contempla ambos scopes, o que el budget es por bloque. Ambas cosas son hipótesis mías y no las puedo confirmar.\n\n**Para cerrarlo**\nPásame la ruta del repo (o agrégala como directorio permitido) y leo `_load_chat_setup`. Si prefieres revisarlo tú, busca estas tres cosas:\n1. Si el cálculo de la suma de chars se hace antes o después de separar workspace y user.\n2. Cómo se define N: un `limit` fijo, o se acumulan headers por score hasta llegar a 12K.\n3. Si el filtrado conserva la separación en dos bloques o mezcla las memorias en una sola lista rankeada.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 5741,
+  "cache_read_input_tokens": 79881,
+  "output_tokens": 1149,
+  "output_tokens_details": {
+   "thinking_tokens": 55
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5741,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 749,
+    "cache_read_input_tokens": 21559,
+    "cache_creation_input_tokens": 167,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 167
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d83cee832e"
+ }
+}

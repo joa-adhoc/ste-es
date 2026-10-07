@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el budget guard y puntúa cada scope (workspace y user) por separado o todos los headers juntos? ¿Y qué pasa si un solo header o el bloque de workspace ya consume casi todo el presupuesto de 12K caracteres?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando el budget guard se activa, ¿puntúa cada scope (workspace y user) por separado o todos los headers juntos, y cuánto vale N (cuántas memorias conserva)? Además, ¿la eviction FIFO de la memoria 51 aplica por scope o al total?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N y el guard puntúa cada scope (workspace y user) por separado o todos los headers juntos? Eso define qué memorias quedan fuera cuando hay muchas, y no está en la respuesta."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuánto vale N en el budget guard y puntúa cada scope (workspace y user) por separado o todos los headers juntos? ¿Y qué pasa si un solo header o el bloque de workspace ya consume casi todo el presupuesto de 12K caracteres?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas, y el código no está en este directorio. Busqué `_MEMORY_BUDGET_CHARS` en `/tmp/ste-es-eval-psu2kj23` y no encontré nada.\n\n- **Valor de N:** no está documentado. El material dice solo \"keeps top-N\". Probablemente N no es fijo. Lo más probable es que el guard agregue headers por score hasta llenar los 12K caracteres, pero eso es una suposición.\n- **Scope por separado o juntos:** el material tampoco lo dice. Los dos bloques se inyectan por separado, pero eso no prueba que el guard puntúe por separado.\n- **Un header o el bloque de workspace consume casi todo el presupuesto:** el material no lo cubre.\n  - Un header solo no puede ser enorme. Sin summary, el body se corta en 250 caracteres. Con summary, el material no fija ningún límite.\n  - Con 50 memorias de 250 caracteres más el título, el total ronda los 12K. Por eso el bloque de workspace solo puede agotar el presupuesto si los summaries son largos.\n  - No sé si el presupuesto es global o por scope. Tampoco sé si las memorias de usuario quedan sin lugar.\n\nPara confirmarlo, pasame `tuqui_core/chat/agent.py` o corré esto en el repo:\n\n```bash\ngrep -n \"_MEMORY_BUDGET_CHARS\\|rapidfuzz\" -r tuqui_core/chat/\n```\n\nFijate en la función que usa `rapidfuzz`. Ahí se ve el valor de N, si itera por scope o sobre la lista unida, y qué hace cuando el primer header ya excede el límite.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5133,
+  "cache_read_input_tokens": 36879,
+  "output_tokens": 797,
+  "output_tokens_details": {
+   "thinking_tokens": 103
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5133,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 594,
+    "cache_read_input_tokens": 20885,
+    "cache_creation_input_tokens": 242,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 242
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e23f39b930"
+ }
+}

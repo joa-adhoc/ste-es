@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los insights diarios salen de un pipeline de 3 etapas que produce de 0 a 2 teasers. Después hace upsert en la tabla `insights`.\n\n```\n┌───────────────────┐   bundle md    ┌──────────────┐  0-N hipótesis  ┌──────────────┐\n│ Context Assembler │ ─────────────► │ Planner      │ ──────────────► │ Investigator │\n│ 6 queries (RLS)   │   ~2-4K tokens │ Gemini Flash │                 │ Pydantic AI  │\n└───────────────────┘                └──────────────┘                 └──────┬───────┘\n                                                                             │ InvestigationFindings\n                                                                             ▼\n┌──────────────────┐   teasers    ┌────────────────────────────────────────────────┐\n│ upsert `insights`│ ◄─────────── │ Synthesizer + Guards: Regex → Grounding → Judge│\n└──────────────────┘   0-2        └────────────────────────────────────────────────┘\n```\n\n**Qué hace cada etapa**\n\n- **Context Assembler** (`context_assembler.py`): corre 6 queries en paralelo bajo el RLS del usuario. Trae `workspace_profiles`, `user_profiles`, `memory` (scope workspace y scope user), `chat_conversations` de los últimos 7 días (título y último mensaje, sin resumir con LLM) e `insight_history` de los últimos 14 días. Esta última sirve para evitar repetir datos. Arma un bundle en markdown de ~2–4K tokens.\n- **Planner** (`planner.py`): recibe el bundle y devuelve `PlannerOutput(hypotheses, silence_reason)`. Usa `platform_config.insights_planner_model` y `INSIGHTS_PLANNER_PROMPT`, con JSON estructurado y temp=1.0.\n- **Investigator** (`investigator.py`): un agente Pydantic AI con tools de solo lectura investiga cada hipótesis. Corre hasta 3 en paralelo (`asyncio.Semaphore(3)`). El tiempo por hipótesis es `(watchdog_sec - 30) / n_hypotheses`. Los topes dependen del registro:\n\n  | Registro | max_iterations | max_tool_calls | reasoning |\n  |---|---|---|---|\n  | `dato` / `celebracion` | 4 | 6 | minimal |\n  | `observacion` | 8 | 15 | low |\n  | `alerta` / `analisis` | 12 | 25 | medium |\n\n- **Synthesizer + Guards** (`synthesizer.py`, `guards.py`): arma teasers a partir de los findings. Después aplica 3 guards en orden:\n  1. **ResponseGuard (regex):** rechaza patrones como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"`, `\"[nombre]\"`.\n  2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado del investigador con `partial_ratio >= 75`.\n  3. **LLM Judge:** mismo modelo que el synthesizer, temperatura cero. Devuelve `{grounded, reason}`.\n\n**Qué pasa entre etapas**\n\n| De → A | Qué pasa |\n|---|---|\n| Assembler → Planner | Bundle markdown |\n| Planner → Investigator | 0-N `Hypotheses` |\n| Investigator → Synthesizer | `InvestigationFindings` |\n| Synthesizer → Guards → DB | Teasers que pasan las 3 capas (máx. 2) |\n\n**Cuándo termina sin mostrar nada**\n\n- **El Planner devuelve 0 hipótesis.** Es un silencio válido. Informa el motivo en `silence_reason` y no se generan teasers.\n- **Los guards rechazan todos los teasers.** El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nSi falla la infraestructura del Judge, el teaser pasa. No se bloquea por error de infra.\n\nEl material no dice qué pasa si el Investigator no encuentra nada o se agota su presupuesto de tiempo. Tampoco dice si el Synthesizer puede devolver 0 teasers antes de los guards. Confirmalo en `investigator.py` y `synthesizer.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4917,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1545,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4917,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1545,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4917,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4917
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

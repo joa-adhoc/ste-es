@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para la opción aislada, o sea cómo quito el link de tuqui_core/.venv y armo un venv propio con la dependencia nueva (y que make test lo use), y cómo quito el link de web/node_modules antes de correr npm ci? No me queda claro si tengo que hacer eso o correr npm ci directo, porque el paso 3 dice las dos cosas."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me das los comandos exactos para armar el venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv, instalar tuqui_core en editable con la dependencia nueva) y para sacar el link de web/node_modules antes de correr npm ci? Además, ¿cuál de las dos opciones recomendás, ya que instalar en el clone principal afecta a los demás worktrees?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para la opción aislada, o sea cómo quito el link de tuqui_core/.venv y armo un venv propio con la dependencia nueva (y que make test lo use), y cómo quito el link de web/node_modules antes de correr npm ci? No me queda claro si tengo que hacer eso o correr npm ci directo, porque el paso 3 dice las dos cosas.",
+ "followup_answer": "Tenés que hacer el unlink. El paso 3 decía dos cosas porque mezclé lo que dice el material con una inferencia mía. El material solo dice \"corré `npm ci` en el worktree\". Lo de que `npm ci` pueda pisar el clone principal a través del link lo agregué yo y no lo verifiqué. Quitar el link antes es la forma segura de no averiguarlo.\n\nTodo desde la raíz del worktree:\n\n```bash\n# 1. Confirmar que son links (tienen que mostrar \"->\" al clone principal)\nls -ld tuqui_core/.venv web/node_modules\n\n# 2. Quitar los links. Sin barra final, para que borre el link y no su contenido\nrm tuqui_core/.venv\nrm web/node_modules\n\n# 3. Frontend: directorio propio\n(cd web && npm ci)\n\n# 4. Python: venv propio en la misma ruta\npython3 -m venv tuqui_core/.venv\nmake install\n```\n\nQué es verificado y qué no:\n\n- **Verificado (material):** `make test` falla con \"Venv no encontrado\" cuando no hay venv. `make install` se niega en un worktree linkeado y el material dice que borres el link y armes un venv propio.\n- **Inferido (no lo dice el material):**\n  - Que `make test` use `tuqui_core/.venv`. Lo deduzco porque ese es el path que `worktree-setup` linkea.\n  - Que `make install` funcione una vez que el link no existe. Supongo que el chequeo de \"worktree linkeado\" mira justamente ese link.\n  - Que `make install` instale la dependencia nueva. Debería, si esta está declarada en el archivo de dependencias de tu branch.\n\nAntes de correr `make install`, mirá el target en el `Makefile` para confirmar el path del venv y que el guard no se dispare. Si se niega igual, avisame con el mensaje que te da.\n\nNo vuelvas a correr `make worktree-setup` después de esto, porque probablemente recree los links. Si lo hacés, repetí el paso 2.\n\nLos demás links (`.env`, `.mcp.json`, `.env.dev-connect`, `.env.eval`, `node_modules` de la raíz) quedan como están y no hay que tocarlos. Ahí ya podés correr `make test` y `make test-web`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4664,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1448,
+  "output_tokens_details": {
+   "thinking_tokens": 659
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4664,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1448,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4664,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4664
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "33d49d675d"
+ }
+}

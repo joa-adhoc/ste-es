@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La sección sobre `resource` dice que viaja en los pasos 3, 6 y 8, pero el flujo solo llega hasta el 6 y el authorize está en el paso 1. ¿Podés decirme en qué pasos viaja realmente? Y si el server no tiene ninguna habilidad habilitada, ¿la prueba de humo cuenta como que \"ninguna contesta\" y borra el token, o se salta y queda conectado?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La sección sobre `resource` dice que viaja en los pasos 3, 6 y 8, pero el flujo solo tiene pasos 0 a 6, y en esa numeración el exchange es el 3 y el refresh es el 6. ¿En qué pasos viaja `resource` realmente: authorize (1), exchange (3) y refresh (6)? Además, ¿quién es el 'dueño' que define el redirect, el usuario que conecta o el creador del server?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La sección sobre `resource` dice que viaja en los pasos 3, 6 y 8, pero el flujo solo llega hasta el 6 y el authorize está en el paso 1. ¿Podés decirme en qué pasos viaja realmente? Y si el server no tiene ninguna habilidad habilitada, ¿la prueba de humo cuenta como que \"ninguna contesta\" y borra el token, o se salta y queda conectado?",
+ "followup_answer": "**Pasos donde viaja `resource`.** El material original numera el flujo así: authorize = paso 3, exchange = paso 6, refresh = paso 8. Esos números eran correctos en el original. Mi respuesta anterior renumeró el flujo en secciones (0 a 6) pero copió \"3, 6 y 8\" tal cual, y por eso la referencia quedó incoherente. En mi numeración, viaja en:\n\n- **Authorize:** sección 1, cuando el backend arma la `authorize_url`.\n- **Exchange:** sección 3, paso 2, cuando el callback cambia `code` por tokens.\n- **Refresh:** sección 6, cuando `refresh_if_expired` renueva el token.\n\nEn los tres casos se manda solo si `OAuthPerUserConfig.resource` está guardado.\n\n**Server sin habilidades habilitadas.** El material no lo dice, así que no puedo darte la respuesta desde ahí. Solo describe dos ramas:\n\n- **Ninguna contesta:** se borra el token.\n- **Alguna contesta:** el usuario queda conectado.\n\nCon cero habilidades, ninguna de las dos aplica con claridad. Depende de cómo esté escrita la condición:\n\n- Si el código evalúa \"no hubo ninguna respuesta exitosa\", cero habilidades cae en \"ninguna contesta\" y borraría el token.\n- Si evalúa \"todas fallaron\" sobre una lista vacía, el resultado depende de cómo trate la lista vacía. Con un `all(...)` típico daría verdadero, y con un chequeo explícito de `if not habilidades` podría saltarse la prueba.\n\nPara confirmarlo hay que mirar el handler del callback en `/api/mcp-oauth/callback`. Si me indicás dónde está el código, lo reviso. Mientras tanto, no lo daría por hecho en ninguna de las dos direcciones.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5753,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 651,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5753,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 651,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 5753,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5753
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a815e2c40e"
+ }
+}

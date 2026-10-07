@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La DB local de tests es compartida entre worktrees, y la rama de tu compañero dejó un esquema sin columnas que tu código todavía lee.\n\n```\n┌────────────┐   migraciones   ┌──────────────┐   lee columnas   ┌────────────┐\n│ Worktree   │ ──────────────► │ DB local     │ ◄─────────────── │ Tu         │\n│ compañero  │  (destructiva)  │ compartida   │  UndefinedColumn │ worktree   │\n└────────────┘                 └──────────────┘      Error       └────────────┘\n```\n\nEl `flock` de los targets (`test`, `test-rls`, etc.) solo evita corridas simultáneas. No aísla el esquema: la DB queda con la unión de las migraciones de ambos worktrees.\n\n**Arreglo inmediato:** corré `make migrate-reset` en tu worktree. Arma una base desde cero en ~3 segundos. No uses `npx supabase db reset`: aborta en los prefijos numéricos repetidos.\n\nOjo: si tu compañero corre tests después, la base vuelve a quedar con el esquema de tu rama. Mientras compartan base, el reset solo es un parche.\n\n**Para que no se repita:** dale una base propia a cada worktree.\n\n1. Copiá el ejemplo:\n   ```bash\n   cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n   ```\n2. Editá `tuqui_core/.env.test.local` y apuntá la URL de la base a una propia de tu worktree. Usá el nombre de variable que trae el `.example`.\n3. Corré `make migrate-reset` para crearla.\n\nTu compañero tiene que hacer lo mismo con otra base.\n\nSi querés soltar el lock y correr en paralelo con otros worktrees, necesitás también un Redis propio. Poné en `REDIS_URL` un índice de base distinto. No uses el 15 (default compartido de `.env.test`) ni el 0 (server de desarrollo). Después seteá un `TEST_LOCK` distinto. Aislar solo la DB o solo Redis no alcanza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4659,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 732,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4659,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 732,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4659,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4659
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

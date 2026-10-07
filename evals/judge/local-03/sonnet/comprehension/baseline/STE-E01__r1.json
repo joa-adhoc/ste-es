@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/`, creada con `supabase migration new <nombre>`. El archivo queda con el nombre `NNNN_descripcion.sql`.",
+  "Tiene que llevar la columna `workspace_id` (uuid). Además, se habilita RLS con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y se agrega una policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, envuelta en un bloque idempotente (`DO $$ BEGIN IF NOT EXISTS ... END $$;`) porque `CREATE POLICY` no tiene `IF NOT EXISTS`.",
+  "Porque el preview del PR corre las migraciones contra la base de staging real (no una copia; hereda el `DATABASE_ADMIN_URL` de staging). La migración se aplica en staging apenas se abre el PR, y si se renombra el archivo se vuelve a aplicar, porque el tracking es por nombre de archivo. Una migración no idempotente o rota puede dejar staging en mal estado."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6174f4beb9",
+  "control": "cb1718959b"
+ }
+}

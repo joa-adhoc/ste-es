@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Depende de quién consume la descripción.**\n\n- Si solo la pinta la SPA (cards, listados), alcanza con el cliente. La API devuelve el mapa entero y no filtra por idioma.\n- Si además entra a un prompt, a un mail o sale por MCP, tocá también el backend. Ahí no hay cliente que resuelva.\n- Si pasan las dos cosas, resolvé en los dos lados con la misma cadena: idioma exacto → `en` → columna legacy.\n\nUna descripción de conector puede salir por la superficie MCP. Confirmá si es tu caso antes de decidir.\n\n**Pasos de punta a punta**\n\n1. Escribí la migración: `ALTER TABLE <tabla> ADD COLUMN description_i18n JSONB;`. No toques la columna legacy `description`. Ya existe `0201_platform_connectors_description_i18n.sql`: revisá si cubre tu tabla antes de crear otra.\n2. En el backend, escribí con `normalize_i18n_keys` y leé con `decode_i18n`. Los dos están en `tuqui_core/i18n.py`. No los re-implementes. `decode_i18n` es necesario porque asyncpg devuelve el JSONB como `str` o como dict.\n3. En la API, devolvé `description_i18n` junto con `description`. No filtres por idioma en el serializer.\n4. En el front, usá `localizedField(row.description_i18n, row.description, i18n.language)`. No escribas el fallback a mano.\n5. En el editor del admin, poné dos inputs (ES y EN). Al guardar, mandá `description_i18n` solo con las claves no vacías. Espejá la legacy con `es || en`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n**Solo si el backend resuelve**\n\n6. Resolvé con `lang → en → legacy`. Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n7. Incluí el idioma en el `queryKey` de react-query. Sin eso, el caché sirve el idioma equivocado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8802,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 920,
+  "output_tokens_details": {
+   "thinking_tokens": 191
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8802,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 920,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8802,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8802
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

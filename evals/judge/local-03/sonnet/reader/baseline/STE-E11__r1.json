@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se hace el deploy a staging o a main, ¿la migración corre antes de que arranque el código nuevo? Si el drop corre mientras el código viejo sigue sirviendo tráfico, ¿tengo que partir el cambio en dos PRs, uno que deja de usar la columna y otro que la dropea?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el deploy a staging y a prod, ¿la migración corre antes de que el código nuevo tome tráfico, mientras el código viejo todavía sirve requests? Necesito saber si el drop puede romper al código viejo durante el rollout, o si tengo que separar el cambio en dos PRs: primero uno que deje de usar la columna y después otro que la dropee."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En staging y en prod, ¿la migración corre antes de que el código nuevo esté sirviendo, o después? Si corre antes, el código viejo se queda sin la columna durante el deploy. ¿Tengo que partirlo en dos PRs, uno que deja de usar la columna y otro que la dropea? Además, ¿el marker `-- destructive: true` tiene que estar en una línea exacta del archivo o vale en cualquier lugar del encabezado?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Cuando se hace el deploy a staging o a main, ¿la migración corre antes de que arranque el código nuevo? Si el drop corre mientras el código viejo sigue sirviendo tráfico, ¿tengo que partir el cambio en dos PRs, uno que deja de usar la columna y otro que la dropea?",
+ "followup_answer": "**No lo sé con el material que tengo.** No dice si la migración corre antes de que arranque el código nuevo, ni qué pasa con el tráfico del código viejo durante el deploy. Solo dice que el runner corre \"al deployar\" (`python -m tuqui_core.db.migrate`). No dice si eso es un paso previo al arranque o parte del comando de inicio, ni si Railway mantiene la instancia vieja sirviendo hasta que la nueva esté sana. Eso se define en la config del servicio en Railway, que no tengo a la vista.\n\nLo que sí se deduce del material es que el marker `-- destructive: true` existe porque el drop deja al código anterior sin poder correr. En el merge, el deploy aplica la migración sobre una base que el código viejo todavía usa, así que el orden de arranque no te salva por sí solo. Si Railway hace un deploy sin downtime, la instancia vieja sigue activa mientras corre el drop. Eso es una inferencia mía, no algo que diga el material.\n\n**Mi recomendación:** partirlo en dos PRs, que es el patrón expand/contract.\n\n1. **PR 1:** el código deja de leer y escribir la columna. No lleva migración destructiva. Se mergea y se deploya a staging y a prod.\n2. **PR 2:** solo la migración con `-- destructive: true`. Cuando se aplica, ningún código en ejecución usa la columna, así que da igual el orden de arranque o el solapamiento de instancias.\n\nCon un solo PR solo estarías seguro si confirmás dos cosas con quien mantiene la config de Railway:\n\n- Que la migración corre antes de que arranque el código nuevo.\n- Que el código viejo no sirve tráfico contra la base ya migrada, o que una ventana corta de errores es aceptable.\n\nSi no podés confirmarlo, los dos PRs cuestan poco y evitan el riesgo. Además, con el PR 1 mergeado, el preview del PR 2 ya no depende de que la columna exista.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5135,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1267,
+  "output_tokens_details": {
+   "thinking_tokens": 578
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5135,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1267,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 5135,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5135
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "79c1854a1f"
+ }
+}

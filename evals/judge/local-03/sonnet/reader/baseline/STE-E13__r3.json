@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace vence sin suscripción y sin exceso sobre los límites del plan free, ¿en qué estado queda (account_status) y qué pierde, si es que pierde algo? Y si ya tiene suscripción viva, ¿tampoco sale el aviso de 7 días antes, o solo se omite el mail del día del vencimiento? Confirmalo en el código, no como deducción."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si al vencer el workspace no tiene exceso de miembros ni de uso sobre el plan free, ¿queda en `active` con plan `free` o pasa algo más? Lo marcaste como deducción tuya. Confirmalo en el código, y aclará si el aviso del día 0 y el mail de 'prueba vencida' son dos mails distintos o el mismo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si al vencer la prueba no hay exceso de miembros ni de uso sobre el plan free, ¿en qué estado queda el workspace (`active` o algún otro)? Decime dónde se confirma en el código, porque la respuesta lo deja como deducción. Además, si faltan menos de 7 días cuando se activa la prueba o el chequeo, ¿igual sale el aviso de 7 días o solo el del día del vencimiento?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Si el workspace vence sin suscripción y sin exceso sobre los límites del plan free, ¿en qué estado queda (account_status) y qué pierde, si es que pierde algo? Y si ya tiene suscripción viva, ¿tampoco sale el aviso de 7 días antes, o solo se omite el mail del día del vencimiento? Confirmalo en el código, no como deducción.",
+ "followup_answer": "No pude confirmarlo en el código, porque el directorio de trabajo (`/tmp/ste-es-eval-yr6gi32z`) está vacío. No hay `scheduler/billing_cron.py`, ni `billing/plan_summary.py`, ni `tests/test_trial_notices.py`, y tampoco es un repositorio git. Lo único que tengo es el texto que pegaste, así que lo que sigue sale de ahí y no es verificación.\n\n**1. Vence sin suscripción y sin exceso: ¿qué `account_status` queda y qué pierde?**\n\nEl material no lo dice. Solo afirma que con suscripción no viva pasa `plan='free'`, se evalúa el exceso y sale el mail. Esto es lo que sí se puede decir:\n- El plan baja a `free`. Lo que pierde en ese caso es lo que ese plan no incluye, y eso se deriva en `plan_summary.py`, que no tengo.\n- La tabla de `account_status` lista a \"trial expiry\" como causa de `restricted`, pero el único motivo asociado es `trial_expired_with_excess`. Eso sugiere que sin exceso no se restringe y queda `active`. Sigue siendo una inferencia.\n- Para confirmarlo hay que leer la rama sin exceso de `_run_trial_expiry`. Hay que ver si escribe `account_status` o lo deja como estaba.\n- Hay que mirar también si el workspace estaba en `active` antes. Un trial grant lo deja en `active`, según la tabla.\n\n**2. Con suscripción viva: ¿se omite también el aviso de 7 días?**\n\nTampoco lo sé. El material solo describe lo que pasa \"al vencer\": se limpian los flags y no se manda nada. No dice si el filtro de suscripción viva se aplica también al enviar los hitos previos.\n- En mi respuesta anterior mezclé las dos cosas. Dije que la suscripción solo afectaba al día del vencimiento, pero eso tampoco está respaldado por el texto.\n- Hay que revisar en `_run_trial_expiry` si la query de candidatos para el hito 7 excluye a los workspaces con suscripción viva.\n\nSi me pasás el código, o me decís en qué ruta está, lo reviso y te respondo con referencias `archivo:línea`.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5522,
+  "cache_read_input_tokens": 37238,
+  "output_tokens": 956,
+  "output_tokens_details": {
+   "thinking_tokens": 24
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5522,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 794,
+    "cache_read_input_tokens": 21253,
+    "cache_creation_input_tokens": 254,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 254
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "42f5c374ba"
+ }
+}

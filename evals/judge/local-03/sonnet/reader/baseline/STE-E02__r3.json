@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Las descripciones de conectores se consumen sólo en la SPA, o también entran a un prompt, a un mail o salen por MCP? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega la columna description_i18n, o hay que crear una nueva?",
+   "_note": "La respuesta indica que depende de ese dato y que no puede confirmarlo con el material; antes de actuar hay que verificar el consumidor y si la migración 0201 ya existe y cubre el caso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude confirmar si las descripciones de conectores se consumen sólo en la SPA o también entran a un prompt, un mail o salen por MCP. ¿Cómo lo verifico concretamente (qué archivos o endpoints reviso)? Y como ya existe 0201_platform_connectors_description_i18n.sql, ¿qué cubre esa migración y falta algo, o ya está resuelta la parte de base de datos?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde puedo verificar si la descripción de los conectores sale por MCP o entra a algún prompt o mail (qué archivo o servicio lo hace)? Además, la migración 0201_platform_connectors_description_i18n.sql ya existe: ¿ya agrega description_i18n, o tengo que crear otra migración?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Las descripciones de conectores se consumen sólo en la SPA, o también entran a un prompt, a un mail o salen por MCP? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega la columna description_i18n, o hay que crear una nueva?",
+ "followup_answer": "Ninguna de las dos se puede responder con lo que tengo. El directorio de trabajo está vacío (no hay repo, ni `supabase/migrations/`, ni `tuqui_core/`), y el material tampoco dice nada al respecto.\n\n**1. ¿Quién consume la descripción de los conectores?**\nEl material no lo dice. Sólo muestra que `agents` se consume en los dos lados. Lo tenés que verificar vos en el código. Buscá dónde se lee `description` de `platform_connectors` y mirá si algún resultado cae en alguno de estos tres lugares:\n- La construcción de un prompt LLM, por ejemplo una lista de herramientas o conectores disponibles que se inyecta al modelo.\n- Un template de mail.\n- La superficie MCP saliente, por ejemplo la descripción de una tool o un recurso que publicás.\n\nSi no aparece ninguno, la consume sólo la SPA. Entonces resolvés en el cliente, no tocás la lógica del backend y el `queryKey` no necesita el idioma. Si aparece alguno, hay que resolver también en el backend con `lang → en → legacy`, tomando `lang` de `resolve_response_language(workspace_id, user_id)`.\n\n**2. ¿La migración 0201 ya agrega `description_i18n`?**\nTampoco lo puedo confirmar. El material sólo lista el archivo como referencia y el nombre sugiere que sí. No vi su contenido. Lo más probable es que ya agregue la columna, pero abrí el archivo para comprobarlo. Si ya está:\n- No crees otra migración, porque un segundo `ADD COLUMN` rompería.\n- Salteá el paso 2 y andá directo a API, front y editor.\n- Revisá también si la 0201 portó datos existentes. Si había una columna `description_en`, el patrón es el de `0206_features_i18n.sql`.\n\nSi la 0201 no agrega la columna, creá una nueva con `ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;`.\n\nSi me pasás el repo o pegás el contenido de la 0201 y los usos de `description`, te confirmo las dos cosas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5660,
+  "cache_read_input_tokens": 37308,
+  "output_tokens": 984,
+  "output_tokens_details": {
+   "thinking_tokens": 69
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5660,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 754,
+    "cache_read_input_tokens": 21323,
+    "cache_creation_input_tokens": 322,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 322
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d1324f02ad"
+ }
+}

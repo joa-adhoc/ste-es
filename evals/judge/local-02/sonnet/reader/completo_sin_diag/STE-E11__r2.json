@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? ¿Dónde lo verifico? Y si no lo tiene, ¿qué pasa con el deploy de main: la migración se saltea sin avisar o falla el deploy?",
+ "followup_answer": "No sé si prod tiene el flag. El material no lo dice y desde acá no tengo acceso a Railway.\n\n**Dónde verificarlo**\n1. Abrí el servicio de prod en Railway y mirá sus variables. Buscá `MIGRATIONS_ALLOW_DESTRUCTIVE`. El material no indica dónde se define el flag, así que revisá también las variables compartidas del proyecto.\n2. Si ya hubo una migración destructiva en prod, mirá el log de ese deploy.\n3. Para confirmar la lógica exacta, leé `tuqui_core/db/migrate.py`. Ese archivo no está en este directorio.\n\n**Si prod no tiene el flag**\n- El material no describe una falla. Dice que el runner **saltea** la migración **sin registrarla** en `_migrations`. El deploy no tiene por qué fallar.\n- El material no dice si el runner deja un mensaje en el log al saltear. Verificalo en `migrate.py` o en el log de un deploy anterior. No asumas que avisa.\n- Como no la registra, el runner la reintenta en cada deploy y la saltea otra vez. La columna sigue en prod.\n- Staging es distinto: ahí el flag está activo (el preview lo hereda de staging). La migración se aplica en el deploy de `staging`, pero no llega a prod si prod no tiene el flag.\n\n**Qué hacer**\nVerificá el flag antes de mergear a `main`. Si falta y querés la migración en prod, tenés que activarlo en el servicio de prod. Esa decisión es del equipo de infra.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9363,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 928,
+  "output_tokens_details": {
+   "thinking_tokens": 384
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9363,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 928,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 9363,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9363
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "Para la opción del venv propio en el worktree: ¿me pasás los comandos exactos? Como `make install` se niega a correr ahí, no sé cómo crear el venv, instalar tuqui_core en modo editable con la dependencia nueva y hacer que `make test` use ese venv en vez del link. Tampoco me queda claro cómo dejar `web/node_modules` listo antes del `npm ci`.",
+ "followup_answer": "El material no trae esos comandos. Lo que sigue es inferencia mía, salvo lo que aclaro.\n\n**Venv propio** (desde la raíz del worktree):\n\n```bash\nrm tuqui_core/.venv                  # sin \"/\" final: borra solo el symlink\npython3 -m venv tuqui_core/.venv\ngrep -n -A10 '^install' Makefile     # mirá qué instala el target\n```\n\nEl material no dice qué hace `make install`. Corré a mano esos mismos pasos, pero con `tuqui_core/.venv/bin/pip` en vez de `pip`. Antes agregá la dependencia nueva donde el proyecto declare las dependencias. Por ejemplo, `pip install -e .` más tus requirements, si el target hace eso.\n\n**Que `make test` use ese venv:** el material dice que `make test` falla con \"Venv no encontrado\" cuando falta `tuqui_core/.venv`. Entonces el target busca ese path. Un venv real en el mismo path debería bastar, sin tocar nada más. Confirmalo corriendo `make test`.\n\n**`web/node_modules`:**\n\n```bash\nrm web/node_modules                  # sin \"/\" final: borra solo el symlink\ncd web && npm ci\n```\n\nEl `node_modules` de la raíz también es un symlink. No lo toques, salvo que tu cambio lo requiera.\n\nSi `make worktree-setup` corre de nuevo, puede volver a crear los links. Corrélo antes de estos pasos, no después.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9019,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 899,
+  "output_tokens_details": {
+   "thinking_tokens": 387
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9019,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 899,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 9019,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9019
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

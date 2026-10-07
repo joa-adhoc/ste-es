@@ -1,0 +1,43 @@
+{
+ "case": "STE-E07",
+ "arm": "nucleo",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cometiste dos errores distintos.\n\n**1. `pytest` desde la raíz.** La config vive en `tuqui_core/pyproject.toml`. Desde la raíz, pytest no la ve. Pierde el modo asyncio y colecta `evals/tests`. El resultado son miles de fallas falsas (2302 failed / 2111 passed). El `conftest.py` de la raíz corta esa invocación con un mensaje.\n\n**2. `make test ARGS=-k a or b`.** Faltan las comillas. El shell parte la expresión en tres palabras. Pytest lee `or` como un path y falla con `file or directory not found: or`.\n\n**Forma correcta**, desde la raíz del repo:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nOtros comandos útiles:\n\n```bash\nmake test                                     # unit, igual que CI\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/\nmake lint                                     # ruff check + format check\n```\n\nSi necesitás pytest crudo, hacé `cd tuqui_core` primero. Si algo lee `os.environ` directo, cargá `.env.test` como hace el Makefile.\n\nOjo: `pytest tuqui_core/tests/test_x.py` desde la raíz sí corre, porque el rootdir se resuelve en `tuqui_core`. Pero se saltea el lock del Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4109,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 546,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4109,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 546,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4109,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4109
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

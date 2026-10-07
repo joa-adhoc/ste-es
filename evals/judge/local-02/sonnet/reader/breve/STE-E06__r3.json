@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "En el paso 2 no me queda claro qué poner en `.env.test.local`. ¿Cómo se llama la variable de la URL de la DB de tests, y me podés pasar un ejemplo concreto de las líneas (URL con un nombre de base propio, más `REDIS_URL` y `TEST_LOCK`) para dos worktrees distintos?",
+ "followup_answer": "No sé cómo se llama la variable. El material no la nombra, y en el paso 2 de mi respuesta anterior tendría que haber dicho eso en vez de dejarlo vago. Tampoco tengo acceso al repo desde acá. Abrí `tuqui_core/.env.test` (o el `.env.test.local.example`) y copiá de ahí el nombre de la variable de la DB y el formato de la URL. Lo único que cambia es el nombre de la base al final.\n\nLo que sí se desprende del material es esto. Los nombres de base (`tuqui_test_wt_a` y `tuqui_test_wt_b`) y los índices de Redis (3 y 4) son ejemplos míos. Elegí los que quieras, mientras no sean el 15 ni el 0 y no se repitan entre worktrees.\n\n**Worktree A** (`tuqui_core/.env.test.local`):\n```\n<VAR_DB_DE_TESTS>=<misma URL de .env.test, cambiando el nombre de la base a tuqui_test_wt_a>\nREDIS_URL=redis://<host>:<puerto>/3\n```\n\n**Worktree B:**\n```\n<VAR_DB_DE_TESTS>=<misma URL de .env.test, cambiando el nombre de la base a tuqui_test_wt_b>\nREDIS_URL=redis://<host>:<puerto>/4\n```\n\n`<host>:<puerto>` también salen de `.env.test`. Después corré `make migrate-reset` en cada worktree para crear su base.\n\n**Sobre `TEST_LOCK`:** el material sólo dice que, con base y Redis propios, el lock se puede soltar \"con un `TEST_LOCK` distinto\". No dice si va en el `.env.test.local` o como argumento de make (`make test TEST_LOCK=...`). Mirá en el `Makefile` dónde se define y cómo se usa, y poné un valor distinto por worktree (por ejemplo `wt_a` y `wt_b`). Si no te urge correr en paralelo, dejá el lock como está. Con sólo la base propia ya no te pisan las migraciones, y el lock sigue evitando que se pisen en Redis.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4974,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1036,
+  "output_tokens_details": {
+   "thinking_tokens": 292
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4974,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1036,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4974,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4974
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

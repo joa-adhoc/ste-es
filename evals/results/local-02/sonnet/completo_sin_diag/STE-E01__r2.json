@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Pasos\n\n1. Creá la migración con `supabase migration new <nombre>`. El archivo queda en `supabase/migrations/` con nombre `NNNN_descripcion.sql`.\n2. Escribí la migración idempotente. Tiene que correr varias veces sin error.\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n4. Creá el modelo Pydantic de la tabla.\n\n## Qué lleva la migración\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`, con la columna `workspace_id` (tipo `uuid`).\n- **Índices:** `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. Ya es idempotente.\n- **Policy:** envolvela en un bloque que verifica si existe:\n\n```sql\nDO $$ BEGIN\n  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = '<tabla>' AND policyname = '<policy>') THEN\n    CREATE POLICY <policy> ON <tabla>\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\n## Dos riesgos\n\n- **No renombres el archivo después de abrir el PR.** El preview corre las migraciones contra la base de staging, que es la misma base y no una copia. El tracking es por nombre de archivo. Si renombrás, la migración se aplica de nuevo en staging.\n- **No filtres por `workspace_id` solo en el código de la app.** RLS es la defensa principal. El filtro de la app no la reemplaza.\n\n## Excepción\n\nSi la tabla no lleva `workspace_id`, discutilo antes de escribir la migración.\n\nDetalle de las consecuencias del preview: `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8568,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 832,
+  "output_tokens_details": {
+   "thinking_tokens": 138
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8568,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 832,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8568,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8568
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

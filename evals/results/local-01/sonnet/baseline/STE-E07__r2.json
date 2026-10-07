@@ -1,0 +1,43 @@
+{
+ "case": "STE-E07",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Hiciste dos cosas mal, y las dos están explicadas en el material que pegaste.\n\n**1. `pytest` pelado en la raíz**\n\nLa config de la suite (`asyncio_mode`, loop scopes, markers, `testpaths`) vive en `tuqui_core/pyproject.toml`. Desde la raíz pytest no la ve, así que pierde el modo asyncio y colecta `evals/tests`. Eso da miles de fallas que no son del código. El `conftest.py` de la raíz corta esa invocación con un mensaje, y ese es el error raro que viste.\n\n**2. `make test ARGS=-k a or b` sin comillas**\n\nEl shell parte eso en tres palabras. `ARGS` queda como `-k a` y `or` y `b` se leen como paths. Por eso pytest dice `file or directory not found: or`.\n\n**La forma correcta**\n\nDesde la raíz, siempre por `make`, y con comillas:\n\n```bash\nmake test                                      # toda la suite unit (igual que CI)\nmake test ARGS='-k \"a or b\"'                   # expresión con espacios: comillas simples por fuera, dobles por dentro\nmake test ARGS=\"tests/test_rls.py -k policy\"   # un subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                  # aislamiento multi-tenant\nmake test-web                                  # frontend (vitest)\nmake test-evals                                # unit tests de evals/\nmake lint                                      # ruff check + format check\n```\n\nSi de verdad querés pytest crudo, hacé `cd tuqui_core` primero. Si algún test lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile.\n\nOjo: `pytest tuqui_core/tests/test_x.py` desde la raíz sí corre, porque el rootdir se resuelve en `tuqui_core`. El guard del `conftest.py` no lo frena, pero se saltea el lock del Makefile. Mejor evitarlo y usar `make test`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3883,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 681,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3883,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 681,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3883,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3883
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

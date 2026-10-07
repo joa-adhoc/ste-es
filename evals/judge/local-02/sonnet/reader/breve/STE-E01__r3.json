@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "Me dijiste que el preview del PR corre la migración contra la base de staging real y que hay consecuencias, pero no me contaste cuáles: ¿qué pasa si mi migración falla o deja datos a medias en staging, cómo limpio o revierto, y hay algo más que el review exija (por ejemplo, prohibir DROP/ALTER destructivos, convenciones de nombres de policy, o que la policy cubra también WITH CHECK para INSERT/UPDATE)? ¿Me podés pasar lo que dice docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging?",
+ "followup_answer": "No puedo pasarte lo que dice esa sección. `docs/infra-ci-cd.md` no existe en este directorio (`/tmp/ste-es-eval-b1sx04uf`, que no es un repo de tuqui). Tampoco me llegó el contenido en el material que pegaste. Lo único que tengo es la referencia, así que no voy a inventar las consecuencias.\n\n**Lo que sí está en el material**\n- El preview del PR corre las migraciones contra la base de staging real. Hereda el `DATABASE_ADMIN_URL` de staging, el mismo que usa el runner.\n- La migración se aplica al abrir el PR y se vuelve a aplicar si la renombrás, porque el tracking es por nombre de archivo.\n- Las migraciones deben ser idempotentes, y toda tabla con `workspace_id` necesita RLS, la policy y el test en `test_rls.py`.\n\n**Lo que no puedo responder con este material**\n- Qué pasa si la migración falla o deja datos a medias en staging, y cómo se limpia o revierte.\n- Si el review prohíbe `DROP` o `ALTER` destructivos.\n- Si hay una convención de nombres para las policies.\n- Si se exige `WITH CHECK`. El material solo pide `USING`.\n\n**Sobre `WITH CHECK`**\nEs una inferencia mía, no una regla del doc. En Postgres, si una policy tiene solo `USING` y no declarás `FOR`, ese `USING` se aplica también como `WITH CHECK` en INSERT y UPDATE. Con la policy tal como está en el material, un INSERT con otro `workspace_id` ya fallaría. Aun así, confirmalo con el equipo o con un test de aislamiento que intente insertar en otro workspace.\n\n**Cómo conseguir el doc**\n- Pasame el contenido de esa sección, o el repo si me lo montás acá, y te lo resumo.\n- Mientras tanto, abrí `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging` en tu checkout.\n- Hasta tenerlo, escribí la migración idempotente y probala primero en una base local. No cuentes con poder revertir en staging.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5468,
+  "cache_read_input_tokens": 58320,
+  "output_tokens": 1051,
+  "output_tokens_details": {
+   "thinking_tokens": 71
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5468,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 765,
+    "cache_read_input_tokens": 21310,
+    "cache_creation_input_tokens": 152,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 152
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

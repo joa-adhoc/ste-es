@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos de un artifact ya compartido, ¿el refresh se publica solo o el link sigue mostrando los datos anteriores hasta que alguien corra publish()? Necesito saber qué ve quien tiene el link, y que me lo confirmes en el código (qué hace la ruta de refresh con published_version_id), porque la respuesta lo afirma y a la vez dice que no lo sabe."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica solo la versión nueva, o hay que correr publish() para que el link compartido muestre los datos actualizados? Dónde se define eso en el código (la función de refresh o el save con data)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando solo se refrescan los datos de un artifact ya compartido, ¿la versión solo-data se publica automáticamente o el link sigue mostrando los datos viejos hasta que alguien corre publish()? ¿En qué parte del código se decide eso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando se refrescan solo los datos de un artifact ya compartido, ¿el refresh se publica solo o el link sigue mostrando los datos anteriores hasta que alguien corra publish()? Necesito saber qué ve quien tiene el link, y que me lo confirmes en el código (qué hace la ruta de refresh con published_version_id), porque la respuesta lo afirma y a la vez dice que no lo sabe.",
+ "followup_answer": "No puedo confirmarlo en el código: el directorio de trabajo (`/tmp/ste-es-eval-dt1qypnk`) está vacío y no hay repo. No pude leer `service.py`, `models.py` ni ninguna ruta de refresh.\n\n**Lo que dice el material, que es lo único que tengo:**\n- `save` con `artifact_id` mueve `current_version_id`, no `published_version_id`.\n- La ruta por token sirve siempre `published_version`.\n- Un refresh de datos crea una versión solo-data.\n- El material no dice si el refresh llama a `publish()` ni si toca `published_version_id`.\n\n**Corrección a mi respuesta anterior:** afirmé que el refresh no mueve `published_version_id`. Eso era una inferencia, no un dato. Solo vale si el refresh pasa por el mismo camino que `save`. Si tiene una ruta propia, puede publicar solo.\n\n**Para confirmarlo, fijate en esto:**\n```bash\ngrep -rn \"published_version_id\" --include=*.py .\ngrep -rn \"def refresh\\|refresh\" --include=*.py .\n```\n- Si la ruta de refresh asigna `published_version_id`, o llama a `publish(...)`, el link muestra el dato nuevo de inmediato.\n- Si solo llama a `save`/crea la versión, el link sigue mostrando los datos anteriores hasta que alguien corra `publish()`.\n\nPasame la ruta del repo, o pegá `service.py` y la ruta de refresh. Con eso te lo confirmo con línea y archivo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5277,
+  "cache_read_input_tokens": 36955,
+  "output_tokens": 758,
+  "output_tokens_details": {
+   "thinking_tokens": 59
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5277,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 540,
+    "cache_read_input_tokens": 20961,
+    "cache_creation_input_tokens": 310,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 310
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "af54c72cb1"
+ }
+}

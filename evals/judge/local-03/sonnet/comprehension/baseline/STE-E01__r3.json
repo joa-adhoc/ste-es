@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración va en `supabase/migrations/`. Se crea con `supabase migration new <nombre>` y el archivo tiene el formato `NNNN_descripcion.sql`.",
+  "La tabla tiene que tener la columna `workspace_id`, `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y una policy con `current_setting('app.current_workspace_id')::uuid` (por ejemplo `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`). Filtrar por `workspace_id` solo en el código de la aplicación no alcanza: RLS es la defensa principal.",
+  "Porque el preview del PR corre las migraciones contra la base de staging, que no es una copia sino la misma base (hereda el `DATABASE_ADMIN_URL` de staging). La migración se aplica en staging apenas se abre el PR, y si se renombra el archivo se vuelve a aplicar, porque el tracking es por nombre de archivo. Un `CREATE` sin guarda falla en esa segunda corrida."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a6be9cccdd",
+  "control": "cb1718959b"
+ }
+}

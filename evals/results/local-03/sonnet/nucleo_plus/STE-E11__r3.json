@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "nucleo_plus",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Con eso, el PR env no aplica la migración y el deploy posterior al merge sí.\n\n**Qué pasa en cada etapa**\n\n- **PR env de Railway:** el runner saltea la migración y **no la registra** en `_migrations`. Un PR env comparte la base de staging, y el servicio de staging sigue con el código viejo. Dropear la columna ahí lo rompería para todos.\n- **Por qué no alcanza el flag:** el PR env **hereda** `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging. Por eso el runner chequea también que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Si hay marcadores de Railway pero no hay rama, el runner falla cerrado y saltea.\n- **Deploy de `staging` o `main` tras el merge:** se cumplen las dos condiciones (flag y rama). El runner aplica la migración y la registra.\n- **CI y tests:** `scripts/apply_migrations.py` sigue el mismo contrato, pero el opt-in va por base. Los workflows (`MIGRATIONS_ALLOW_DESTRUCTIVE=1`) y pytest (`allow_destructive=True` en el conftest) lo activan porque sus bases son efímeras. Ahí se aplica.\n- **`make migrate`:** no activa el opt-in. La migración se saltea en tu base de desarrollo local, porque se comparte entre worktrees.\n\n**Ojo con las aditivas:** si el PR trae otras migraciones sin marker, el preview **sí** las aplica a la base de staging. Eso tiene consecuencias al mergear y al renombrar archivos. Fijate en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".\n\n**Archivo**\n\n```sql\n-- destructive: true\nALTER TABLE tabla DROP COLUMN columna;\n```\n\nLa línea va cerca del inicio. El material no precisa cuántas líneas del inicio se admiten. Si el código viejo todavía lee esa columna, la migración cuenta como destructiva y necesita el marker.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4331,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 756,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4331,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 756,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4331,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4331
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

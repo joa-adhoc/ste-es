@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde se consume hoy la descripción de los conectores: sólo se muestra en la SPA (cards y listados) o también entra a un prompt del modelo, a un mail o sale por MCP? Eso define si tengo que tocar el backend o alcanza con migración, API y cliente."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde se consume hoy la descripción de los conectores: sólo se muestra en la SPA (cards y listados), o también entra al prompt del LLM, a mails o sale por MCP? Con eso sé si tengo que tocar el backend o alcanza con migración, API y cliente.",
+   "note": "La primera oración condiciona la respuesta en vez de decir directamente si hay que tocar el backend; además la respuesta se apoya en archivos y helpers (`localizedField`, `tuqui_core/i18n.py`, `0206_features_i18n.sql`, `AdminAgentEditorPage.tsx`) que no puedo verificar y en un 'material' que no tengo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde se consume hoy la descripción de los conectores: sólo se muestra en cards y listados de la SPA, o también la lee el modelo (listado de herramientas), sale por MCP o entra en mails? Con eso sé si alcanza con migración, API y front o si tengo que resolver el idioma también en el backend."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Dónde se consume hoy la descripción de los conectores: sólo se muestra en la SPA (cards y listados) o también entra a un prompt del modelo, a un mail o sale por MCP? Eso define si tengo que tocar el backend o alcanza con migración, API y cliente.",
+ "followup_answer": "No puedo confirmarlo: el directorio de trabajo (`/tmp/ste-es-eval-iuuwa8hb`) está vacío y no tiene código de conectores. Tampoco hay referencias a `platform_connectors` ni a `connector`.\n\nCorré esto en el repo real y pasame el resultado:\n\n```bash\ngrep -rn \"platform_connectors\" --include=*.py --include=*.ts --include=*.tsx . | grep -v migrations\ngrep -rn \"description\" --include=*.py . | grep -i connector\n```\n\nFijate en estos puntos:\n\n- **Prompt LLM:** buscá dónde se arma el listado de herramientas o conectores que recibe el modelo. Si lee `description`, hay que resolver en el backend.\n- **Mail:** buscá templates o servicios de envío que usen el conector.\n- **MCP saliente:** buscá si el servidor MCP expone la descripción como `description` de una tool o recurso.\n- **Solo SPA:** si las únicas lecturas están en `.tsx` (cards, listados), alcanza con migración, API y cliente.\n\nMientras tanto, la migración, la API, el front y el editor valen en cualquier caso. Los pasos 5 y 6 (backend y `queryKey`) dependen de lo que encuentres.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6008,
+  "cache_read_input_tokens": 37722,
+  "output_tokens": 674,
+  "output_tokens_details": {
+   "thinking_tokens": 70
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6008,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 439,
+    "cache_read_input_tokens": 21728,
+    "cache_creation_input_tokens": 274,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 274
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c949e88c0d"
+ }
+}

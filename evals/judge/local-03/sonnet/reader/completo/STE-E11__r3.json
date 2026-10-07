@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale MIGRATIONS_ALLOW_DESTRUCTIVE en prod? Y la condición de rama (staging/main) más el flag: ¿cuál es exactamente el criterio del runner para aplicar o saltear, y es seguro que la línea `-- destructive: true` es el marker correcto (formato exacto y dónde va)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale MIGRATIONS_ALLOW_DESTRUCTIVE en prod, y dónde lo verifico? Sin eso no sé si el DROP COLUMN se aplica o se saltea al mergear a main."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale MIGRATIONS_ALLOW_DESTRUCTIVE en el deploy de prod (main) y dónde lo veo para confirmarlo? Sin eso no sé si mi DROP COLUMN se aplica o se sasaltea al llegar a prod."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuánto vale MIGRATIONS_ALLOW_DESTRUCTIVE en prod? Y la condición de rama (staging/main) más el flag: ¿cuál es exactamente el criterio del runner para aplicar o saltear, y es seguro que la línea `-- destructive: true` es el marker correcto (formato exacto y dónde va)?",
+ "followup_answer": "No sé cuánto vale en prod. El material no lo dice. Tampoco puedo confirmar el formato exacto del marker, porque no tengo `tuqui_core/db/migrate.py` en este entorno.\n\n```\nmigración con `-- destructive: true`\n        │\n        ▼\n¿MIGRATIONS_ALLOW_DESTRUCTIVE=1? ──no──► saltea, sin registrar\n        │ sí\n        ▼\n¿RAILWAY_GIT_BRANCH es staging o main? ──no──► saltea, sin registrar\n        │ sí\n        ▼\naplica y registra en `_migrations`\n```\n\n**Criterio del runner**\n\n- Se necesitan las dos condiciones. Con una sola, el runner saltea la migración.\n- Si el deploy tiene marcadores de Railway pero no tiene rama estampada, el gate falla cerrado y saltea.\n- Una migración sin marker no pasa por este gate. Se aplica siempre.\n\n**Prod**\n\n- Si el flag vale 1 en prod, el deploy de `main` aplica la migración.\n- Si no vale 1, el runner la saltea en cada deploy y nunca la registra. El error no avisa.\n- Revisá la variable en el servicio de prod en Railway antes del release.\n\n**Marker**\n\n- El material dice: la línea `-- destructive: true`, cerca del inicio del archivo. Es lo que escribí antes.\n- El material no define cuántas líneas cuentan como \"cerca del inicio\". Tampoco dice si importan los espacios o las mayúsculas.\n- Ponela como primera línea del archivo, con el texto exacto. Así no depende de esos detalles.\n- Para confirmar el parser, leé `tuqui_core/db/migrate.py`. Otra opción: copiá el marker de una migración destructiva existente, como `0180_chat_ga`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10933,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1121,
+  "output_tokens_details": {
+   "thinking_tokens": 486
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10933,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1121,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10933,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10933
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fed0fc2348"
+ }
+}

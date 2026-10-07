@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está realmente seteado en los deploys de staging y de prod? Si no lo está, ¿la migración queda sin aplicarse en silencio o el deploy falla? Y qué consecuencias tienen al mergear (o al renombrar el archivo) las migraciones aditivas que el preview ya aplicó a la base de staging, porque eso lo remitiste a un doc que no tenías a mano."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Está MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado hoy en los servicios de staging y de prod, o tengo que activarlo yo antes del merge? Y si no está, ¿qué pasa con mi migración: queda sin aplicar y sin registrar, o falla el deploy?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta no me dice dónde está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en staging y en prod, ni qué pasa si en prod no está. ¿Podés confirmar si ambos entornos lo tienen activo? Además, pasame el contenido de docs/infra-ci-cd.md § 'Un PR preview escribe en la base de staging', porque ahí están las consecuencias de las migraciones aditivas al mergear y al renombrar un archivo, que me afectan en este PR."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está realmente seteado en los deploys de staging y de prod? Si no lo está, ¿la migración queda sin aplicarse en silencio o el deploy falla? Y qué consecuencias tienen al mergear (o al renombrar el archivo) las migraciones aditivas que el preview ya aplicó a la base de staging, porque eso lo remitiste a un doc que no tenías a mano.",
+ "followup_answer": "No puedo confirmar ninguna de las tres cosas. El directorio de trabajo está vacío: no hay repo, ni `docs/infra-ci-cd.md`, ni `migrate.py`, ni config de Railway. Busqué archivos con esos nombres y cualquier mención de `MIGRATIONS_ALLOW_DESTRUCTIVE`, y no encontré nada. Lo único que tengo es el texto que pegaste.\n\n**1. ¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado en staging y prod?**\nEl material no lo dice. Dice que un PR env **hereda** el flag de staging, y eso implica que staging lo tiene. Sobre prod no dice nada. En mi tabla anterior escribí \"Sí, si ahí está el flag\" para staging y \"Sí, con las mismas dos condiciones\" para prod. Ese \"Sí\" para prod daba por hecho algo que no sabemos. Hay que mirar las variables del servicio `main` en Railway.\n\n**2. Si el flag falta, ¿se saltea en silencio o falla el deploy?**\nEl material tampoco lo dice. Solo dice que en cualquier otro caso el runner la \"saltea **sin registrarla**\". Eso indica que saltearla es el comportamiento normal y que no es un error. Lo más probable es que el deploy siga y la migración quede pendiente, pero no puedo asegurar si el runner loguea un aviso o sale con código distinto de 0. Eso se ve en `tuqui_core/db/migrate.py`. Mientras tanto, la columna seguiría existiendo en prod y nadie se enteraría. Después de mergear conviene mirar `_migrations` o los logs del deploy para confirmar que se aplicó.\n\n**3. Consecuencias de las migraciones aditivas ya aplicadas por el preview (al mergear y al renombrar)**\nEl texto solo dice que existen \"consecuencias\" y remite a `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\". No tengo el contenido. Lo que se puede deducir del mecanismo, que es una inferencia mía y no lo dice el material:\n\n- `_migrations` trackea por archivo. Si renombrás un archivo ya aplicado, el runner probablemente lo vea como una migración nueva y la corra otra vez. Si no es idempotente, por ejemplo un `ADD COLUMN` sin `IF NOT EXISTS`, puede fallar.\n- Si cambiás el contenido de un archivo ya aplicado, el preview no lo reaplica y la base de staging queda con la versión vieja.\n- Si el PR no se mergea, los cambios aditivos quedan en la base de staging igual.\n\nPara saber cuál es la regla real, pegame el contenido de esa sección del doc o el `migrate.py`. Con eso te respondo las tres preguntas con certeza.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5637,
+  "cache_read_input_tokens": 37216,
+  "output_tokens": 1300,
+  "output_tokens_details": {
+   "thinking_tokens": 92
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5637,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1001,
+    "cache_read_input_tokens": 21231,
+    "cache_creation_input_tokens": 391,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 391
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b1d546a16b"
+ }
+}

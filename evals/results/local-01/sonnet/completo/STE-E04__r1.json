@@ -1,0 +1,43 @@
+{
+ "case": "STE-E04",
+ "arm": "completo",
+ "model": "sonnet",
+ "run": 1,
+ "result": "```\nreplace (default)               append\nvalores ──► write               lee valor actual\n            pisa el campo          │\n                                   ▼\n                            actual + nuevo ──► write\n```\n\n```\nappend sobre 4 registros, falla el 3.º\n\n   A      B      C      D\n   ✓      ✓      ✗      ·\n   │      │      │      │\nwritten_ids=[A,B]   failed_id=C   pending_ids=[C,D]\n```\n\n**Diferencia**\n- `replace` pisa el campo con lo que mandás. No lee el valor previo.\n- `append` lee el valor actual y pone el contenido nuevo abajo. Lo hace por registro.\n- `append` solo afecta a los campos `html` y `text`. Los demás tipos se reemplazan igual en los dos modos.\n- Usá `append` cuando te piden agregar o completar. Un `write` plano en `description` borra lo que escribió una persona, y el chatter no guarda el valor anterior.\n\n**Si el append falla a mitad de camino**\n- El append es un `write` por registro, no una transacción. Los registros ya escritos no se revierten.\n- El error es `append_partially_applied`. Trae tres listas:\n  - `written_ids`: los que ya se escribieron.\n  - `failed_id`: el que falló.\n  - `pending_ids`: los que faltan. Incluye a `failed_id`.\n- Reintentá solo con `pending_ids`. Si reintentás con todos los ids, duplicás contenido en los de `written_ids`.\n- Los ids escritos quedan en `tool_usage_log.write_metadata`, con `partial: true`.\n- Si falla el primer registro, no se escribió nada. Sale un error común (`invalid_values` o la excepción original) y podés reintentar la llamada entera.\n\n**Dos casos más**\n- Si falla la lectura previa o el schema, el error es `append_precheck_failed` y no se escribe. Sin el valor actual, un append sería un replace.\n- Un valor que no es texto, como `{\"description\": false}`, da `append_requires_text`. Para vaciar un campo usá `mode=\"replace\"`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10183,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 935,
+  "output_tokens_details": {
+   "thinking_tokens": 222
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10183,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 935,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10183,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10183
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

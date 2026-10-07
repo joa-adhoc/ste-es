@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "En el caso del agent por webhook, el evaluator da ASK pero no hay nadie para responder. ¿Qué hace el sistema en ese caso: bloquea el tool, lo deja pendiente o lo ejecuta igual? Necesito saberlo para decidir qué configurar.",
+ "followup_answer": "No puedo decirte qué hace el sistema. El material no lo define, y el código no está en este directorio: busqué `client_facing_core.py` y `permissions.py` y no los encontré.\n\n```\nwebhook ──► evaluate_permission ──► ASK ──► ¿quién responde?  ✗ sin dato\n                                              ├─ bloquea\n                                              ├─ queda pendiente\n                                              └─ ejecuta\n```\n\nEl material solo dice que el evaluator devuelve ASK. No dice qué hace el canal con ese ASK.\n\nPara decidir sin adivinar:\n\n1. Abrí `chat/client_facing_core.py` y buscá dónde el turno maneja el resultado ASK.\n2. Fijate si `ChannelProfile` tiene un campo sobre aprobación interactiva. Si no hay nadie para responder, ese campo suele decidir.\n3. Mirá `tool_usage_log.permission_action` de un run real de webhook. Ahí queda registrado el resultado.\n\nSi pegás ese fragmento, te digo qué configurar.\n\nMientras tanto, no asumas que ASK ejecuta. Para un agent por webhook, `allow` y `deny` explícitos en `workspace_tool_approvals` dan un resultado predecible. Esos dos valores no dependen de que alguien responda.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11271,
+  "cache_read_input_tokens": 42987,
+  "output_tokens": 682,
+  "output_tokens_details": {
+   "thinking_tokens": 93
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11271,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 449,
+    "cache_read_input_tokens": 26993,
+    "cache_creation_input_tokens": 272,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 272
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

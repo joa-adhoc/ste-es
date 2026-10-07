@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más antigua según `created_at` (FIFO por fecha de creación, no por uso ni relevancia), en la misma transacción de base de datos que la inserción, así que nunca se supera el tope de 50. La expulsión es silenciosa para el usuario, pero al modelo se le avisa en la respuesta de la herramienta.",
+  "Entran los headers de las memorias (no los cuerpos), inyectados en el system prompt después del bloque `CURRENT USER` y antes del bloque de proyecto, en las secciones `# Workspace memory (shared with team)` y `# User memory (personal)`. Cada header es título + summary (o, si no hay, el cuerpo hasta 250 caracteres, con `... [read]` al final si lo supera) e incluye el `id`. El cuerpo completo llega bajo demanda: el modelo llama a `manage_memory(action='read', id=...)` para las memorias marcadas con `[read]`.",
+  "Si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes; el resto no entra en el prompt de ese turno. Las memorias excluidas no se borran y pueden volver en otro turno."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "04e6db86af",
+  "control": "2fefeeffdf"
+ }
+}

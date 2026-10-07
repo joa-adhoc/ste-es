@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Avisos (cron diario a las 12:00 UTC, 9 h en Argentina)**\n\nLos hitos salen de `billing_trial_warning_days_list`, que por defecto es `{7, 0}`. Con un vencimiento la semana que viene salen dos avisos:\n\n1. **7 días antes:** \"por vencer\".\n2. **El día del vencimiento (día 0):** \"por vencer\" otra vez, mientras el asistente todavía funciona.\n\nSi ya está dentro de la ventana de 7 días, el primer aviso sale en la próxima corrida del cron. La deduplicación usa el par `trial_warning_for` (fecha de fin avisada) y `trial_warning_days` (el hito más chico ya enviado), así que no se repite un hito. Si extienden la prueba, la fecha de fin cambia y vuelve a avisar.\n\n**A quién**\n\n- Owners y admins, siempre, aunque estén en `billing_tier = 'none'`. Son quienes deciden, y un equipo en prueba puede no tener a nadie con asiento.\n- Todo miembro con asiento (`billing_tier <> 'none'`). Cuando vence, el asistente deja de responder para todo el equipo, y quien no puede pagar sí puede pedirlo.\n- Una vez vencida la prueba, en el chat `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence**\n\nDepende de si hay una suscripción viva:\n\n- **Sin suscripción viva:**\n  - El workspace pasa a `plan='free'`.\n  - Se evalúa si hay exceso sobre los límites de free.\n  - Sale el mail de prueba vencida, con los mismos destinatarios.\n  - Si hay exceso, `account_status` pasa a `restricted` con motivo `trial_expired_with_excess`. Eso bloquea MCP y chat. Sin exceso, el workspace sigue operativo.\n- **Con suscripción viva:**\n  - Se limpian los flags de trial.\n  - **No se manda ningún aviso.** Para el owner no cambia nada visible, y el cobro se anuncia con su propio recibo, que va solo a los owners.\n\nEl texto de los avisos no está escrito en los catálogos de idioma. Se deriva del estado (planes, precios, qué deja de funcionar) en `billing/plan_summary.py`.\n\n**Detalle a revisar:** el material no dice si los avisos de \"por vencer\" se suprimen cuando ya hay suscripción viva antes del vencimiento. Solo dice que al vencer no se manda nada. Si eso importa, conviene mirar `_run_trial_expiry`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4292,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 914,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4292,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 914,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4292,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4292
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

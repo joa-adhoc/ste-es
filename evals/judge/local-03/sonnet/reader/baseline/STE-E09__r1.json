@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el caso de conexión parcial, ¿el redirect lleva `connected={server_id}` además de `connect_warning=`, y la prueba de humo corre dentro del callback antes del redirect del paso 7? Necesito confirmarlo porque la respuesta dice que no queda claro y el front depende de eso para mostrar el banner correcto."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el callback, ¿la prueba de humo (introspección de habilidades) corre antes del redirect del paso 7, y cuando es parcial el redirect lleva `connected={server_id}` además de `connect_warning=`? Necesito confirmarlo porque la respuesta lo dejó como suposición."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el caso de habilidades parciales, ¿el redirect del callback lleva `connected={server_id}` además de `connect_warning=`, o solo `connect_warning`? Y la prueba de humo, ¿corre dentro del callback antes del redirect, o es una llamada aparte que dispara el front después?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "En el caso de conexión parcial, ¿el redirect lleva `connected={server_id}` además de `connect_warning=`, y la prueba de humo corre dentro del callback antes del redirect del paso 7? Necesito confirmarlo porque la respuesta dice que no queda claro y el front depende de eso para mostrar el banner correcto.",
+ "followup_answer": "No pude confirmarlo. El directorio de trabajo está vacío y no hay código del backend ni del front. Un grep de `connect_warning` no encontró nada. Lo único que tengo es el texto que pegaste, y ahí ninguna de las dos cosas está dicha explícitamente.\n\n**1. ¿El redirect parcial lleva `connected={server_id}` además de `connect_warning=`?**\n- El material no lo dice.\n- Sí dice que en el caso parcial \"el usuario queda conectado\" y que el redirect \"lleva `connect_warning=<habilidades>`\".\n- Que el redirect lleve solo `connect_warning` es compatible con el texto. También lo es que lleve `connected` y `connect_warning` juntos. Elegir una de las dos sería adivinar.\n\n**2. ¿La prueba de humo corre dentro del callback, antes del redirect del paso 7?**\n- Es casi seguro que sí, aunque el texto no lo numera. Dice que \"el callback introspecta todas las habilidades\" y que el resultado cambia el redirect (`connect_error` o `connect_warning`). Para eso tiene que correr antes de armar el redirect.\n- En mi respuesta anterior puse la prueba de humo dentro del paso 6, y eso es una inferencia mía, no algo que diga el material.\n\n**Qué conviene hacer porque el front depende de esto**\n- Para no depender de `connected`, el front puede decidir el banner por `connect_error` y `connect_warning` y tratar `connected` como un dato aparte. Así funciona tenga o no `connected` el redirect parcial.\n- Para confirmarlo, hay que mirar el handler de `GET /api/mcp-oauth/callback` en el backend y ver qué query params arma en cada rama (ninguna, alguna, todas). También se puede hacer una conexión de prueba con una habilidad rota y mirar la URL final.\n- Si me pasás la ruta del repo o el handler del callback, lo leo y te confirmo las dos cosas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6239,
+  "cache_read_input_tokens": 37894,
+  "output_tokens": 910,
+  "output_tokens_details": {
+   "thinking_tokens": 70
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6239,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 687,
+    "cache_read_input_tokens": 21909,
+    "cache_creation_input_tokens": 315,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 315
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "74ac1784c2"
+ }
+}

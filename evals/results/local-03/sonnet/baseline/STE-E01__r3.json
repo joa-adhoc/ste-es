@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Estos son los pasos, según el material que pasaste.\n\n## Pasos\n\n1. **Crear el archivo de migración** con `supabase migration new <nombre>`. Queda en `supabase/migrations/` con el formato `NNNN_descripcion.sql`.\n\n2. **Escribir la migración idempotente.** Tiene que poder correr varias veces sin error:\n   - Tabla: `CREATE TABLE IF NOT EXISTS ...`, con la columna `workspace_id`.\n   - Índices: `CREATE INDEX IF NOT EXISTS ...`.\n   - RLS: `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. Es idempotente por defecto, así que no necesita guardas.\n   - Policy: el `CREATE POLICY` va envuelto así, porque no tiene `IF NOT EXISTS`:\n     ```sql\n     DO $$ BEGIN\n       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE ...) THEN\n         CREATE POLICY ... ON mi_tabla\n           USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n       END IF;\n     END $$;\n     ```\n\n3. **Agregar el test de aislamiento** en `tuqui_core/tests/test_rls.py`. El material pide un test por cada tabla nueva con `workspace_id`.\n\n4. **Crear el modelo Pydantic** de la tabla.\n\n## Qué mira el review\n\n- **RLS completo.** Tienen que estar `ENABLE ROW LEVEL SECURITY` y la policy con `current_setting('app.current_workspace_id')::uuid`. Tampoco alcanza con filtrar por `workspace_id` en el código de la aplicación: RLS es la defensa principal.\n- **Idempotencia real.** El preview de tu PR corre las migraciones contra la base de staging. No es una copia, es la misma base, porque hereda el `DATABASE_ADMIN_URL` de staging. Por eso:\n  - La migración se aplica en staging apenas abrís el PR.\n  - Si renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n  - Un `CREATE` sin guarda va a fallar en esa segunda corrida.\n- **Elegí bien el nombre desde el principio.** Renombrar el archivo después dispara otra aplicación en staging.\n- **Probá la migración dos veces seguidas** en local antes de abrir el PR, para confirmar que es idempotente.\n\n## Excepción\n\nSi la tabla no llevara `workspace_id`, hay que discutirlo antes de escribirla. Este no es tu caso, porque la tuya sí lo lleva.\n\nEl material no cubre otras consecuencias de que el preview escriba en staging. Están en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging), así que conviene leerlas antes de abrir el PR. No tengo acceso a ese archivo desde acá, así que no sé qué más dice.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4002,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1077,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4002,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1077,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4002,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4002
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "da39a3ee5e"
+}

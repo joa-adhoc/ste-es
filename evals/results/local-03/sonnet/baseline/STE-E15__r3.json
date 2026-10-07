@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Recorrido de `connect_odoo`\n\nLo que sigue sale solo del material que pegaste, no del código. Puede haber detalles que el diagrama no recoge.\n\n## Modelo de fondo\n\nLas credenciales de Odoo (`odoo_login`, `odoo_uid`, `odoo_api_key`) están en `workspaces`, no en el usuario. El rol `owner` es administrativo de Tuqui y no necesita identidad en Odoo. Puede haber varios owners. Vincular al owner con un `res.users` es opcional.\n\n## Paso a paso\n\n`POST /workspaces/{slug}/odoo` exige auth de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autenticación.** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`.\n2. **Verificación de admin.** `_verify_odoo_admin_group` comprueba con `res.users.has_group(uid, 'base.group_system')`. Si no es admin de sistema en Odoo, lanza `ValueError`.\n3. **Detección de versión.** `JsonRpcTransport.get_version(url)` devuelve la versión (por ejemplo `\"18\"`). Lanza `ValueError` si falla la detección o si la major es menor que `MIN_SUPPORTED`.\n4. **Decisión de vínculo.** `_resolve_link_mode(...)` elige el modo (detalle abajo).\n5. **Persistencia.** Un `UPDATE workspaces` guarda `odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version`. El workspace pasa a \"conectado\" y el rol owner no cambia. Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) provoca un **409 Conflict**.\n6. **Si cambió la URL**, se limpian los miembros (detalle abajo).\n7. **Si el modo es `auto` o `manual`**, se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para el `current_user_id` en ese workspace. Después se lanza en segundo plano `asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))`.\n8. **Respuesta.** Devuelve `WorkspaceConnectOdooResult`, que extiende `WorkspaceRead` con:\n   - `members_invalidated`: 0 salvo que cambie la URL.\n   - `warning`: mensaje para la UI.\n   - `link_status`: `auto`, `manual` o `none`.\n   - `linked_odoo_user_id`: el id vinculado, o `None`.\n\n## Cómo decide a qué usuario de Odoo vincula\n\nSolo se vincula el Member del usuario que conecta, según el modo:\n\n| Modo | Cuándo | Efecto |\n|---|---|---|\n| `auto` | Es el valor por defecto si `current_user.email == odoo_login` | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend envía `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y vincula el Member a ese id |\n| `none` | Es el valor por defecto si los emails no coinciden | El Member queda sin `odoo_user_id` |\n\nEn `auto` se vincula al `admin_uid`, es decir, el usuario con el que se autenticó la conexión. En `manual` el owner elige otro `res.users`, útil cuando su email de Tuqui no coincide con el login de Odoo. Si hay un id manual que no existe en Odoo, el material no dice qué ocurre. Lo más probable es un error, pero conviene confirmarlo en el código.\n\n## Qué pasa si cambia la URL\n\nSi `url_changed`, se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. La razón es que esas identidades podían apuntar a otra instancia de Odoo. El número de afectados se devuelve en `members_invalidated`, y `warning` se usa para avisar en la UI.\n\nOrden de los efectos:\n\n1. Primero se limpian todos los members.\n2. Después, si el modo es `auto` o `manual`, se revincula al usuario que conecta. Ese owner queda enlazado a la nueva instancia y el resto de members tendrá que volver a vincularse.\n\n## Puntos a verificar en el código\n\n- **Transaccionalidad.** No queda claro si la limpieza, el `UPDATE` de `workspaces` y el vínculo ocurren en una sola transacción. Si el 409 salta en el `UPDATE`, lo ideal es que no se haya limpiado nada.\n- **`sync_user_api_key`.** Corre en segundo plano con `create_task`. Un fallo ahí no llega a la respuesta, y `link_status` puede decir `auto` aunque la sincronización de la API key falle después.\n- **Cálculo de `url_changed`.** El material no dice si la comparación normaliza la URL (barra final, mayúsculas, http/https).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4301,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1811,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4301,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1811,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4301,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4301
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

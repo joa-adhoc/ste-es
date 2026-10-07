@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿En qué archivo o módulo va el modelo Pydantic, y qué tiene que verificar exactamente el test de aislamiento en test_rls.py (hay algún test existente que pueda copiar como plantilla)?",
+ "followup_answer": "No puedo confirmar ninguna de las dos cosas. El material que tengo no lo dice, y el directorio de trabajo está vacío, así que no tengo el repo de tuqui para mirar.\n\n**Qué dice el material**\n- El test va en `tuqui_core/tests/test_rls.py`.\n- El modelo Pydantic es \"correspondiente\", pero no indica en qué archivo o módulo va.\n- No menciona ningún test existente como plantilla.\n- No define qué tiene que verificar el test. Solo exige que exista un \"test de aislamiento\".\n\n**Qué podés hacer vos**\n```bash\ncd <repo-tuqui>\ngrep -rl \"BaseModel\" tuqui_core --include=*.py     # dónde viven los modelos hoy\ngrep -n \"def test_\" tuqui_core/tests/test_rls.py   # tests RLS existentes\n```\nCopiá el test de una tabla que ya tenga `workspace_id`. Si hay modelos de otras tablas por workspace, ponelos en el mismo módulo.\n\n**Qué debería cubrir el test**\nEsto sale de la policy, no del material. Confirmalo contra los tests existentes.\n- Insertar una fila con `app.current_workspace_id` = A. Con A seteado, tiene que verse.\n- Cambiar a workspace B. La fila de A no tiene que verse.\n- Con B, un `UPDATE` o `DELETE` sobre la fila de A tiene que afectar 0 filas.\n\nSi querés, pasame el repo o la ruta y lo busco yo. Si no, preguntale al equipo por el módulo de modelos y la plantilla.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5723,
+  "cache_read_input_tokens": 37381,
+  "output_tokens": 795,
+  "output_tokens_details": {
+   "thinking_tokens": 96
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5723,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 557,
+    "cache_read_input_tokens": 21387,
+    "cache_creation_input_tokens": 330,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 330
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

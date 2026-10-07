@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n## 1. Guardado\nEl modelo llama a la herramienta `manage_memory` para crear la memoria. Cada una pertenece a un **scope**:\n- **user**: personal de cada usuario.\n- **workspace**: compartida con el equipo.\n\n## 2. Tope y expulsión (cap + FIFO)\n- Hay un máximo de **50 memorias por scope**: 50 por usuario y 50 por workspace.\n- Al agregar la memoria 51, se borra la más antigua según `created_at`. Esto ocurre en la **misma transacción de base de datos** que la inserción, así que nunca se supera el tope.\n- La expulsión es \"silenciosa\" para el usuario. Al modelo sí se le avisa en la respuesta de la herramienta.\n- La política es FIFO por fecha de creación, no por uso ni por relevancia. Una memoria vieja pero muy útil se expulsa igual.\n\n## 3. Entrada al prompt (carga progresiva en dos niveles)\nEn cada turno, `_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta los **headers** de las memorias en el system prompt. Van después del bloque `CURRENT USER` y antes del bloque de proyecto, en dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`.\n\n**Nivel 1: header (en cada turno).** Se arma como `título + (summary si existe, si no el cuerpo hasta 250 caracteres)`. Si el cuerpo supera los 250 caracteres y no hay summary, el header termina en `... [read]`. Cada línea incluye el `id`.\n\n**Nivel 2: cuerpo (bajo demanda).** Si el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`. Es el mismo patrón que los Skills de Claude Code.\n\n## 4. Qué pasa cuando hay muchas\n- Los headers acotan el costo por turno a unos **3K tokens** en el peor caso, con 50 memorias de tamaño máximo.\n- Hay además una **guarda de presupuesto**. Si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los **top-N más relevantes**. El resto no entra en ese turno.\n\n## Observaciones\n- Los 12K caracteres equivalen a 3K tokens solo de forma aproximada (unos 4 caracteres por token).\n- El tope de 50 y el presupuesto de 12K son límites distintos. Cada scope tiene 50 memorias, pero el presupuesto parece ser sobre el total inyectado. En el peor caso hay 100 memorias (50 + 50). Con el tamaño máximo de header, eso puede superar los 12K y activar el filtrado. Esto no queda claro en el material.\n- La memoria excluida por el filtrado no se borra. Solo queda fuera del prompt de ese turno y puede volver en otro.\n- El modelo solo puede leer (`read`) memorias cuyo header vio. Si el filtrado deja una fuera, no puede saber que existe, salvo que la busque de otra forma.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3761,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1153,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3761,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1153,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3761,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3761
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

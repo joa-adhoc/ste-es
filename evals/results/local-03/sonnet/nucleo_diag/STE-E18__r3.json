@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "nucleo_diag",
+ "arm_hash": "d3074c0a10",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El modelo guarda memorias con `manage_memory`. Cada turno inyecta solo un header corto de cada una en el system prompt. El cuerpo completo se lee bajo demanda.\n\n```\n┌────────────┐   ┌──────────────────┐   ┌───────────────────┐\n│ manage_    │──►│ Cap 50 por scope │──►│ _load_chat_setup  │\n│ memory     │   │ FIFO por         │   │ arma headers      │\n│ (guardar)  │   │ created_at       │   └─────────┬─────────┘\n└────────────┘   └──────────────────┘             │\n                                                  ▼\n┌────────────┐   ┌──────────────────┐   ┌───────────────────┐\n│ manage_    │◄──│ Header con       │◄──│ ¿Headers > 12K    │\n│ memory     │   │ [read]           │   │ chars? → rapidfuzz│\n│ action=read│   └──────────────────┘   │ top-N vs mensaje  │\n└────────────┘                          └───────────────────┘\n```\n\n**1. Guardado y tope**\n- El límite es 50 memorias por scope: por usuario (user-scope) y por workspace (workspace-scope).\n- Al agregar la memoria 51, el sistema borra la más vieja por `created_at`. Lo hace en la misma transacción de DB.\n- La eliminación es silenciosa. El modelo se entera solo por un mensaje en la respuesta del tool.\n\n**2. Carga en cada turno**\n- `_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta los headers en el system prompt. Va después del bloque `CURRENT USER` y antes del bloque de proyecto.\n- Hay dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`.\n- El header es `title + summary`. Si no hay summary, usa el body hasta 250 caracteres.\n- Si el body supera 250 caracteres y no hay summary, el header termina en `... [read]`.\n\n**3. Lectura bajo demanda**\n- Cuando necesita el contenido completo de una memoria marcada `[read]`, el modelo llama `manage_memory(action='read', id=...)`.\n- El `id` viene al final de cada línea del header.\n\n**4. Cuando hay muchas**\n- Con 50 memorias de tamaño máximo, el costo es de ~3K tokens por turno.\n- Si los headers superan `_MEMORY_BUDGET_CHARS` (12K caracteres ≈ 3K tokens), rapidfuzz puntúa cada header contra el mensaje actual del usuario. Se inyectan solo los top-N.\n- Las memorias que quedan afuera del top-N no se borran. Solo no aparecen en ese turno.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4277,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 948,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4277,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 948,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4277,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4277
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

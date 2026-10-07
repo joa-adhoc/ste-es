@@ -1,0 +1,43 @@
+{
+ "case": "STE-E04",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Diferencia entre los modos**\n\n- **`replace`** (el default) manda el valor tal cual y pisa lo que había. No lee nada antes, así que no cuesta un round-trip extra.\n- **`append`** lee el contenido actual de los campos `html` y `text` que van en `values` y agrega lo nuevo debajo. Lo hace **por registro**. Los campos de otros tipos se reemplazan igual en los dos modos.\n\nExiste porque un `write` de Odoo reemplaza el valor completo. En campos de prosa larga (`description`, `task_description`, notas internas) eso borra lo que escribió una persona y no deja rastro en el chatter. Por eso, si piden *agregar* o *completar*, el LLM debe usar `append` y mandar solo el contenido nuevo.\n\nOtros detalles:\n- El append concatena HTML crudo, así que links, clases e imágenes de Odoo se conservan. En campos `text` separa con una línea en blanco.\n- `<p><br></p>` cuenta como vacío. Un campo con solo una imagen cuenta como contenido.\n- `append` exige texto. Un valor como `{\"description\": false}` se rechaza con `append_requires_text`. Para vaciar un campo hay que usar `replace`.\n\n**Si el append falla a mitad de varios registros**\n\nEl append no es una transacción, es un write por registro. Hay tres casos:\n\n1. **Falla la lectura previa o el schema no se resuelve:** da `append_precheck_failed` y no escribe nada. Falla cerrado, porque sin el valor actual un append sería un replace.\n2. **Falla el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada). Reintentar la llamada entera es correcto.\n3. **Falla el registro k después de haber escrito otros:** los ya escritos **no se revierten**. El error es `append_partially_applied` y trae:\n   - `written_ids`: los que se escribieron.\n   - `failed_id`: el que falló.\n   - `pending_ids`: lo que hay que reintentar. **Incluye al fallido**, porque tampoco se escribió. Solo quedan afuera los de `written_ids`.\n\n   Hay que reintentar solo con `pending_ids`. Si se repite la llamada completa, se duplica el contenido en los registros que ya estaban escritos. Los ids escritos también quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4166,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 848,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4166,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 848,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4166,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4166
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

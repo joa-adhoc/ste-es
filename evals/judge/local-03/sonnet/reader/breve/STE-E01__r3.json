@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me pasás el contenido de docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging? Quiero saber qué consecuencias tiene que el preview del PR escriba en la base de staging real (limpieza, qué pasa si falla la migración, si hay que coordinar con otros PRs) y si el review pide algo más además de lo que listaste."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Como el preview del PR aplica mi migración sobre la base real de staging, ¿qué dice exactamente docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging? Necesito saber qué consecuencias tiene (qué pasa con la tabla si el PR se cierra o se rechaza, cómo se limpia, si hay operaciones prohibidas) y qué más pide el review además de lo que me listaste."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta dice que el preview del PR corre la migración contra staging real y que hay consecuencias, pero remite a docs/infra-ci-cd.md y admite que no sabe qué más pide. ¿Podés pasarme lo que dice esa sección (#un-pr-preview-escribe-en-la-base-de-staging) o decirme qué restricciones extra tiene una migración que se aplica en staging al abrir el PR, por ejemplo si hay que limpiar datos, qué pasa si falla a mitad, o si el rollback es manual?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Me pasás el contenido de docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging? Quiero saber qué consecuencias tiene que el preview del PR escriba en la base de staging real (limpieza, qué pasa si falla la migración, si hay que coordinar con otros PRs) y si el review pide algo más además de lo que listaste.",
+ "followup_answer": "No puedo pasarte ese contenido: el directorio de trabajo (`/tmp/ste-es-eval-isr4p9wy`) está vacío y no encontré `docs/infra-ci-cd.md` en ningún lado. Lo único que tengo del repo es el extracto que pegaste. Sobre limpieza, qué pasa si la migración falla y coordinación con otros PRs no tengo nada, y no lo voy a inventar.\n\nLo que sí se desprende del extracto:\n- El preview corre las migraciones contra la base de staging real, con el mismo `DATABASE_ADMIN_URL` que usa el runner.\n- Se aplica al abrir el PR y se reaplica si renombrás el archivo, porque el tracking es por nombre.\n- Por eso las migraciones tienen que ser idempotentes.\n\nEs una inferencia mía, no algo que diga el doc: la tabla va a quedar en staging aunque el PR no se mergee. Una migración rota o un rename también pueden dejar objetos huérfanos ahí.\n\nSobre si el review pide algo más: el extracto solo lista migración idempotente, RLS con su policy, test en `test_rls.py` y modelo Pydantic. Puede haber otros checks que no veo.\n\nPara tener las respuestas reales, pegame la sección `#un-pr-preview-escribe-en-la-base-de-staging` o pasame la ruta del repo. También podés preguntarle a quien mantiene el CI/CD.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5226,
+  "cache_read_input_tokens": 36926,
+  "output_tokens": 700,
+  "output_tokens_details": {
+   "thinking_tokens": 74
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5226,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 504,
+    "cache_read_input_tokens": 20932,
+    "cache_creation_input_tokens": 288,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 288
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6eae7deb91"
+ }
+}

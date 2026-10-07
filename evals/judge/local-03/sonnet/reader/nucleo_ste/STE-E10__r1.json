@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para el caso del webhook, ¿qué hace exactamente el canal cuando el resultado es ASK y no hay nadie para contestar: bloquea, ejecuta igual o queda pendiente? Y si no hay fila en workspace_tool_approvals, ¿el default también aplica ahí?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook con el admin en \"ask\", ¿qué hace exactamente el canal cuando el gate devuelve ASK y no hay nadie que conteste? ¿Bloquea el tool, lo deniega automáticamente, queda pendiente o lo ejecuta igual? Indicame el archivo o la función donde se resuelve eso."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook, ¿qué pasa exactamente cuando el resultado es ASK y no hay nadie para responder: se bloquea, se ejecuta igual o queda pendiente de aprobación? ¿Dónde se define ese comportamiento (por ejemplo en ChannelProfile)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Para el caso del webhook, ¿qué hace exactamente el canal cuando el resultado es ASK y no hay nadie para contestar: bloquea, ejecuta igual o queda pendiente? Y si no hay fila en workspace_tool_approvals, ¿el default también aplica ahí?",
+ "followup_answer": "No lo puedo confirmar: el material no dice qué hace el canal con un ASK sin interlocutor. El directorio de trabajo está vacío, así que tampoco pude leer el código. No voy a inventar un comportamiento.\n\n**Sobre el default:** sí aplica en `webhook`. El paso 2.2 es el único que se saltea. Los pasos 2.1 (deny del workspace), 2.3 (`allow`/`ask` del workspace) y 2.4 (default) corren igual. Sin fila en `workspace_tool_approvals`, el resultado es ASK si el recurso está en `approval` (`\"ask\"` o `\"always\"`). Si no, es ALLOW.\n\n**Lo que sí sabemos sobre el ASK:** el tool no se ejecuta hasta que alguien lo apruebe (`asked-granted` en el diagrama). Eso descarta \"ejecuta igual\" como comportamiento esperado. No sabemos si el canal bloquea, deja pendiente o aprueba solo.\n\n**Dónde mirar:** `chat/client_facing_core.py` y `ChannelProfile` en `tuqui_core`. Buscá cómo se maneja el resultado ASK cuando el canal no tiene identidad personal. Por ejemplo:\n\n```bash\ngrep -rn \"ASK\\|personal_identity_applies\" tuqui_core/chat/\n```\n\nSi me das acceso al repo, lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5932,
+  "cache_read_input_tokens": 37546,
+  "output_tokens": 769,
+  "output_tokens_details": {
+   "thinking_tokens": 121
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5932,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 487,
+    "cache_read_input_tokens": 21552,
+    "cache_creation_input_tokens": 374,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 374
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "58a06a9f2e"
+ }
+}

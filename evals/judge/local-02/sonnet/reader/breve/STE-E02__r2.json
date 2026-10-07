@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "El nombre de la tabla quedó como placeholder (<tabla_conectores>) y no sabés si la migración 0201 ya agregó la columna. ¿Podés confirmarme la tabla real de conectores y si 0201 ya cubre description_i18n, y decirme si la descripción de los conectores se usa sólo en la SPA o también en prompts, mails o MCP, para saber si tengo que resolver el idioma en el backend?",
+ "followup_answer": "No puedo confirmarte ninguna de las tres cosas: el directorio de trabajo (`/tmp/ste-es-eval-_szsmsdp`) está vacío. No hay repo, migraciones ni código del front o del backend. Mi búsqueda de `0201_*` fuera de ese directorio no corrió, porque el sistema pidió aprobación para el comando y no la tuve.\n\nEsto es lo que dice la guía y lo que no dice:\n\n- **Tabla real:** el nombre de archivo `0201_platform_connectors_description_i18n.sql` sugiere que es `platform_connectors`. Es una inferencia por el nombre, no un dato verificado.\n- **Si 0201 ya cubre `description_i18n`:** por el nombre, probablemente sí. La guía la cita como referencia de migración, y el nombre dice \"description_i18n\". No vi el SQL. Verificalo con `cat supabase/migrations/0201_platform_connectors_description_i18n.sql` o con `\\d platform_connectors`. Si la columna ya está, no crees otra migración.\n- **Dónde se usa la descripción:** la guía no lo dice, y es lo que define si hay que resolver en el backend. Buscalo así:\n  - `grep -rn \"description\" ` sobre los módulos que arman prompts, mails y la superficie MCP, filtrando por conectores.\n  - Si el campo entra a un prompt LLM, a un mail o sale por MCP, resolvés también en el backend con `lang → en → legacy` y `resolve_response_language`.\n  - Si sólo aparece en serializers y componentes de la SPA, alcanza con el cliente.\n\nSi me pasás la ruta del repo o lo montás en este directorio, lo verifico yo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5893,
+  "cache_read_input_tokens": 58812,
+  "output_tokens": 949,
+  "output_tokens_details": {
+   "thinking_tokens": 71
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5893,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 595,
+    "cache_read_input_tokens": 21564,
+    "cache_creation_input_tokens": 323,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 323
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

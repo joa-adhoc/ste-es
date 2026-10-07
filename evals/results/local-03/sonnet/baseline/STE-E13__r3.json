@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Avisos (según el default `{7, 0}`)**\n\nLos envía `_run_trial_expiry` todos los días a las 12:00 UTC (9 h en Argentina). Hay dos hitos:\n- **7 días antes:** sale el aviso de \"por vencer\". Con el vencimiento la semana que viene, este es el que sale primero.\n- **El día del vencimiento:** sale otro aviso, cuando el workspace todavía funciona.\n\nLos hitos salen de `platform_config.billing_trial_warning_days_list`, así que se pueden cambiar.\n\nLo ya enviado se guarda como un par: `trial_warning_for` (la fecha de fin avisada) y `trial_warning_days` (el hito más chico enviado). Por eso, si se extiende la prueba, vuelve a avisar.\n\n**A quién**\n\nLos avisos de prueba, tanto el de por vencer como el de vencida, van a:\n- los owners y los admins, siempre, aunque estén en `billing_tier = 'none'`;\n- todo miembro con asiento (`billing_tier <> 'none'`).\n\nAdemás, en el chat `PlanLapsedBanner` se muestra sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence (sin suscripción)**\n\n- El plan pasa a `free`.\n- Se evalúa si hay exceso de miembros o de uso sobre los límites del plan free.\n- Sale el mail de prueba vencida.\n- Si hay exceso, `account_status` pasa a `restricted`, con motivo `trial_expired_with_excess`. En ese estado el MCP y el chat quedan bloqueados.\n- Si no hay exceso, el material no dice que se restrinja. Lo único explícito es que se evalúa el exceso. Si el workspace queda en `active` en ese caso, es una deducción mía y conviene confirmarla en el código.\n\n**Si ya tiene una suscripción viva**\n\nSí cambia: al vencer solo se limpian los flags de trial y **no se manda ningún mail**. Para el owner no cambia nada visible, y el cobro se anuncia con su propio recibo. El plan no baja a `free` y el workspace no se restringe.\n\nEl texto de los avisos no está escrito en los catálogos de idioma. Los nombres de plan, los precios y lo que deja de funcionar se derivan del estado en `billing/plan_summary.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4288,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 815,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4288,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 815,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4288,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4288
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

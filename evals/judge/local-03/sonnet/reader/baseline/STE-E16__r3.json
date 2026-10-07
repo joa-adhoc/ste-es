@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos (dashboards regenerables), ¿la versión solo-data se publica automáticamente o hay que hacer publish? Es decir, ¿quien tiene el link ve los datos nuevos o sigue viendo los publicados antes?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos que crea una versión solo-data mueve o no `published_version_id`? Es decir, ¿quien tiene el link ve los datos nuevos automáticamente o hace falta llamar a `publish`?",
+   "note": "La primera oración responde la edición con contenido, pero la pregunta sobre refresh de datos queda abierta: la respuesta admite que no sabe si se publica automáticamente y solo infiere el comportamiento."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos que crea una versión solo-data publica automáticamente esa versión, o deja published_version_id sin tocar? Es decir, ¿quien tiene el link ve los datos nuevos tras el refresh o hay que llamar a publish?",
+   "_note": "La primera oración responde bien la edición y menciona que el refresh crea versión sin romper el diseño, pero deja abierto lo que realmente importa: si el link muestra los datos refrescados. La respuesta admite que no lo sabe."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando se refrescan solo los datos (dashboards regenerables), ¿la versión solo-data se publica automáticamente o hay que hacer publish? Es decir, ¿quien tiene el link ve los datos nuevos o sigue viendo los publicados antes?",
+ "followup_answer": "**Respuesta corta: el material no lo dice explícitamente, así que no puedo confirmarlo.** Lo que sí se puede deducir es que quien tiene el link seguiría viendo lo publicado antes, hasta que alguien haga `publish`.\n\n**Qué dice el material**\n- La ruta por token **siempre** sirve `published_version`.\n- `published_version_id` solo se mueve en dos casos: un `save` sin `artifact_id` (que crea la v1 y la publica) o un `publish(version?)` explícito.\n- Un `save` con `artifact_id` mueve `current_version_id`, pero no `published_version_id`.\n- Un refresh de datos crea una versión solo-data y se resuelve por `_effective_version`. Eso garantiza que no rompe el diseño, pero no dice nada sobre publicación.\n\n**Qué es inferencia mía**\nLas únicas reglas que mueven el puntero de publicación son las dos de arriba, y el refresh de datos no figura entre ellas. Por eso lo esperable es que la versión solo-data quede sin publicar, que el link siga mostrando los datos anteriores y que haga falta un `publish`.\n\nEso tiene una consecuencia para los dashboards regenerables: si el refresh no publica, el link compartido quedaría con datos viejos hasta una acción manual. Parece un caso de uso donde alguien querría publicación automática, y por eso conviene verificarlo.\n\n**Qué mirar para confirmarlo**\n- El código del flujo de refresh de la fase 2: si llama a `publish` o si escribe `published_version_id` directamente.\n- Si `save` tiene un camino especial para versiones solo-data, por ejemplo un parámetro tipo `auto_publish`.\n- Si el result de un refresh devuelve `unpublished_changes: true`. Si lo hace, es señal de que no publica solo.\n\nNo tengo el código en este directorio. Si me pasás el repo o los archivos de `service`, lo verifico.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4948,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 820,
+  "output_tokens_details": {
+   "thinking_tokens": 143
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4948,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 820,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4948,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4948
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "84784bc55a"
+ }
+}

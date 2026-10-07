@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no cubre tres casos que pueden dejar el día sin insights: ¿qué pasa si el Investigator agota el tiempo o las tool calls sin findings útiles, y qué pasa si falla el Planner o el Synthesizer (excepción, JSON inválido, timeout del watchdog)? ¿Se guarda algo en `insights` o queda vacío sin dejar rastro?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o las tool calls sin findings útiles, o si falla el Planner o el Synthesizer (timeout, error del LLM, JSON inválido)? ¿Termina sin mostrar nada, reintenta o rompe el job? Y si el watchdog global vence, ¿se guarda algo parcial?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin findings útiles, o si falla el Planner o el Synthesizer? ¿Se termina sin mostrar nada, se reintenta o se guarda algo en la tabla `insights`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El material no cubre tres casos que pueden dejar el día sin insights: ¿qué pasa si el Investigator agota el tiempo o las tool calls sin findings útiles, y qué pasa si falla el Planner o el Synthesizer (excepción, JSON inválido, timeout del watchdog)? ¿Se guarda algo en `insights` o queda vacío sin dejar rastro?",
+ "followup_answer": "No lo puedo responder con certeza: el directorio de trabajo está vacío y el material no define ninguno de los tres casos. Tampoco puedo decirte si se guarda algo en `insights` o si queda vacío sin rastro.\n\n**Lo que el material sí establece:**\n- Hay un solo caso de \"sin teasers\" con registro explícito: `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n- Un `PlannerOutput` con hipótesis vacías es un silencio válido y lleva `silence_reason`.\n- El material no dice si alguno de estos dos resultados se persiste en `insights`, en logs o en ningún lado. El diagrama solo habla de `upsert` de los teasers.\n\n**Lo que el material no define:**\n- Investigator sin findings útiles: no hay regla de qué pasa cuando se agota `max_tool_calls`, `max_iterations` o el tiempo por hipótesis. Tampoco dice si `InvestigationFindings` queda vacío, parcial o con un marcador de falla.\n- Planner con excepción o JSON inválido: no hay retry ni fallback documentado.\n- Synthesizer con excepción o JSON inválido: tampoco está documentado.\n- Timeout del watchdog: solo aparece `watchdog_sec` en la fórmula del tiempo por hipótesis. No dice quién lo dispara ni qué cancela.\n\n**Dónde mirar en el código:**\n1. En `investigator.py`, buscá cómo se maneja el vencimiento del presupuesto: `asyncio.TimeoutError`, `UsageLimitExceeded` (Pydantic AI) o un `try/except` alrededor del `Agent.run`. Fijate qué devuelve la hipótesis fallida y si el resto sigue.\n2. En `planner.py` y `synthesizer.py`, buscá `except` y el parseo del JSON. Confirmá si re-lanzan o devuelven un output vacío con `debug_note`.\n3. En el orquestador que llama a las 3 etapas, buscá el `try/except` global y el `asyncio.wait_for(..., watchdog_sec)`. Ahí se decide si se hace `upsert` de algo ante un fallo.\n4. Revisá si `silence_reason` y `debug_note` se persisten. Un comando para ubicarlo: `grep -rn \"silence_reason\\|debug_note\" --include=*.py .`\n\nSi me pasás el repo o esos archivos, te lo confirmo con el código.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6795,
+  "cache_read_input_tokens": 38434,
+  "output_tokens": 1121,
+  "output_tokens_details": {
+   "thinking_tokens": 69
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6795,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 864,
+    "cache_read_input_tokens": 22440,
+    "cache_creation_input_tokens": 349,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 349
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f37d0c1783"
+ }
+}

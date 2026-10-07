@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema en Odoo: se ejecuta res.users.has_group(uid, 'base.group_system') y, si no lo es, lanza ValueError. Además la versión mayor de Odoo debe ser al menos MIN_SUPPORTED y detectable, y no puede haber otro workspace con el mismo database.uuid (409 Conflict).",
+  "Vincula en modo auto cuando current_user.email == odoo_login (por defecto), y en ese caso Member.odoo_user_id = admin_uid. También vincula en modo manual si el frontend envía link_current_user_to_odoo='manual' más link_odoo_user_id y ese res.users existe. Deja al member sin odoo_user_id (modo none) cuando los emails no coinciden, que es el valor por defecto en ese caso.",
+  "Se limpian odoo_user_id y odoo_api_key de todos los members, incluido el owner, porque esas identidades podrían apuntar a otra instancia de Odoo. La cantidad afectada se devuelve en members_invalidated y warning lleva el aviso para la UI. Después, si el modo es auto o manual, el Member de quien conecta se revincula de inmediato; los demás members tienen que revincularse por su cuenta. Cómo se calcula url_changed no lo dice."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "44ee5ee506",
+  "control": "d70443294a"
+ }
+}

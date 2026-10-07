@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Después del intercambio, si algunas habilidades no contestan, ¿se reintenta automáticamente o se vuelve a correr la prueba de humo más adelante? ¿Cómo se recupera el usuario: tiene que desconectar y reconectar, o hay un botón de reintento? Y esas habilidades fallidas, ¿quedan bloqueadas en el chat o se intentan usar igual con el token existente?",
+   "reason": "La primera oración es solo un título y no responde. El cuerpo cubre bien el flujo, pero deja abierta justo la parte final de la pregunta (reintento y recuperación ante fallas parciales), y la propia respuesta admite que no lo sabe."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Si después del intercambio algunas habilidades no contestan, se reintenta automáticamente o se vuelve a correr la prueba de humo más adelante, o el usuario tiene que desconectar y reconectar a mano para recuperarlas? Eso no quedó claro en la respuesta.",
+   "type_note": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando algunas habilidades no contestan en la prueba de humo y el usuario queda con conexión parcial, ¿hay reintento automático de las que fallaron, o se repite la prueba más adelante? Si no lo hay, ¿cómo se recupera el usuario: tiene que desconectar y volver a conectar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Después del intercambio, si algunas habilidades no contestan, ¿se reintenta automáticamente o se vuelve a correr la prueba de humo más adelante? ¿Cómo se recupera el usuario: tiene que desconectar y reconectar, o hay un botón de reintento? Y esas habilidades fallidas, ¿quedan bloqueadas en el chat o se intentan usar igual con el token existente?",
+ "followup_answer": "Con el material que tengo, no puedo responder ninguna de las tres preguntas. Tampoco hay código en el directorio de trabajo: está vacío y no es un repo, así que no hay nada que verificar.\n\nLo que el material sí dice:\n- La prueba de humo corre una sola vez, en el callback, justo después del intercambio de tokens.\n- Si alguna habilidad contesta, el token se conserva y el redirect lleva `connect_warning=<habilidades>`.\n\nLo que el material no dice, y no voy a inferir:\n1. **Reintento automático o prueba posterior:** no se menciona ninguno. Solo se describe la ejecución en el callback.\n2. **Recuperación del usuario:** no se menciona un botón de reintento. Tampoco dice si hay que desconectar y reconectar. Hay un detalle a favor de reconectar: `prompt=consent` fuerza a re-emitir el token en cada authorize, así que reconectar es viable. Pero eso no es lo mismo que decir que es el flujo previsto.\n3. **Habilidades fallidas en el chat:** no dice si quedan bloqueadas o se usan igual con el token existente. Lo único que se sabe es que el token no se borra. El warning parece informativo, pero no hay base para afirmar que no bloquea nada.\n\nPara responder con certeza habría que mirar:\n- el handler de `/api/mcp-oauth/callback`, para ver si persiste el resultado de la prueba o solo lo manda en el query param;\n- la construcción de toolsets (donde corre `refresh_if_expired`), para ver si filtra habilidades según ese resultado;\n- el componente de la card en `/connectors`, para ver qué hace con `connect_warning`.\n\nSi me pasás el repo o esos archivos, lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6206,
+  "cache_read_input_tokens": 37782,
+  "output_tokens": 933,
+  "output_tokens_details": {
+   "thinking_tokens": 170
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6206,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 613,
+    "cache_read_input_tokens": 21788,
+    "cache_creation_input_tokens": 412,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 412
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7c4cac2491"
+ }
+}

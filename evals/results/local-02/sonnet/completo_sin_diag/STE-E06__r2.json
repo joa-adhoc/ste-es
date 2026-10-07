@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué pasa:** los worktrees comparten la misma DB local de tests. La rama de tu compañero trae una migración destructiva. Esa migración dejó la DB sin columnas que tu código todavía lee. Por eso ves `UndefinedColumnError` en tests que no tocaste.\n\nEl lock (`flock`) no te protege de esto. Evita que dos corridas se pisen a la vez, pero no aísla el esquema. Si dos worktrees tienen migraciones distintas, la DB queda con la unión de las dos.\n\n**Cómo arreglarlo ahora:**\n\n1. Creá `tuqui_core/.env.test.local` a partir de `.env.test.local.example`.\n2. Poné ahí una base propia para tu worktree.\n3. Corré `make migrate-reset`. Arma la base desde cero en ~3 segundos.\n4. Volvé a correr los tests.\n\nNo uses `npx supabase db reset`. Aborta en el primer prefijo repetido (hoy hay 25). `make migrate-reset` usa `scripts/apply_migrations.py`, que sí maneja prefijos repetidos.\n\n**Cómo evitar que se repita:**\n\n- Dejá siempre una base propia por worktree en `.env.test.local`. El archivo está gitignoreado.\n- Mantené el lock mientras compartan Redis. La base sola no alcanza: la DB y el Redis son recursos compartidos.\n- Solo si querés soltar el lock, poné también un Redis propio. Usá un `REDIS_URL` con otro índice de base. No uses el 15 (default compartido de `.env.test`) ni el 0 (server de desarrollo). Después usá un `TEST_LOCK` distinto en cada worktree.\n\nTu compañero también necesita su base propia. Si no, su rama te sigue rompiendo el esquema.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8709,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 625,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8709,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 625,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8709,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8709
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

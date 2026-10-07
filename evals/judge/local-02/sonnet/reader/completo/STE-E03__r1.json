@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para armar el venv propio en el worktree? Si borro el link tuqui_core/.venv, no sé cómo crearlo ni instalar las dependencias (incluida la nueva) sin usar make install, que se niega en el worktree. ¿Cómo hago el editable install ahí sin tocar el del clone principal?",
+ "followup_answer": "La fuente que tengo no dice cómo instala `make install`: si usa `pyproject.toml` o `requirements*.txt`, ni qué versión de Python pide. Los comandos de abajo son el método estándar. Antes de correrlos, mirá el target `install` del `Makefile`. Copiá de ahí el comando de `pip`.\n\n1. Borrá solo el link. No pongas `/` al final, porque borraría el venv del clone principal:\n\n```bash\ncd tuqui_core\nls -l .venv        # confirmá que es un symlink al clone principal\nrm .venv\n```\n\n2. Creá el venv propio con el mismo Python que usa el clone principal:\n\n```bash\npython3 -m venv .venv\n.venv/bin/pip install --upgrade pip\n```\n\n3. Instalá las dependencias y el editable install. Reemplazá este comando por el del target `install`, si difiere:\n\n```bash\n.venv/bin/pip install -e \".[dev]\"    # si hay pyproject.toml\n# o\n.venv/bin/pip install -r requirements.txt -r requirements-dev.txt\n.venv/bin/pip install -e .\n```\n\n4. Verificá que el editable apunta al worktree:\n\n```bash\n.venv/bin/pip show -f <nombre-del-paquete> | grep -i -E \"location|editable\"\n```\n\nCon un venv propio, `-e .` repunta solo el venv del worktree. El del clone principal queda intacto.\n\nUn aviso: no sé si `make test` y `make install` aceptan un `.venv` que ya no es un link. El guard del `Makefile` puede chequear el worktree y no el link. Si `make install` se sigue negando, usá `pip` directo, como arriba. `make test` debería correr con tu venv. Si falla con \"Venv no encontrado\", pegame el error.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10419,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1012,
+  "output_tokens_details": {
+   "thinking_tokens": 402
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10419,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1012,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10419,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10419
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

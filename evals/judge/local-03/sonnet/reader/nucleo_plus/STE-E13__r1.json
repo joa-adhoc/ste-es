@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace ya tiene una suscripción viva, ¿igual sale el aviso de 7 días antes? Además, ¿el aviso del día 0 es el mismo mail que el de 'prueba vencida' o son dos mails distintos ese día?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace ya tiene una suscripción viva, ¿igual sale el aviso de 7 días antes del vencimiento? ¿Y qué pasa si la suscripción se crea entre ese aviso y el día que vence? Además, ¿el aviso del día que vence y el mail de prueba vencida son mails distintos, o es el mismo? Confirmalo en scheduler/billing_cron.py."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace ya tiene una suscripción viva, ¿sale igual el aviso de 7 días antes y el del día 0, o el cron los saltea? Y si no hay exceso sobre los límites del plan free, ¿qué pasa con `account_status` el día que vence (queda activo)? ¿Y el mail de prueba vencida sale igual en ese caso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Si el workspace ya tiene una suscripción viva, ¿igual sale el aviso de 7 días antes? Además, ¿el aviso del día 0 es el mismo mail que el de 'prueba vencida' o son dos mails distintos ese día?",
+ "followup_answer": "**1. Aviso de 7 días con suscripción viva:** el material no lo dice. Solo dice que al vencer, con suscripción viva, el sistema limpia los flags y no manda nada. Para saber si `_run_trial_expiry` saltea el hito de 7 días, mirá `scheduler/billing_cron.py`. Buscá si el cron consulta la suscripción antes de enviar.\n\n**2. Aviso del día 0 y mail de prueba vencida:** son dos mails distintos.\n\n- **Día 0 (hito `0`):** es un aviso de \"por vencer\". Sale mientras el workspace todavía funciona.\n- **Prueba vencida:** sale cuando el cron pasa el workspace a `plan='free'` y evalúa el exceso. Solo ocurre sin suscripción viva.\n\nEl material tampoco aclara si ambos caen en la misma corrida de las 12:00 UTC o en días distintos. Eso también se confirma en `_run_trial_expiry`: fijate en qué orden evalúa el hito `0` y el vencimiento.\n\nEn mi respuesta anterior escribí que \"sale el mail de prueba vencida\" el día que vence. Ese detalle de timing no está en el material.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5535,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 969,
+  "output_tokens_details": {
+   "thinking_tokens": 556
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5535,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 969,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5535,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5535
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d542760bd1"
+ }
+}

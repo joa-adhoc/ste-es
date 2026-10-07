@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Dame un ejemplo concreto: cómo se vería la skill que llama a odoo_create con los defaults (el contenido del SKILL.md y la llamada con los vals), y un caso concreto donde el gate de una tool nativa sí sea más fino que el create genérico, para saber si mi modelo cae ahí."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dije que la tool es un odoo_create sobre un modelo con algunos defaults, pero no te dije si el gate actual ya es `create` sobre ese modelo ni si hay que resolver IDs antes de crear. ¿Cómo decido concretamente en mi caso entre (b2) y (d)? Y en el caso MCP, ¿qué significa 'el gate importa en MCP' y dónde lo verifico (MCP_EXCLUDED_TOOLS, el router)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Dame un ejemplo concreto: cómo se vería la skill que llama a odoo_create con los defaults (el contenido del SKILL.md y la llamada con los vals), y un caso concreto donde el gate de una tool nativa sí sea más fino que el create genérico, para saber si mi modelo cae ahí.",
+ "followup_answer": "**Ejemplo ilustrativo:** inventé el modelo (`helpdesk.ticket`), el formato del SKILL.md y los nombres de los parámetros de `odoo_create`. Ajustalos a tu repo.\n\n**SKILL.md**\n\n```markdown\n---\nname: crear-ticket-soporte\ndescription: Crea un ticket de soporte en helpdesk.ticket con equipo, prioridad y etapa por defecto. Usala cuando el usuario pida abrir, registrar o reportar un ticket.\n---\n\n# Crear ticket de soporte\n\n1. Pedile al usuario `name` (asunto) y, si lo sabe, `partner_id`.\n2. Llamá a `odoo_create` con estos defaults:\n\n   - `team_id`: 3 (Soporte N1)\n   - `priority`: \"1\" (normal)\n   - `stage_id`: 1 (Nuevo)\n   - `user_id`: false (sin asignar)\n\n3. Si el usuario indica otra prioridad o equipo, pisá solo ese campo.\n4. Devolvé el nombre y el ID del ticket creado.\n```\n\n**Llamada resultante**\n\n```json\n{\n  \"model\": \"helpdesk.ticket\",\n  \"values\": {\n    \"name\": \"No puedo emitir facturas\",\n    \"partner_id\": 42,\n    \"team_id\": 3,\n    \"priority\": \"1\",\n    \"stage_id\": 1,\n    \"user_id\": false\n  }\n}\n```\n\nSi no conocés los IDs (3, 1), la skill tiene que mandar al LLM a buscarlos con `odoo_search_read`. Eso son 2 o más calls extra. Con ≥3 calls en total ya entrarías por (d).\n\n**Dónde el gate nativo sí es más fino**\n\nLos dos casos de tu material:\n\n- **`odoo_copy`:** pide `create` en vez de `execute`. El genérico sería `odoo_execute` con `method: \"copy\"`, que exige un permiso más amplio.\n- **`odoo_message_post`:** usa el `messaging_mode` del workspace. El genérico exigiría `execute` sobre `mail.message` o sobre cada modelo.\n\n**Cómo saber si tu modelo cae ahí**\n\nFijate en el whitelist del workspace.\n\n- **`create` genérico ya habilitado sobre tu modelo:** la tool nativa no agrega gate. Hacé skill.\n- **`create` genérico NO habilitado, y querés abrir solo este camino:** es (b2). Un caso típico es un modelo sensible, como `mail.message` o `account.move`, donde habilitar `create` general es demasiado riesgo.\n- **Querés que el LLM no pueda pisar campos** (por ejemplo `state` o `user_id`): eso no figura en tus ejes. Una skill no lo garantiza, porque el LLM puede mandar otros `vals`. Es un argumento razonable de blast radius, pero lo tendrías que defender como (b2) ante quien revise.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5635,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1626,
+  "output_tokens_details": {
+   "thinking_tokens": 618
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5635,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1626,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5635,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5635
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "79d961b91d"
+ }
+}

@@ -1,0 +1,1 @@
+Respondé de forma concisa.

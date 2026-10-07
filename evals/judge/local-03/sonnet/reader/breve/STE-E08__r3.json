@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c), (d) sin definirlas, y yo no tengo ese criterio a mano. ¿Podés decirme en una línea qué significa cada eje, y cuál es el umbral duro de (d)? Con eso puedo aplicarlo a mi tool, que es un odoo_create de un solo call sobre un modelo con defaults."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas (a), (b1), (b2), (c), (d) y 'umbral duro' sin definirlas, y yo no tengo ese criterio a mano. ¿Podés decirme en una línea qué significa cada eje y cuál es el umbral duro, para chequear que mi tool de odoo_create con defaults realmente cae en skill y no en nativa?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c) y (d) sin definirlas y asume que ya las conozco. ¿Me podés decir en una línea qué significa cada eje, y cuál sería tu veredicto concreto para mi tool (un odoo_create con defaults, sin whitelist propia ni approval)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c), (d) sin definirlas, y yo no tengo ese criterio a mano. ¿Podés decirme en una línea qué significa cada eje, y cuál es el umbral duro de (d)? Con eso puedo aplicarlo a mi tool, que es un odoo_create de un solo call sobre un modelo con defaults.",
+ "followup_answer": "Una línea por eje (una tool es nativa si cumple **al menos uno**; si no cumple ninguno, es skill):\n\n- **(a) No componible:** no se logra con las tools genéricas (`odoo_create`, `odoo_write`, etc.) ni con otra tool existente.\n- **(b1) Approval / identidad de policy propia:** gate propio con menor blast radius que la tool genérica. Vale solo en chat, porque `requires_approval` lo ignora el router MCP.\n- **(b2) Whitelist más fina:** gate más restrictivo que el `create`/`execute` genérico. Vale en chat y en MCP.\n- **(c) Procedimiento crítico:** un skip del LLM tiene costo real (compliance dura). Solo en chat; en MCP no hay turno donde forzar pasos.\n- **(d) Eficiencia / determinismo:** colapsa en 1 call lo que con tools genéricas cuesta ≥3 llamadas, un loop no acotado, o pasos que el LLM saltearía.\n\n**Umbral duro de (d):** nunca un wrapper 1→1. Si la tool mapea a una sola call genérica, no califica, aunque ahorre tokens de esquema.\n\n**Aplicado a tu tool:** es un `odoo_create` de una sola call con defaults, así que (a) no aplica, (d) queda descartado por el umbral duro, y (c) probablemente tampoco. Solo se sostiene como nativa si tiene (b2), es decir, una whitelist más fina que el `create` genérico. O (b1), pero ahí solo vale en chat. Si no, es **skill**.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5165,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 556,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5165,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 556,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5165,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5165
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9e97ef58d7"
+ }
+}

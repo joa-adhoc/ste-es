@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "En el caso del webhook, ¿qué pasa exactamente cuando el resultado es ASK y no hay ningún humano para aprobar? ¿La tool se bloquea, falla con error, queda pendiente o se auto-deniega? Necesito saberlo para decidir qué permisos poner en el workspace para ese agent.",
+ "followup_answer": "No lo sé, y el material no lo dice. El directorio de trabajo está vacío, así que no pude leer el código. Cualquier opción que te dé sería una suposición.\n\nLo que sí sabés por el material:\n- `evaluate_permission` solo devuelve ALLOW, DENY o ASK. No describe qué hace el canal con un ASK.\n- El diagrama habla de \"allow / asked-granted\" antes de `tool.execute()`. Eso implica que un ASK sin aprobación no ejecuta. No dice si el resultado es un bloqueo, un error, un estado pendiente o una auto-denegación.\n\nPara saberlo, buscá en el repo:\n1. Quién consume el resultado de `evaluate_permission` en `tuqui_core/chat/permissions.py`. Fijate qué rama maneja `ASK`.\n2. Cómo `chat/client_facing_core.py` y `ChannelProfile` tratan un ASK en `webhook`, `scheduled` y `exposure`. Buscá algo como un flag de \"interactivo\" o \"puede preguntar\".\n3. Qué `permission_action` queda en `tool_usage_log` cuando un ASK no se resuelve. Corré un webhook de prueba y mirá el log.\n\nSi me pasás esos archivos o me apuntás al repo, te lo confirmo.\n\nMientras tanto, para decidir los permisos, no dependas del comportamiento del ASK. En ese agent, poné cada tool en `allow` o `deny` explícito en `workspace_tool_approvals`. Así no pasa por el default. Ojo con el default: si el recurso está en `approval` y no hay fila, el resultado es ASK. Por eso una tool sin fila puede caer en ASK sin que lo notes.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5658,
+  "cache_read_input_tokens": 37325,
+  "output_tokens": 879,
+  "output_tokens_details": {
+   "thinking_tokens": 137
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5658,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 597,
+    "cache_read_input_tokens": 21331,
+    "cache_creation_input_tokens": 321,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 321
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el callback cuando falla el intercambio del code (state inválido o vencido, error del token_url o del provider)? ¿Qué ve el usuario y se guarda o se borra algo? Y confirmame si la introspección (paso 7) corre antes del redirect (paso 8), porque de eso depende que connect_warning y connect_error viajen en esa misma redirección."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "La respuesta es larga y arranca con el setup del admin, no con el flujo. ¿Me la podés resumir en 5-6 líneas con el camino feliz (front → backend → provider → callback) y qué pasa si algunas habilidades no contestan, y aparte decirme qué pasa si falla el intercambio del code en el callback (state inválido o error del token_url)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el callback cuando falla el paso 6 (state inválido o vencido, o error del token_url)? ¿Y el orden real es intercambio de tokens, luego introspección, luego redirect, o el redirect se hace antes de terminar la prueba de humo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa en el callback cuando falla el intercambio del code (state inválido o vencido, error del token_url o del provider)? ¿Qué ve el usuario y se guarda o se borra algo? Y confirmame si la introspección (paso 7) corre antes del redirect (paso 8), porque de eso depende que connect_warning y connect_error viajen en esa misma redirección.",
+ "followup_answer": "**1. Falla del intercambio (state inválido o vencido, error del `token_url` o del provider)**\n\nEl material no lo dice, así que no puedo confirmar qué ve el usuario ni qué se guarda o se borra. Solo sé lo siguiente:\n\n- Los tokens se guardan en `user_mcp_oauth_tokens` después del intercambio (paso 6). Si el intercambio falla, no hay tokens que guardar, así que lo lógico es que no se escriba nada. Eso es una inferencia, no algo documentado.\n- El único `connect_error=<motivo>` documentado es el de la prueba de humo, cuando ninguna habilidad contesta. No sé si los fallos de `state` o de `token_url` usan ese mismo parámetro, otro distinto, o devuelven un error HTTP directo.\n- Tampoco sé si un `state` inválido o vencido redirige al SPA. Sin un `state` válido, el backend no puede saber `server_id`, `user_id` ni el landing, que sale del dueño.\n\nPara responderlo con certeza hay que leer el handler de `GET /api/mcp-oauth/callback`. Si me pasás el código, o me indicás dónde está porque en este directorio no hay repo, lo reviso.\n\n**2. ¿La introspección corre antes del redirect?**\n\nSí, según el material. Dice que el callback introspecta \"después del intercambio de tokens\" y que \"el redirect lleva `connect_error`\" o \"`connect_warning`\". Esos parámetros solo pueden armarse con el resultado de la introspección, así que ésta corre antes y ambos viajan en la misma redirección. Es una deducción de esa redacción, no un orden numerado explícito.\n\nMi respuesta anterior los listó como pasos 7 y 8, pero en el material original la prueba de humo está en una sección aparte y el redirect es el paso 7. El orden real es: intercambio, guardado de tokens, introspección y redirect con `connected` más, si corresponde, `connect_warning` o `connect_error`.\n\nUn detalle del caso \"ninguna contesta\": el token se borra y el redirect lleva `connect_error`. En ese caso no queda claro si también va `connected={server_id}`. Lo razonable es que no, pero el material no lo dice.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5712,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1023,
+  "output_tokens_details": {
+   "thinking_tokens": 251
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5712,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1023,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5712,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5712
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "bdc29e79bc"
+ }
+}

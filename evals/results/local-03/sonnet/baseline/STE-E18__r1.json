@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n## 1. Guardado\nEl modelo guarda la memoria con la herramienta `manage_memory`. Cada memoria pertenece a un **scope**:\n- **user**: personal, una por usuario.\n- **workspace**: compartida con todo el equipo.\n\nCada memoria tiene un título, un cuerpo, un `summary` opcional y un `created_at`.\n\n## 2. Tope y expulsión (cap + FIFO)\n- El límite es de **50 memorias por scope**.\n- Al agregar la memoria 51, se borra la más antigua según `created_at`, en la misma transacción de base de datos.\n- La expulsión es silenciosa para el usuario, pero el modelo se entera por un mensaje en la respuesta de la herramienta.\n\nEs FIFO puro: se borra la más vieja, sin importar si se usa mucho o es importante.\n\n## 3. Entrada al prompt en cada turno\nEn `_load_chat_setup` (`tuqui_core/chat/agent.py`), después del bloque `CURRENT USER` y antes del bloque de proyecto, se inyectan dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`.\n\nLa carga es **progresiva**, en dos niveles:\n\n1. **Header (en cada turno)**: `título + (summary si existe, si no los primeros 250 caracteres del body)`. Si el body pasa de 250 caracteres y no hay summary, el header termina en `... [read]`. Cada línea incluye también el `id`.\n2. **Body (a demanda)**: si la memoria está marcada con `[read]` y el modelo necesita el contenido completo, llama a `manage_memory(action='read', id=...)`.\n\nAsí el costo por turno queda acotado a unos **3K tokens** para 50 memorias del tamaño máximo.\n\n## 4. Qué pasa cuando hay muchas\nHay dos mecanismos que actúan en momentos distintos:\n\n- **Al guardar**: el tope de 50 por scope, con expulsión FIFO.\n- **Al armar el prompt**: si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y conserva solo las **top-N** más relevantes.\n\nCon el cap de 50 y headers de unos 250 caracteres, el máximo es de 12.500 caracteres por scope. Eso ya roza el presupuesto de 12K, y ahí no es claro si el límite se aplica por scope o al total. Si fuera al total, con ambos scopes llenos el guard se activaría con frecuencia. Con esa activación, las memorias que quedan fuera del prompt en un turno dependen de la similitud textual con el mensaje, no de su importancia. Eso se puede notar si una memoria útil no se parece léxicamente a la consulta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3759,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1008,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3759,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1008,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3759,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3759
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

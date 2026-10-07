@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción de los conectores se usa sólo en la SPA, o también entra a un prompt LLM, un mail o sale por MCP? Y además, ¿la migración 0201 y el serializer con description_i18n ya están aplicados, o tengo que hacerlos desde cero?",
+   "note": "La primera oración ('Depende de quién consume la descripción') no responde si hay que tocar el backend; depende de datos que no tengo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción de los conectores se usa sólo en la SPA o también entra a un prompt LLM, un mail o sale por MCP? Y la migración 0201 y el serializer, ¿ya están aplicados y devuelven description_i18n, o los tengo que hacer yo?",
+   "note": "La primera oración ('Depende de quién consume la descripción') no responde directamente la pregunta de si hay que tocar el backend; la respuesta real depende de un dato que no tengo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta depende de datos que no tengo y que no me da: ¿la descripción de los conectores llega hoy a algún prompt LLM, mail o a MCP, o sólo se pinta en la SPA? ¿Y la migración 0201_platform_connectors_description_i18n.sql ya está aplicada y el serializer ya devuelve description_i18n? Con eso me decís si alcanza con el cliente, porque la respuesta dice a la vez 'alcanza con el cliente' y 'tenés que tocar el backend igual'."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿La descripción de los conectores se usa sólo en la SPA, o también entra a un prompt LLM, un mail o sale por MCP? Y además, ¿la migración 0201 y el serializer con description_i18n ya están aplicados, o tengo que hacerlos desde cero?",
+ "followup_answer": "No puedo responder ninguna de las dos preguntas con datos reales: el directorio de trabajo (`/tmp/ste-es-eval-7inierxr`) está vacío y no es un repo git. No tengo ni `supabase/migrations/`, ni `tuqui_core/`, ni el front. Lo que sigue sale sólo de tu material.\n\n**1. ¿Se usa sólo en la SPA, o también en un prompt, un mail o MCP?**\nEsto no se deduce del material ni de la regla. Hay que buscarlo en el código. Cuando tengas el repo, buscá dónde se lee `description` de `platform_connectors` fuera del front:\n- Si aparece en el armado de un prompt LLM, en un template de mail o en la definición de tools/recursos que exponés por MCP, hay que resolver en el backend. En ese caso usás `resolve_response_language(workspace_id, user_id)` con la cadena `lang → en → legacy`, y el `queryKey` lleva el idioma si el front consume el resultado ya resuelto.\n- Si sólo la leen los endpoints que alimentan cards y listados de la SPA, alcanza con el cliente.\n\nMi respuesta anterior dijo \"casi seguro sólo SPA\", y eso era una suposición. Los conectores suelen describirse al modelo (el LLM elige qué conector usar leyendo su descripción), así que MCP o prompt es bastante plausible. No lo des por descartado.\n\n**2. ¿Están aplicados la migración 0201 y el serializer con `description_i18n`?**\nTampoco lo puedo confirmar. El nombre `0201_platform_connectors_description_i18n.sql` aparece en tu material como referencia de migración, pero eso no prueba que esté aplicada en tu base. Tampoco prueba que el serializer ya devuelva el campo. Verificalo en tres lugares:\n- que exista el archivo en `supabase/migrations/`,\n- que la columna esté en la base (`\\d platform_connectors`),\n- que el serializer y el endpoint de escritura manejen `description_i18n` con `decode_i18n` y `normalize_i18n_keys`.\n\nSi las tres están, te saltás los pasos 1 a 3 y sólo te queda el front (`localizedField`) y el editor de admin con dos inputs. Si falta alguna, hacés sólo esa parte.\n\nSi me das la ruta del repo, o lo copiás al directorio de trabajo, hago ambas verificaciones y te digo exactamente qué falta.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5761,
+  "cache_read_input_tokens": 58877,
+  "output_tokens": 1160,
+  "output_tokens_details": {
+   "thinking_tokens": 55
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5761,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 862,
+    "cache_read_input_tokens": 21586,
+    "cache_creation_input_tokens": 160,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 160
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8a00685aba"
+ }
+}

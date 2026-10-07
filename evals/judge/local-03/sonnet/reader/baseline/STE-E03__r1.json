@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para el caso de mi worktree (dependencia nueva de Python + cambio en web/package.json) sin tocar el clone principal? Es decir: cómo quito el link de tuqui_core/.venv y armo el venv propio con la dependencia nueva, y cómo quito el link de web/node_modules antes de correr npm ci."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Dame los comandos exactos, en orden, para el caso de mi worktree (dependencia nueva de Python y cambio en web/package.json) sin tocar el clone principal: cómo quito el link de tuqui_core/.venv y armo un venv propio con la dependencia nueva, y cómo quito el link de web/node_modules antes del npm ci. Si make worktree-setup vuelve a linkear esas carpetas, decime cuándo no volver a correrlo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python nueva, ¿me pasás los comandos exactos para armar el venv propio en el worktree (quitar el link de tuqui_core/.venv, crear el venv, instalar tuqui_core con la dependencia nueva) y confirmar que `make test` lo detecta sin romper el editable install del clone principal? Lo mismo para web: ¿qué comando exacto uso para quitar el link de web/node_modules antes de `npm ci`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para el caso de mi worktree (dependencia nueva de Python + cambio en web/package.json) sin tocar el clone principal? Es decir: cómo quito el link de tuqui_core/.venv y armo el venv propio con la dependencia nueva, y cómo quito el link de web/node_modules antes de correr npm ci.",
+ "followup_answer": "Dos avisos antes de los comandos. El material no dice cómo se arma el venv (qué archivo de dependencias usa ni qué hace `make install`), así que esa parte es inferida. Y no sé si `make install` se niega por detectar un worktree linkeado o por detectar el symlink. Si se niega aun después de borrar el link, instalá con pip a mano, como abajo.\n\nDesde la raíz del worktree:\n\n**1. Setup base (si no lo hiciste)**\n```bash\nmake worktree-setup\n```\n\n**2. Venv propio con la dependencia nueva**\n```bash\n# Quitar el link (unlink no toca el destino; sin \"/\" al final)\nunlink tuqui_core/.venv\n\n# Crear el venv propio\npython3 -m venv tuqui_core/.venv\n\n# Instalar dependencias del proyecto + la nueva\n# (inferido: ajustá al mecanismo real, ej. pyproject.toml o requirements*.txt)\ntuqui_core/.venv/bin/pip install -e tuqui_core    # o: -r tuqui_core/requirements.txt\ntuqui_core/.venv/bin/pip install <dependencia-nueva>\n```\nMirá el target `install` del Makefile para copiar sus pasos exactos (versión de Python, extras, requirements de dev). Sin eso, el venv puede quedar incompleto, por ejemplo sin pytest o ruff.\n\n**3. node_modules de web propio**\n```bash\nunlink web/node_modules\n(cd web && npm ci)\n```\nCon `unlink` el `npm ci` crea un `web/node_modules` real y no borra el del clone principal. El `node_modules` de la raíz podés dejarlo linkeado, porque tu cambio es solo en `web/package.json`.\n\n**4. Verificar que no tocaste el principal**\n```bash\nls -ld tuqui_core/.venv web/node_modules   # deben ser directorios, no \"->\"\nmake test && make test-web\n```\n\nUn efecto de `make worktree-setup`: si lo volvés a correr, probablemente recree los links, así que no lo repitas después de este paso. Esto también es inferido.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4616,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1093,
+  "output_tokens_details": {
+   "thinking_tokens": 365
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4616,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1093,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4616,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4616
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "58cd33022a"
+ }
+}

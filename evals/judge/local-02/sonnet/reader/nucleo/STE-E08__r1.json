@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa ejes (a), (b1), (b2), (c), (d) y el umbral de ≥3 calls como si ya los conociera. ¿Podés darme un ejemplo concreto con mi caso: qué quedaría en el skill (modelo, defaults, cómo llama a odoo_create) y qué tendría que pasar para que pase a tool nativa por (b2) o (d)?",
+ "followup_answer": "Uso un modelo inventado, `x_visita_tecnica`. Reemplazalo por el tuyo.\n\n**Los ejes, en corto**\n- **(b2):** la tool tiene un permiso en la whitelist más fino que el del `odoo_create` genérico. Vale en chat y en MCP.\n- **(d):** la tool colapsa ≥3 calls genéricas, o un loop no acotado, en una sola call determinista. Un wrapper 1→1 nunca califica.\n\n**Qué iría en el skill**\n\n```markdown\n---\nname: crear-visita-tecnica\ndescription: Registrar una visita técnica en Odoo con los defaults de la empresa.\n---\n\nUsá este skill cuando el usuario pida registrar o agendar una visita técnica.\n\nModelo: `x_visita_tecnica`\n\nDefaults (el usuario puede pisarlos si los pide):\n- `state`: `\"draft\"`\n- `tipo`: `\"preventiva\"`\n- `user_id`: el usuario actual\n\nObligatorios (preguntá si faltan):\n- `partner_id` (id numérico)\n- `fecha` (formato `YYYY-MM-DD HH:MM:SS`)\n\nPasos:\n1. Si el usuario dio el cliente por nombre, resolvé el id con `odoo_search_read`.\n2. Llamá `odoo_create` con `model=\"x_visita_tecnica\"` y `values={\"state\": \"draft\", \"tipo\": \"preventiva\", \"partner_id\": <id>, \"fecha\": \"<fecha>\"}`.\n3. Devolvé el id creado al usuario.\n```\n\nEl skill documenta modelo, defaults y orden de pasos. El LLM ejecuta `odoo_create` con esos valores.\n\n**Qué tendría que pasar para que sea tool nativa**\n\n*Por (d):* la operación real tiene que ser ≥3 calls deterministas. Por ejemplo:\n1. Resolver el cliente por nombre.\n2. Resolver el tipo o la etapa por nombre.\n3. Crear la visita.\n4. Postear un mensaje en el chatter.\n\nAhí la tool las colapsa en una. Si solo resuelve el cliente y crea, son 2 calls y no alcanza.\n\n*Por (b2):* tendrías que poder dar a un workspace permiso para esta tool sin dar `create` sobre `x_visita_tecnica` en general. Antes de justificarlo así, fijate si el `odoo_create` genérico ya permite whitelistear por modelo. Si ya lo permite, la tool no agrega un gate más fino.\n\nEsta lectura de (b2) es mía. El material solo da `odoo_copy` y `odoo_message_post` como ejemplos. Confirmala con quien mantiene la whitelist.\n\n*Por MCP:* si la justificación es solo \"pide approval\", no sirve. Esa palanca es (b1) y el router MCP la ignora.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5393,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1582,
+  "output_tokens_details": {
+   "thinking_tokens": 598
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5393,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1582,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5393,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5393
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

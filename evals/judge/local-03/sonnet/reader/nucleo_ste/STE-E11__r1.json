@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Con el marker puesto, ¿cómo escribo la migración para que el código viejo de staging siga funcionando mientras el PR env comparte la base? Y si renombro el archivo de la migración, ¿se vuelve a aplicar o se rompe el registro en `_migrations`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo escribo la migración para que el código anterior que corre en staging/prod siga funcionando mientras se dropea la columna (por ejemplo, orden de deploy o pasos previos para dejar de usarla), y qué pasa con el marker si renombro el archivo? Eso no me lo explicaste y está en docs/infra-ci-cd.md, ¿me podés pasar esa parte?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para dropear la columna sin romper el código anterior que sigue corriendo, ¿tengo que sacar primero todas las referencias a la columna en un PR previo y dropearla en uno posterior, o alcanza con el marker en este mismo PR? Además, ¿qué tan cerca del inicio tiene que estar `-- destructive: true`: en la primera línea, en las primeras N líneas, o en cualquier parte del header?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Con el marker puesto, ¿cómo escribo la migración para que el código viejo de staging siga funcionando mientras el PR env comparte la base? Y si renombro el archivo de la migración, ¿se vuelve a aplicar o se rompe el registro en `_migrations`?",
+ "followup_answer": "**No tenés que escribir nada especial en la migración.** Con `-- destructive: true`, el runner no la aplica en el PR env. El código viejo de staging sigue viendo la columna.\n\n**Código viejo y PR env**\n- El marker protege por omisión: la migración no corre, así que la base compartida no cambia.\n- El código nuevo del PR env corre contra una base que todavía tiene la columna. Dropear una columna no suele romper código que ya no la usa.\n- Una excepción: si la columna es `NOT NULL` sin default y el código nuevo no la escribe, los inserts del PR env fallan. El material no lo cubre. Es una deducción mía, así que revisalo.\n- Si querés evitar el riesgo, separá el cambio en dos PRs. El primero deja de usar la columna. El segundo la dropea.\n\n**Renombrar el archivo**\n- El material no lo explica. Dice que el runner trackea archivos aplicados en `_migrations`, y que las consecuencias del rename están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\". No tengo ese archivo.\n- **Migración destructiva con marker:** el PR env la saltea sin registrarla. No hay entrada en `_migrations`, así que renombrarla antes del merge no rompe nada. Se aplica con el nombre nuevo en el deploy de `staging` o `main`.\n- **Migraciones aditivas del mismo PR:** el PR env sí las aplica y las registra. Si las renombrás después, deducís que el runner las ve como archivos nuevos y las reaplica, porque trackea por archivo. Confirmalo en el doc antes de renombrar.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5331,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1025,
+  "output_tokens_details": {
+   "thinking_tokens": 452
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5331,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1025,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5331,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5331
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "de15c5898b"
+ }
+}

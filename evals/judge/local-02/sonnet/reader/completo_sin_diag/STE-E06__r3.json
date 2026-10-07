@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "En el paso 3 me decís que ponga una base propia siguiendo el formato del example, pero no sé qué variable cambiar ni qué nombre usar. ¿Me pasás un ejemplo concreto de cómo queda el `.env.test.local` para mi worktree, con la base y el `REDIS_URL` con otro índice, y el comando para crear la base si no existe?",
+ "followup_answer": "No tengo el contenido de `.env.test` ni del `.env.test.local.example`. El material no nombra la variable de la base, así que no la invento. Lo que sí confirma el material es `REDIS_URL`.\n\n1. Abrí `tuqui_core/.env.test` y buscá la variable con la URL de la base. Copiá esa línea tal cual a `.env.test.local`. Cambiá solo el nombre de la base, al final de la URL.\n2. Elegí un índice de Redis libre. No uses el 15 ni el 0.\n\nAsí queda el `tuqui_core/.env.test.local`. Los valores de host, puerto y credenciales son ilustrativos. Usá los de tu `.env.test`.\n\n```\n# El nombre de la variable viene de .env.test; DATABASE_URL es una suposición\nDATABASE_URL=postgresql://postgres:postgres@localhost:54322/tuqui_test_mi_worktree\nREDIS_URL=redis://localhost:6379/3\n```\n\nSi tu compañero ya usa el 3, elegí otro índice. Cada worktree necesita uno distinto.\n\nPara crear la base, usá el mismo host, puerto y usuario de la URL:\n\n```\ncreatedb -h localhost -p 54322 -U postgres tuqui_test_mi_worktree\n```\n\nDespués corré `make migrate-reset`. El material no dice si el target crea la base. Por eso creala vos antes. Si ya existe, `createdb` falla sin daño.\n\nAntes de correr `make migrate-reset`, revisá que la URL apunte a tu base nueva y no a la compartida. Si apunta a la compartida, vacía el esquema de tu compañero.\n\nPara soltar el lock, usá también un `TEST_LOCK` distinto. Esto solo vale si la base y el Redis son propios.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9470,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1110,
+  "output_tokens_details": {
+   "thinking_tokens": 495
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9470,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1110,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 9470,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9470
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

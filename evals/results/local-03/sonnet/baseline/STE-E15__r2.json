@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Recorrido de `connect_odoo`\n\nLo que sigue sale solo del material que pegaste. No abrí el código, así que los detalles finos pueden diferir.\n\n## Paso a paso\n\n1. **Entrada.** `POST /workspaces/{slug}/odoo` exige autenticación de owner/admin. Llama a `workspaces.service.connect_odoo(slug, payload, current_user_id)`.\n2. **Autenticación en Odoo.** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`.\n3. **Verificación de admin.** `_verify_odoo_admin_group` ejecuta `res.users.has_group(uid, 'base.group_system')`. Si ese usuario no es administrador de sistema en Odoo, lanza `ValueError`.\n4. **Versión.** `JsonRpcTransport.get_version(url)` devuelve `detected_version` (por ejemplo `\"18\"`). Lanza `ValueError` si la detección falla o si la versión mayor es menor que `MIN_SUPPORTED`.\n5. **Resolución del vínculo.** `_resolve_link_mode(...)` decide cómo se vincula el Member de quien conecta (ver la sección siguiente).\n6. **Persistencia.** Hace `UPDATE workspaces SET odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version`. El workspace pasa a estar \"conectado\" y el rol owner no se toca.\n   - Si otro workspace ya tiene el mismo `database.uuid`, responde **409 Conflict**. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n7. **Limpieza si cambió la URL.** Ver la última sección.\n8. **Vinculación del Member.** Si `link_mode` es `auto` o `manual`, hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para `(workspace_id, current_user_id)`. Después lanza en segundo plano `asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))`.\n9. **Respuesta.** Devuelve `WorkspaceConnectOdooResult`, que extiende `WorkspaceRead` con:\n   - `members_invalidated`: 0 salvo que haya cambiado la URL.\n   - `warning`: mensaje para la UI.\n   - `link_status`: `auto`, `manual` o `none`.\n   - `linked_odoo_user_id`: el id vinculado, o `None`.\n\n## A qué usuario de Odoo vincula\n\nLas credenciales viven en `workspaces` y son independientes de quien conecta. El owner es un rol administrativo de Tuqui y no necesita identidad en Odoo, así que la vinculación es opcional. `_resolve_link_mode` elige entre tres modos:\n\n| Modo | Cuándo | Efecto |\n|---|---|---|\n| `auto` | Es el valor por defecto cuando `current_user.email == odoo_login`. | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend envía `link_current_user_to_odoo='manual'` más `link_odoo_user_id`. | Verifica que ese `res.users` exista y bindea el Member a ese id. |\n| `none` | Es el valor por defecto cuando los emails no coinciden. | El Member queda sin `odoo_user_id`. |\n\nEn `auto`, el vínculo es con el mismo usuario con el que se autenticó la conexión (`admin_uid`).\n\n## Qué pasa si cambia la URL\n\nCuando `url_changed` es verdadero, se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. La razón es que esas identidades podrían apuntar a otra instancia de Odoo. El número de members afectados se devuelve en `members_invalidated`, y `warning` lleva el aviso para la UI.\n\nDespués de esa limpieza se aplica el paso 8. Si el modo es `auto` o `manual`, el Member de quien conecta se vuelve a vincular de inmediato. El resto de los members tendrán que revincularse por su cuenta.\n\n## Dudas sin resolver\n\n- El material no dice cómo se calcula `url_changed`. Por ejemplo, no indica si normaliza barras finales o mayúsculas.\n- Tampoco dice si el `UPDATE` de `workspaces` y la limpieza de members ocurren en la misma transacción. El diagrama los presenta en secuencia.\n- `sync_user_api_key` corre como tarea en segundo plano. Si falla, la respuesta ya habrá salido con `link_status` `auto` o `manual`.\n\nSi quieres, reviso el código real para confirmar estos puntos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4305,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1683,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4305,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1683,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4305,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4305
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

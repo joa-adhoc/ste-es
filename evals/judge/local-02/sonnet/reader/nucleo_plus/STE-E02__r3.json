@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "No me quedó claro si necesito tocar el backend: ¿quién consume hoy el campo description de los conectores? ¿Solo la SPA, o también entra a un prompt LLM, a mails o sale por MCP? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya existe y cubre este caso, o tengo que crear la columna description_i18n yo?",
+ "followup_answer": "No puedo confirmar ninguna de las dos cosas: el directorio de trabajo (`/tmp/ste-es-eval-q23ps0pp`) está vacío. No hay migraciones ni código donde buscar.\n\n**Migración 0201.** La documentación la lista como referencia, pero no puedo verificar que exista ni qué hace. Corré esto en tu repo:\n\n```bash\nls supabase/migrations | grep 0201\ngrep -n \"description_i18n\" supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n\n- Si el archivo existe y tiene `ADD COLUMN description_i18n JSONB` sobre `platform_connectors`, no crees nada. Verificá que esté aplicada en tu base.\n- Si no existe, creá la migración con el siguiente número libre:\n  ```sql\n  ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n  ```\n\n**Quién consume `description`.** Tampoco puedo saberlo desde acá. Buscá los lectores en el repo:\n\n```bash\ngrep -rn \"platform_connectors\" --include=*.py . | grep -i description\ngrep -rniE \"connector.*description|description.*connector\" --include=*.py --include=*.ts --include=*.tsx .\n```\n\nFijate si alguno de estos usos aparece en el backend:\n- Arma un prompt LLM, por ejemplo la lista de herramientas o conectores que ve el modelo.\n- Arma un mail.\n- Expone el conector por la superficie MCP saliente.\n\nSi aparece alguno, tenés que resolver también en el backend. Si `description` solo se lee en serializers que van a la SPA, alcanza con el cliente.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5704,
+  "cache_read_input_tokens": 37458,
+  "output_tokens": 779,
+  "output_tokens_details": {
+   "thinking_tokens": 62
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5704,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 584,
+    "cache_read_input_tokens": 21464,
+    "cache_creation_input_tokens": 234,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 234
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

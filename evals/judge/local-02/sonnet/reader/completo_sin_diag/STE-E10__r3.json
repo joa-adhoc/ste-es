@@ -1,0 +1,42 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Qué pasa con un ASK cuando el agent corre por webhook y no hay nadie que responda: se bloquea, se auto-aprueba o queda colgado? Necesito saberlo para el caso del agent, que es justo donde la respuesta no cierra.",
+ "note": "La primera oración es solo un encabezado ('Orden de decisión') y no responde nada; la respuesta útil aparece más abajo. Además, el caso del webhook queda sin resolver en el punto clave (ASK sin persona).",
+ "followup_answer": "No puedo confirmarlo: el código no está en este directorio. `permissions.py` y `client_facing_core.py` no existen acá, y el material que me pasaste no dice qué pasa con un ASK sin nadie que responda. No voy a adivinar entre bloquear, auto-aprobar o colgar.\n\nEsto sí se deduce del material:\n- En `webhook` el evaluator saltea `user_tool_approvals`. Decide la grilla del workspace.\n- Sin fila en la grilla, el default es ASK si el recurso tiene `approval`.\n- El material no dice qué hace el runtime con ese ASK.\n\nPara cerrarlo, buscá en el repo `tuqui`:\n1. En `tuqui_core/chat/permissions.py`, quién consume el resultado ASK y qué hace cuando `personal_identity_applies` es falso.\n2. En `chat/client_facing_core.py`, si hay un camino que convierta ASK en DENY o ALLOW para canales sin persona.\n3. En `ChannelProfile`, si hay un campo sobre aprobación interactiva (algo como `can_prompt`).\n\nSi me das acceso al repo o pegás esos tres puntos, te lo confirmo.\n\nMientras tanto, para el agent por webhook no dependas del default. Poné en la grilla del workspace una fila explícita `allow` o `deny` para cada tool que el agent use. Así el ASK no se evalúa nunca.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 9998,
+  "cache_read_input_tokens": 67303,
+  "output_tokens": 874,
+  "output_tokens_details": {
+   "thinking_tokens": 91
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9998,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 491,
+    "cache_read_input_tokens": 25831,
+    "cache_creation_input_tokens": 161,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 161
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

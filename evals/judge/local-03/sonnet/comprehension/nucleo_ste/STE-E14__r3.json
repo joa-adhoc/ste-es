@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Antes de las etapas corre el Context Assembler (6 queries en paralelo que arman el bundle de contexto). Luego hay 3 etapas en este orden: 1) Planner (propone hipótesis), 2) Investigator (investiga cada hipótesis con tools de solo lectura), 3) Synthesizer + guards (redacta los teasers y aplica ResponseGuard, StringGrounding y LLM Judge). Al final los teasers se guardan con upsert en la tabla `insights`.",
+  "Termina sin mostrar nada cuando: a) el Planner no devuelve hipótesis (silencio válido, con el motivo en `silence_reason`), o b) todos los teasers fallan algún guard (resultado `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`). El texto no dice qué pasa si el Investigator agota su tiempo o sus topes, ni si el Synthesizer no produce ningún teaser antes de los guards: eso hay que verificarlo en el código.",
+  "Si el juez LLM falla por un error de infraestructura, el teaser pasa; no se bloquea por un error de infra."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "f9d391900d",
+  "control": "2010a7802d"
+ }
+}

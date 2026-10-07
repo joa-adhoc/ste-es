@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta depende de quién consume la descripción y no me lo resolvió: ¿hoy la descripción de los conectores sale por MCP o entra a algún prompt LLM o mail, o solo la pinta la SPA? Además, ya existe 0201_platform_connectors_description_i18n.sql: ¿cubre este caso (columna description_i18n JSONB en platform_connectors) o tengo que crear otra migración?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No sé si las descripciones de los conectores solo las muestra la SPA o si también entran a un prompt LLM, a un mail o salen por MCP. ¿Cómo lo verifico en el código? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya cubre la columna description_i18n de platform_connectors, o tengo que crear otra?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Hoy la descripción de los conectores, ¿la consume sólo la SPA o también entra a un prompt LLM, a un mail o sale por MCP? Y la migración 0201_platform_connectors_description_i18n.sql que mencionás, ¿ya cubre platform_connectors o es de otra tabla?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La respuesta depende de quién consume la descripción y no me lo resolvió: ¿hoy la descripción de los conectores sale por MCP o entra a algún prompt LLM o mail, o solo la pinta la SPA? Además, ya existe 0201_platform_connectors_description_i18n.sql: ¿cubre este caso (columna description_i18n JSONB en platform_connectors) o tengo que crear otra migración?",
+ "followup_answer": "No puedo confirmar ninguna de las dos cosas: el directorio de trabajo está vacío y no tengo el repo para leer.\n\n**1. ¿Cubre la 0201?** Probablemente sí, pero no lo verifiqué. Por el nombre, `0201_platform_connectors_description_i18n.sql` agrega `description_i18n` a `platform_connectors`. Si es así, no crees otra migración. Abrila y confirmá:\n\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n\nDebe tener `ALTER TABLE platform_connectors ADD COLUMN ... description_i18n JSONB`. Si además portaba datos de una columna `_en`, ya quedaron migrados.\n\n**2. ¿Quién consume la descripción?** No lo sé. Buscalo así:\n\n```bash\n# Backend: lecturas de la descripción de conectores\ngrep -rn \"platform_connectors\\|connector.*description\\|\\.description\" --include=*.py . | grep -i connector\n\n# Superficie MCP, prompts y mails\ngrep -rniE \"connector\" --include=*.py . | grep -iE \"mcp|prompt|template|mail|email\"\n```\n\n- Si el backend sólo la devuelve en un endpoint y nada más la lee, alcanza con el cliente.\n- Si aparece en un prompt, un mail o una respuesta MCP, tenés que resolver también en el backend. Usá `lang → en → legacy` con `resolve_response_language(workspace_id, user_id)`. En ese caso el `queryKey` de react-query también lleva el idioma, si resolvés en el server.\n\nSi me dejás el repo en el directorio de trabajo, lo reviso y te doy la respuesta cerrada.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5887,
+  "cache_read_input_tokens": 59020,
+  "output_tokens": 947,
+  "output_tokens_details": {
+   "thinking_tokens": 82
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5887,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 596,
+    "cache_read_input_tokens": 21645,
+    "cache_creation_input_tokens": 236,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 236
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1a8af3afe4"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué ve quien tiene el link**\n\nSigue viendo la versión publicada, no la última que editaste. La ruta por token sirve siempre `published_version`.\n\n- **Primer `save`** (sin `artifact_id`): crea la v1 y la publica. Así el flujo crear→compartir no arranca en 404.\n- **`save` sobre un artifact existente** (con `artifact_id`): crea la v(n+1) y mueve `current_version_id`, pero no `published_version_id`. El link que ya circuló no cambia. El resultado trae `unpublished_changes: true` y el viewer muestra un banner.\n- **Para que el cambio llegue al link**, hay que llamar a `publish(version?)`. Por defecto publica la última. También sirve para revertir: publicás una versión anterior.\n- **Tu vista** es distinta: el viewer interno navega por `current_version` y tiene un selector de versiones.\n\n**Qué pasa cuando solo se refrescan datos**\n\nCada versión tiene dos partes:\n\n- `content`: el template, o sea la página completa.\n- `data`: un snapshot JSON opcional. Se inyecta como `<script type=\"application/json\" id=\"tuqui-data\">` y el template lo lee con `JSON.parse`.\n\nUn refresh de datos (los dashboards regenerables de la fase 2) crea una versión solo-data. Para resolver qué se muestra en la versión `n`, el sistema busca hacia atrás por separado:\n\n- el último `content` no nulo ≤ n,\n- el último `data` no nulo ≤ n.\n\nPor eso un refresh nunca pisa ni rompe el diseño: el template sigue siendo el anterior y solo cambia el snapshot.\n\nAdemás, si hacés `save` sobre un artifact existente con `data`, se valida contra el `data_schema` almacenado. Esto chequea las keys requeridas y los tipos de las properties. Si la forma no es compatible, se rechaza antes de escribir.\n\nHay topes que fallan de forma explícita: `content` ≤ 1 MB y `data` serializada ≤ 1 MB.\n\nEl material no aclara si un refresh solo-data también queda sin publicar hasta hacer `publish`. Como crea una versión nueva, lo esperable es que siga la misma regla de `save`, pero eso es una inferencia mía.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3891,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 790,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3891,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 790,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 3891,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3891
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

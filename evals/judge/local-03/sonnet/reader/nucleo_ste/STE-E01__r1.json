@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Los pasos 3 y 4 quedaron sin detalle: ¿me das un ejemplo concreto de un test de aislamiento en test_rls.py (qué setea, qué asserta) y en qué módulo/carpeta va el modelo Pydantic, para copiar el patrón de una tabla existente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Los pasos 3 y 4 quedaron vagos. ¿Me pasás un ejemplo mínimo de un test de aislamiento en test_rls.py (qué setea y qué assertea) y en qué carpeta va el modelo Pydantic, para copiar la convención de una tabla existente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Los pasos 3 y 4 no me alcanzan para actuar: ¿en qué módulo o archivo va el modelo Pydantic, y qué tiene que verificar exactamente el test de aislamiento en test_rls.py? ¿Hay algún test existente de otra tabla que pueda copiar como plantilla? Además, ¿la policy con current_setting('app.current_workspace_id') es la convención del repo, o la pusiste de ejemplo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Los pasos 3 y 4 quedaron sin detalle: ¿me das un ejemplo concreto de un test de aislamiento en test_rls.py (qué setea, qué asserta) y en qué módulo/carpeta va el modelo Pydantic, para copiar el patrón de una tabla existente?",
+ "followup_answer": "No tengo acceso a un ejemplo real: el directorio de trabajo está vacío y no hay `test_rls.py` ni carpeta de modelos. El material tampoco dice en qué módulo va el modelo Pydantic. No voy a inventar esa ruta.\n\n**Modelo Pydantic:** abrí `tuqui_core/` y buscá un modelo de una tabla existente con `workspace_id`.\n\n```bash\ngrep -rl \"workspace_id\" tuqui_core --include=*.py | grep -v tests\n```\n\nCopiá el archivo y el estilo de ese modelo (nombre, campos, imports).\n\n**Test en `test_rls.py`:** abrí el archivo y copiá el test de una tabla existente. Si no encontrás fixtures, el patrón sigue lo que exige la regla de RLS. Es un esqueleto mío, no el del repo:\n\n```python\ndef test_mi_tabla_aislada_por_workspace(db_conn, ws_a, ws_b):\n    # 1. Insertar una fila en cada workspace\n    set_workspace(db_conn, ws_a)\n    db_conn.execute(\n        \"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (ws_a,)\n    )\n    set_workspace(db_conn, ws_b)\n    db_conn.execute(\n        \"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (ws_b,)\n    )\n\n    # 2. Con ws_a activo, solo se ve la fila de ws_a\n    set_workspace(db_conn, ws_a)\n    rows = db_conn.execute(\"SELECT workspace_id FROM mi_tabla\").fetchall()\n    assert {r[0] for r in rows} == {ws_a}\n```\n\n`set_workspace` representa:\n\n```sql\nSELECT set_config('app.current_workspace_id', '<uuid>', false);\n```\n\nEsa variable es la que lee la policy.\n\n- `db_conn`, `ws_a`, `ws_b` y `set_workspace` son nombres supuestos. Reemplazalos por los fixtures y helpers reales de `test_rls.py`.\n- El rol de la conexión del test no puede ser superusuario ni dueño de la tabla (sin `FORCE ROW LEVEL SECURITY`). Si lo es, RLS no se aplica y el test pasa sin probar nada. Fijate qué rol usan los tests existentes.\n- Agregá también un caso con un `workspace_id` ajeno: el `INSERT` debería fallar. Eso solo vale si la policy tiene `WITH CHECK`. La del material solo tiene `USING`, que en Postgres también se aplica como `WITH CHECK` cuando falta. Confirmalo con un test.\n\nSi me pasás el repo o pegás un test existente de `test_rls.py`, te armo el test y el modelo con el patrón exacto.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5838,
+  "cache_read_input_tokens": 37535,
+  "output_tokens": 1236,
+  "output_tokens_details": {
+   "thinking_tokens": 97
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5838,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 984,
+    "cache_read_input_tokens": 21541,
+    "cache_creation_input_tokens": 291,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 291
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "349afe1615"
+ }
+}

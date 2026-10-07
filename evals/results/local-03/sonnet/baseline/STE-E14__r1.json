@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Cómo se generan los insights diarios\n\n## Paso previo: Context Assembler\nCorre 6 consultas en paralelo, bajo el RLS del usuario:\n- perfil del workspace (empresa, industria, objetivos)\n- perfil del usuario (rol, preferencias)\n- memoria del workspace\n- memoria del usuario\n- conversaciones de los últimos 7 días (títulos y último mensaje, sin resumen por LLM)\n- historial de insights de los últimos 14 días, que sirve para no repetir datos\n\nEntrega un bundle en markdown de unos 2–4K tokens.\n\n## Etapa 1: Planner\n- **Qué hace:** a partir del bundle, un LLM (Gemini Flash, JSON estructurado, temp=1.0) propone hipótesis de qué vale la pena mostrar.\n- **Qué pasa a la siguiente:** `PlannerOutput(hypotheses, silence_reason)`, con 0 a N hipótesis.\n- **Silencio:** si no hay hipótesis, es un silencio válido. No se genera ningún teaser, y `silence_reason` explica el motivo.\n\n## Etapa 2: Investigator\n- **Qué hace:** un agente de Pydantic AI investiga cada hipótesis con herramientas de solo lectura, es decir, las que no requieren `approval`.\n- **Límites según el registro de la hipótesis:**\n\n| Registro | Iteraciones | Tool calls | Razonamiento |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta` / `analisis` | 12 | 25 | medium |\n\n- **Concurrencia:** hasta 3 hipótesis en paralelo, con `Semaphore(3)`.\n- **Tiempo:** cada hipótesis tiene `(watchdog_sec - 30) / n_hipótesis`.\n- **Qué pasa a la siguiente:** las `InvestigationFindings`.\n\n## Etapa 3: Synthesizer + guards\nEl Synthesizer (LLM, JSON estructurado, temp=1.0) redacta los teasers a partir de los hallazgos. Después pasan por tres guards en secuencia:\n\n1. **ResponseGuard (regex):** rechaza patrones sospechosos, como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` o `\"[nombre]\"`. Son marcas de placeholders o de especulación.\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` debe aparecer en el resumen combinado del investigador con `partial_ratio >= 75`.\n3. **LLM Judge:** usa el mismo modelo que el synthesizer, con temperatura cero, y devuelve `{grounded, reason}`. Si el judge falla por un problema de infraestructura, el teaser pasa igual.\n\n**Resultado:** de 0 a 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n## Cuándo termina sin mostrar nada\n1. **El Planner no propone hipótesis.** Es un silencio deliberado y queda `silence_reason`.\n2. **Todos los teasers son rechazados por los guards.** El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl material no dice qué pasa en estos otros casos:\n- que el Investigator se quede sin tiempo o sin iteraciones, o que falle una hipótesis;\n- que el Synthesizer no genere ningún teaser desde el principio;\n- que falle el Planner.\n\nEs probable que en esos casos también termine vacío, pero eso es una suposición mía y no está documentado. Para confirmarlo habría que mirar el código de `investigator.py` y `synthesizer.py`.\n\nUn detalle de los guards: el judge falla abierto, es decir que un error de infraestructura deja pasar el teaser. Por eso, en ese caso el teaser solo está validado por los guards 1 y 2.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4403,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1424,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4403,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1424,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4403,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4403
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

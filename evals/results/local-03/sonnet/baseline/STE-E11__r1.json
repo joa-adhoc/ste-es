@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Qué poner en el archivo:** la línea `-- destructive: true` cerca del inicio de la migración. Sin ese marker, el runner la trata como aditiva y la aplica en cualquier lado, incluido el preview del PR.\n\n**Recorrido, según el material:**\n\n1. **PR environment de Railway (preview):** **no se aplica.** El PR env comparte la base con staging, y staging sigue corriendo el código anterior, que se rompería sin esa columna. El runner la saltea **sin registrarla** en `_migrations`. Ojo: el preview puede tener `MIGRATIONS_ALLOW_DESTRUCTIVE=1` porque lo hereda de staging. Por eso el gate exige también que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado y tampoco la aplica. (Así fue como `0180_chat_ga` se aplicó desde un preview.)\n\n2. **CI (`scripts/apply_migrations.py`):** **sí se aplica**, porque las bases son efímeras (postgres de servicio del workflow, container e2e, base de pytest). Se activan con `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow o `allow_destructive=True` desde el conftest. Eso te sirve para validar que la migración corre.\n\n3. **Local:** `make migrate` **no** la aplica, porque la base de desarrollo es compartida entre worktrees y el flag no se activa ahí.\n\n4. **Merge a `staging`:** el deploy real corre `python -m tuqui_core.db.migrate` con la rama `staging` y el flag en 1. Ahí **sí se aplica** y queda registrada en `_migrations`. Como la saltearon antes sin registrarla, este es el momento en que corre.\n\n5. **Merge a `main` (prod):** se aplica si todavía no estaba registrada. Cumple las dos condiciones: flag activo y rama `main`.\n\n**Qué tener en cuenta:**\n- Si además de dropear la columna el PR tiene migraciones aditivas, esas sí se aplican a la base de staging desde el preview. El material remite a `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\" para las consecuencias al mergear y al renombrar un archivo.\n- Como el preview no aplica el drop, el código del PR corre contra una base que todavía tiene la columna. Conviene que el código nuevo ya no la use, para que funcione tanto con la columna como sin ella.\n- El material no dice qué pasa con el código de staging entre el merge y el deploy. Cuando corre el deploy, el drop se aplica y el código anterior deja de ser el que está corriendo. Eso es lo que justifica el marker.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4026,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 970,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4026,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 970,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4026,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4026
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "da39a3ee5e"
+}

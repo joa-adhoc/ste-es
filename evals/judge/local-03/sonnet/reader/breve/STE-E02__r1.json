@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La primera oración dice 'depende de quién consume la descripción' y no responde si tengo que tocar el backend. ¿Las descripciones de conectores salen hoy por MCP, prompts de LLM o mails, o sólo se muestran en la SPA? Además, ¿la migración 0201 ya crea la columna description_i18n o tengo que crearla yo?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Las descripciones de los conectores salen por MCP o se inyectan en prompts LLM/mails, o solo se muestran en la SPA? Y la migración 0201, ¿ya existe la columna description_i18n o tengo que crearla?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Concretamente, ¿la descripción del conector sale por MCP, prompts de LLM o mails, o sólo se muestra en la SPA? Eso define si tengo que tocar el backend o alcanza con el cliente, y también necesito saber si la migración 0201 ya existe/está aplicada y si la columna ya está creada."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La primera oración dice 'depende de quién consume la descripción' y no responde si tengo que tocar el backend. ¿Las descripciones de conectores salen hoy por MCP, prompts de LLM o mails, o sólo se muestran en la SPA? Además, ¿la migración 0201 ya crea la columna description_i18n o tengo que crearla yo?",
+ "followup_answer": "Ninguna de las dos preguntas la puedo responder, porque el directorio de trabajo (`/tmp/ste-es-eval-uvnub1_w`) está vacío. No hay código, migraciones ni `tuqui_core`. El material que pegaste tampoco las contesta, porque sólo describe la regla general.\n\n**¿Hay que tocar el backend?** No lo sé, y depende de algo que se verifica en el código. Hasta confirmarlo, asumí que **no**: si las descripciones sólo se pintan en la SPA, alcanza con migración, API y cliente. Para chequearlo, buscá dónde se lee `description` de los conectores fuera de los serializers que van a la SPA:\n- `grep -rn \"description\" ` sobre el código que arma prompts LLM (tool definitions, system prompts).\n- Lo mismo sobre la superficie MCP saliente, donde la descripción del conector probablemente se exponga como descripción de tool.\n- Lo mismo sobre las plantillas de mail.\n\nSi alguno la consume, el backend también tiene que resolver `lang → en → legacy` con `resolve_response_language`.\n\n**¿La migración 0201 ya crea `description_i18n`?** Tampoco lo puedo confirmar. Por el nombre (`0201_platform_connectors_description_i18n.sql`), lo más probable es que sí la cree y que no tengas que crearla vos. Abrí el archivo y buscá `ADD COLUMN description_i18n`. Si está, saltá el paso 1 y seguí con API, front y editor. Si no está, o la migración no está aplicada en tu entorno, creala con el `ALTER TABLE` del paso 1.\n\nSi me pasás la ruta del repo, lo verifico yo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5550,
+  "cache_read_input_tokens": 37242,
+  "output_tokens": 855,
+  "output_tokens_details": {
+   "thinking_tokens": 105
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5550,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 598,
+    "cache_read_input_tokens": 21248,
+    "cache_creation_input_tokens": 296,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 296
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cf0e7a50bb"
+ }
+}

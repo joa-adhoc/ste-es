@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El día que vence sin suscripción y sin exceso sobre los límites del plan free, ¿en qué `account_status` queda el workspace? ¿Sigue `active` en plan free con MCP y chat funcionando, o pasa algo más?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace vence sin suscripción viva y no tiene exceso sobre los límites del plan free, ¿qué pasa con `account_status`? ¿Queda activo en free o se restringe igual? Eso es lo que más me importa saber para el día que vence y no lo tengo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El día que vence sin suscripción viva y sin exceso sobre los límites del plan free, ¿en qué queda `account_status`? ¿Sigue activo con todo funcionando, o pasa a otro estado? Necesito saberlo para decirle al cliente si le cambia algo más allá del plan y del mail."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "El día que vence sin suscripción y sin exceso sobre los límites del plan free, ¿en qué `account_status` queda el workspace? ¿Sigue `active` en plan free con MCP y chat funcionando, o pasa algo más?",
+ "followup_answer": "El material no responde esto, y el código no está en este directorio (está vacío). Lo que sigue es lectura del material, no un dato confirmado.\n\n```\nvence, sin suscripción viva\n        │\n        ▼\n   plan='free'\n        │\n        ▼\n   ¿exceso sobre free?\n     │            │\n    sí            no\n     │            │\n     ▼            ▼\n restricted     el material no lo dice  ◄ acá\n trial_expired_with_excess\n```\n\n**Lo que el material respalda**\n- `restricted` aparece como efecto de \"trial expiry\" y \"downgrade con exceso\". El motivo `trial_expired_with_excess` nombra el caso con exceso.\n- `active` aparece como default y como \"reactivación post-pago, trial grant\".\n- Con exceso, el workspace queda `restricted`: MCP y chat bloqueados.\n\n**Lo que no dice**\n- Qué valor pone el cron cuando no hay exceso. No dice que lo deje en `active`, ni que lo cambie.\n- Si \"restricted\" por trial expiry exige el exceso o aplica siempre. El motivo `trial_expired_with_excess` sugiere que exige el exceso.\n\n**Hipótesis más probable:** sin exceso, el workspace sigue `active` en plan free, con MCP y chat funcionando. Pero el material no lo confirma. Además, el mail \"prueba vencida\" y `PlanLapsedBanner` avisan que el miembro \"perdió el asistente\". Eso podría ser solo la pérdida del plan pago y no un bloqueo.\n\n**Para confirmarlo:** leé el bloque de `_run_trial_expiry` en `scheduler/billing_cron.py` que sigue a `plan='free'`. Fijate si el `UPDATE` de `account_status` está dentro del `if` del exceso. Si me pasás el repo, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11404,
+  "cache_read_input_tokens": 43065,
+  "output_tokens": 871,
+  "output_tokens_details": {
+   "thinking_tokens": 119
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11404,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 636,
+    "cache_read_input_tokens": 27071,
+    "cache_creation_input_tokens": 327,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 327
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fc26c033b2"
+ }
+}

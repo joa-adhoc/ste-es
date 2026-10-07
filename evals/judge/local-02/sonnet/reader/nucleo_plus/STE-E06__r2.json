@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "En el paso de aislamiento me dicen 'editá la URL de la DB para que apunte a una base propia', pero no me dicen qué variable tocar ni qué valor poner. ¿Me podés pasar un ejemplo concreto del contenido de .env.test.local, con el nombre de la variable y una URL de muestra para mi worktree? Tampoco me queda claro si make migrate-reset crea esa base si no existe o si tengo que crearla antes a mano.",
+ "followup_answer": "No puedo darte el nombre de la variable ni la URL exacta: el material no los dice y el repo no está en este directorio. El archivo que sí los tiene es `tuqui_core/.env.test.local.example`.\n\nAbrilo y copiá los nombres de variable de ahí:\n\n```bash\ncat tuqui_core/.env.test.local.example\ngrep -n -i -E \"database|redis\" tuqui_core/.env.test\n```\n\nEl `grep` te muestra qué variable usa `.env.test` para la DB. El override en `.env.test.local` tiene que usar esa misma variable.\n\nSí puedo darte la forma, con la variable de la DB como incógnita. Lo único que cambia respecto de `.env.test` es el nombre de la base al final de la URL:\n\n```bash\n# tuqui_core/.env.test.local\n<VARIABLE_DE_DB_DE_.env.test>=postgresql://<user>:<pass>@<host>:<port>/tuqui_test_<mi_worktree>\n# solo si querés soltar el lock: Redis propio, índice distinto de 0 y 15\nREDIS_URL=redis://<host>:<port>/3\n```\n\nCopiá `<user>`, `<pass>`, `<host>` y `<port>` de la URL de `.env.test`. Elegí un índice de Redis que ningún otro worktree use.\n\nSobre si `make migrate-reset` crea la base: el material no lo aclara. Dice que arma una base desde cero y que \"vacía\" antes de aplicar migraciones, lo que sugiere que la base ya existe. No lo asumas. Fijate en `scripts/reset_database.py` si ejecuta `CREATE DATABASE`:\n\n```bash\ngrep -n -i -E \"create database|createdb\" scripts/reset_database.py\n```\n\nSi no aparece, creá la base antes a mano:\n\n```bash\ncreatedb -h <host> -p <port> -U <user> tuqui_test_<mi_worktree>\n```\n\nDespués corré `make migrate-reset`. Si falla con \"database does not exist\", confirmás que hay que crearla vos.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5585,
+  "cache_read_input_tokens": 37305,
+  "output_tokens": 932,
+  "output_tokens_details": {
+   "thinking_tokens": 130
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5585,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 703,
+    "cache_read_input_tokens": 21311,
+    "cache_creation_input_tokens": 268,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 268
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

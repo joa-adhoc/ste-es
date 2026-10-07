@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "Decís que las consecuencias de que el preview escriba en la base de staging están en un doc, pero no las contás. ¿Qué pasa concretamente si mi migración falla a medias o queda mal en staging? ¿Cómo la revierto o la limpio, y hace falta una migración de rollback? Además, ¿la policy necesita WITH CHECK o FORCE ROW LEVEL SECURITY para que pase el review, o alcanza con el USING del ejemplo?",
+ "followup_answer": "Tenés razón: en mi respuesta anterior remití al doc en vez de contar nada. Tampoco puedo contarte las consecuencias ahora, porque `docs/infra-ci-cd.md` no está en este entorno (el directorio está vacío) y el material que me pasaste no las detalla. Lo único que dice es que el preview aplica la migración contra la base de staging real (no una copia) y que la reaplica si renombrás el archivo, porque el tracking es por nombre.\n\n**Qué te puedo decir sin inventar**\n- Si la migración falla a medias, lo que ya se aplicó queda en staging. Que haya rollback automático depende de si el runner envuelve el archivo en una transacción, y eso no lo sé.\n- No sé cómo se limpia ni si se espera una migración de rollback. El material no menciona ningún mecanismo de rollback ni down-migrations.\n- Esto es lo que más hace falta que leas en la sección `#un-pr-preview-escribe-en-la-base-de-staging`, o que le preguntes al equipo de infra.\n\n**Cómo reducir el riesgo mientras tanto**\n- Dejá la migración idempotente y probala dos veces seguidas en local antes de abrir el PR.\n- Si falla en staging, lo más seguro es corregir el mismo archivo sin renombrarlo. Un archivo corregido con el mismo nombre no se trataría como migración nueva, aunque no sé si el runner reintenta una migración ya registrada como fallida.\n- No hagas `DROP` ni cambios destructivos sobre tablas existentes en esa migración.\n- Antes de tocar staging a mano para limpiar, confirmalo con quien mantiene la infra.\n\n**WITH CHECK / FORCE ROW LEVEL SECURITY**\nEl material no los exige. Pide `ENABLE ROW LEVEL SECURITY` y una policy con `USING`, y nada más. Esto es lo que sé de Postgres, no una regla del repo:\n- **`WITH CHECK`:** en una policy `FOR ALL`, si omitís `WITH CHECK`, Postgres reutiliza el `USING` para validar los INSERT y UPDATE. Con la policy del ejemplo, un INSERT con otro `workspace_id` ya se rechaza. Agregarlo explícito es válido pero no necesario.\n- **`FORCE ROW LEVEL SECURITY`:** sin él, el owner de la tabla se saltea las policies. Si la app conecta como owner, la RLS no la protege. Si conecta con un rol distinto, no hace falta.\n\nSi el reviewer los pide, no está en el material que tengo. Preguntalo, o mirá cómo lo resolvieron otras tablas en `supabase/migrations/` y copiá ese patrón. Eso, más el test de aislamiento en `test_rls.py`, es lo que suele convencer a un reviewer.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5347,
+  "cache_read_input_tokens": 36996,
+  "output_tokens": 1241,
+  "output_tokens_details": {
+   "thinking_tokens": 116
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5347,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 994,
+    "cache_read_input_tokens": 21002,
+    "cache_creation_input_tokens": 339,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 339
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Qué comandos exactos uso para borrar el link tuqui_core/.venv y armar el venv propio en el worktree (con la dependencia nueva y el editable install apuntando al worktree), y `make test` lo toma solo o necesito pasarle algo? Además, si en vez de eso instalo la dependencia en el clone principal, ¿los tests del worktree corren el código del worktree o el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para la opción del venv propio en el worktree (borrar el link tuqui_core/.venv, crear el venv, instalar con la dependencia nueva y dejar que make test lo use)? Y antes de correr `npm ci`, ¿tengo que borrar el link de node_modules para no pisar el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos dudas antes de tocar nada. 1) Si los node_modules son del clone principal (¿symlink?), ¿`npm ci` en el worktree no los borra o pisa en el clone principal? ¿Hay que sacar primero el link? 2) Para el venv propio, ¿cuáles son los pasos exactos (crear el venv, instalar editable desde el worktree) y cómo hago que `make test` use ese venv y no el link que borré?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Qué comandos exactos uso para borrar el link tuqui_core/.venv y armar el venv propio en el worktree (con la dependencia nueva y el editable install apuntando al worktree), y `make test` lo toma solo o necesito pasarle algo? Además, si en vez de eso instalo la dependencia en el clone principal, ¿los tests del worktree corren el código del worktree o el del clone principal?",
+ "followup_answer": "Los comandos exactos de instalación no están en el material, así que te doy lo que sí se sabe y lo que tenés que confirmar.\n\n**Venv propio**, desde la raíz del worktree:\n\n```bash\nrm tuqui_core/.venv          # sin -r: borra solo el symlink, no el venv del clone principal\npython3 -m venv tuqui_core/.venv\ngrep -A10 '^install' Makefile   # copiá de ahí el comando de instalación real\n```\n\nCorré ese comando con el pip del venv nuevo (`tuqui_core/.venv/bin/pip`). Dejá el editable install apuntando al worktree y sumá la dependencia nueva. No uses `make install`: se niega en worktrees linkeados.\n\n**¿`make test` lo toma solo?** Probablemente sí, pero el material no lo confirma. El error \"Venv no encontrado\" indica que `make test` busca `tuqui_core/.venv`. Un directorio real debería cumplir esa condición. Corré `make test` para verificarlo. No vuelvas a correr `make worktree-setup`, porque podría re-linkear el venv (esto es una suposición mía).\n\n**Instalar en el clone principal:** los tests del worktree corren el código del worktree. Los paquetes tienen `__init__.py`, así que la raíz del worktree entra primero en `sys.path`. Del clone principal solo viene la dependencia nueva instalada, no tu código.\n\nCon ese venv compartido, el editable install sigue apuntando al clone principal. El código del worktree gana igual por el orden de `sys.path`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4721,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1147,
+  "output_tokens_details": {
+   "thinking_tokens": 609
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4721,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1147,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4721,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4721
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fd57819449"
+ }
+}

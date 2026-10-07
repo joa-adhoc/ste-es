@@ -1,0 +1,43 @@
+{
+ "case": "STE-E02",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Depende de quién consume la descripción. Si sólo la pinta la SPA, alcanza con el cliente más una migración y un cambio mínimo en la API. Si además entra a un prompt, a un mail o sale por MCP, hay que resolver también en el backend.\n\n## Paso a paso\n\n1. **Decidí quién la consume.** Si las descripciones de conectores sólo se muestran en cards y listados, es cliente. Si algún conector se expone por la superficie MCP saliente o se inyecta en un prompt, es backend y cliente. Esto no lo puedo confirmar con el material, así que revisalo vos antes de seguir.\n\n2. **Migración.**\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` como está, porque es la columna legacy y el último fallback. Ya existe `0201_platform_connectors_description_i18n.sql`. Antes de crear otra migración, mirá si esa ya cubre tu caso. Si tenés que portar datos de una columna `description_en`, mirá `0206_features_i18n.sql`.\n\n3. **API (toca backend, pero poco).**\n   - Devolvé `description_i18n` entero junto con `description`, sin filtrar por idioma en el serializer.\n   - Al escribir, usá `normalize_i18n_keys` de `tuqui_core/i18n.py`. Baja las claves a dos letras minúsculas y tira las vacías.\n   - Al leer, usá `decode_i18n`. asyncpg puede devolver el JSONB como `str` o como dict según el pool, y esta función tolera las dos formas.\n   - No reimplementes ninguna de las dos.\n\n4. **Front.**\n   ```ts\n   localizedField(connector.description_i18n, connector.description, i18n.language)\n   ```\n   No escribas la cadena de fallback a mano. Es `idioma exacto → en → legacy`.\n\n5. **Editor de admin.**\n   - Poné dos inputs, ES y EN.\n   - Al guardar, mandá `description_i18n` sólo con las claves no vacías.\n   - Espejá la legacy con `es || en`.\n   - La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n6. **Backend, sólo si aplica el punto 1.**\n   - Resolvé con la misma cadena `lang → en → legacy`.\n   - Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n   - Si resolvés en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resolvés sólo en el cliente, no hace falta.\n\nSi la usan los dos lados, la cadena de fallback tiene que ser idéntica en ambos. Es el bug que menciona el material para `agents`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4232,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1181,
+  "output_tokens_details": {
+   "thinking_tokens": 206
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4232,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1181,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4232,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4232
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

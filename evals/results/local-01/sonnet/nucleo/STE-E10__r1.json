@@ -1,0 +1,43 @@
+{
+ "case": "STE-E10",
+ "arm": "nucleo",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si no permite la operación, el tool corta acá. No llega al gate runtime.\n2. **`evaluate_permission`**, en este orden:\n   1. `workspace_tool_approvals` con `deny` → **DENY**. Es un piso: ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` para `(user, workspace, tool)`. Si hay fila, esa acción gana. Se saltea entero en canales sin identidad personal.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila: **ASK** si el recurso tiene `approval` (`\"ask\"` o `\"always\"`), **ALLOW** si no. Para tools de conector sin declaración en el REGISTRY, se usa la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Tu caso 1: admin en \"ask\", miembro en \"allow\"\n\nGana el **allow del miembro**, porque el paso 2.2 corre antes que el 2.3. El `ask` del admin solo se aplica si no hay fila personal.\n\nSalvedad: si el admin puso `deny`, el miembro no puede levantarlo. Solo `ask` y `allow` son sobrescribibles.\n\nAdemás, esto vale solo en canales con identidad personal (el chat normal). Fijate también que la preferencia del miembro es por workspace.\n\n## Tu caso 2: agent por webhook\n\nEl webhook es un canal sin identidad personal (`personal_identity_applies` es falso). El turno corre con identidad prestada de un miembro. El evaluator **saltea `user_tool_approvals`**.\n\nResultado:\n- `deny` del workspace → DENY.\n- Si no, rige la grilla del workspace: `allow` o `ask`.\n- Sin fila, rige el default por recurso.\n\nCon el mismo setup (admin \"ask\", miembro \"allow\"), el webhook queda en **ASK**. El allow del miembro no cuenta.\n\nUna duda abierta: el material no dice cómo se resuelve un ASK en un canal sin humano presente. Fijate en `chat/client_facing_core.py` o en el manejo de `asked-granted` si eso bloquea o falla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4380,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 814,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4380,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 814,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4380,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4380
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

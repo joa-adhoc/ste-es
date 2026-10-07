@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Recomendación: skill.** Un `odoo_create` con defaults es un wrapper 1→1. Ahí cada eje falla:\n\n- **(a) No componible:** falla. `odoo_create` ya hace lo mismo y los defaults van en la skill.\n- **(b2) Whitelist más fina:** falla, salvo que cumplas la condición de abajo. El gate de `odoo_create` ya es `create` por modelo, así que tu tool no lo afina.\n- **(b1) Approval propio:** vale solo en chat.\n- **(c) Procedimiento crítico:** falla, salvo que un skip del LLM tenga costo real de compliance.\n- **(d) Eficiencia:** falla. El umbral duro excluye los wrappers 1→1, aunque ahorren tokens de esquema.\n\n**Cuándo sí sería tool nativa:**\n- **Defaults fijos:** la tool fija campos que el LLM no puede cambiar.\n- **Gate propio:** la tool tiene un gate propio, más angosto que `create` sobre el modelo.\n- **Resultado:** eso es (b2) real, porque el blast radius baja.\n\nSi tus defaults son solo comodidad, es skill.\n\n**Qué cambia con el MCP saliente:**\n- **Solo (a), (b2) y (d) valen:** el MCP no tiene canal de approval ni un turno donde forzar pasos.\n- **Tool por (b1):** si la hacés por approval, el router MCP ignora `requires_approval`. La tool correría sin approval ahí. Ponela en `MCP_EXCLUDED_TOOLS`, como `odoo_schedule_activity`.\n- **Tool por (b2):** el gate vale en ambas superficies, así que se expone sin riesgo extra.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8794,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1212,
+  "output_tokens_details": {
+   "thinking_tokens": 608
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8794,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1212,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8794,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8794
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

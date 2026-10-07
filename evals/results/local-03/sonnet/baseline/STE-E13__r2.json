@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Fin de prueba: avisos, destinatarios y efecto\n\n**Cuándo salen.** El cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Con la configuración por defecto (`{7, 0}`) salen dos avisos:\n\n1. **7 días antes**: es el aviso de \"te queda una semana\". Como el vencimiento es la semana que viene, este es el que sale ahora o está por salir.\n2. **El día que vence (hito 0)**: sale mientras el workspace todavía funciona.\n\nEl cron registra lo enviado con un par: `trial_warning_for` (la fecha de fin para la que se avisó) y `trial_warning_days` (el hito más chico ya enviado). Si se extiende la prueba, la fecha de fin cambia y los avisos se vuelven a enviar.\n\n**A quién.**\n- **Owners y admins**: siempre, aunque no tengan asiento (`billing_tier = 'none'`). Son quienes deciden, y un equipo en prueba puede no tener a nadie con asiento.\n- **Todo miembro con asiento** (`billing_tier <> 'none'`): el asistente deja de responder para todo el equipo, y quien no puede pagar puede pedírselo a quien sí.\n- Además, en el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa al vencer, si no hay suscripción viva.**\n- Pasa a `plan='free'`.\n- Se evalúa si hay exceso sobre los límites del plan free.\n- Sale el mail de prueba vencida a los mismos destinatarios.\n- Si hay exceso, el workspace queda `restricted` con `account_status_reason = trial_expired_with_excess`: MCP y chat bloqueados. Si no hay exceso, el material no dice que se restrinja, así que seguiría `active` en free. Esto último lo deduzco de la tabla, no está dicho explícitamente.\n\n**Si ya tiene suscripción viva.** Sí cambia. Al vencer solo se limpian los flags de trial y **no se manda ningún aviso**: para el owner no cambió nada visible, y el cobro se anuncia con su propio recibo. Tampoco se pasa a free ni se evalúa exceso.\n\nDos aclaraciones:\n- El material no dice si los avisos previos (el de 7 días) también se omiten cuando ya hay suscripción. La descripción de \"qué pasa al vencer\" solo cubre el día del vencimiento. Convendría confirmarlo en `_run_trial_expiry`.\n- El contenido de los mails (planes, precios, qué deja de funcionar) se deriva del estado en `billing/plan_summary.py`, no de los catálogos de idioma.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4292,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 955,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4292,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 955,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4292,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4292
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

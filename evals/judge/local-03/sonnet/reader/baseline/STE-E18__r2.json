@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El presupuesto de 12K caracteres, ¿se aplica al total de headers de ambos scopes (workspace + user, hasta 100 memorias) o por scope por separado? Y cuando rapidfuzz filtra por relevancia, ¿cuántas memorias quedan (cuánto vale el top-N) y el filtro se aplica a los dos scopes juntos o a cada uno?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿El presupuesto de `_MEMORY_BUDGET_CHARS` (12K) se aplica al total combinado de las memorias de user y workspace o a cada scope por separado? ¿Cómo se define el N del top-N cuando se filtra con rapidfuzz?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El presupuesto de 12K caracteres, ¿se aplica al total de headers de ambos scopes juntos (hasta 100 memorias) o a cada scope por separado? Y si el filtrado con rapidfuzz deja una memoria fuera, ¿cómo se entera el modelo de que existe, o directamente no puede leerla en ese turno?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "El presupuesto de 12K caracteres, ¿se aplica al total de headers de ambos scopes (workspace + user, hasta 100 memorias) o por scope por separado? Y cuando rapidfuzz filtra por relevancia, ¿cuántas memorias quedan (cuánto vale el top-N) y el filtro se aplica a los dos scopes juntos o a cada uno?",
+ "followup_answer": "El material no responde ninguna de las dos preguntas. Lo que sigue separa lo que dice el texto de lo que es inferencia mía.\n\n**Lo que dice el material**\n- La guarda se activa \"if total header chars exceed `_MEMORY_BUDGET_CHARS` (12K)\". La palabra \"total\" sugiere que se suma todo lo inyectado, pero no dice si eso es workspace + user o cada scope por separado.\n- Por otro lado, la cuenta \"~3K tokens para 50 memorias de tamaño máximo\" encaja con un solo scope de 50. Un header máximo tiene un título más 250 caracteres, es decir, unos 250 a 300 caracteres. 50 × 250 es 12.5K. Eso hace pensar que el 12K se dimensionó pensando en un scope. Con ambos scopes llenos el peor caso sería de unos 6K tokens, no 3K.\n- El valor de top-N no aparece. Tampoco se dice si es un número fijo, si se llena hasta caber en el presupuesto o si depende de un umbral de score de rapidfuzz.\n- Tampoco se dice si el ranking es conjunto o por scope.\n\n**Qué haría falta confirmar**\nHay que mirar `_load_chat_setup` en `tuqui_core/chat/agent.py` y revisar tres cosas:\n1. Si `_MEMORY_BUDGET_CHARS` se compara contra la suma de las dos listas o contra cada lista.\n2. Cómo se define N. Puede ser una constante, o un recorte de los headers ordenados por score hasta que el acumulado entre en 12K.\n3. Si rapidfuzz recibe una lista combinada o se llama dos veces.\n\nEse código no está en este directorio, que no es un repo, así que no pude verificarlo. Si me pasas el fragmento o la ruta del repo, lo reviso y te doy la respuesta exacta.\n\nUna corrección a mi respuesta anterior: dije que \"el presupuesto parece ser sobre el total inyectado\". Eso era una lectura de la palabra \"total\", no un dato del material, y no debí presentarlo con esa seguridad.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5076,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1011,
+  "output_tokens_details": {
+   "thinking_tokens": 273
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5076,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1011,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 5076,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5076
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "04e6db86af"
+ }
+}

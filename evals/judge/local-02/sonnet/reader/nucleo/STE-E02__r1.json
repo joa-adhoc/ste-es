@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "¿Hoy quién lee la `description` de `platform_connectors`: solo la SPA, o también un prompt LLM, mails o MCP? Y la migración `0201_platform_connectors_description_i18n.sql` ¿existe de verdad? Necesito eso para saber si toco el backend o alcanza con el cliente, y si creo la migración o reutilizo esa.",
+ "followup_answer": "No puedo confirmar ninguna de las dos cosas. El directorio de trabajo (`/tmp/ste-es-eval-duzl0txc`) está vacío. No hay repo, ni `supabase/migrations/`, ni `tuqui_core/`, ni el front.\n\n- **Quién lee `description`:** no lo sé. Tampoco puedo decir si la migración `0201_platform_connectors_description_i18n.sql` existe. El material la cita como referencia, pero eso no prueba que esté en tu repo.\n- **Mi respuesta anterior:** la migración \"puede existir\" era una suposición, no un dato.\n\n**Cómo verificarlo en tu repo**\n\n1. **Migración:** corré `ls supabase/migrations | grep -E \"0201|connectors\"`. Si existe, revisá que agregue `description_i18n JSONB` a `platform_connectors`. Si es así, reutilizala y no crees otra. Si el nombre existe pero apunta a otra tabla o campo, creá una nueva con el siguiente número libre.\n2. **Consumidores:** corré `grep -rn \"description\" --include=*.py` y filtrá por lo que toca `platform_connectors`. Buscá estos casos:\n   - **Prompts LLM:** el conector se arma dentro de un prompt o una lista de herramientas.\n   - **Mails:** algún template o servicio de mail lee la descripción.\n   - **MCP saliente:** la descripción sale como metadata de herramientas por MCP.\n3. **Decisión:**\n   - Si no aparece ninguno de esos tres, alcanza con el cliente. Tocá solo la migración, la API (mapa entero), el front y el editor.\n   - Si aparece alguno, tocá también el backend. Resolvé con `lang → en → legacy`, usando `resolve_response_language`.\n\nSi me pasás la ruta del repo, lo reviso yo y te doy la respuesta concreta.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 6091,
+  "cache_read_input_tokens": 80782,
+  "output_tokens": 1184,
+  "output_tokens_details": {
+   "thinking_tokens": 55
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6091,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 657,
+    "cache_read_input_tokens": 21892,
+    "cache_creation_input_tokens": 193,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 193
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Necesito saber cómo borrar el link del `.venv`, crear un venv propio en el worktree e instalar el proyecto en editable con la dependencia nueva, ya que `make install` se niega a correr ahí. Y si `make test` va a usar ese venv propio en lugar del link, ¿tengo que volver a correr `make worktree-setup`, o lo pisaría?",
+ "followup_answer": "Corré esto desde la raíz del worktree. El material no dice cómo se instala el proyecto, así que el último comando es una suposición que tenés que verificar.\n\n```bash\nrm tuqui_core/.venv                  # sin \"/\" final: borra solo el link, no el venv del clone principal\npython3 -m venv tuqui_core/.venv\ntuqui_core/.venv/bin/pip install -e tuqui_core\n```\n\n- **Verificá el `pip install`.** Abrí el target `install` del `Makefile` y copiá su comando exacto: extras como `[dev]`, `-r requirements*.txt` o `uv`. `make install` se niega a correr en el worktree, pero su receta te dice qué instalar.\n- **Verificá el link.** Antes del `rm`, corré `ls -l tuqui_core/.venv`. Tiene que mostrar `->` apuntando al clone principal. Si es un directorio real, no borres nada.\n- **Usá la misma versión de Python** que el clone principal. Fijate con `tuqui_core/../<clone>/tuqui_core/.venv/bin/python --version` o con `.python-version`, si existe.\n\n**¿Hay que volver a correr `make worktree-setup`?** No lo corras. El material no dice si el target pisa un `.venv` real o lo respeta, así que no lo sé. Tampoco hace falta: `make test` ya encuentra el venv en `tuqui_core/.venv`, sea link o directorio. Si lo corrés igual, mirá antes el target en el `Makefile` para ver si hace `ln -sf` sobre ese path. Después verificá con `ls -l tuqui_core/.venv` que siga siendo un directorio.\n\nLos otros links (`.env`, `node_modules`, `.mcp.json`) no se tocan. Seguí con `(cd web && npm ci)` como antes.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4914,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1189,
+  "output_tokens_details": {
+   "thinking_tokens": 557
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4914,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1189,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4914,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4914
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "nucleo_plus",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Tu migración tiene que crear la tabla, habilitar RLS y crear la policy, todo idempotente. Además necesitás un test en `test_rls.py` y un modelo Pydantic.\n\n**1. Creá el archivo**\n\n```bash\nsupabase migration new nombre_descriptivo   # genera supabase/migrations/NNNN_descripcion.sql\n```\n\n**2. Contenido de la migración** (ejemplo con `mi_tabla`)\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- tus columnas\n    created_at timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nReglas que el review mira:\n- Usá `IF NOT EXISTS` en tablas e índices. La policy va en el bloque `DO $$`, no con `CREATE POLICY` suelto.\n- `ENABLE ROW LEVEL SECURITY` ya es idempotente, así que no necesita guarda.\n- La policy usa exactamente `workspace_id = current_setting('app.current_workspace_id')::uuid`.\n- No filtres solo por `workspace_id` en el application layer. RLS es la defensa principal.\n\n**3. Test de aislamiento**\nAgregalo en `tuqui_core/tests/test_rls.py`.\n\n**4. Modelo Pydantic**\nCreá el modelo que corresponde a la tabla.\n\n**Cuidado con staging**\nEl preview de tu PR corre la migración contra la base de staging real, no contra una copia. La migración se aplica al abrir el PR. Si renombrás el archivo, se aplica de nuevo, porque el tracking es por nombre. Por eso la idempotencia es obligatoria. Elegí el nombre definitivo antes de abrir el PR. Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\nSi la tabla no llevara `workspace_id`, discutilo antes con el equipo. Es la excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4307,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1156,
+  "output_tokens_details": {
+   "thinking_tokens": 172
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4307,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1156,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4307,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4307
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "breve",
+ "arm_hash": "54a865d10e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Según el material que pasaste (no leí el código, así que no verifiqué que coincida):\n\n**Camino de la excepción al modelo**\n\n1. La tool lanza una excepción. Puede ser un `ToolError` propio, por ejemplo `require_adapter` en `tools/base.py` cuando no hay Odoo conectado. También puede ser una excepción cualquiera de Python o httpx.\n2. `_wrap_tool` en `agent.py` la captura. Si es `ToolError`, la usa tal cual. Si no, la pasa por `classify_unknown(exc)`, que la mapea a un `ErrorClass`: `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` o `FATAL`.\n3. `_wrap_tool` devuelve `exc.for_llm()` como resultado de la tool. El formato es `\"[TOOL_ERROR class=X]: message\"`. Antes devolvía un string genérico. El modelo ahora ve la clase y el mensaje, y puede decidir qué hacer: reintentar, cambiar los argumentos o avisarle al usuario.\n4. `ToolError` también trae `retry_after_seconds`, útil para `RATE_LIMIT`.\n\n`CONNECTION` y `ODOO_NOT_CONNECTED` tienen textos distintos a propósito. `CONNECTION` es un Odoo caído, porque falla el transporte. `ODOO_NOT_CONNECTED` es que nadie conectó Odoo en este run, y a esa persona no se le debe decir que la conexión está caída.\n\n**Corte del loop (`DoomLoopGuard`, `guards.py`)**\n\n- Cada resultado de tool se registra con `record(tool_name, args, ok, error_class)`.\n- La clave es `\"{tool_name}|{hash(args)}|{error_class}\"`, o sea la misma tool con los mismos argumentos y la misma clase de error.\n- Un éxito limpia todos los contadores.\n- Cuando el contador de una clave llega a `THRESHOLD=3`, `record` devuelve `True`. Entonces `_wrap_tool` responde con un error `FATAL` en vez de ejecutar de nuevo, y no deja pasar más llamadas idénticas.\n- El guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, cada una con su aviso. Si el modelo prueba otra tool y falla igual, también se corta.\n\nUna cosa a tener en cuenta: como la clave incluye los argumentos, si el modelo varía un poco los args en cada intento, no cuenta como repetición. Para esos casos las dos clases de conexión se cortan entre tools.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3851,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 987,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3851,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 987,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 3851,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3851
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

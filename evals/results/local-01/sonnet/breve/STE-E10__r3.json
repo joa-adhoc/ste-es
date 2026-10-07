@@ -1,0 +1,43 @@
+{
+ "case": "STE-E10",
+ "arm": "breve",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si no permite la operación, el tool se corta ahí, antes del gate runtime.\n2. **`evaluate_permission`**, en este orden:\n   1. `workspace_tool_approvals` = `deny` → **DENY**. Es un piso: nada lo levanta.\n   2. `user_tool_approvals` (user, workspace, tool) → si hay fila, gana. **Se saltea en canales sin identidad personal** (`exposure`, `webhook`, `scheduled`).\n   3. `workspace_tool_approvals` = `allow` / `ask`.\n   4. Default: ASK si el recurso está en `approval` (`\"ask\"` o `\"always\"`), ALLOW si no. Para tools de conector sin declaración, se usa la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Tus dos casos\n\n**Admin puso \"ask\", el miembro puso \"allow\" (chat normal):** gana **ALLOW**. El único bloqueo del admin que el usuario no puede pisar es `deny`. Un `ask` del admin cuenta como política de grilla (paso 3), y la preferencia personal (paso 2) se evalúa antes. El miembro puede relajar un `ask`, pero no un `deny`.\n\nEsto asume que el miembro eligió \"allow\" en *ese* workspace, porque la preferencia es por `(user, workspace, tool)`. Y asume que el modelo pasó el paso 1.\n\n**Agent por webhook:** el canal no tiene identidad personal (`personal_identity_applies` es falso), así que se **saltea el paso 2 entero**. Aunque el turno corra con la identidad prestada de un miembro, el \"allow\" de esa persona no cuenta. Se aplica solo la grilla del workspace:\n- `deny` → DENY.\n- `ask` del admin → **ASK**.\n- `allow` → ALLOW.\n- Sin fila → default por recurso.\n\nUn detalle a verificar: el material no dice cómo se resuelve un ASK en un canal sin humano interactivo, como un webhook. Probablemente no hay a quién preguntarle y termina bloqueado o pendiente, pero eso depende de otro código. Conviene revisarlo en `chat/client_facing_core.py` o donde se maneje el resultado ASK.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4169,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 836,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4169,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 836,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4169,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4169
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

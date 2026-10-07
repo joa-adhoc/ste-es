@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "El paso 3 y la advertencia final se contradicen: ¿tengo que borrar el link de web/node_modules antes de correr npm ci en el worktree, o make worktree-setup ya lo resuelve cuando package.json difiere? Además, si instalo la dependencia de Python en el venv del clone principal, ¿eso no afecta a las otras ramas? ¿Cuál es la forma segura de hacerlo sin romper nada?",
+ "followup_answer": "**Contradicción:** el paso 3 y la advertencia no se contradicen en lo documentado. El material solo dice \"corré `npm ci` en el worktree antes de `make test-web`\". Nada dice que `make worktree-setup` resuelva el caso de `package.json` distinto. La advertencia de borrar el link fue mi inferencia, no un dato del material.\n\n**Forma segura para `node_modules`:**\n\n1. Corré `ls -ld web/node_modules`.\n2. Si es un link, borralo con `rm web/node_modules`. Sin barra final: borrás el link y no el contenido del clone principal.\n3. Corré `npm ci` en `web/`.\n\nEste orden no daña el clone principal aunque `npm ci` se comporte distinto con links. Verificá en el `Makefile` qué hace `worktree-setup` con `web/node_modules`.\n\n**Python:** sí, el `.venv` del clone principal es compartido. Si instalás ahí, todas las ramas ven la dependencia nueva. Si además cambia la versión de un paquete que otra rama usa, esa rama puede fallar. Para no afectar a nadie, usá un venv propio:\n\n1. Borrá el link con `rm tuqui_core/.venv`.\n2. Creá un venv nuevo en `tuqui_core/.venv`.\n3. Instalá las dependencias de tu rama ahí.\n\nEl material no dice cómo instalar en un venv propio. No sé si `make install` deja de negarse cuando el venv ya no es un link. Revisá ese target en el `Makefile` antes de correrlo.\n\nSi la dependencia solo agrega un paquete nuevo, instalarla en el clone principal es de bajo riesgo. Para cambios de versión, elegí el venv propio.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8961,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1037,
+  "output_tokens_details": {
+   "thinking_tokens": 441
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8961,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1037,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8961,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8961
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

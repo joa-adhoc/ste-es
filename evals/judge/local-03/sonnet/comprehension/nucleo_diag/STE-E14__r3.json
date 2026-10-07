@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Pipeline de 3 etapas según el texto, con este flujo: Context Assembler (6 queries bajo RLS, arma un bundle markdown) → Planner (Gemini Flash, devuelve hipótesis) → Investigator (agente Pydantic AI, devuelve InvestigationFindings) → Synthesizer + Guards (Regex → StringGrounding → LLM Judge) → upsert en la tabla `insights`. Cabe notar que el texto dice '3 etapas' pero el diagrama muestra Assembler, Planner, Investigator y Synthesizer+Guards; el texto no aclara cuáles cuenta como las 3.",
+  "Termina sin mostrar nada en dos casos: (1) el Planner devuelve 0 hipótesis (silencio válido, con el motivo en `silence_reason`, y no se generan teasers); (2) los guards rechazan todos los teasers, con resultado `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. El texto no dice qué pasa si el Investigator no encuentra nada o agota su presupuesto de tiempo, ni si el Synthesizer puede devolver 0 teasers antes de los guards.",
+  "El teaser pasa. No se bloquea por un error de infraestructura del Judge."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6c15bf5b07",
+  "control": "2010a7802d"
+ }
+}

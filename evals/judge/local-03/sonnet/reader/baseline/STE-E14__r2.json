@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tope de iteraciones o de tiempo sin hallazgos útiles, o si falla el Planner o el Synthesizer? ¿En esos casos también termina sin mostrar nada o hay un error visible?",
+   "note": "La primera oración es solo un título y no responde la pregunta. La respuesta cubre bien las etapas, pero deja sin confirmar los casos de falla y timeout, que eran parte de lo que pregunté sobre cuándo termina sin mostrar nada."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota su tope de iteraciones o su tiempo sin hallazgos útiles, y qué pasa si falla el Planner o el Synthesizer (excepción o timeout del watchdog)? ¿En esos casos se guarda algo en la tabla insights o simplemente no se muestra nada?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta no cubre qué pasa si el Investigator agota su tope de iteraciones o su tiempo sin hallazgos, ni si falla el Planner o el Synthesizer. ¿Podés revisar el código de planner.py, investigator.py y synthesizer.py y confirmar en cuáles de esos casos termina sin mostrar nada, y si el Synthesizer puede devolver 0 teasers por sí mismo antes de los guards?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota su tope de iteraciones o de tiempo sin hallazgos útiles, o si falla el Planner o el Synthesizer? ¿En esos casos también termina sin mostrar nada o hay un error visible?",
+ "followup_answer": "El material que tengo no dice qué pasa en ninguno de esos casos, así que no puedo confirmar si terminan en silencio o con un error visible. Lo que sigue es lo que sí se desprende y lo que no.\n\n**Lo que dice el material**\n- Hay solo dos finales sin teasers documentados: el Planner devuelve 0 hipótesis (silencio válido, con `silence_reason`) y los guards rechazan todo (`synth_all_rejected`).\n- Hay un solo manejo de fallas explícito: si el LLM Judge falla por infraestructura, el teaser pasa. Eso es una falla que se traga, no una que se muestra.\n- Existe un `watchdog_sec`, porque el presupuesto por hipótesis es `(watchdog_sec - 30) / n_hipótesis`. Eso sugiere un timeout global del pipeline, pero no dice qué hace al dispararse.\n\n**Lo que no sé**\n- **Investigator sin hallazgos o sin tope:** no se documenta si devuelve `InvestigationFindings` vacíos o parciales, si descarta esa hipótesis o si aborta todo. Tampoco si al agotar el tiempo se usa lo que se alcanzó a juntar.\n- **Falla del Planner o del Synthesizer:** no se documenta si hay reintentos, si la excepción se propaga o si se captura y se convierte en una salida vacía. Tampoco si queda registrada en `debug_note` o en logs.\n- **Qué ve el usuario:** nada del material habla de la capa de presentación. No sé si \"sin insights\" y \"falló el pipeline\" se distinguen en la UI. Lo único que deja rastro del motivo es `debug_note`, y parece un campo de debug, no algo que se muestre.\n\n**Cómo confirmarlo**\nHabría que leer estos puntos del código:\n- el `try/except` o manejo de timeout alrededor de las tres etapas (probablemente el orquestador que usa `watchdog_sec`);\n- qué devuelve `investigator.py` cuando se agota `max_iterations`, `max_tool_calls` o el tiempo;\n- si `planner.py` y `synthesizer.py` capturan excepciones o las dejan subir;\n- el job o endpoint que hace el upsert en `insights`, para ver qué escribe cuando no hay teasers.\n\nEn este directorio no hay repo, así que no puedo leerlo yo. Si me pasás la ruta o los archivos, lo reviso y te respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5899,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1017,
+  "output_tokens_details": {
+   "thinking_tokens": 159
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5899,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1017,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 5899,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5899
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8d2b8ac43e"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando un agent por webhook cae en ASK y no hay nadie para responder? ¿Se bloquea, queda pendiente, expira o se auto-aprueba? ¿Dónde se resuelve eso en el código, y queda registrado en tool_usage_log con algún permission_action específico?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del webhook, ¿qué pasa realmente cuando el resultado es ASK y no hay nadie para responder: se bloquea, se ejecuta o queda pendiente? ¿En qué parte del código se resuelve eso?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del webhook, ¿qué pasa en la práctica cuando el resultado es ASK y no hay nadie para responder? ¿Se bloquea, se ejecuta igual, queda pendiente o expira? ¿En qué parte del código se resuelve eso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente cuando un agent por webhook cae en ASK y no hay nadie para responder? ¿Se bloquea, queda pendiente, expira o se auto-aprueba? ¿Dónde se resuelve eso en el código, y queda registrado en tool_usage_log con algún permission_action específico?",
+ "followup_answer": "No puedo responderte con certeza. El directorio de trabajo (`/tmp/ste-es-eval-32ih2695`) está vacío y no hay ningún archivo con `evaluate_permission`, `permission_action` ni `personal_identity_applies`. Solo tengo el material que pegaste, que no cubre este punto.\n\n**Lo que dice el material**\n- `evaluate_permission` devuelve una acción (ALLOW / DENY / ASK). No dice qué pasa después con un ASK.\n- El paso 3 dice que `tool.execute()` queda auditado en `tool_usage_log` con `permission_action`. No lista los valores posibles.\n- `ChannelProfile.personal_identity_applies` y `chat/client_facing_core.py` son los lugares donde se define el comportamiento por canal. No muestran manejo de ASK.\n\n**Lo que no puedo afirmar**\n- No sé si un ASK en webhook se bloquea, queda pendiente, expira o se auto-aprueba.\n- No sé si existe un `permission_action` específico para ese caso, por ejemplo algo como `ask_unanswered` o `denied_no_human`.\n- En mi respuesta anterior escribí que en un webhook un ASK \"queda sin ejecutar en la práctica\". Eso era una inferencia, no algo que muestre el material. Tomalo como no verificado.\n\n**Dónde mirar**\n1. El consumidor de `evaluate_permission`, es decir, el gate que recibe la acción y llama a `tool.execute()`. Probablemente esté en `tuqui_core/chat/`.\n2. `ChannelProfile`: ver si tiene otros campos además de `personal_identity_applies`, por ejemplo uno tipo `can_prompt_user` o `interactive`.\n3. `client_facing_core.py`, por si resuelve el ASK en canales no interactivos.\n4. El `grep` de los valores que se escriben en `permission_action` (`grep -rn \"permission_action\" tuqui_core/`) y el enum o constantes de `PermissionAction`.\n\nSi me pasás el repo o esos archivos, lo rastreo y te doy la respuesta con referencias a líneas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5298,
+  "cache_read_input_tokens": 37034,
+  "output_tokens": 956,
+  "output_tokens_details": {
+   "thinking_tokens": 63
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5298,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 743,
+    "cache_read_input_tokens": 21040,
+    "cache_creation_input_tokens": 252,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 252
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "32c5e7e3aa"
+ }
+}

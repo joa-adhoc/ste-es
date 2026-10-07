@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Cómo se generan los insights diarios\n\n## Entrada: Context Assembler\nAntes de las etapas, corre 6 consultas en paralelo bajo el contexto RLS del usuario:\n\n- perfil del workspace\n- perfil del usuario\n- memoria de workspace\n- memoria de usuario\n- conversaciones de los últimos 7 días (título y último mensaje, sin resumen por LLM)\n- historial de insights de los últimos 14 días, que sirve para no repetir datos\n\nEl resultado es un bundle en markdown de unos 2–4K tokens, que se le pasa al Planner.\n\n## Etapa 1: Planner\n- Usa Gemini Flash (modelo configurable en `platform_config.insights_planner_model`), con salida JSON y temperatura 1.0.\n- Recibe el bundle y devuelve `PlannerOutput(hypotheses, silence_reason)`: de 0 a N hipótesis, o un motivo de silencio.\n- Le pasa al Investigator la lista de hipótesis. Cada una tiene un registro (`dato`, `celebracion`, `observacion`, `alerta`, `analisis`) que define cuánto esfuerzo se le dedica.\n\n## Etapa 2: Investigator\n- Es un agente Pydantic AI con herramientas de solo lectura (las que no requieren `approval`).\n- Investiga hasta 3 hipótesis en simultáneo (`Semaphore(3)`).\n- Tiene un tope según el registro:\n\n| Registro | Iteraciones | Llamadas a tools | Razonamiento |\n|---|---|---|---|\n| dato / celebracion | 4 | 6 | minimal |\n| observacion | 8 | 15 | low |\n| alerta / analisis | 12 | 25 | medium |\n\n- El presupuesto de tiempo por hipótesis es `(watchdog_sec - 30) / n_hipótesis`.\n- Le pasa al Synthesizer los `InvestigationFindings` de cada hipótesis.\n\n## Etapa 3: Synthesizer y guards\nEl Synthesizer es un LLM con salida JSON a temperatura 1.0. Redacta los teasers a partir de los hallazgos y luego cada teaser pasa por 3 guards en secuencia:\n\n1. **ResponseGuard (regex):** rechaza patrones sospechosos como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` o `\"[nombre]\"`.\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado del investigador con `partial_ratio >= 75`.\n3. **LLM Judge:** usa el mismo modelo que el synthesizer, a temperatura cero, y devuelve `{grounded, reason}`. Si el juez falla por un problema de infraestructura, el teaser pasa igual para no bloquear por un error técnico.\n\nAl final salen entre 0 y 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n## Cuándo termina sin mostrar nada\n1. **El Planner no genera hipótesis.** Es un silencio válido: viene con `silence_reason` y no se generan teasers.\n2. **Todos los teasers son rechazados por los guards.** El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl material no cubre otros casos, así que no puedo decir qué pasa en estas situaciones:\n\n- Qué ocurre si el Investigator agota su tope o su tiempo sin hallazgos útiles.\n- Qué ocurre si falla el Planner o el Synthesizer.\n- Si el Synthesizer puede devolver 0 teasers por sí mismo, antes de los guards.\n\nSi querés, puedo revisar el código de `planner.py`, `investigator.py` y `synthesizer.py` para confirmarlo, aunque en este directorio no vi el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4403,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1379,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4403,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1379,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4403,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4403
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

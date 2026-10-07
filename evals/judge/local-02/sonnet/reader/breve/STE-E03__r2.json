@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": true,
+ "needs_followup": true,
+ "type": "dato",
+ "followup": "Para el cambio en web/package.json, ¿es seguro correr `npm ci` en el worktree con node_modules linkeado, o tengo que borrar primero el link `web/node_modules`? ¿Y para la dependencia de Python, cuál es el comando exacto para armar un venv propio en el worktree (qué hago con `tuqui_core/.venv` y cómo instalo las dependencias sin `make install`)?",
+ "followup_answer": "**`npm ci`:** el material dice que corras `npm ci` en el worktree, pero no aclara qué pasa con el `node_modules` linkeado. Lo seguro es borrar el link primero, así no depende de cómo trate npm al symlink:\n\n```bash\nrm web/node_modules      # sin barra final: borra solo el link, no el contenido del clone principal\ncd web && npm ci\n```\n\n**Venv propio:** el material no da un comando exacto, y no lo voy a inventar. Lo que sí dice es que hay que borrar el link `tuqui_core/.venv` y armar un venv propio. Como `make install` se niega en worktrees linkeados, tenés que replicar a mano lo que hace. Pasos:\n\n```bash\nrm tuqui_core/.venv      # sin barra final: solo el link\npython -m venv tuqui_core/.venv\n```\n\nDejalo en esa misma ruta, porque `make test` busca el venv ahí (si no, falla con \"Venv no encontrado\").\n\nPara instalar las dependencias, mirá en el `Makefile` el target `install` (o el `pyproject.toml` / `requirements*.txt` de `tuqui_core/`). Corré esos mismos comandos con `tuqui_core/.venv/bin/pip`, incluyendo el editable install si lo hace. Eso lo tenés que confirmar en el repo, porque el material no lo detalla.\n\nNo vuelvas a correr `make worktree-setup` después, porque podría re-linkear el venv y el `node_modules` del clone principal.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4467,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 932,
+  "output_tokens_details": {
+   "thinking_tokens": 411
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4467,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 932,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4467,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4467
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "breve",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Depende de quién consume la descripción del conector. La regla del material:\n\n- **Sólo la SPA la pinta** (cards, listados): alcanza con el cliente. La API manda el mapa entero.\n- **Entra a un prompt LLM, a un mail o sale por MCP**: hay que tocar también el backend.\n- **Las dos cosas**: las dos, con la misma cadena de fallback.\n\nSi las descripciones de conectores salen por la superficie MCP o se inyectan en prompts, el backend entra. Si sólo se muestran en la UI, no.\n\nLa migración `0201_platform_connectors_description_i18n.sql` ya figura como referencia en el material. Revisá si la columna ya existe antes de crearla.\n\n## Pasos de punta a punta\n\n1. **Migración**\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` (legacy) como está. Si tenés datos en una columna `description_en`, portalos como en `0206_features_i18n.sql`.\n\n2. **API / serializer**\n   - Devolvé `description_i18n` entero junto con `description`. No filtres por idioma.\n   - Al escribir, usá `normalize_i18n_keys` de `tuqui_core/i18n.py`.\n   - Al leer, usá `decode_i18n`, porque asyncpg puede devolver `str` o dict según el pool.\n   - No re-implementes ninguna de las dos.\n\n3. **Front**\n   ```ts\n   localizedField(c.description_i18n, c.description, i18n.language)\n   ```\n   No escribas la cadena de fallback a mano.\n\n4. **Backend (sólo si aplica)**\n   - Resolvé con `lang → en → legacy`.\n   - Tomá `lang` de `resolve_response_language(workspace_id, user_id)`.\n   - No leas `Accept-Language`.\n\n5. **Editor admin**\n   - Poné dos inputs, ES y EN.\n   - Al guardar, mandá `description_i18n` con las claves no vacías.\n   - Espejá la legacy con `es || en`.\n   - Referencia: `AdminAgentEditorPage.tsx:95-115`.\n\n6. **Caché**\n   - Si resolvés en el server, el `queryKey` de react-query tiene que incluir el idioma.\n   - Si resolvés en el cliente, no hace falta.\n\nLa cadena de fallback, en cualquier lado, es siempre: idioma exacto → `en` → columna legacy.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4244,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 858,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4244,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 858,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4244,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4244
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "54a865d10e"
+}

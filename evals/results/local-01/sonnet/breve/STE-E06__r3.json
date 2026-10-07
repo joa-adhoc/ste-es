@@ -1,0 +1,43 @@
+{
+ "case": "STE-E06",
+ "arm": "breve",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué pasa:** la DB de tests local es compartida entre worktrees. Tu compañero tiene una rama con una migración destructiva (borra o renombra columnas). Al correr sus tests, el `conftest` aplicó esa migración sobre la DB compartida. Tu código todavía lee esas columnas, así que falla con `UndefinedColumnError` en tests que no tocaste. No es un bug de tu rama.\n\n**Para salir ahora:**\n```\nmake migrate-reset\n```\nArma la base desde cero en ~3 s con las migraciones de tu rama. Ojo: no uses `npx supabase db reset`, porque aborta con los prefijos numéricos repetidos. Si tu compañero corre tests después, le va a pasar lo mismo a la inversa.\n\n**Para que no vuelva a pasar:** que cada worktree tenga su propia base.\n\n1. En `tuqui_core/`, copiá el ejemplo: `cp .env.test.local.example .env.test.local` (está gitignoreado).\n2. Ahí apuntá la URL de la DB de tests a una base propia del worktree, con un nombre distinto al de los otros worktrees.\n3. Corré `make migrate-reset` una vez para crearla.\n\nLos targets de test cargan `.env.test` y, encima, `.env.test.local`. El compañero debería hacer lo mismo en su worktree.\n\n**Sobre el lock:** el `flock` de los targets (`test`, `test-rls`, etc.) sólo evita corridas simultáneas, **no** aísla el esquema. Dejalo como está. Si querés correr en paralelo con tu compañero, necesitás base **y** Redis propios. Para el Redis, poné en `REDIS_URL` un índice distinto (no el 15, que es el default compartido, ni el 0, que es el de desarrollo). Después usá un `TEST_LOCK` distinto. Si aislás sólo uno de los dos recursos, no alcanza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4149,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 667,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4149,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 667,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4149,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4149
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

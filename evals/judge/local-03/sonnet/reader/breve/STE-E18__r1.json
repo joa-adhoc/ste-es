@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En la sección 4 decís que el guard conserva 'solo los top-N más relevantes', pero no dice cuánto vale N ni cómo se elige. ¿Cuál es el valor (o criterio) de N, y qué pasa con las memorias que quedan afuera en ese turno: el modelo sabe que existen o simplemente no las ve?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el guard de presupuesto, ¿cuánto vale N (cuántos headers se conservan con el top-N de rapidfuzz) y qué umbral o criterio de puntaje se usa? Además, ¿se mantiene el orden original de las memorias o quedan ordenadas por puntaje?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En la sección 4 decís que el guard conserva 'solo los top-N más relevantes', pero no dice cuánto vale N ni cómo se elige. ¿Cuál es el valor (o criterio) de N, y qué pasa con las memorias que quedan afuera en ese turno: el modelo sabe que existen o simplemente no las ve?",
+ "followup_answer": "Con el material que tengo, no puedo responder ninguna de las dos cosas, y mi frase \"top-N\" fue una simplificación mía de lo que dice el texto.\n\n**Valor o criterio de N**\n- El material solo dice que, si los headers superan `_MEMORY_BUDGET_CHARS` (12K), rapidfuzz puntúa los headers contra el mensaje actual y \"keeps top-N\".\n- No define N. Es plausible que no sea un número fijo, sino que se conserven los mejor puntuados hasta entrar en los 12K, pero eso es una suposición y no figura en el material.\n- Tampoco dice qué scorer de rapidfuzz se usa, ni si se puntúa el header completo o solo el título, ni si el presupuesto se aplica por scope o en total.\n\n**Qué pasa con las que quedan afuera**\n- El material tampoco lo dice. Lo único que sí dice es que el header de cada memoria incluye su `id`, y que el body se pide con `manage_memory(action='read', id=...)`.\n- Si el modelo no ve el header de una memoria descartada, no tiene su `id`. Por lo tanto, salvo que exista algún aviso del tipo \"hay N memorias más\", no sabría que existe.\n- Eso es una inferencia mía, no un hecho confirmado.\n\nPara cerrarlo hay que mirar `_load_chat_setup` en `tuqui_core/chat/agent.py`, donde se aplica el guard. Ahí se vería cómo se calcula N, si se agrega algún marcador de omisión al prompt y si el filtro se aplica por scope. No tengo ese código en este directorio. Si me lo pasás o me indicás dónde está, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4699,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 586,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4699,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 586,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4699,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4699
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "207d8a74f0"
+ }
+}

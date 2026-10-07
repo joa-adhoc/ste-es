@@ -1,0 +1,71 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuáles son los nombres exactos de las variables de entorno para declarar la base propia del worktree (y el TEST_LOCK) en .env.test.local? Me dijiste que mirara el .env.test.local.example, pero necesito un ejemplo concreto de cómo queda ese archivo para no adivinar.",
+   "note": "La primera oración explica la causa (DB compartida entre worktrees con migraciones distintas), aunque la respuesta directa al síntoma aparece mejor en 'Qué pasa'. Falta el dato clave para la prevención: las variables concretas de base y lock."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuáles son los nombres exactos de las variables que tengo que declarar en .env.test.local para la base propia (y para REDIS_URL y TEST_LOCK)? Con eso no puedo armar el paso 2 sin adivinar; ¿me das un ejemplo concreto del archivo ya completo?",
+   "reason": "La primera oración explica la causa (DB compartida entre worktrees que quedó sin la columna por la migración ajena), y el arreglo inmediato (make migrate-reset) es accionable. Pero la parte de prevención, que era la mitad de la pregunta, queda incompleta: la respuesta admite que no sabe las variables de la base y me manda a mirar el example, así que me falta el dato para ejecutar el paso 2."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuáles son los nombres exactos de las variables de entorno para declarar la base propia en .env.test.local (por ejemplo la URL de la DB y TEST_LOCK), y podés darme un ejemplo concreto de cómo quedaría ese archivo para dos worktrees distintos, con el REDIS_URL incluido?",
+   "_note": "La primera oración explica la causa (DB compartida entre worktrees), pero la respuesta admite no saber los nombres de las variables de la base, que es el paso clave para evitar que se repita."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuáles son los nombres exactos de las variables de entorno para declarar la base propia del worktree (y el TEST_LOCK) en .env.test.local? Me dijiste que mirara el .env.test.local.example, pero necesito un ejemplo concreto de cómo queda ese archivo para no adivinar.",
+ "followup_answer": "No puedo darte los nombres exactos. El directorio donde estoy (`/tmp/ste-es-eval-7r84cn64`) está vacío: no hay repo, ni `.env.test`, ni `.env.test.local.example`. Lo único que tengo es el texto que me pasaste, y ahí solo aparece una variable con nombre: `REDIS_URL`. Si te armo un ejemplo completo, estaría inventando el resto.\n\n**Lo que sí está respaldado por el material:**\n- `REDIS_URL` es la variable de Redis. El valor lleva un índice de base propio, y hay que evitar el 15 (default compartido de `.env.test`) y el 0 (servidor de desarrollo). Con ese dato no puedo darte el valor completo, porque no sé host ni puerto. Copialos de tu `.env.test`.\n- El override va en `tuqui_core/.env.test.local`, y se carga encima de `.env.test`.\n\n**Lo que el material no dice:**\n- El nombre de la variable de la base de datos. Lo más probable es que sea la que ya usa `.env.test`, pero no lo sé.\n- Si `TEST_LOCK` se declara en ese archivo. El texto lo menciona como algo que se cambia (\"un `TEST_LOCK` distinto\"), pero no dice dónde. Puede ser una variable del `.env.test.local` o un argumento de `make`, por ejemplo `make test TEST_LOCK=...`.\n\n**Cómo salís de la duda en un minuto**, desde la raíz de tu worktree:\n\n```bash\ncat tuqui_core/.env.test.local.example   # el ejemplo que debería traer los nombres\ncat tuqui_core/.env.test                 # las variables que vas a pisar\ngrep -n \"TEST_LOCK\" Makefile             # dónde se define y cómo se usa\n```\n\nEl `.env.test` te sirve como referencia: lo que quieras pisar en el `.local` tiene que llamarse igual que en ese archivo. El `grep` te dice si `TEST_LOCK` es de entorno o de `make`.\n\nSi me pegás la salida de esos tres comandos, te armo el `.env.test.local` concreto. Si abrís el repo como directorio de trabajo, lo leo yo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5329,
+  "cache_read_input_tokens": 36983,
+  "output_tokens": 996,
+  "output_tokens_details": {
+   "thinking_tokens": 82
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5329,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 772,
+    "cache_read_input_tokens": 20998,
+    "cache_creation_input_tokens": 316,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 316
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "19267448d3"
+ }
+}

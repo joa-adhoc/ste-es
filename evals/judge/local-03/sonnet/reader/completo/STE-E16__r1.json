@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos, ¿el link por token pasa a mostrar los datos nuevos automáticamente, o el refresh crea la versión solo-data y hay que correr publish para que la vea quien tiene el link? ¿Y el refresh mueve published_version_id o solo current_version_id?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Cuando se refrescan solo los datos y se crea la versión solo-data, ¿el refresh mueve published_version_id o queda como save, solo con current_version_id? En concreto: ¿quien tiene el link ve los datos nuevos al instante o hasta que corra publish?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos y se crea la versión solo-data, ¿el refresh también mueve published_version_id, o la persona con el link sigue viendo los datos viejos hasta que yo corra publish?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Cuando se refrescan solo los datos, ¿el link por token pasa a mostrar los datos nuevos automáticamente, o el refresh crea la versión solo-data y hay que correr publish para que la vea quien tiene el link? ¿Y el refresh mueve published_version_id o solo current_version_id?",
+ "followup_answer": "Según el material, hay que correr `publish`. Pero el material no dice explícitamente qué puntero mueve el refresh, así que parte de esto es inferencia.\n\n```\nv2 (publicada)      v3 (refresh, solo-data)\n      ▲                    ▲\n      │                    │\npublished_version_id   current_version_id\n (link por token)      (viewer interno)\n```\n\n- **Lo que dice el material:** un refresh crea una versión solo-data. `save` con `artifact_id` mueve `current_version_id` y no mueve `published_version_id`.\n- **Lo que infiero:** el refresh pasa por `save`, así que mueve solo `current_version_id`. Verificalo en `service.py` si necesitás certeza.\n- **Por qué el link no ve los datos nuevos:** el link por token sirve siempre `published_version`. El efectivo de esa versión busca hacia atrás desde ella, y la versión solo-data es posterior. Los datos nuevos no entran.\n- **Qué hacer:** corré `publish(version?)`. Sin argumento publica la última, que es la versión del refresh.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10601,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 686,
+  "output_tokens_details": {
+   "thinking_tokens": 312
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10601,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 686,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10601,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10601
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a3c87a63fd"
+ }
+}

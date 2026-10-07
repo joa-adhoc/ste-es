@@ -1,0 +1,43 @@
+{
+ "case": "STE-E08",
+ "arm": "completo",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n¿Se logra con tools genéricas?\n   │ no ──► (a) tool nativa\n   │ sí\n   ▼\n¿Gate más fino que `create`?\n   │ sí ──► (b2) tool nativa (chat y MCP)\n   │ no\n   ▼\n¿≥3 calls o loop no acotado?\n   │ sí ──► (d) tool nativa\n   │ no                      ◄── tu caso (1 call + defaults)\n   ▼\nskill\n```\n\n**Veredicto: skill.** Tu tool es un `odoo_create` con defaults. Eso es un wrapper 1→1:\n\n- (a) no aplica: `odoo_create` ya lo hace.\n- (b2) no aplica: el gate sería `create`, el mismo que el de `odoo_create`.\n- (d) no aplica: el umbral duro excluye los wrappers 1→1, aunque ahorres tokens de esquema.\n\n**MCP saliente:** (b1) y (c) no valen ahí. El router MCP ignora `requires_approval` y no hay un turno donde forzar pasos. Si tu justificación era un approval propio, la tool solo se justifica en chat. Para el MCP necesitás (a), (b2) o (d).\n\n**Cuándo cambia el veredicto:**\n\n1. Si crear el registro exige 3 o más calls, por ejemplo resolver IDs y después crear, aplica (d).\n2. Si el modelo necesita una whitelist más fina que la de `create` genérico, aplica (b2).\n3. Si hay un procedimiento con costo real ante un skip del LLM, aplica (c), pero solo en chat.\n\nSi tu caso es el 1 o el 2, pasame el modelo y los defaults y lo reviso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10243,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 976,
+  "output_tokens_details": {
+   "thinking_tokens": 387
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10243,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 976,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10243,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10243
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

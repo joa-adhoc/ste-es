@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos, en orden, para el caso de la dependencia de Python? Es decir, cómo la instalo en el clone principal (¿`make install` desde ahí o `pip install` en su `.venv`?) y cómo armo el venv propio en el worktree si prefiero esa alternativa."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "En el paso 2, ¿qué comando exacto corro para instalar la dependencia nueva de Python en el clone principal, si no puedo usar `make install` y el pyproject con la dependencia está en mi worktree? Y para la alternativa de venv propio, ¿cuáles son los comandos concretos para borrar el link del `.venv`, crear el venv e instalar todo en el worktree?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para el paso 2, ¿qué comando exacto uso para instalar la dependencia nueva de Python en el clone principal sin pisar el editable install? Y si prefiero la alternativa del venv propio en el worktree, ¿cuáles son los comandos paso a paso (borrar el link, crear el venv, instalar)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos, en orden, para el caso de la dependencia de Python? Es decir, cómo la instalo en el clone principal (¿`make install` desde ahí o `pip install` en su `.venv`?) y cómo armo el venv propio en el worktree si prefiero esa alternativa.",
+ "followup_answer": "El material no trae esos comandos exactos, y prefiero no inventarlos. Esto es lo que sí dice, y lo que falta confirmar.\n\n**Lo que dice el material**\n- `make install` se niega en un worktree linkeado, porque escribiría en el `.venv` del clone principal.\n- Para una dependencia nueva, el material da dos opciones: instalarla en el clone principal, o borrar el link y armar un venv propio.\n- No dice con qué comando instalar en el clone principal. Tampoco dice dónde se declaran las dependencias.\n\n**Opción A: instalar en el clone principal**\n\n`make install` desde el clone principal es lo más probable, porque ahí el target no se niega. Pero instalaría las dependencias de la rama que tenga ese clone, no las de tu worktree. Por eso la dependencia nueva puede no entrar.\n\n1. Entrá al clone principal.\n2. Corré `make -n install` para ver qué hace el target y qué archivo de dependencias lee.\n3. Si ese archivo no incluye tu dependencia, instalala directo en su venv: `tuqui_core/.venv/bin/pip install <paquete>`.\n4. Volvé al worktree y corré `make test`.\n\nEl paso 3 es una inferencia mía, no un comando del material. Una instalación en el `.venv` compartido afecta a todos los worktrees.\n\n**Opción B: venv propio en el worktree**\n1. Borrá solo el link, sin barra final: `rm tuqui_core/.venv`.\n2. Revisá el target con `make -n install`. En el worktree ahora puede dejar de negarse, porque `.venv` ya no apunta al clone principal. El material no lo confirma.\n3. Si funciona, corré `make install`. Si no, creá el venv a mano: `python -m venv tuqui_core/.venv`, y después instalá con el mismo comando que muestre `make -n install`.\n4. Corré `make test`.\n\nPasame el `Makefile` o la salida de `make -n install` y te doy los comandos exactos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10380,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1194,
+  "output_tokens_details": {
+   "thinking_tokens": 503
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10380,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1194,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 10380,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10380
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "314bf9f8a5"
+ }
+}

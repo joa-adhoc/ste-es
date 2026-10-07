@@ -1,0 +1,41 @@
+{
+ "first_sentence_answers": false,
+ "needs_followup": true,
+ "type": "resumen",
+ "followup": "Son muchos pasos y varios detalles laterales (PKCE, resource, RFC 8707, redirects según el dueño). ¿Me lo podés resumir en 5 líneas: front → backend → provider → callback, y qué pasa exactamente cuando algunas habilidades no contestan tras el intercambio (qué se guarda, qué ve el usuario y cómo lo recupera)?",
+ "followup_answer": "1. **Front → backend:** el usuario clickea **Connect** y el front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con `state` firmado, y el front redirige al provider.\n2. **Provider → callback:** el usuario autoriza y el provider redirige a `/api/mcp-oauth/callback?code=...&state=...`.\n3. **Callback:** el backend valida el `state`, cambia el `code` por tokens y los guarda encriptados en `user_mcp_oauth_tokens`. Después introspecta **todas** las habilidades habilitadas en paralelo.\n4. **Si ninguna contesta:** el backend borra el token y redirige con `connect_error=<motivo>`. La card muestra el banner de error y el usuario queda sin conexión.\n5. **Si alguna contesta:** el token se guarda y el usuario queda conectado. El redirect lleva `connect_warning=<habilidades>`, y la card muestra el banner de conexión parcial. Las habilidades que no contestaron no andan, pero las demás sí.\n\n**Recuperación:** el material no define un mecanismo de recuperación. Lo único razonable es volver a conectar, pero eso es una inferencia mía. Confirmalo en el código antes de documentarlo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5767,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 569,
+  "output_tokens_details": {
+   "thinking_tokens": 121
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5767,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 569,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5767,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5767
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ }
+}

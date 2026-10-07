@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Por defecto, skill.** Un `odoo_create` con defaults sobre un modelo es 1→1: una sola call genérica con algunos valores precargados. Eso no califica por (d) (umbral duro) y es totalmente componible, así que (a) tampoco. Solo gana tool nativa si cumple (b) o (c).\n\n**Cómo aplicar el criterio**\n\n1. **(a) No componible:** no. `odoo_create` con los valores lo hace.\n2. **(d) Eficiencia:** no, salvo que el flujo real sean ≥3 calls o un loop dependiente de datos. Por ejemplo: resolver el partner, buscar el producto, crear el registro y postear mensaje. Si es solo \"crear con defaults\", es un wrapper 1→1.\n3. **(c) Procedimiento crítico:** solo si saltearse un paso tiene costo real de compliance.\n4. **(b) Gate propio:** es el único eje que podría justificarlo, y depende de la superficie:\n   - **(b2)** vale en chat y MCP. Aplica si la whitelist es más fina que el `create` genérico. Por ejemplo, si el `create` genérico está abierto a cualquier modelo y esta tool solo permite crear sobre ese modelo con campos acotados. Ahí el blast radius es menor y sí se justifica (como `odoo_copy`).\n   - **(b1)** (approval/identidad de policy propia) solo vale en chat.\n\n**Qué cambia si se expone por el MCP saliente**\n\n- (b1) y (c) pierden palanca: el router MCP ignora `requires_approval` y no hay turno donde forzar pasos.\n- Entonces en MCP solo se sostiene por **(a)**, **(b2)** o **(d)**.\n- Si tu único argumento a favor era \"requiere approval\", es el caso de `odoo_schedule_activity`: se demotea a skill, porque el diferencial no existe en MCP.\n- Ojo con el riesgo inverso. Una tool nativa con defaults expuesta por MCP puede ser un bypass más barato del gate genérico, si el modelo en cuestión está más restringido en `odoo_create`. Chequeá que la whitelist de la tool no sea más laxa que la del `create` genérico.\n\n**Resumen operativo**\n\n- Crear con defaults, sin gate distinto → **skill** (instruye al LLM a llamar `odoo_create` con esos valores).\n- Whitelist más fina por modelo/campos → **tool nativa por (b2)**, válida en ambas superficies.\n- Solo approval en chat → **skill** si también va a MCP, o nativa únicamente si decidís que (b1) en chat alcanza y la excluís de MCP (`MCP_EXCLUDED_TOOLS`).\n\nSi me contás el modelo y qué defaults, te digo en cuál caer. La pregunta clave es: ¿el gate de `create` genérico ya cubre ese modelo, o la tool restringiría algo que hoy está abierto?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4226,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1026,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4226,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1026,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4226,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4226
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "da39a3ee5e"
+}

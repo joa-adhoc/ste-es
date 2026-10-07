@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que depende de si es (b1) o (b2), pero no me decís cuál es mi caso: ¿cómo sé si mi tool necesita una whitelist de escritura más estrecha que el odoo_create genérico (b2) o solo un approval en el chat (b1)? Y ya que menciona 'Para tu caso queda (b2)' pero después recomienda skill por defecto, ¿en qué quedamos: skill o tool nativa para un odoo_create con defaults sobre un modelo, si lo expongo por MCP?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que (b) es el único eje que podría justificar la tool y que para mi caso queda (b2), pero también que depende de qué variante sea. ¿Cómo determino si mi tool es (b2) o (b1)? Concretamente: ¿qué miro en la policy/whitelist actual de `odoo_create` para saber si un gate por modelo es más fino que el genérico, y si no lo es, confirmás que la respuesta es skill?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Ya tengo el criterio, pero no puedo decidir el caso 1 vs 2 sin saber cuál aplica: ¿cuál es el modelo concreto y los defaults que querés, y hay algún motivo (compliance o restricción de escritura a ese modelo) para que no alcance con que el skill llame a odoo_create genérico? Si no, ¿asumo skill?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dijiste que depende de si es (b1) o (b2), pero no me decís cuál es mi caso: ¿cómo sé si mi tool necesita una whitelist de escritura más estrecha que el odoo_create genérico (b2) o solo un approval en el chat (b1)? Y ya que menciona 'Para tu caso queda (b2)' pero después recomienda skill por defecto, ¿en qué quedamos: skill o tool nativa para un odoo_create con defaults sobre un modelo, si lo expongo por MCP?",
+ "followup_answer": "Tenés razón, me contradije. \"Para tu caso queda (b2)\" no tenía sustento, porque no conozco tu política de permisos. **Con lo que me contaste, la respuesta es skill.** Solo pasa a tool nativa si cumplís la prueba de (b2) que sigue.\n\n**Cómo distinguir (b1) de (b2)**\n\nPreguntate qué cambia entre la tool nueva y `odoo_create` + un skill con los defaults, en los permisos que se aplican. Esto sale del criterio que pegaste, pero no vi tu código de permisos, así que verificá cómo gatea hoy `odoo_create`.\n\n- **(b2) se cumple** solo si el gate de la tool es distinto y más fino en código, y eso se aplica también en MCP. Por ejemplo:\n  - La tool escribe en un modelo que el `create` genérico no tiene habilitado para ese workspace.\n  - La tool fija modelo y campos, y no deja que el LLM los sobrescriba. Con el genérico, el LLM puede pasar cualquier valor.\n- **(b1) es lo que queda** si la única diferencia es que la tool pide approval en el chat. En MCP eso no existe, porque el router ignora `requires_approval`.\n- **Ni (b1) ni (b2)** si el gate es el mismo `create` sobre el mismo modelo. Es un wrapper 1→1, y la tool no agrega nada.\n\n**Por qué creo que probablemente no es (b2)**\n\n`odoo_copy` justifica (b2) porque baja el gate de `execute` a `create`. Una tool que envuelve `odoo_create` ya gatea por `create`, así que no hay un gate más estrecho que ganar. Solo lo habría si los defaults se imponen en código y el LLM no puede pisarlos.\n\n**Decisión**\n\n- Si los defaults caben en el texto de un skill y no hace falta imponerlos, es **skill**. Esto es independiente de MCP.\n- Si necesitás imponerlos en código (modelo fijo, campos bloqueados) y eso importa en MCP, es **tool nativa por (b2)**. Anotalo así en la tabla de veredictos, con la razón concreta.\n- Si tu único motivo es el approval en el chat, es (b1). En MCP no aplica, así que es skill, igual que `odoo_schedule_activity`.\n\nSi me decís el modelo y qué defaults querés fijar, te digo cuál de los tres casos es.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5230,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1385,
+  "output_tokens_details": {
+   "thinking_tokens": 541
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5230,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1385,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5230,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5230
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "35dee32029"
+ }
+}

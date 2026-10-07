@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "completo_sin_diag",
+ "arm_hash": "61aec06718",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Recomendación: skill.** Un `odoo_create` con defaults es un wrapper 1→1.\n\n**Criterio.** Una tool nativa necesita cumplir al menos un eje:\n\n- (a) no componible\n- (b) gate o identidad propia con menor blast radius\n- (c) procedimiento crítico\n- (d) eficiencia: 3 o más llamadas, o un loop no acotado\n\n**Tu caso:**\n\n- (a): falla. `odoo_create` ya lo hace, y los defaults van como valores en la skill.\n- (d): falla. Es una sola llamada genérica. El umbral duro excluye el wrapper 1→1, aunque ahorre tokens de esquema.\n- (c): falla, salvo que un defaults mal puesto tenga costo de compliance real.\n- (b): es el único eje que puede salvar tu tool. Preguntate si tu tool tendría una whitelist más fina que `create` genérico. Si el modelo es sensible, el gate propio justifica la tool.\n\n**Qué cambia con el MCP saliente:**\n\n- (b1) y (c) no valen. El router MCP ignora `requires_approval` y no hay un turno donde forzar pasos.\n- Solo quedan (a), (b2) y (d).\n- Si tu tool se justificaba por approval, en MCP queda como un `odoo_create` sin freno. Es el caso de `odoo_schedule_activity`: la bajaron a skill.\n- Si la exponés por MCP, revisá que la whitelist (b2) sea real. Si no, agregala a `MCP_EXCLUDED_TOOLS`.\n\n**Resumen:** si tu único argumento es \"con menos tokens y defaults prearmados\", es skill. Si hay un gate (b2) con whitelist más fina, es tool nativa y vale en chat y en MCP. Decime qué modelo es y te confirmo el eje (b).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 8794,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 640,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8794,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 640,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 8794,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 8794
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

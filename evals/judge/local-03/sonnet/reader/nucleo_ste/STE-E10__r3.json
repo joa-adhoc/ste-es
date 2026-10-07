@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook, cuando el resultado es ASK y no hay nadie para responder, ¿qué hace el sistema: espera, falla, deniega o auto-aprueba? Decime en qué archivo o función se resuelve."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook con el `ask` del admin, ¿qué hace el sistema cuando no hay nadie para responder: el tool queda esperando, se rechaza o falla el turno? ¿En qué archivo o función se resuelve eso?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para el agent por webhook, ¿qué pasa concretamente cuando el resultado es ASK y no hay nadie que responda? ¿El tool queda esperando, se rechaza o falla el turno? ¿Dónde en el código se resuelve eso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el caso del agent por webhook, cuando el resultado es ASK y no hay nadie para responder, ¿qué hace el sistema: espera, falla, deniega o auto-aprueba? Decime en qué archivo o función se resuelve.",
+ "followup_answer": "No lo puedo confirmar: el directorio de trabajo (`/tmp/ste-es-eval-2vbg2hyu`) está vacío y no tengo el código. No hay `tuqui_core/chat/permissions.py` ni `chat/client_facing_core.py` para leer.\n\nEl material que me pasaste solo define cómo se calcula el resultado (`evaluate_permission(ctx)`). No dice qué pasa después de un ASK sin nadie para responder. Cualquier respuesta mía (espera, falla, deniega o auto-aprueba) sería inventada.\n\nPara encontrarlo, corré esto en la raíz del repo:\n\n```bash\ngrep -rn \"PermissionAction.ASK\\|== \\\"ask\\\"\\|ASK\" tuqui_core/chat/ | grep -v test\ngrep -rn \"personal_identity_applies\" tuqui_core/\n```\n\nFijate en estos puntos:\n- **El llamador de `evaluate_permission`**: el código que consume el resultado ASK y decide si pide confirmación al usuario.\n- **`ChannelProfile`**: puede tener otro campo que diga si el canal admite preguntar (algo tipo `can_prompt` o `interactive`).\n- **`permission_action` en `tool_usage_log`**: el valor que se guarda en un webhook con ASK muestra qué ocurrió en la práctica. Podés consultarlo directo en la tabla.\n\nSi me pasás el repo o los archivos, lo leo y te respondo con la función exacta.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5953,
+  "cache_read_input_tokens": 37603,
+  "output_tokens": 758,
+  "output_tokens_details": {
+   "thinking_tokens": 73
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5953,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 512,
+    "cache_read_input_tokens": 21609,
+    "cache_creation_input_tokens": 338,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 338
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "bd884a1c06"
+ }
+}

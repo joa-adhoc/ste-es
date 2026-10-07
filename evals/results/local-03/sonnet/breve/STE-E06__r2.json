@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "breve",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué pasa:** la DB local de tests es compartida entre worktrees. Tu compañero corre su rama con migraciones (probablemente destructivas: drop/rename de columnas) y el `conftest` las aplica sobre esa DB común. Tu código todavía lee esas columnas, así que tus tests, que ni tocaste, fallan con `UndefinedColumnError`. No es un bug de tu código.\n\n**Arreglo para que no se repita: una base propia por worktree.**\n\n1. En `tuqui_core/`, copiá el ejemplo:\n   ```bash\n   cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n   ```\n2. Editá `.env.test.local` y poné una base propia para tu worktree (por ejemplo, un nombre de DB distinto en la URL de la base de datos).\n3. Armá la base desde cero (~3 s):\n   ```bash\n   make migrate-reset\n   ```\n   Usá este target y **no** `npx supabase db reset`: el CLI de Supabase aborta con los prefijos de migración repetidos (0143, 0144…). `migrate-reset` usa el mismo runner que CI y deploy, y solo toca bases locales.\n4. Corré los tests de nuevo.\n\n**Sobre el lock:** mientras compartan Redis, el `flock` de los targets (`test`, `test-rls`, etc.) sigue siendo necesario. Evita corridas simultáneas, pero **no** aísla el esquema. Si querés correr en paralelo con tu compañero, además de la base necesitás tu propio Redis: en `.env.test.local` poné un `REDIS_URL` con otro índice de base (no el 15, que es el compartido por defecto, ni el 0, que es el del server de desarrollo) y usá un `TEST_LOCK` distinto. Con aislar solo uno de los dos recursos no alcanza.\n\n**Si querés confirmar el diagnóstico:** corré `make migrate-reset` con la base propia y repetí el test que falló. Si pasa, era el esquema compartido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4157,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 707,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4157,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 707,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4157,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4157
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "54a865d10e"
+}

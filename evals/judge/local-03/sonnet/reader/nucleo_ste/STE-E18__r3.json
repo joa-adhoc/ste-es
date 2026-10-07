@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se define el N del top-N cuando se pasa de _MEMORY_BUDGET_CHARS? ¿Se van agregando headers por score hasta llenar los 12K caracteres, o es un número fijo? Y el presupuesto, ¿es por scope o compartido entre workspace y user memory?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El _MEMORY_BUDGET_CHARS de 12K se aplica por scope o al total de workspace + user? Y cuando se pasa del presupuesto, ¿cómo se define el N de los top-N headers: se agregan por score hasta llenar los 12K, o es un número fijo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo se define el N del top-N cuando se pasa de _MEMORY_BUDGET_CHARS? ¿Se van agregando headers por score hasta llenar los 12K caracteres, o es un número fijo? Y el presupuesto, ¿es por scope o compartido entre workspace y user memory?",
+ "followup_answer": "El material no define ninguno de los dos puntos. Solo dice que, si los headers superan `_MEMORY_BUDGET_CHARS`, `rapidfuzz` puntúa los headers contra el mensaje y \"keeps top-N\".\n\n**N:** no se sabe si es un número fijo o si se agregan headers por score hasta llenar los 12K caracteres. Tampoco aparece el criterio de corte. Fijate en la implementación de `_load_chat_setup` en `tuqui_core/chat/agent.py`, o en el helper que usa `_MEMORY_BUDGET_CHARS`.\n\n**Presupuesto por scope o compartido:** tampoco se sabe. Dos datos apuntan a un presupuesto compartido, pero no lo confirman:\n- El tope de ~3K tokens se calcula con 50 memorias, no con 100 (50 por scope).\n- El guard habla de \"total header chars\", sin mencionar scopes.\n\nSi es compartido, también queda abierto si el recorte conserva los dos bloques (`# Workspace memory` y `# User memory`) o si un scope puede quedar vacío.\n\nSi querés, pasame el código de `_load_chat_setup` y lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4995,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 459,
+  "output_tokens_details": {
+   "thinking_tokens": 46
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4995,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 459,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4995,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4995
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4770ecd807"
+ }
+}

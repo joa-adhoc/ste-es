@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "nucleo_ste",
+ "arm_hash": "6b3b20c518",
+ "model": "sonnet",
+ "run": 2,
+ "result": "La migración tiene que ser idempotente y activar RLS con una policy por `workspace_id`. También necesitás un test en `tests/test_rls.py` y un modelo Pydantic.\n\n**Pasos**\n\n1. Creá la migración con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n2. Escribí la tabla con `CREATE TABLE IF NOT EXISTS`, incluyendo `workspace_id`.\n3. Creá los índices con `CREATE INDEX IF NOT EXISTS`.\n4. Activá RLS.\n5. Creá la policy dentro de un bloque `DO` que chequee si ya existe.\n6. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n7. Creá el modelo Pydantic correspondiente.\n\n**Esqueleto de la migración**\n\nLos nombres de tabla, columnas y policy son de ejemplo. Para el `IF NOT EXISTS` de la policy, consultá `pg_policies`.\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- tus columnas\n    created_at timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\n**Lo que hace rebotar el review**\n\n- **Idempotencia:** el preview de tu PR corre la migración contra la base de staging. Es la misma base que usa el runner, no una copia. La migración se aplica al abrir el PR.\n- **Renombrar el archivo:** si lo renombrás después, se vuelve a aplicar. El tracking es por nombre de archivo, así que una migración no idempotente falla en esa segunda corrida.\n- **Filtro solo en la aplicación:** no alcanza con filtrar por `workspace_id` en el código. RLS es la defensa principal.\n- **Test faltante:** sin test en `tests/test_rls.py`, el review no pasa.\n\nSi la tabla no lleva `workspace_id`, discutilo antes de abrir el PR. Es la excepción.\n\nLas consecuencias completas de que el preview escriba en staging están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4447,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1064,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4447,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1064,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4447,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4447
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

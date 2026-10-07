@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tope de iteraciones, de llamadas o de tiempo, o si salta el watchdog global? ¿Se descarta la hipótesis, se pasan hallazgos parciales al Synthesizer o se aborta todo el run? Eso define si ese caso termina sin mostrar nada."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el tope de iteraciones, de llamadas a tools o de tiempo (o salta el watchdog global)? ¿Se descarta la hipótesis, se pasan los hallazgos parciales al Synthesizer, o se aborta todo el run sin mostrar nada? ¿Y qué ocurre si el Investigator termina sin hallazgos?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tope de iteraciones, llamadas o tiempo: se descarta la hipótesis o se pasan hallazgos parciales al Synthesizer? ¿Y qué hace exactamente el watchdog global cuando se cumple su tiempo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota su tope de iteraciones, de llamadas o de tiempo, o si salta el watchdog global? ¿Se descarta la hipótesis, se pasan hallazgos parciales al Synthesizer o se aborta todo el run? Eso define si ese caso termina sin mostrar nada.",
+ "followup_answer": "El material no lo define, así que no puedo decirte cuál de las tres opciones es. Lo que sí está escrito:\n\n- **Topes de iteraciones y de llamadas:** solo aparece la tabla `REGISTER_CAPS`. No dice qué ocurre al alcanzarlos: si el agente corta y devuelve lo que tenga, si lanza un error o si la hipótesis se marca como fallida.\n- **Presupuesto de tiempo por hipótesis:** solo se da la fórmula `(watchdog_sec - 30) / n_hipótesis`. No dice qué pasa al vencerse. Los 30 s que se restan sugieren un margen para que el Synthesizer y los guards corran después, pero es una inferencia mía, no algo que el material afirme.\n- **Watchdog global:** no se describe ni dónde vive ni qué hace al saltar. Solo aparece `watchdog_sec` dentro de esa fórmula.\n- **Contrato entre etapas:** la Etapa 2 devuelve `InvestigationFindings`, pero el material no dice si ese objeto puede traer un estado parcial o de error por hipótesis.\n\nEsto cambia la lista de casos en que no se muestra nada. Cada opción llevaría a un resultado distinto:\n\n| Si al agotar un tope... | Efecto sobre \"sin mostrar nada\" |\n|---|---|\n| Se descarta la hipótesis | Si eran todas, el run termina vacío. Si el Synthesizer recibe 0 hallazgos, no hay teasers. |\n| Se pasan hallazgos parciales | Sigue el flujo normal. Los guards, sobre todo StringGrounding y el Judge, serían la defensa contra datos incompletos. |\n| Se aborta el run | Termina vacío, pero por error y no por silencio intencional. |\n\nPara cerrarlo hay que mirar el código de `investigator.py`, que es donde se manejan los topes y los timeouts. También hay que ver quién llama al pipeline, porque ahí debería estar el watchdog global. Si me das acceso a ese código, lo reviso y te respondo con certeza. Este directorio no es un repo y no lo tengo a mano.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5893,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 906,
+  "output_tokens_details": {
+   "thinking_tokens": 156
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5893,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 906,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 5893,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5893
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0eae110472"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta tiene inconsistencias en las rutas: primero dice `tests/test_rls.py` y después `tuqui_core/tests/test_rls.py`, y la migración queda en `supabase/migrations/NNNN_descripcion.sql` pero `supabase migration new` genera nombres con timestamp. ¿Cuál es la ruta correcta del test y el formato de nombre que espera el review? Además, la policy del esqueleto solo tiene USING y no WITH CHECK ni FOR ALL: ¿es suficiente para el review o hay que cubrir también INSERT/UPDATE?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "El esqueleto de la migración está claro, pero los pasos 6 y 7 quedan vagos. ¿Me pasás un ejemplo de un test de aislamiento existente en test_rls.py, para ver qué tiene que verificar y cómo setea app.current_workspace_id? Y también, ¿en qué carpeta va el modelo Pydantic? Además, el nombre del archivo, ¿es NNNN_ o timestamp? Y el test, ¿va en tests/test_rls.py o en tuqui_core/tests/test_rls.py?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "El test de aislamiento en test_rls.py y el modelo Pydantic no los puedo armar solo con esto, y además aparece tanto `tests/test_rls.py` como `tuqui_core/tests/test_rls.py`. ¿Cuál es la ruta correcta? ¿Me pasás un ejemplo de test de una tabla existente y decime en qué carpeta van los modelos Pydantic?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "El esqueleto de la migración está claro, pero los pasos 6 y 7 quedan vagos. ¿Me pasás un ejemplo de un test de aislamiento existente en test_rls.py, para ver qué tiene que verificar y cómo setea app.current_workspace_id? Y también, ¿en qué carpeta va el modelo Pydantic? Además, el nombre del archivo, ¿es NNNN_ o timestamp? Y el test, ¿va en tests/test_rls.py o en tuqui_core/tests/test_rls.py?",
+ "followup_answer": "No tengo acceso a `test_rls.py`, así que no puedo pasarte un ejemplo real. El repo no está en mi directorio de trabajo y la documentación que tengo no incluye el contenido del test. Abrí `tuqui_core/tests/test_rls.py` y copiá el test de la tabla más parecida a la tuya. Si me pegás ese archivo, te armo el test.\n\n**Lo que sí confirma la documentación**\n\n- **Ruta del test:** `tuqui_core/tests/test_rls.py`. El paso 4 de \"Cómo agregar una tabla nueva\" da la ruta completa. La regla de RLS dice `tests/test_rls.py`, que es la misma ruta abreviada.\n- **Nombre del archivo:** `NNNN_descripcion.sql`, no timestamp. Generalo con `supabase migration new <nombre>` y fijate qué prefijo produce. La documentación no aclara si el CLI genera un número o un timestamp. Si el prefijo no coincide con el de los archivos existentes en `supabase/migrations/`, seguí el formato de esos archivos.\n- **Carpeta del modelo Pydantic:** la documentación no la indica. Buscá dónde viven los modelos de las tablas vecinas con `grep -rl \"BaseModel\" tuqui_core/`. Si no queda claro, preguntale a quien revise el PR.\n\n**Qué tiene que verificar el test**\n\nLa documentación no lo detalla. Un test de aislamiento típico hace lo siguiente:\n\n1. Inserta una fila en el workspace A y otra en el workspace B.\n2. Setea `app.current_workspace_id` al workspace A.\n3. Hace `SELECT` y verifica que ve solo la fila de A.\n\nEl seteo suele ser `SET LOCAL app.current_workspace_id = '<uuid>'` dentro de una transacción. Confirmá en `test_rls.py` cómo lo hacen los tests existentes. Fijate también con qué rol corren: si es superusuario, RLS no aplica y el test pasa sin probar nada.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6219,
+  "cache_read_input_tokens": 59764,
+  "output_tokens": 1079,
+  "output_tokens_details": {
+   "thinking_tokens": 100
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6219,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 710,
+    "cache_read_input_tokens": 22048,
+    "cache_creation_input_tokens": 165,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 165
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "08bbb2a6b8"
+ }
+}

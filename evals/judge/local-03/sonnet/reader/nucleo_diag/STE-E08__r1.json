@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa (a), (b1), (b2), (c) y (d) sin definirlos y la tabla mezcla criterios con casos. ¿Me lo podés resumir con la definición de cada eje en una línea y decirme, para mi caso concreto (odoo_create con defaults), si termina siendo skill o tool nativa? Además, ¿cómo averiguo si mi modelo necesita una whitelist propia (b2)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas (a), (b1), (b2), (c), (d) sin definir (a), (c) ni el umbral duro de (d) más que de pasada, y arranca con 'salvo que cumpla (a), (b2) o (d)' pero después dice que (a) y (d) no aplican. ¿Podés decirme en concreto, para mi caso (odoo_create con defaults sobre un modelo), si alcanza con skill o si tengo que chequear algo antes, y qué es exactamente un 'gate propio' en (b2) para saber si mi modelo lo necesita?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera línea dice 'skill salvo que cumpla (a), (b2) o (d)', pero después la tabla dice que (b1) y (c) también justifican tool nativa en chat. ¿Cuál es la regla final? ¿Y para mi caso (un odoo_create con defaults) concretamente: skill, sí o no, y qué tengo que chequear antes de decidir? Además, ¿qué significa 'demote' y qué pasó con odoo_schedule_activity?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa (a), (b1), (b2), (c) y (d) sin definirlos y la tabla mezcla criterios con casos. ¿Me lo podés resumir con la definición de cada eje en una línea y decirme, para mi caso concreto (odoo_create con defaults), si termina siendo skill o tool nativa? Además, ¿cómo averiguo si mi modelo necesita una whitelist propia (b2)?",
+ "followup_answer": "**Para tu caso: skill.** Un `odoo_create` con defaults es un wrapper 1→1. Eso no califica por (d), y solo (b2) podría salvarlo.\n\n**Los ejes: tool nativa si cumple al menos uno**\n- **(a) No componible:** no se logra con las tools genéricas ni con otra tool existente (ej.: `execute_code`, `odoo_attachment_content`).\n- **(b1) Approval o identidad de policy propia:** vale solo en chat, porque el router MCP ignora `requires_approval`.\n- **(b2) Whitelist más fina que la genérica:** gate `create` en vez de `execute`, o gate propio por workspace. Vale en chat y en MCP.\n- **(c) Procedimiento crítico:** un skip del LLM tiene costo real de compliance. Solo vale en chat, porque en MCP no hay turno donde forzar pasos.\n- **(d) Eficiencia:** colapsa ≥3 calls, o un loop no acotado, en 1 call determinista. Nunca un wrapper 1→1.\n\n**Tu caso contra cada eje**\n- **(a):** no aplica. `odoo_create` más los defaults en el skill lo resuelve.\n- **(d):** no aplica. Es 1 call.\n- **(c):** no aplica, salvo que saltear un default tenga costo de compliance.\n- **(b1):** no aplica, y en MCP no tiene palanca.\n- **(b2):** es el único que puede cambiar el veredicto.\n\n**Cómo averiguar si necesitás (b2)**\n\nNo leí tu código, así que esto sale solo del material. Te propongo una prueba concreta:\n\n1. Fijate en `tuqui_core/chat/permissions.py` qué gate usa `odoo_create` y cómo se arma la whitelist por modelo.\n2. Corré `odoo_create` sobre tu modelo con un workspace que tenga solo el permiso `create` mínimo.\n3. Si funciona, el gate genérico ya alcanza y no hay (b2). Va como skill.\n4. Hay (b2) solo si pasa una de estas dos cosas:\n   - Para crear en ese modelo tendrías que abrir `execute`, o un `create` más amplio de lo aceptable.\n   - Querés un gate propio por workspace, como `messaging_mode` en `odoo_message_post`.\n\nSi no pasa ninguna, no hay (b2). Que los defaults sean obligatorios no cuenta como gate.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5556,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 1539,
+  "output_tokens_details": {
+   "thinking_tokens": 689
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5556,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1539,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 5556,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5556
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2077e727a8"
+ }
+}

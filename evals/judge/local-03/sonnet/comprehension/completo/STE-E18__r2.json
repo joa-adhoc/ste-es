@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja de ese scope (según created_at) y la nueva ocupa su lugar. El borrado ocurre en la misma transacción. La eviction es silenciosa para el miembro, pero la respuesta de la tool le avisa al modelo.",
+  "Cada turno, _load_chat_setup (tuqui_core/chat/agent.py) inyecta en el system prompt los headers de las memorias, después del bloque CURRENT USER y antes del bloque de proyecto, en dos secciones: '# Workspace memory (shared with team)' y '# User memory (personal)'. Cada header es title más summary (o los primeros 250 caracteres del body si no hay summary, con '... [read]' si el body supera 250 caracteres). El resto del contenido (el body) llega solo cuando el modelo llama manage_memory(action='read', id=...) sobre una memoria marcada [read].",
+  "Si los headers suman más de _MEMORY_BUDGET_CHARS (12K caracteres, unos 3K tokens), rapidfuzz puntúa cada header contra el mensaje actual del miembro y el prompt conserva solo los top-N. Los demás no entran en ese turno, pero siguen en la DB. El texto no dice cuánto vale N."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "078132c1b2",
+  "control": "2fefeeffdf"
+ }
+}

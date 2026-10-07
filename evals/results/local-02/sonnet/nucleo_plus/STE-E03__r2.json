@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "nucleo_plus",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Corré `make worktree-setup` desde el worktree. Eso linkea al clone principal el `.venv`, los `.env`, `.mcp.json` y los `node_modules`. Sin ese paso, `make test` falla con \"Venv no encontrado\".\n\nComo tu branch suma una dependencia de Python y toca `web/package.json`, hacé además lo siguiente:\n\n**Dependencia de Python**\n- **No corras `make install` en el worktree.** Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te avisa.\n- Instalá la dependencia en el clone principal, o borrá el link del `.venv` y armate un venv propio en el worktree.\n- Ojo: el venv es compartido. Instalarla en el clone principal la deja disponible también para los otros worktrees.\n\n**Frontend**\n- Los `node_modules` también son del clone principal. Como tocaste `web/package.json`, corré `npm ci` en el worktree antes de `make test-web`.\n- Probablemente tengas que correrlo en `web/`, que es donde vive ese `package.json`. El material no lo aclara, así que verificalo.\n\n**Tests**\n```bash\nmake worktree-setup\n# dependencia Python: instalala en el clone principal, o armá un venv propio\n(cd web && npm ci)\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/\nmake lint                                     # ruff check + format check\n```\n\nEl código que corre es el del worktree, aunque el `.venv` sea compartido. La raíz del worktree entra primero en `sys.path` porque los paquetes tienen `__init__.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4098,
+  "cache_read_input_tokens": 15994,
+  "output_tokens": 636,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4098,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 636,
+    "cache_read_input_tokens": 15994,
+    "cache_creation_input_tokens": 4098,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4098
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false,
+ "arm_hash": "56317c7d75"
+}

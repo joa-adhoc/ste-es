@@ -1,0 +1,43 @@
+{
+ "case": "STE-E11",
+ "arm": "baseline",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Resumen del recorrido de una migración que dropea una columna, según el material que pasaste.\n\n## Qué poner en el archivo\n\nUna línea `-- destructive: true` cerca del inicio del archivo. Aplica a cualquier migración que deje sin poder correr al código anterior (drop de columna o tabla, por ejemplo). Sin esa línea, el runner la trata como aditiva y la aplica en cualquier lado.\n\n## Dónde se aplica y dónde no\n\n| Etapa | ¿Se aplica? | Por qué |\n|---|---|---|\n| **PR environment de Railway** (al abrir y pushear el PR) | **No**. La saltea y **no la registra** en `_migrations`. | La rama no es `staging` ni `main`. Aunque el PR env **herede** `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, el gate exige además la rama correcta. Si hay marcadores de Railway sin rama estampada, falla cerrado y tampoco la aplica. |\n| **CI** (`scripts/apply_migrations.py`) | **Sí**, contra bases efímeras. | El workflow pone `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, o el conftest usa `allow_destructive=True`. Esas bases no las comparte nadie. |\n| **Local con `make migrate`** | **No**. | No activa el flag, porque apunta a la base de desarrollo local, que se comparte entre worktrees. |\n| **Deploy de `staging`** tras el merge | **Sí**, si ahí está `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. | Se cumplen las dos condiciones: flag y rama `staging` o `main`. |\n| **Deploy de `main` (prod)** | **Sí**, con las mismas dos condiciones. | Como nunca quedó registrada, el deploy real posterior al merge la aplica. |\n\n## Por qué importa\n\nLos PR envs comparten la base de staging con el servicio de staging, que sigue corriendo el código anterior. Si el preview dropeara la columna, rompería ese código viejo para todos. Eso ya pasó con `0180_chat_ga`, que un preview aplicó porque heredó el flag.\n\n## Cosas a tener en cuenta\n\n- En el preview, tu código nuevo corre contra una base que todavía **tiene** la columna. Tiene que funcionar así.\n- Las migraciones **aditivas** del mismo PR sí se aplican a la base de staging desde el preview. Eso tiene consecuencias al mergear y al renombrar un archivo. Están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\", que no tengo a mano.\n- Si el código viejo todavía usa la columna cuando se aplica en el deploy, se rompe. Conviene que el código que deja de leerla/escribirla ya esté desplegado antes. Esto es una recomendación general, no algo que diga el material.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4026,
+  "cache_read_input_tokens": 15985,
+  "output_tokens": 1029,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4026,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1029,
+    "cache_read_input_tokens": 15985,
+    "cache_creation_input_tokens": 4026,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4026
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

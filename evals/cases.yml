@@ -1,0 +1,1001 @@
+evaluation_contract:
+  measures: "Si las reglas STE-ES conservan los hechos y mejoran la lectura de las respuestas al dev."
+  runner: "Claude Code aislado, directorio vacío, material dentro del prompt."
+  efficiency: false
+cases:
+  - id: STE-E01
+    category: procedimiento
+    structure: false
+    requires: []
+    prompt: |
+      Tengo que agregar una tabla nueva en tuqui que guarda cosas por workspace (lleva workspace_id). ¿Qué pasos tengo que seguir para que no me rebote el review? Contame todo lo que tenga que tener la migración.
+
+      Material:
+      ---
+      ### Multi-tenancy: RLS
+
+      - Toda tabla nueva con `workspace_id` requiere:
+        1. `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`
+        2. Policy: `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`
+        3. Test en `tests/test_rls.py`
+      - Nunca filtrar por workspace_id solo en el application layer. RLS es la línea de defensa principal.
+
+      ## Cómo agregar una tabla nueva
+
+      1. Crear migración SQL en `supabase/migrations/` con nombre `NNNN_descripcion.sql` (`supabase migration new <nombre>`)
+      2. **Las migraciones deben ser idempotentes** — deben poder correr múltiples veces sin error:
+         - Tablas: usar `CREATE TABLE IF NOT EXISTS`
+         - Índices: usar `CREATE INDEX IF NOT EXISTS`
+         - Policies RLS: usar `DO $$ BEGIN IF NOT EXISTS (...) THEN CREATE POLICY ...; END IF; END $$;`
+         - `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` es idempotente por defecto
+         - **No es una formalidad:** el preview de tu PR corre las migraciones **contra la base de staging** (hereda el `DATABASE_ADMIN_URL` de staging, que es el que usa el runner: no es una copia, es la misma base), así que tu migración se aplica ahí al abrir el PR y se vuelve a aplicar si después la renombrás — el tracking es por nombre de archivo. Consecuencias completas en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging).
+      3. Si tiene `workspace_id`: agregar RLS (ver reglas arriba)
+      4. Agregar test de aislamiento en `tuqui_core/tests/test_rls.py`
+      5. Crear modelo Pydantic correspondiente
+
+      Si necesitás agregar una tabla nueva sin `workspace_id`, discutirlo antes — es la excepción, no la regla.
+      ---
+    pass_criteria:
+      - fact: "La migración va en supabase/migrations/ con nombre NNNN_descripcion.sql."
+        condition: false
+      - fact: "La migración tiene que ser idempotente: CREATE TABLE IF NOT EXISTS, CREATE INDEX IF NOT EXISTS y la policy dentro de un bloque DO con IF NOT EXISTS."
+        condition: false
+      - fact: "La tabla necesita ENABLE ROW LEVEL SECURITY y una policy que compare workspace_id con current_setting('app.current_workspace_id')."
+        condition: false
+      - fact: "Hay que agregar un test de aislamiento en tuqui_core/tests/test_rls.py y el modelo Pydantic."
+        condition: false
+      - fact: "El preview del PR aplica la migración contra la misma base de staging, y la vuelve a aplicar si se renombra el archivo, porque el tracking es por nombre de archivo."
+        condition: true
+      - fact: "No alcanza con filtrar por workspace_id en el application layer; RLS es la defensa principal."
+        condition: true
+    control:
+      - q: "¿Dónde va la migración y cómo se llama el archivo?"
+        a: "En supabase/migrations/, con nombre NNNN_descripcion.sql."
+      - q: "¿Qué tiene que tener la tabla para RLS?"
+        a: "ENABLE ROW LEVEL SECURITY y una policy que compare workspace_id con current_setting('app.current_workspace_id')."
+      - q: "¿Por qué la idempotencia no es una formalidad?"
+        a: "Porque el preview del PR aplica la migración contra la misma base de staging, y la vuelve a aplicar si renombrás el archivo (el tracking es por nombre)."
+    source: "tuqui/AGENTS.md (§ Multi-tenancy: RLS, § Cómo agregar una tabla nueva)"
+
+  - id: STE-E02
+    category: procedimiento
+    structure: false
+    requires: []
+    prompt: |
+      Quiero que la descripción de los conectores se pueda cargar en español y en inglés. ¿Cómo lo hago de punta a punta, desde la migración hasta el front? ¿Tengo que tocar el backend también o alcanza con el cliente?
+
+      Material:
+      ---
+      ## La regla
+
+      | El campo lo consume… | Resuelve | Por qué |
+      |---|---|---|
+      | Sólo la SPA (labels, cards, listados) | **El cliente** | La API queda language-agnostic y manda el mapa entero |
+      | Además un prompt LLM, un mail, o la superficie MCP saliente | **El backend** | No hay cliente que resuelva; el consumidor es el modelo o el destinatario |
+      | Las dos cosas | **Las dos**, con la **misma cadena de fallback** | Es el caso de `agents`; ver el bug abajo |
+
+      **Cadena única de fallback**, en los dos lados:
+
+      ```
+      idioma exacto  →  en  →  columna legacy
+      ```
+
+      ## Cómo agrego un campo traducible nuevo
+
+      1. **Preguntate quién lo consume.** ¿Sólo lo pinta la SPA? → cliente. ¿Entra a un
+         prompt, a un mail, o sale por MCP? → backend (y también cliente, si además se
+         pinta).
+      2. **Migración:** `ALTER TABLE <t> ADD COLUMN <campo>_i18n JSONB;`. Dejá la columna
+         legacy como está. Referencia: `supabase/migrations/0117_agents_i18n.sql`,
+         `0201_platform_connectors_description_i18n.sql`, y
+         `0206_features_i18n.sql` si además tenés que portar datos de un `<campo>_en`.
+      3. **La API devuelve el mapa entero**, junto con la columna legacy. No filtres por
+         idioma en el serializer. Los dos bordes ya están escritos en
+         [`tuqui_core/i18n.py`](../../tuqui_core/i18n.py) y no se re-implementan:
+         `normalize_i18n_keys` al escribir (baja las claves a dos letras minúsculas, tira
+         las vacías) y `decode_i18n` al leer (asyncpg devuelve JSONB como `str` o como
+         dict según el pool, y todo lector tiene que tolerar las dos formas).
+      4. **Front:** `localizedField(row.<campo>_i18n, row.<campo>, i18n.language)`. Nunca
+         escribas la cadena de fallback a mano.
+      5. **Back (sólo si aplica):** resolvé con la misma cadena
+         `lang → en → legacy`, y tomá `lang` de `resolve_response_language(workspace_id,
+         user_id)`. No leas `Accept-Language`.
+      6. **Editor:** dos inputs (ES / EN) en el panel de admin. Al guardar, mandá
+         `<campo>_i18n` con las claves no vacías y espejá la legacy con `es || en`.
+         Referencia: `AdminAgentEditorPage.tsx:95-115`.
+      7. **Caché:** si —y sólo si— terminaste resolviendo en el server, el `queryKey` de
+         react-query **tiene** que incluir el idioma.
+      ---
+    pass_criteria:
+      - fact: "La migración agrega una columna <campo>_i18n JSONB y deja la columna legacy como está."
+        condition: false
+      - fact: "La API devuelve el mapa entero junto con la legacy, sin filtrar por idioma, usando normalize_i18n_keys al escribir y decode_i18n al leer."
+        condition: false
+      - fact: "En el front se usa localizedField y no se escribe la cadena de fallback a mano; la cadena es idioma exacto, después en, después la columna legacy."
+        condition: false
+      - fact: "El backend resuelve solo si el campo entra a un prompt, a un mail o sale por MCP; si solo lo pinta la SPA, resuelve el cliente."
+        condition: true
+      - fact: "En el backend el idioma sale de resolve_response_language, nunca de Accept-Language."
+        condition: true
+      - fact: "Solo si se resuelve en el server, el queryKey de react-query tiene que incluir el idioma."
+        condition: true
+    control:
+      - q: "¿Qué columna agrega la migración y qué pasa con la legacy?"
+        a: "Una <campo>_i18n JSONB; la columna legacy queda como está."
+      - q: "¿Cuál es la cadena de fallback?"
+        a: "Idioma exacto, después en, después la columna legacy."
+      - q: "¿Cuándo tiene que resolver el backend y de dónde saca el idioma?"
+        a: "Solo si el campo entra a un prompt, a un mail o sale por MCP; el idioma sale de resolve_response_language, nunca de Accept-Language."
+    source: "tuqui/docs/architecture/i18n.md (§ La regla, § Cómo agrego un campo traducible nuevo)"
+
+  - id: STE-E03
+    category: procedimiento
+    structure: false
+    requires: []
+    prompt: |
+      Acabo de crear un worktree nuevo de tuqui para una tarea que además suma una dependencia de Python y toca web/package.json. ¿Qué tengo que hacer para poder correr los tests ahí sin romper nada?
+
+      Material:
+      ---
+      **Worktree recién creado:** `make worktree-setup` desde el worktree. Linkea al clone principal lo que no viaja en git (`tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect`, `.env.eval`) — sin eso `make test` falla con "Venv no encontrado". No hace falta reinstalar dependencias por worktree: el `.venv` del clone principal sirve a todos y el código que corre sigue siendo el del worktree (los paquetes tienen `__init__.py`, así que la raíz del worktree entra primero en `sys.path`). Dos consecuencias de compartirlo:
+
+      - **No corras `make install` en un worktree linkeado** — escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te lo dice. Si tu branch agrega una dependencia, instalala en el clone principal (o borrá el link y armate un venv propio).
+      - **Los `node_modules` también son del clone principal.** Si tu branch toca `web/package.json`, corré `npm ci` en el worktree antes de `make test-web`.
+
+      ```bash
+      make test                                     # unit (el mismo paso de pytest del job `test` de CI)
+      make test ARGS="tests/test_rls.py -k policy"  # un subconjunto (paths relativos a tuqui_core/)
+      make test-rls                                 # aislamiento multi-tenant
+      make test-web                                 # frontend (vitest)
+      make test-evals                               # unit tests del módulo evals/ (no los benchmarks)
+      make lint                                     # ruff check + format check
+      ```
+      ---
+    pass_criteria:
+      - fact: "Hay que correr make worktree-setup desde el worktree, que linkea al clone principal el .venv, los .env, los node_modules y otros archivos que no viajan en git."
+        condition: false
+      - fact: "Sin make worktree-setup, make test falla con 'Venv no encontrado'."
+        condition: true
+      - fact: "No hay que correr make install en un worktree linkeado porque escribiría en el venv del clone principal; el target se niega."
+        condition: true
+      - fact: "La dependencia nueva se instala en el clone principal, o se borra el link y se arma un venv propio."
+        condition: true
+      - fact: "Como la rama toca web/package.json, hay que correr npm ci en el worktree antes de make test-web."
+        condition: true
+    control:
+      - q: "¿Qué comando corrés primero en el worktree nuevo?"
+        a: "make worktree-setup, que linkea al clone principal el .venv, los .env y los node_modules."
+      - q: "¿Dónde instalás la dependencia nueva de Python?"
+        a: "En el clone principal (o borrás el link y armás un venv propio); make install en el worktree linkeado no se corre."
+      - q: "¿Qué corrés antes de make test-web y por qué?"
+        a: "npm ci en el worktree, porque la rama toca web/package.json y los node_modules son del clone principal."
+    source: "tuqui/AGENTS.md (§ Cómo correr los tests)"
+
+  - id: STE-E04
+    category: explicacion
+    structure: false
+    requires: []
+    prompt: |
+      No termino de entender el mode de odoo_write. ¿Qué diferencia hay entre append y replace, y qué pasa si el append falla a mitad de camino con varios registros?
+
+      Material:
+      ---
+      **`mode` en `odoo_write` (append vs replace).** Un `write` de Odoo reemplaza el valor completo del campo. En prosa larga (`description`, `task_description`, notas internas) eso es destructivo e irreversible: esos campos no dejan rastro del valor anterior en el chatter, así que "completá la descripción" resuelto como write plano borra lo que escribió una persona (tarea 71628).
+
+      - `mode="replace"` (default, retrocompatible) pisa todo lo que se manda. No lee nada previo — el camino común no paga round-trip extra.
+      - `mode="append"` conserva el contenido actual de los campos `html` y `text` de `values` y pone el nuevo abajo, **por registro**. Los demás tipos de campo se reemplazan igual en los dos modos.
+
+      El contrato vive en la `description` de la tool: si al LLM le pidieron *agregar* o *completar*, manda `append` con solo el contenido nuevo.
+
+      Detalles que importan:
+
+      - El append concatena **HTML crudo**, sin round-trip por Markdown, así que el markup propio de Odoo (links a registros, clases, imágenes embebidas) sobrevive intacto. En campos `text` la separación es una línea en blanco.
+      - Un rich text vaciado desde la UI (`<p><br></p>`) cuenta como vacío; un campo con solo una imagen cuenta como contenido.
+      - El pre-read del append **falla cerrado** (`append_precheck_failed`, no escribe), tanto si falla la lectura como si no se puede resolver el schema: sin el valor actual, un append es un replace — justo lo que el modo existe para evitar.
+      - El append es un write por registro, no una transacción. Si falla el registro k **habiendo escrito alguno antes**, esos no se revierten: el error devuelve `append_partially_applied` con `written_ids` / `failed_id` / `pending_ids` para que el reintento no duplique contenido (`pending_ids` es el conjunto a reintentar e **incluye al fallido**, porque tampoco se escribió; los únicos que quedan afuera son los de `written_ids`), y los ids escritos quedan en `tool_usage_log.write_metadata` (con `partial: true`) — el parcial es el caso donde más importa la auditoría. Si falla en el **primer** registro no se escribió nada: sale como un write fallido común (`invalid_values` o la excepción propagada), porque ahí reintentar la llamada entera es lo correcto.
+      - `mode="append"` exige texto: un valor no-string en un campo appendable (`{"description": false}` para vaciarlo) se rechaza con `append_requires_text` en vez de escribirse, porque pasaría como replace y borraría el campo al que se pidió agregar. Para vaciarlo, `mode="replace"`.
+      ---
+    pass_criteria:
+      - fact: "replace es el default y pisa todo el valor sin leer nada previo."
+        condition: false
+      - fact: "append conserva el contenido actual y agrega el nuevo abajo, pero solo en campos html y text; los demás tipos se reemplazan igual en los dos modos."
+        condition: true
+      - fact: "Si el pre-read del append falla (lectura o schema), falla cerrado con append_precheck_failed y no escribe."
+        condition: true
+      - fact: "El append no es una transacción: si falla en el registro k habiendo escrito otros antes, esos no se revierten y el error es append_partially_applied con written_ids, failed_id y pending_ids."
+        condition: true
+      - fact: "pending_ids incluye al registro que falló."
+        condition: false
+      - fact: "Si falla en el primer registro no se escribió nada y sale como un write fallido común, que se reintenta entero."
+        condition: true
+    control:
+      - q: "¿Qué hace replace?"
+        a: "Es el default: pisa todo el valor sin leer nada previo."
+      - q: "¿En qué campos conserva el contenido append?"
+        a: "Solo en html y text; los demás tipos se reemplazan igual."
+      - q: "Si el append falla en el tercero de cinco registros, ¿qué pasa con los dos primeros y qué reintentás?"
+        a: "Los dos primeros no se revierten; el error es append_partially_applied y se reintenta pending_ids, que incluye al que falló."
+    source: "tuqui/docs/architecture/tools.md (§ Write / execute)"
+
+  - id: STE-E05
+    category: explicacion
+    structure: false
+    requires: []
+    prompt: |
+      Antes nos pedían correr la suite completa local antes de pedir review. ¿Eso sigue así? ¿Por qué cambió y hay casos donde igual conviene correrla entera?
+
+      Material:
+      ---
+      **Corré local lo que tocaste; la suite completa es trabajo de CI.** El criterio
+      práctico, y lo que el equipo ya hace: mientras iterás y antes de pushear,
+      `make test ARGS=<lo que tocaste>` + `make lint` — feedback en segundos, sobre lo
+      que efectivamente cambiaste. La suite completa la corre CI, que para eso está y
+      corre en paralelo con tu trabajo en vez de comerse tu máquina.
+
+      Esto cambió a propósito: la guía anterior pedía la suite completa antes de pedir
+      review, y se apoyaba en que CI no te devolvía el resultado antes de lo que
+      tardaba correrla local. Eso dejó de ser cierto — el job de `test` bajó de ~11 min
+      a ~4 (bcrypt configurable en tests, PR #829, más runners arm64), mientras que una
+      corrida local completa te bloquea la máquina entera. Cuando el argumento se cae,
+      la recomendación se cae con él.
+
+      Dos excepciones donde la suite completa local **sí** vale:
+
+      - **Cambios transversales** — algo que toca `config`, `db.pool`, `chat.agent`,
+        `workspaces.service` o `billing.service` arrastra ~76% de los archivos de test
+        (medido sobre el grafo de imports), así que "lo que tocaste" deja de ser un
+        subconjunto útil.
+      - **Agentes de IA**: corré la suite completa **una vez antes de entregar**, no en
+        cada iteración. No tenés el criterio del autor para elegir el subconjunto, y
+        iterar contra CI genera pushes de ruido. Una sola pasada, al final.
+
+      En cualquier caso, no pushees a ciegas repetidas veces esperando que CI adivine:
+      si algo falla en CI y no sabés por qué, reproducilo local antes del siguiente
+      push.
+      ---
+    pass_criteria:
+      - fact: "Ya no: local se corre make test con ARGS de lo que se tocó más make lint; la suite completa la corre CI."
+        condition: false
+      - fact: "Cambió porque el job de test de CI bajó de ~11 min a ~4 (bcrypt configurable, PR #829, runners arm64), y la corrida local completa bloquea la máquina."
+        condition: false
+      - fact: "Excepción: en cambios transversales (config, db.pool, chat.agent, workspaces.service o billing.service) sí vale correr la suite completa local, porque arrastran ~76% de los tests."
+        condition: true
+      - fact: "Excepción: un agente de IA corre la suite completa una sola vez antes de entregar, no en cada iteración."
+        condition: true
+      - fact: "Si algo falla en CI y no se sabe por qué, hay que reproducirlo local antes del siguiente push."
+        condition: true
+    control:
+      - q: "¿Qué corrés local antes de pushear?"
+        a: "make test con ARGS de lo que tocaste, más make lint; la suite completa la corre CI."
+      - q: "¿Por qué cambió la regla?"
+        a: "El job de test de CI bajó de ~11 a ~4 minutos y la corrida local completa bloquea la máquina."
+      - q: "¿Cuándo sí conviene la suite completa local?"
+        a: "En cambios transversales (config, db.pool, chat.agent, workspaces.service, billing.service) y, para un agente de IA, una sola vez antes de entregar."
+    source: "tuqui/AGENTS.md (§ Cómo correr los tests)"
+
+  - id: STE-E06
+    category: diagnostico
+    structure: false
+    requires: []
+    prompt: |
+      Estoy en un worktree y de golpe me fallan tests que ni toqué con UndefinedColumnError. En otro worktree un compañero está con una rama que tiene migraciones. ¿Qué está pasando y cómo lo arreglo para que no me vuelva a pasar?
+
+      Material:
+      ---
+      **Una corrida de pytest a la vez por máquina.** La DB y el Redis locales son compartidos entre worktrees: el `conftest` aplica migraciones y el cleanup borra filas globales (`users`, `workspaces`), así que dos corridas en paralelo se pisan y fallan por eso y no por el código. Los targets que tocan esa DB — `test`, `test-rls`, `test-integration`, `test-all`, `odoo-matrix` — toman un lock (`flock`, espera hasta 15 min) y avisan cuando esperan. El lock evita el pisón simultáneo, **no** aísla el esquema: si dos worktrees tienen migraciones distintas, la DB local queda con la unión de las dos. El aislamiento de verdad es una DB propia por worktree: se declara en `tuqui_core/.env.test.local` (ver § La base de tests es por worktree). Recién con base **y Redis** propios el lock se puede soltar con un `TEST_LOCK` distinto: los dos recursos son compartidos, así que aislar sólo uno no alcanza.
+
+      ## La base de tests es por worktree
+
+      Los targets de test cargan `tuqui_core/.env.test` y, encima, `tuqui_core/.env.test.local` si existe (gitignoreado; hay un `.env.test.local.example` al lado). Ese override existe para una sola cosa: **darle a cada worktree su propia base** — y, si además querés soltar el lock, su propio Redis (`REDIS_URL` con un índice de base propio: el servidor es el mismo, lo que separa es el índice — el 15 ya es el default compartido de `.env.test` y el 0 es el del server de desarrollo, así que elegí otro).
+
+      Con una base compartida entre worktrees, una rama que trae una migración destructiva le deja a todas las demás un esquema sin las columnas que su código todavía lee — y el síntoma no es "falta una migración", es un `UndefinedColumnError` en tests que nadie tocó. Aislar sale gratis: `make migrate-reset` arma una base desde cero en ~3 segundos.
+
+      `make migrate-reset` **no** es `npx supabase db reset`. El CLI de Supabase trackea por prefijo numérico y ese prefijo es PK de su ledger, así que aborta en el primer prefijo repetido (hoy hay 25: 0143, 0144, 0145, 0156...). El target corre `scripts/reset_database.py`, que vacía y le pasa la posta a `scripts/apply_migrations.py` — el mismo runner de CI y deploy, que sí sabe de prefijos repetidos. Solo toca bases locales.
+      ---
+    pass_criteria:
+      - fact: "La causa es la base de tests compartida entre worktrees: una rama con una migración destructiva deja un esquema sin columnas que el código de las otras ramas todavía lee."
+        condition: false
+      - fact: "El lock evita corridas simultáneas pero no aísla el esquema; la base queda con la unión de las migraciones de los dos worktrees."
+        condition: true
+      - fact: "La solución es una base propia por worktree, declarada en tuqui_core/.env.test.local."
+        condition: false
+      - fact: "make migrate-reset arma la base desde cero en ~3 segundos; no hay que usar npx supabase db reset porque aborta en el primer prefijo repetido."
+        condition: true
+      - fact: "Solo con base y Redis propios (REDIS_URL con un índice distinto de 15 y de 0) se puede soltar el lock con un TEST_LOCK distinto; aislar solo uno no alcanza."
+        condition: true
+    control:
+      - q: "¿Por qué fallan tests que no tocaste?"
+        a: "Porque la base de tests es compartida y una migración destructiva de otra rama dejó el esquema sin columnas que tu código lee."
+      - q: "¿El lock de pytest no lo evita?"
+        a: "No: evita corridas simultáneas, pero no aísla el esquema; la base queda con la unión de las migraciones."
+      - q: "¿Cómo lo arreglás?"
+        a: "Con una base propia por worktree en tuqui_core/.env.test.local, armada con make migrate-reset (no con npx supabase db reset)."
+    source: "tuqui/AGENTS.md (§ Cómo correr los tests, § La base de tests es por worktree)"
+
+  - id: STE-E07
+    category: diagnostico
+    structure: false
+    requires: []
+    prompt: |
+      Corrí pytest parado en la raíz del repo y me tiró un error raro, y otra vez probé `make test ARGS=-k a or b` y me dijo "file or directory not found: or". ¿Qué estoy haciendo mal? ¿Cuál es la forma correcta?
+
+      Material:
+      ---
+      **Desde la raíz del repo, por `make`.** La receta real es una sola y es la que corre CI:
+
+      ```bash
+      make test                                     # unit (el mismo paso de pytest del job `test` de CI)
+      make test ARGS="tests/test_rls.py -k policy"  # un subconjunto (paths relativos a tuqui_core/)
+      make test-rls                                 # aislamiento multi-tenant
+      make test-web                                 # frontend (vitest)
+      make test-evals                               # unit tests del módulo evals/ (no los benchmarks)
+      make lint                                     # ruff check + format check
+      ```
+
+      `ARGS` se expande literal en la receta, así que las comillas internas sí funcionan: `make test ARGS='-k "a or b"'`. Lo que no anda es dejar la expresión sin comillas (`-k a or b`): ahí el shell la parte en tres y pytest lee `or` como un path (`ERROR: file or directory not found: or`).
+
+      **No invoques `pytest` desde la raíz.** La config de la suite vive en `tuqui_core/pyproject.toml` (`asyncio_mode`, loop scopes, markers, `testpaths`): desde la raíz pytest no la ve, pierde el modo asyncio, colecta `evals/tests` y devuelve miles de fallas que no son del código (medido: 2302 failed / 2111 passed). El `conftest.py` de la raíz corta esa invocación con un mensaje en vez de dejarte creer el resultado. **Ataja el caso ingenuo, no todos:** `pytest tuqui_core/tests/test_x.py` desde la raíz resuelve su rootdir en `tuqui_core` y corre igual — anda, pero se saltea el lock de abajo. Si querés pytest crudo, `cd tuqui_core` (y para lo que lea `os.environ` directo, cargá `.env.test` como hace el Makefile).
+      ---
+    pass_criteria:
+      - fact: "pytest desde la raíz no ve la config de tuqui_core/pyproject.toml, pierde el modo asyncio y colecta evals/tests; el conftest.py de la raíz corta esa invocación con un mensaje."
+        condition: false
+      - fact: "La forma correcta es make test desde la raíz, que es la misma receta que corre CI, con ARGS para un subconjunto (paths relativos a tuqui_core/)."
+        condition: false
+      - fact: "La expresión de -k tiene que ir entre comillas internas, por ejemplo make test ARGS='-k \"a or b\"'; sin comillas el shell la parte y pytest lee 'or' como path."
+        condition: false
+      - fact: "pytest tuqui_core/tests/test_x.py desde la raíz corre igual, pero se saltea el lock."
+        condition: true
+      - fact: "Para pytest crudo hay que hacer cd tuqui_core y, si el código lee os.environ directo, cargar .env.test."
+        condition: true
+    control:
+      - q: "¿Por qué falla pytest desde la raíz?"
+        a: "Porque no ve la config de tuqui_core/pyproject.toml, pierde el modo asyncio y colecta evals/tests."
+      - q: "¿Cómo pasás -k con 'a or b'?"
+        a: "Con comillas internas: make test ARGS='-k \"a or b\"'."
+      - q: "¿Qué perdés si corrés pytest tuqui_core/tests/test_x.py desde la raíz?"
+        a: "Corre igual, pero se saltea el lock."
+    source: "tuqui/AGENTS.md (§ Cómo correr los tests)"
+
+  - id: STE-E08
+    category: comparacion
+    structure: false
+    requires: []
+    prompt: |
+      Estoy por hacer una tool nueva que en el fondo es un odoo_create sobre un modelo con algunos defaults. ¿Me conviene tool nativa o skill? ¿Cuál es el criterio, y cambia algo si la tool también se expone por el MCP saliente?
+
+      Material:
+      ---
+      ## Decisión
+
+      Una capability se expone como **tool nativa** solo si cumple **al menos uno** de estos ejes. Si no cumple ninguno → **skill**.
+
+      - **(a) No componible.** No se logra con las tools genéricas (`odoo_create` / `odoo_write` / `odoo_unlink` / `odoo_execute` / `odoo_search_read` / …) ni con otra tool existente. Ej.: leer bytes binarios (`odoo_attachment_content`), sandbox (`execute_code`), efecto en el embed (`propose_*`, `open_odoo_view`), stores propios de Tuqui (`manage_memory`, `tuqui_skill`, skills).
+      - **(b) Gate / identidad propia con menor blast radius** que la tool genérica equivalente. Se **bifurca por superficie**, porque `requires_approval` lo consume solo el chat (`tuqui_core/chat/permissions.py`) — el router MCP lo ignora:
+        - **(b1) approval / identidad de policy propia → vale solo en chat.**
+        - **(b2) whitelist más fina que `execute` / `create` genérico → vale en chat y en MCP.** Ej.: `odoo_copy` (gate `create` en vez de `execute`), `odoo_message_post` (gate propio por `messaging_mode` del workspace en vez de `execute`-per-modelo).
+      - **(c) Procedimiento crítico** donde un skip del LLM tiene costo real (compliance dura).
+      - **(d) Eficiencia / determinismo de contexto.** Colapsa en 1 call determinista lo que en tools genéricas cuesta **≥3 llamadas, o un loop no acotado** (número de calls dependiente de los datos), o un procedimiento con pasos que el LLM saltearía. **Umbral duro:** nunca un wrapper 1→1 — una tool que mapea a una sola call genérica no califica por (d), aunque ahorre tokens de esquema. Este eje es el más elástico; el umbral existe para que no se vuelva escapatoria para justificar cualquier wrapper de conveniencia. Ej.: `odoo_fields_batch`, `odoo_schema_discover`.
+
+      **Corolario de superficie:** en el **MCP saliente** (b1) y (c) no tienen palanca — no hay canal de approval ni un turno donde forzar pasos — así que ahí una tool solo se justifica por **(a)**, **(b2)** o **(d)**. Esto liga con la sección "Permisos — explícitamente NO reusar el hook del chat" de specs#49.
+
+      | Tool | Veredicto | Eje |
+      |---|---|---|
+      | `odoo_schedule_activity` | **demote → system skill** | componible; su único diferencial era (b1), que no vale en MCP, y ya estaba en `MCP_EXCLUDED_TOOLS` |
+      ---
+    pass_criteria:
+      - fact: "Es tool nativa solo si cumple al menos uno de los ejes (a) no componible, (b) gate propio con menor blast radius, (c) procedimiento crítico, (d) eficiencia; si no cumple ninguno, es skill."
+        condition: true
+      - fact: "Un wrapper 1→1 sobre una sola call genérica nunca califica por (d), aunque ahorre tokens de esquema; (d) pide colapsar ≥3 llamadas o un loop no acotado."
+        condition: true
+      - fact: "Un wrapper sobre odoo_create es componible, así que no califica por (a); por defecto va como skill."
+        condition: false
+      - fact: "El eje (b) se bifurca: (b1) approval propio vale solo en chat; (b2) whitelist más fina que create/execute vale en chat y en MCP."
+        condition: true
+      - fact: "En el MCP saliente solo justifican una tool (a), (b2) o (d), porque (b1) y (c) no tienen palanca ahí."
+        condition: true
+      - fact: "Precedente: odoo_schedule_activity se bajó a system skill porque era componible y su único diferencial era (b1)."
+        condition: false
+    control:
+      - q: "¿Cuándo va como tool nativa y cuándo como skill?"
+        a: "Tool nativa si cumple al menos un eje (a, b, c o d); si no cumple ninguno, skill."
+      - q: "¿Un wrapper sobre odoo_create califica por eficiencia (d)?"
+        a: "No: un wrapper 1→1 nunca califica; (d) pide colapsar ≥3 llamadas o un loop no acotado."
+      - q: "¿Qué ejes justifican una tool en el MCP saliente?"
+        a: "Solo (a), (b2) y (d); (b1) y (c) no tienen palanca ahí."
+    source: "specs/decisions/0002-criterio-tool-nativa-vs-skill.md (§ Decisión, § Auditoría aplicada)"
+
+  - id: STE-E09
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      ¿Cómo es el flujo completo cuando un usuario conecta un conector MCP con OAuth por usuario? Quiero entender qué pasa en cada paso entre el front, el backend y el provider, y qué pasa si después del intercambio algunas habilidades no contestan.
+
+      Material:
+      ---
+      1. Admin registra el server con `auth_type=oauth_per_user` y carga
+         `client_id`, `client_secret`, `authorize_url`, `token_url`, `scopes`.
+      2. User abre `/connectors` y clickea **Connect** en el server.
+      3. Front llama a `GET /api/mcp-oauth/{server_id}/start` → backend devuelve
+         `authorize_url` con `state` firmado (AES-GCM, TTL 10 min, payload
+         `{server_id, user_id, issued_at, nonce}` + opcionalmente `code_verifier` PKCE
+         y `scope_profile` para platform connectors).
+         La URL también incluye `access_type=offline` + `prompt=consent` (Google
+         solo emite refresh tokens si están ambos — el primero los pide, el segundo
+         fuerza re-issue en cada authorize, evitando que un disconnect+reconnect
+         quede sin refresh; otros providers ignoran params desconocidos por
+         RFC 6749 §3.1).
+      4. Front redirige al provider.
+      5. Provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.
+      6. Backend valida el state, intercambia code → tokens en `token_url`,
+         guarda tokens encriptados en `user_mcp_oauth_tokens`.
+      7. Redirect al SPA: `/w/{slug}/settings/connectors?connected={server_id}` — o a
+         `/w/{slug}/settings/members/{member_id}?connected=...` cuando el dueño es una
+         cuenta de servicio: el landing sale del dueño, no de un `return_to` aparte.
+      8. Refresh proactivo: `refresh_if_expired` se ejecuta al construir los
+         toolsets si quedan < 60s de validez.
+
+      **El `resource` de RFC 8707** viaja en los pasos 3, 6 y 8 cuando el server
+      declaró su URI canónica en la protected-resource metadata (`OAuthPerUserConfig.
+      resource`, que escribe el discovery). [...] Se manda **solo** si está guardado: los conectores
+      dados de alta antes de que el campo existiera siguen andando sin indicator, y
+      mandar uno adivinado es peor que no mandarlo, porque el AS que lo valida rechaza
+      cualquier valor que no reconozca.
+
+      ### Prueba de humo y conexión parcial
+
+      Después del intercambio de tokens, el callback introspecta **todas** las
+      habilidades habilitadas en paralelo:
+
+      - **ninguna contesta** → el token no sirve para nada: se borra y el redirect
+        lleva `connect_error=<motivo>` (la card muestra el banner de error).
+      - **alguna contesta** → el usuario queda conectado y el redirect lleva
+        `connect_warning=<habilidades>` (banner de conexión parcial). Desconectarlo por
+        una habilidad rota sería peor que el estado parcial que sí puede usar.
+      ---
+    pass_criteria:
+      - fact: "El backend devuelve la authorize_url con un state firmado AES-GCM con TTL de 10 minutos, y el provider vuelve al callback /api/mcp-oauth/callback con code y state."
+        condition: false
+      - fact: "En el callback el backend valida el state, intercambia el code por tokens en token_url y los guarda encriptados en user_mcp_oauth_tokens."
+        condition: false
+      - fact: "Si ninguna habilidad contesta en la prueba de humo, el token se borra y el redirect lleva connect_error."
+        condition: true
+      - fact: "Si alguna contesta, el usuario queda conectado y el redirect lleva connect_warning (conexión parcial)."
+        condition: true
+      - fact: "El parámetro resource de RFC 8707 se manda solo si el server declaró su URI canónica y está guardada; nunca se adivina."
+        condition: true
+      - fact: "El refresh es proactivo: refresh_if_expired corre al construir los toolsets si quedan menos de 60 segundos de validez."
+        condition: true
+    control:
+      - q: "¿Cómo va firmado el state y cuánto dura?"
+        a: "Firmado con AES-GCM, con TTL de 10 minutos."
+      - q: "¿Qué pasa si en la prueba de humo no contesta ninguna habilidad?"
+        a: "Se borra el token y el redirect lleva connect_error."
+      - q: "¿Y si contestan solo algunas?"
+        a: "El usuario queda conectado y el redirect lleva connect_warning (conexión parcial)."
+    source: "tuqui/docs/architecture/mcp-connectors.md (§ Flujo OAuth, § Prueba de humo y conexión parcial)"
+
+  - id: STE-E10
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      Explicame en qué orden se decide si el chat ejecuta una tool, la bloquea o le pregunta al usuario. Tengo un caso donde el admin puso "ask" y un miembro se la dejó en "allow", y otro de un agent que corre por webhook.
+
+      Material:
+      ---
+      ```
+      ┌───────────────────────────────────────────────────────────────────────┐
+      │ 1. workspace_write_models  (admin, binario por modelo)                │
+      │    ¿Tiene el workspace permitido este tool sobre este modelo?         │
+      └───────────────────────────────────────────────────────────────────────┘
+                                    ↓ allow
+      ┌───────────────────────────────────────────────────────────────────────┐
+      │ 2. deny del workspace (piso) → user_tool_approvals (preferencia       │
+      │    personal en ESTE workspace) → workspace_tool_approvals → default.  │
+      │    Action por tool: ALLOW / DENY / ASK.                               │
+      │    Default por ausencia de fila: ASK si el recurso está en approval,       │
+      │    ALLOW si no.                                                       │
+      └───────────────────────────────────────────────────────────────────────┘
+                                    ↓ allow / asked-granted
+      ┌───────────────────────────────────────────────────────────────────────┐
+      │ 3. tool.execute()                                                     │
+      │    Auditado en tool_usage_log con permission_action.                  │
+      └───────────────────────────────────────────────────────────────────────┘
+      ```
+
+      - `workspace_write_models` (admin UI: Settings → Write Models) es la
+        whitelist binaria por modelo. Si no permite la operación, el tool
+        short-circuita antes de llegar al gate runtime.
+
+      ## Evaluator
+
+      `tuqui_core/chat/permissions.py:evaluate_permission(ctx)` resuelve en
+      este orden:
+
+      1. `workspace_tool_approvals`, **sólo si dice `deny`** → DENY. El bloqueo
+         del admin es un piso, no un fallback: ninguna preferencia personal lo
+         levanta.
+      2. `user_tool_approvals` para `(user_id, workspace_id, tool_name)` → si
+         hay fila, ese `action` gana. **Se saltea entero en canales sin identidad
+         personal** (`exposure`, `webhook`, `scheduled`): ahí el turno corre con la
+         identidad prestada de un miembro (`chat/client_facing_core.py`), y la
+         preferencia de esa persona no es política del canal. Lo dice
+         `ChannelProfile.personal_identity_applies`. En esos canales la política es
+         la grilla del workspace.
+      3. `workspace_tool_approvals` para `allow` / `ask`.
+      4. Default per-tool:
+         - El recurso está en `approval` (`"ask"` o `"always"`) → **ASK**.
+         - Sin `approval` para ese recurso → **ALLOW**.
+         - Para tools de conector, sin declaración en el REGISTRY, la
+           heurística de verbos + las annotations MCP.
+      ---
+    pass_criteria:
+      - fact: "Primero workspace_write_models: si la whitelist por modelo no permite la operación, la tool corta antes del gate runtime."
+        condition: true
+      - fact: "Un deny en workspace_tool_approvals gana siempre: es un piso que ninguna preferencia personal levanta."
+        condition: true
+      - fact: "Si no hay deny, la preferencia personal en user_tool_approvals gana sobre el allow/ask del workspace; en el caso del miembro, su allow gana al ask del admin."
+        condition: false
+      - fact: "En canales sin identidad personal (exposure, webhook, scheduled) se saltea la preferencia personal y manda la grilla del workspace; en el caso del webhook aplica el ask del admin."
+        condition: true
+      - fact: "Sin filas, el default es ASK si el recurso está en approval y ALLOW si no."
+        condition: true
+      - fact: "La ejecución queda auditada en tool_usage_log con permission_action."
+        condition: false
+    control:
+      - q: "¿Qué se evalúa primero?"
+        a: "workspace_write_models: si la whitelist por modelo no lo permite, la tool corta antes del gate runtime."
+      - q: "Admin en ask y miembro en allow, en el chat del miembro: ¿qué gana?"
+        a: "El allow del miembro, salvo que el workspace tenga un deny."
+      - q: "¿Y en el agent por webhook?"
+        a: "Se saltea la preferencia personal y manda la grilla del workspace: aplica el ask del admin."
+    source: "tuqui/docs/architecture/permissions.md (§ Capas, § Evaluator)"
+
+  - id: STE-E11
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      Mi PR trae una migración que dropea una columna. ¿Qué pasa con esa migración desde que abro el PR hasta que llega a prod? ¿Dónde se aplica y dónde no, y qué tengo que poner en el archivo?
+
+      Material:
+      ---
+      ## Migrations runner
+
+      `tuqui_core/db/migrate.py` corre al deployar (`python -m tuqui_core.db.migrate`). Trackea archivos aplicados en la tabla `_migrations`. En staging también aplica `seed.sql`.
+
+      **Migraciones destructivas.** Los PR environments de Railway comparten la base de staging con el servicio de staging, que sigue corriendo el código anterior: una migración que dropea una columna/tabla aplicada desde un PR env rompe ese código viejo para todos. Una migración que deja al código anterior sin poder correr debe declararse con la línea `-- destructive: true` cerca del inicio del archivo: el runner solo la aplica donde `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y el deploy es de la rama `staging` o `main`** (`RAILWAY_GIT_BRANCH`); en cualquier otro caso la saltea **sin registrarla**, así el deploy real posterior al merge la aplica. Las dos condiciones, no una: un PR env **hereda** el flag de staging —así fue como un preview aplicó `0180_chat_ga` contra la base compartida—, y por eso el gate mira además la rama, fallando cerrado si hay marcadores de Railway sin rama estampada. Las migraciones aditivas no llevan marker y fluyen como siempre — o sea que **sí** se aplican a la base de staging desde el preview del PR, con las consecuencias que eso trae al mergear y al renombrar un archivo: [`docs/infra-ci-cd.md` § Un PR preview escribe en la base de staging](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging).
+
+      El mismo contrato vale para `scripts/apply_migrations.py` (el runner de CI y de local). Ahí el opt-in va por base, no por environment: las bases efímeras —el postgres de servicio de cada workflow, el container del stack e2e, la base de pytest— lo activan porque nadie más las comparte (`MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest). `make migrate` **no** lo activa: apunta a la base de desarrollo local, que sí es compartida entre worktrees.
+      ---
+    pass_criteria:
+      - fact: "La migración tiene que llevar la línea '-- destructive: true' cerca del inicio del archivo."
+        condition: false
+      - fact: "El runner la aplica solo si MIGRATIONS_ALLOW_DESTRUCTIVE=1 y además el deploy es de la rama staging o main; hacen falta las dos condiciones."
+        condition: true
+      - fact: "En el preview del PR se saltea sin registrarla, así el deploy real después del merge la aplica."
+        condition: true
+      - fact: "El motivo es que los PR envs comparten la base de staging con el servicio de staging, que sigue corriendo el código anterior."
+        condition: false
+      - fact: "En CI y en la base de pytest sí se aplica, porque esas bases efímeras activan el opt-in; make migrate no lo activa porque la base de desarrollo local es compartida."
+        condition: true
+    control:
+      - q: "¿Qué tenés que poner en el archivo?"
+        a: "La línea '-- destructive: true' cerca del inicio."
+      - q: "¿Se aplica en el preview del PR?"
+        a: "No: se saltea sin registrarla y la aplica el deploy real después del merge."
+      - q: "¿Qué dos condiciones necesita el runner para aplicarla?"
+        a: "MIGRATIONS_ALLOW_DESTRUCTIVE=1 y que el deploy sea de la rama staging o main."
+    source: "tuqui/docs/architecture/database.md (§ Migrations runner)"
+
+  - id: STE-E12
+    category: dato
+    structure: false
+    requires: []
+    prompt: |
+      ¿Cada cuánto se actualiza main desde staging en tuqui?
+
+      Material:
+      ---
+      - **PRs van contra `staging`, no contra `main`.** `staging` es la rama de trabajo activa (Railway preview, CI core/web, integration y odoo-matrix corren sobre PRs a `staging`); `main` es una cola que se fast-forwardea desde `staging` semanalmente vía el workflow [`sync-main.yml`](.github/workflows/sync-main.yml) (lunes 06:00 UTC) o on-demand. Por CLI: `gh pr create --base staging ...`. **Agentes:** si vas a abrir un PR, el base es `staging` salvo que el humano pida explícitamente otra cosa (p. ej. un hotfix directo a `main`).
+      - **Mergear PRs siempre con rebase**, nunca con merge commit ni squash. Por CLI: `gh pr merge <N> --rebase --delete-branch`. Si alguien usa `--merge` y queda un merge commit, hay que limpiarlo con `git rebase` + `git push --force-with-lease` antes de seguir. Mantenemos historia lineal en `main` y `staging`.
+        - El método de merge **no** lo enforcea el repo (el ruleset admite los tres), así que rebase-only es disciplina manual. El resto de los requisitos para mergear sí están enforceados y los informa GitHub en el PR — no se duplican acá, porque cambian sin avisar y este archivo quedaría mintiendo.
+      ---
+    pass_criteria:
+      - fact: "Semanalmente."
+        condition: false
+      - fact: "Los lunes a las 06:00 UTC."
+        condition: false
+      - fact: "Lo hace el workflow sync-main.yml con un fast-forward desde staging."
+        condition: false
+      - fact: "También se puede correr on-demand."
+        condition: false
+    control:
+      - q: "¿Cada cuánto se actualiza main?"
+        a: "Semanalmente."
+      - q: "¿Qué día y a qué hora?"
+        a: "Los lunes a las 06:00 UTC."
+      - q: "¿Qué lo hace y se puede forzar?"
+        a: "El workflow sync-main.yml, con un fast-forward desde staging; también se corre on-demand."
+    source: "tuqui/AGENTS.md (§ Convenciones de git)"
+
+  - id: STE-E13
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      Un workspace está en prueba y se le vence la semana que viene. ¿Qué avisos salen, a quién y cuándo, y qué le pasa al workspace el día que vence? ¿Cambia algo si ya tiene una suscripción?
+
+      Material:
+      ---
+      ## Circuito de fin de prueba
+
+      Todo lo que un aviso dice se **deriva** del estado (ver `billing/plan_summary.py`): qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar. Nada de eso se escribe en los catálogos de idioma — hay un test que falla si un nombre de plan aparece ahí (`tests/test_trial_notices.py`).
+
+      **Cuándo avisa.** `scheduler/billing_cron.py::_run_trial_expiry`, diario a las **12:00 UTC** (9 h en Argentina, para que llegue en horario de trabajo). Los hitos salen de `platform_config.billing_trial_warning_days_list` (default `{7, 0}`: la semana, y el día que vence mientras todavía funciona).
+
+      La marca de lo enviado es un **par**, no un flag: `trial_warning_for` (para qué fecha de fin se avisó) + `trial_warning_days` (el hito más chico ya enviado). Así una prueba extendida vuelve a avisar — con el flag viejo, extenderla la dejaba muda hasta el corte.
+
+      **A quién.** Los avisos de prueba (por vencer y vencida) van a **owners y admins siempre**, más a todo miembro con asiento (`billing_tier <> 'none'`): el asistente deja de responder para todo el equipo, y quien no puede pagar sí puede pedirlo. Owners y admins van aunque estén en `none` porque son los que deciden, y desde que un miembro nuevo nace sin plan un equipo en prueba puede no tener a nadie con asiento. Pago fallido y gracia vencida van a owners y admins; los que confirman movimientos de plata (recibo, cancelación) quedan en los owners. En el chat, además, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.
+
+      **Qué pasa al vencer.** Sin suscripción viva: `plan='free'`, se evalúa exceso y sale el mail. Con suscripción viva: se limpian los flags de trial y **no se manda nada** — no cambió nada que el owner pueda ver y el cobro se anuncia con su propio recibo.
+
+      ## `account_status` — source of truth
+
+      La operabilidad de un workspace se rige por `workspaces.account_status`:
+
+      | Valor | Quién lo setea | Efecto |
+      |---|---|---|
+      | `active` | default, reactivación post-pago, trial grant | Workspace operativo |
+      | `restricted` | cron grace period, trial expiry, downgrade con exceso, free limits | MCP bloqueado, chat bloqueado |
+      | `suspended` | admin manual | Ídem + **pausa cobro en Stripe** (`pause_collection.behavior='void'`) |
+      | `canceled` | reservado (no usado aún) | — |
+
+      `account_status_reason` califica el estado: `payment_past_due`, `payment_grace_expired`, `free_member_limit_exceeded`, `downgrade_with_excess`, `trial_expired_with_excess`, `manual_suspension`, `monthly_recheck`.
+      ---
+    pass_criteria:
+      - fact: "El cron _run_trial_expiry corre todos los días a las 12:00 UTC y los hitos salen de billing_trial_warning_days_list (default 7 y 0: la semana antes y el día que vence)."
+        condition: false
+      - fact: "Los avisos van siempre a owners y admins, más a todo miembro con asiento (billing_tier <> 'none')."
+        condition: false
+      - fact: "La marca de enviado es un par (trial_warning_for + trial_warning_days), así una prueba extendida vuelve a avisar."
+        condition: true
+      - fact: "Al vencer sin suscripción viva, el workspace pasa a plan='free', se evalúa el exceso y sale el mail."
+        condition: false
+      - fact: "Con suscripción viva solo se limpian los flags de trial y no se manda ningún aviso."
+        condition: true
+      - fact: "Si al vencer queda con exceso, account_status pasa a restricted (motivo trial_expired_with_excess), que bloquea MCP y chat."
+        condition: true
+    control:
+      - q: "¿Cuándo salen los avisos de fin de prueba?"
+        a: "Los manda un cron diario a las 12:00 UTC, en los hitos de billing_trial_warning_days_list: por default 7 días antes y el día que vence."
+      - q: "¿A quién le llegan?"
+        a: "A owners y admins siempre, más a todo miembro con asiento (billing_tier distinto de 'none')."
+      - q: "¿Qué pasa al vencer si el workspace ya tiene suscripción viva?"
+        a: "Solo se limpian los flags de trial y no se manda nada; sin suscripción pasa a free, se evalúa exceso y sale el mail."
+    source: "tuqui/docs/architecture/billing.md (§ Circuito de fin de prueba, § account_status — source of truth)"
+
+  - id: STE-E14
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      ¿Cómo se generan los insights diarios? Contame qué hace cada etapa del pipeline, qué le pasa una a la otra y en qué casos termina sin mostrar nada.
+
+      Material:
+      ---
+      ## 3-Stage Pipeline
+
+      ```
+      Context Assembler
+            │
+            ▼
+        [Stage 1] Planner         ← Gemini Flash, JSON structured, temp=1.0
+            │  0-N Hypotheses
+            ▼
+        [Stage 2] Investigator    ← Pydantic AI Agent, read-only tools, capped per register
+            │  InvestigationFindings
+            ▼
+        [Stage 3] Synthesizer     ← LLM JSON structured, temp=1.0
+            │  + 3-layer guards
+            ▼
+        0-2 Teasers → upsert insights table
+      ```
+
+      ### Context Assembler (`context_assembler.py`)
+
+      Runs 6 parallel queries under the user's RLS context:
+
+      | Source | What it fetches |
+      |---|---|
+      | `workspace_profiles` | Company description, industry, objectives |
+      | `user_profiles` | User role, preferences |
+      | `memory` (workspace scope) | Shared org knowledge |
+      | `memory` (user scope) | Personal user knowledge |
+      | `chat_conversations` (last 7d) | Conversation titles + last message (no LLM summarization) |
+      | `insight_history` (last 14d) | Recent datos shown — dedup signal |
+
+      Output: markdown bundle ~2–4K tokens.
+
+      ### Stage 1 — Planner (`planner.py`)
+
+      - Model: `platform_config.insights_planner_model` (default falls back to platform default).
+      - Prompt: `INSIGHTS_PLANNER_PROMPT` from `context/prompts/pipelines.py` (literal from spec).
+      - Returns `PlannerOutput(hypotheses, silence_reason)`. Empty hypotheses = valid silence (no teasers generated).
+
+      ### Stage 2 — Investigator (`investigator.py`)
+
+      - Pydantic AI Agent with read-only tools from the tools registry (no `approval`).
+      - Caps per hypothesis register (dict `REGISTER_CAPS`):
+
+      | Register | max_iterations | max_tool_calls | reasoning |
+      |---|---|---|---|
+      | `dato` / `celebracion` | 4 | 6 | minimal |
+      | `observacion` | 8 | 15 | low |
+      | `alerta` / `analisis` | 12 | 25 | medium |
+
+      - Up to 3 hypotheses investigated concurrently (`asyncio.Semaphore(3)`).
+      - Time budget per hypothesis: `(watchdog_sec - 30) / n_hypotheses`.
+
+      ### Stage 3 — Synthesizer + Guards (`synthesizer.py`, `guards.py`)
+
+      Synthesizes teasers from investigation findings and applies 3 sequential guard layers:
+
+      **Layer 1 — ResponseGuard (regex)**
+      Rejects teasers matching suspicious patterns: `"cliente A"`, `"seguramente"`, `"<cliente>"`, `"NOMBRE_"`, `"[nombre]"`, etc.
+
+      **Layer 2 — StringGrounding (rapidfuzz)**
+      Every entity in `teaser.entities` and every number in `teaser.dato` must appear in the combined investigator summary with `partial_ratio >= 75`.
+
+      **Layer 3 — LLM Judge**
+      Same model as synthesizer, zero temperature, returns `{grounded: bool, reason: str}`. On judge infra failure → teaser passes (don't block on infra error).
+
+      If all teasers rejected → `SynthesizerOutput(teasers=[], debug_note="synth_all_rejected: ...")`.
+      ---
+    pass_criteria:
+      - fact: "El Context Assembler corre 6 queries en paralelo bajo la RLS del usuario y arma un bundle markdown de ~2-4K tokens."
+        condition: false
+      - fact: "El Planner devuelve de 0 a N hipótesis; sin hipótesis es un silencio válido y no se generan teasers."
+        condition: true
+      - fact: "El Investigator es un agente Pydantic AI con tools read-only, topes por registro de la hipótesis, y hasta 3 hipótesis en paralelo."
+        condition: false
+      - fact: "El Synthesizer arma los teasers y aplica 3 guards en secuencia: regex (ResponseGuard), grounding con rapidfuzz (partial_ratio >= 75) y un juez LLM."
+        condition: false
+      - fact: "Si el juez LLM falla por infraestructura, el teaser pasa."
+        condition: true
+      - fact: "Si se rechazan todos los teasers sale una lista vacía con debug_note synth_all_rejected; el resultado normal son 0 a 2 teasers que se upsertean en la tabla insights."
+        condition: true
+    control:
+      - q: "¿Cuáles son las etapas y en qué orden?"
+        a: "Context Assembler, Planner, Investigator y Synthesizer con sus guards; al final se upsertean 0 a 2 teasers en insights."
+      - q: "¿En qué casos termina sin mostrar nada?"
+        a: "Cuando el Planner no devuelve hipótesis (silencio válido) o cuando los guards rechazan todos los teasers (synth_all_rejected)."
+      - q: "¿Qué pasa si el juez LLM se cae por un error de infraestructura?"
+        a: "El teaser pasa; no se bloquea por un error de infra."
+    source: "tuqui/docs/architecture/insights.md (§ 3-Stage Pipeline)"
+
+  - id: STE-E15
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      ¿Qué pasa por dentro cuando un owner conecta su Odoo al workspace? Quiero el recorrido de connect_odoo paso a paso, cómo decide a qué usuario de Odoo vincula al que conecta y qué pasa si cambia la URL.
+
+      Material:
+      ---
+      **Modelo nuevo (spec `0093_workspace_owns_odoo_credentials`):** las credenciales de Odoo viven en la tabla `workspaces` (`odoo_login`, `odoo_uid`, `odoo_api_key`). El rol `owner` es un rol administrativo de Tuqui — no necesita una identidad en Odoo y puede coexistir con otros owners. La vinculación owner ↔ `res.users` es opcional y se elige en el paso de connect (modos `auto` / `manual` / `none`).
+
+      ```
+      POST /workspaces/{slug}/odoo   (requires owner/admin auth)
+        → workspaces.service.connect_odoo(slug, payload, current_user_id)
+            → _authenticate_odoo(url, db, login, api_key)
+                → JsonRpcTransport.authenticate  → admin_uid
+            → _verify_odoo_admin_group(...)
+                # res.users.has_group(uid, 'base.group_system')
+                # Raises ValueError si el usuario no es admin de sistema en Odoo.
+            → JsonRpcTransport.get_version(url)  → detected_version (e.g. "18")
+                # Raises ValueError si detección falla o major < MIN_SUPPORTED.
+            → _resolve_link_mode(...)
+                # Decide cómo vincular el Member del current user:
+                #   - mode='auto'   (default cuando current_user.email == odoo_login)
+                #       binds Member.odoo_user_id = admin_uid
+                #   - mode='manual' (frontend pasó link_current_user_to_odoo='manual'
+                #                    + link_odoo_user_id): verifica que el res.users
+                #                    exista y bindea el Member a ese id.
+                #   - mode='none'   (default cuando los emails no matchean)
+                #                    deja el Member sin odoo_user_id.
+            → UPDATE workspaces
+                  SET odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version
+              (workspace passes a estar "conectado"; el rol owner NO se altera)
+              → Si otro workspace ya tiene el mismo `database.uuid` → 409 Conflict
+                (UNIQUE INDEX parcial `workspaces_odoo_database_uuid_unique`, migración 0134)
+            → if url_changed: limpia odoo_user_id/odoo_api_key de TODOS los members
+                  (incluido el owner — la identidad puede apuntar a otra instancia)
+            → if link_mode in {'auto','manual'}:
+                  UPDATE workspace_members SET odoo_user_id = linked_uid
+                  WHERE workspace_id = ? AND user_id = current_user_id
+                  asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))
+        ← WorkspaceConnectOdooResult (extends WorkspaceRead)
+            members_invalidated: int           # 0 unless URL changed
+            warning: str | None                # human-readable message shown in the UI
+            link_status: 'auto' | 'manual' | 'none'
+            linked_odoo_user_id: int | None
+      ```
+      ---
+    pass_criteria:
+      - fact: "Primero autentica contra Odoo y verifica que el usuario esté en base.group_system; si no es admin de sistema, falla con ValueError."
+        condition: true
+      - fact: "Después detecta la versión de Odoo y falla si la detección falla o la versión mayor es menor que MIN_SUPPORTED."
+        condition: true
+      - fact: "El vínculo es auto cuando el email del usuario coincide con odoo_login (vincula admin_uid), manual cuando el front manda un link_odoo_user_id que se verifica, y none cuando los emails no coinciden."
+        condition: true
+      - fact: "Las credenciales se guardan en la tabla workspaces y el rol owner no se altera."
+        condition: false
+      - fact: "Si otro workspace ya tiene el mismo database.uuid, devuelve 409 Conflict."
+        condition: true
+      - fact: "Si cambió la URL, limpia odoo_user_id y odoo_api_key de todos los members, incluido el owner."
+        condition: true
+    control:
+      - q: "¿Qué tiene que ser el usuario de Odoo para que la conexión se acepte?"
+        a: "Admin de sistema: miembro de base.group_system; si no, falla con ValueError."
+      - q: "¿Cuándo vincula automático y cuándo deja al member sin usuario de Odoo?"
+        a: "Auto cuando el email del usuario coincide con odoo_login; none cuando no coinciden (manual si el front manda el id a vincular)."
+      - q: "¿Qué pasa si cambia la URL de Odoo?"
+        a: "Limpia odoo_user_id y odoo_api_key de todos los members, incluido el owner."
+    source: "tuqui/docs/architecture/users_workspaces.md (§ Flujo de connect-odoo + user sync)"
+
+  - id: STE-E16
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      En la biblioteca de artifacts, ¿cómo funcionan las versiones? Si edito un artifact que ya compartí, ¿qué ve el que tiene el link? ¿Y qué pasa cuando solo se refrescan los datos?
+
+      Material:
+      ---
+      ## La costura content/data (restricción de la fase 2)
+
+      - `content` es el **template**: la página completa. `data` es el **snapshot de datos** (JSON), opcional.
+      - Al renderizar, el front inyecta `data` como `<script type="application/json" id="tuqui-data">`; el template lo lee con `JSON.parse(document.getElementById('tuqui-data').textContent)`.
+      - El **efectivo** de una versión `n` se resuelve hacia atrás por separado: el último `content IS NOT NULL` ≤ n y el último `data IS NOT NULL` ≤ n (`service._effective_version`). Un refresh de datos (fase 2, dashboards regenerables) crea una versión solo-data y **no puede romper el diseño**.
+      - Un `save` sobre un artifact existente con `data` valida contra el `data_schema` almacenado (`validate_data_against_schema` — subset propio: required keys + tipos de properties, sin dependencia `jsonschema`). Shape incompatible → rechazo **antes** de escribir.
+      - Caps fail-loud: `content` ≤ 1 MB, `data` serializada ≤ 1 MB (`models.CONTENT_MAX_BYTES` / `DATA_MAX_BYTES`).
+
+      ## Semántica de publicación
+
+      - `save` sin `artifact_id` crea la v1 **y la publica** (el flujo natural crear→compartir no arranca en 404).
+      - `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`, **no** `published_version_id`: el link que ya circuló sigue mostrando lo publicado. El result avisa con `unpublished_changes: true` y el viewer muestra un banner.
+      - `publish(version?)` mueve el puntero (default: la última). Revert = publicar una versión anterior.
+      - El viewer interno navega por `current_version` (con selector); la ruta por token sirve **siempre** `published_version`.
+      ---
+    pass_criteria:
+      - fact: "save sin artifact_id crea la v1 y la publica."
+        condition: false
+      - fact: "save con artifact_id crea la v(n+1) y mueve current_version_id pero no published_version_id: el link compartido sigue mostrando lo publicado, y el result avisa unpublished_changes: true."
+        condition: true
+      - fact: "publish mueve el puntero publicado (por default a la última versión); revertir es publicar una versión anterior."
+        condition: false
+      - fact: "La ruta por token sirve siempre published_version; el viewer interno navega por current_version."
+        condition: false
+      - fact: "content es el template y data el snapshot; el efectivo de cada versión se resuelve hacia atrás por separado, así un refresh solo-data no puede romper el diseño."
+        condition: true
+      - fact: "Un save con data se valida contra el data_schema guardado y, si el shape no coincide, se rechaza antes de escribir."
+        condition: true
+    control:
+      - q: "Si edito un artifact ya compartido, ¿qué ve quien tiene el link?"
+        a: "La versión publicada de antes: el save mueve current_version_id, no published_version_id, y avisa unpublished_changes."
+      - q: "¿Cómo revierto a una versión anterior?"
+        a: "Publicando esa versión con publish."
+      - q: "¿Un refresh de datos puede romper el diseño?"
+        a: "No: crea una versión solo-data y el content efectivo se resuelve por separado; si el shape no coincide con el data_schema, se rechaza antes de escribir."
+    source: "tuqui/docs/architecture/artifacts.md (§ La costura content/data, § Semántica de publicación)"
+
+  - id: STE-E17
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      ¿Qué pasa en el chat cuando una tool tira una excepción? Quiero el camino desde que falla hasta lo que ve el modelo, y cómo se corta si el modelo reintenta lo mismo una y otra vez.
+
+      Material:
+      ---
+      ## Tool error handling y doom-loop protection
+
+      `tuqui_core/chat/tool_errors.py`:
+
+      - `ErrorClass`: `TRANSIENT | RATE_LIMIT | PERMISSION | CONNECTION | ODOO_NOT_CONNECTED | INVALID_INPUT | NOT_FOUND | CONTEXT_OVERFLOW | FATAL`
+      - `CONNECTION` es un Odoo caído (falla el transporte); `ODOO_NOT_CONNECTED` es que nadie conectó Odoo para este run (sin credenciales, `require_adapter` en `tools/base.py`). Son dos textos distintos: a quien no conectó su Odoo no se le dice que la conexión está caída. El `DoomLoopGuard` corta las dos entre tools, cada una con su aviso.
+      - `ToolError(Exception)`: `error_class`, `message`, `retry_after_seconds`. `for_llm()` → `"[TOOL_ERROR class=X]: message"`
+      - `classify_unknown(exc)`: mapea excepciones Python/httpx a `ErrorClass`
+
+      `_wrap_tool` en `agent.py` captura `ToolError` directamente (o clasifica con `classify_unknown`) y retorna `exc.for_llm()` en lugar del string genérico anterior.
+
+      `tuqui_core/chat/guards.py` — `DoomLoopGuard` (THRESHOLD=3):
+
+      - `record(tool_name, args, ok, error_class)` — key = `"{tool_name}|{hash(args)}|{error_class}"`
+      - Éxito: limpia todos los contadores
+      - Si counter ≥ THRESHOLD: retorna `True` → `_wrap_tool` devuelve FATAL e impide más calls idénticos
+      ---
+    pass_criteria:
+      - fact: "_wrap_tool captura el ToolError o, si es otra excepción, la clasifica en una ErrorClass con classify_unknown."
+        condition: false
+      - fact: "Al modelo le vuelve exc.for_llm(), con la forma '[TOOL_ERROR class=X]: message', no un string genérico."
+        condition: false
+      - fact: "DoomLoopGuard cuenta los fallos por la clave tool_name|hash(args)|error_class, con umbral 3."
+        condition: false
+      - fact: "Al llegar al umbral, _wrap_tool devuelve FATAL e impide más llamadas idénticas."
+        condition: true
+      - fact: "Un éxito limpia todos los contadores."
+        condition: true
+      - fact: "CONNECTION (Odoo caído) y ODOO_NOT_CONNECTED (nadie conectó Odoo) son clases distintas con avisos distintos, y el guard corta las dos entre tools."
+        condition: true
+    control:
+      - q: "¿Qué recibe el modelo cuando una tool falla?"
+        a: "El texto de for_llm(): '[TOOL_ERROR class=X]: message', con la clase del error."
+      - q: "¿Cuándo se corta el reintento?"
+        a: "Cuando la misma tool, con los mismos args y la misma clase de error, falla 3 veces: _wrap_tool devuelve FATAL e impide más llamadas idénticas."
+      - q: "¿Qué resetea los contadores?"
+        a: "Cualquier éxito de una tool limpia todos los contadores."
+    source: "tuqui/docs/architecture/chat.md (§ Tool error handling y doom-loop protection)"
+
+  - id: STE-E18
+    category: flujo
+    structure: true
+    requires: []
+    prompt: |
+      ¿Cómo es el ciclo de vida de una memoria en el chat? Desde que el modelo la guarda hasta cómo entra al prompt de cada turno, y qué pasa cuando hay muchas.
+
+      Material:
+      ---
+      ## Cap + FIFO eviction
+
+      - **50 memories per scope** (per user for user-scope, per workspace for workspace-scope).
+      - When the 51st memory is added, the oldest by `created_at` is deleted in the same DB transaction.
+      - Silent eviction — the model is informed via a message in the tool response.
+
+      ## Progressive loading
+
+      System prompt injection uses a two-tier approach inspired by Claude Code Skills:
+
+      1. **Header** (injected every turn): `title + (summary if present, else body up to 250c)`. If body > 250c and no summary, the header ends with `... [read]`.
+      2. **Body** (fetched on demand): the model calls `manage_memory(action='read', id=...)` when it needs the full content of a `[read]`-marked memory.
+
+      This bounds the per-turn token cost to ~3K tokens for 50 maximally-sized memories.
+
+      ## System prompt injection
+
+      In `tuqui_core/chat/agent.py` `_load_chat_setup`, after the `CURRENT USER` block and before the project block:
+
+      ```
+      # Workspace memory (shared with team)
+      - [customer:123 / preferred_payment] Acme — method: Wire transfer only. (id=abc-...)
+      - [process:billing / default_due] Billing due end of month (not day 10). [read] (id=def-...)
+
+      # User memory (personal)
+      - [general] Sonnet preferred for long queries. (id=ghi-...)
+      ```
+
+      **Budget guard:** if total header chars exceed `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), rapidfuzz scores headers against the user's current message and keeps top-N.
+      ---
+    pass_criteria:
+      - fact: "Hay un tope de 50 memorias por scope (por usuario o por workspace); al agregar la 51 se borra la más vieja por created_at en la misma transacción."
+        condition: true
+      - fact: "El desalojo es silencioso, pero al modelo se le avisa en la respuesta de la tool."
+        condition: true
+      - fact: "En cada turno entra solo el header: título más summary, o el body hasta 250 caracteres terminado en '... [read]' si es más largo y no hay summary."
+        condition: false
+      - fact: "El body completo lo pide el modelo a demanda con manage_memory(action='read', id=...)."
+        condition: false
+      - fact: "Se inyecta en _load_chat_setup, después del bloque CURRENT USER y antes del de proyecto, en dos secciones: memoria del workspace y memoria personal."
+        condition: false
+      - fact: "Si los headers superan _MEMORY_BUDGET_CHARS (12K caracteres, ~3K tokens), rapidfuzz los puntúa contra el mensaje actual y se queda con los top-N."
+        condition: true
+    control:
+      - q: "¿Qué pasa cuando se guarda la memoria número 51 de un scope?"
+        a: "Se borra la más vieja por created_at en la misma transacción, y al modelo se le avisa en la respuesta de la tool."
+      - q: "¿Qué entra al prompt de cada turno y cómo llega el resto?"
+        a: "Solo el header (título más summary o body hasta 250 caracteres con [read]); el body completo se pide con manage_memory action='read'."
+      - q: "¿Qué pasa si los headers son demasiados?"
+        a: "Si superan 12K caracteres, rapidfuzz los puntúa contra el mensaje actual y se queda con los top-N."
+    source: "tuqui/docs/architecture/memory.md (§ Cap + FIFO eviction, § Progressive loading, § System prompt injection)"
