@@ -90,36 +90,18 @@ For a change with no visible behaviour, such as a refactor, make level 1 the gua
 
 The exhibits are the plan. Words only name them.
 
-**Write all prose in ASD-STE100 Simplified Technical English (STE). Use no other style.** This rule applies to claims, captions, pins, questions, options and notes.
+**Write all prose in Spanish, with the `ste-es` rules (voseo, short sentences, active voice, no filler) and its glossary. Do not write the plan in English.** This applies to claims, captions, pins, questions, options and notes. Set `<html lang="es">`.
 
-- **Approved words only.** Use a word only if the STE dictionary approves it, and only with its approved meaning and part of speech. If you are not sure about a word, use the most common short word that has the same meaning.
-- **Technical names and technical verbs are permitted.** Names from the code (`createScheduled()`, `scheduled_messages`), product names, UI labels and units are technical names. Verbs of the field (*compile*, *deploy*, *merge*, *render*) are technical verbs. Use the same name for the same thing each time.
-- **Short sentences.** One topic for each sentence. An instruction has 20 words at most. A description has 25 words at most. A paragraph has 6 sentences at most.
-- **Active voice.** Say who does what: “The worker claims the row.” Not “The row is claimed.”
-- **Simple tenses.** Use the present, the past and the future: *sends*, *sent*, *will send*. Do not write *has sent* or *is sending*. Do not use an *-ing* word unless it is part of a technical name.
-- **Instructions are commands.** “Run the migration.” Write one instruction in each sentence. Put the condition first: “If the claim fails, stop.”
-- **`must` and `can`.** Use *must* for a rule and *can* for what is possible. Do not use *should*, *may* or *might*.
-- **Noun groups of 3 words at most.** “The retry limit of the send worker.” Not “the send worker retry limit setting”.
-- **Full grammar.** Keep *the*, *a* and *an*. Do not use contractions, idioms, metaphors or jokes.
+- **Claims at levels 1 and 2 are sentences that can be true or false, 12 words at most.** Count the words. A level-3 claim is only a place: `file:line · symbol`.
+- **A caption is one sentence: what to notice.** A pin is a clause. An option's `<small>` is 12 words at most.
+- **No paragraph between a claim and its exhibit.** If the exhibit needs explaining, pick a better exhibit.
+- **Budget: about 500 words of prose in the whole plan**, outside code, schemas and mockup text. If the plan is longer, cut claims, not exhibits.
+- **"tiene que" for a rule, "puede" for what is possible.** No "debería" or "podría".
+- **Technical names stay as they are**: names from the code, product names, UI labels and units. Use the same name for the same thing each time.
 
-| Do not write | Write |
-|---|---|
-| utilize, leverage | use |
-| perform, carry out | do |
-| ensure, verify, check (as a verb) | make sure |
-| demonstrate, indicate | show |
-| commence, begin · terminate | start · stop |
-| obtain · provide | get · give |
-| prior to · in order to | before · to |
-| however · additionally | but · also |
-| about 50 | approximately 50 |
+The words of the user in a `doc-quote`, the code and the text on a UI mockup stay in their own language.
 
-These are not STE and stay as they are: the words of the user in a `doc-quote`, code, and the text on a UI mockup.
-
-- A caption is one sentence: what to notice. A pin is a clause. An option's `<small>` is 12 words at most.
-- No paragraph between a claim and its exhibit. If the exhibit needs explaining, pick a better exhibit.
-
-`pack.mjs` warns about some STE errors: common unapproved words, contractions, *has/have* tenses, the passive voice and long sentences. It does not know the full dictionary, so a clean run does not prove that the text is STE.
+`pack.mjs` warns about English STE errors: unapproved English words, contractions, *has/have* tenses, *-ing* words and the English passive voice. These warnings do not apply to Spanish text: ignore them. Fix every structure error it reports.
 
 ## Steps
 

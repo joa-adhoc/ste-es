@@ -33,7 +33,7 @@ Diagram patterns: [`references/diagrams.md`](./references/diagrams.md).
 
 ## Plans
 
-When you write a plan with the `html-plan` skill, read [`references/html-plan.md`](./references/html-plan.md): keep its structure and write its prose in Spanish with these rules, not in English STE.
+The `html-plan` skill in this repo already writes its prose in Spanish with these rules.
 
 ## Vocabulary
 

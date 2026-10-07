@@ -43,9 +43,9 @@ node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove everythin
 
 ## Plans
 
-`/html-plan <what to build>` writes an implementation plan as one interactive HTML page: a tree of claims, each shown by a mockup, state machine, call stack, schema or code, with the decisions placed where they matter. Its structure is used as is. Its prose follows the ste-es rules in Spanish instead of English STE: see [`skills/ste-es/references/html-plan.md`](skills/ste-es/references/html-plan.md).
+`/html-plan <what to build>` writes an implementation plan as one interactive HTML page: a tree of claims, each shown by a mockup, state machine, call stack, schema or code, with the decisions placed where they matter. Its structure is used as is. Its prose follows the ste-es rules in Spanish instead of English STE, with a budget of about 500 words: see [`patches/html-plan-words.md`](patches/html-plan-words.md).
 
-`skills/html-plan/` is an unchanged copy of [html-plan](https://github.com/anthropics/claude-plugins-community/tree/main/html-plan) by Thariq Shihipar (MIT), pinned to the commit in `skills/html-plan/UPSTREAM`. To update it, run `node scripts/sync-html-plan.mjs`, review the diff and commit.
+`skills/html-plan/` is a copy of [html-plan](https://github.com/anthropics/claude-plugins-community/tree/main/html-plan) by Thariq Shihipar (MIT), pinned to the commit in `skills/html-plan/UPSTREAM`. Only its "Words" section is replaced, by the patch above. To update it, run `node scripts/sync-html-plan.mjs`, review the diff and commit.
 
 ## What was measured
 
@@ -62,6 +62,6 @@ node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove everythin
 
 The published skill is `core_diagrams` plus its scope and the glossary. It has the fewest incorrect claims of any arm. The trade-off: on flow cases the judge prefers plain Claude Code (17 to 10), while on cases without structure the skill wins 21 to 6. A variant that keeps step-by-step detail under each diagram (`skill_v3`) did not improve the overall result, so it was not adopted.
 
-The current `SKILL.md` adds one line that points to the html-plan layer; it does not change chat answers.
+The current `SKILL.md` adds one line about html-plan; it does not change chat answers.
 
 Limits: one model only, and the judge and the reader are Claude too.
