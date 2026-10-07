@@ -1,5 +1,3 @@
-<!-- Copia provisoria de ingadhoc/adhoc-way templates/glosario.md (commit 27e93d0). La fuente es esa: esta copia se borra cuando el paquete @ingadhoc/adhoc-way lo publique. No editar acá. -->
-
 # Glosario
 
 Una palabra por concepto. Si el equipo ya usa la palabra en inglés, queda en inglés; si no, en castellano.
@@ -10,7 +8,7 @@ dueño (no owner) · clon (no clone) · alcance y fuera de alcance (no scope) ·
 
 ## En inglés, instalados
 
-repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tarea") · ticket (el registro de helpdesk) · workspace · spec · skill · hook · MCP · host · core · vendor (quien provee el agente: Claude Code, Codex, opencode) · feedback · snapshot · digest · artifact (el objeto de Tuqui; "entregable" es el genérico) · build · deploy · release.
+repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tarea") · ticket (el registro de helpdesk) · workspace · spec · skill · hook · MCP · host · core · vendor (quien provee el agente: Claude Code, Codex, opencode) · feedback · snapshot · digest · build · deploy · release.
 
 ## Siglas que usamos
 
@@ -19,7 +17,7 @@ repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tare
 - **ADR**: registro de una decisión (`decisions/`).
 - **CA**: criterio de aceptación.
 - **PR**: pull request.
-- **MCP**: protocolo por el que un agente usa herramientas (Tuqui expone uno).
+- **MCP**: protocolo por el que un agente usa herramientas.
 - **I+D**: investigación y desarrollo.
 - **CX**: Customer Experience, el equipo.
 - Siglas de personas: la que va entre paréntesis en el nombre de Odoo (`jjs`, `mac`, `ffp`).

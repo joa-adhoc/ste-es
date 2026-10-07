@@ -1,6 +1,6 @@
 # Eval de ste-es
 
-Mide si las reglas de ste-es cumplen el objetivo: que la respuesta sea sencilla, concisa y directa, para que el dev no tenga que repreguntar ("resumime", "dame un ejemplo"), sin perder hechos y sin gastar más tokens. Nació en el harness de Tuqui ([workspace#24](https://github.com/Tuqui-AI/workspace/pull/24), tarea [77063](https://www.adhoc.inc/odoo/project.task/77063)), con casos sacados de la documentación de Tuqui. El material viaja dentro de cada caso, así que no depende de ese repo.
+Mide si las reglas de ste-es cumplen el objetivo: que la respuesta sea sencilla, concisa y directa, para que el dev no tenga que repreguntar ("resumime", "dame un ejemplo"), sin perder hechos y sin gastar más tokens.
 
 ## Brazos
 
@@ -15,7 +15,7 @@ Todos usan el system prompt por defecto de Claude Code. Solo cambia el texto que
 | `nucleo_diag` | `nucleo_plus` + diagramas solo con 3 o más partes relacionadas, sin repetir en el texto |
 | `nucleo_ste` | `nucleo_plus` + una palabra un significado + verbos simples |
 | `completo` | foto de STE-ES v1 (13 reglas, glosario y diagramas) del 6-oct-2026 |
-| `skill_v2` | foto de la skill publicada: cuerpo de `SKILL.md` (reglas de `nucleo_diag` sin cambios + alcance) y el glosario de adhoc-way. Todavía sin medir. |
+| `skill_v2` | foto de la skill publicada: cuerpo de `SKILL.md` (reglas de `nucleo_diag` sin cambios + alcance) y el glosario de la skill. Todavía sin medir. |
 | `completo_sin_diag` | `completo` sin la parte de diagramas. Defecto conocido: todavía menciona diagramas en la introducción y termina con "No uses diagramas", así que da instrucciones contradictorias. Solo está en `local-02`. |
 
 Cada respuesta guarda el hash de su brazo. Cada veredicto guarda el modelo, la configuración y el hash del texto que juzgó: si alguno cambia, se rehace en vez de reutilizarse.
@@ -64,4 +64,3 @@ Las corridas se retoman: lo que ya existe se saltea. Cada invocación de `run.py
 - Las heurísticas de voseo y gerundio son aproximadas.
 - El juez, el lector y el generador son modelos de Claude. El lector simula a un dev, no lo reemplaza.
 - Los casos los escribió quien arma las reglas.
-- El glosario no se mide: se rehace a partir del de adhoc-way.

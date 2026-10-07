@@ -26,7 +26,7 @@ Diagram patterns: [`references/diagrams.md`](./references/diagrams.md).
 
 ## Vocabulary
 
-Use the adhoc-way glossary: one word per concept, the English terms the team already uses, and the words to avoid. It lives next to `conventions.md` in the `@ingadhoc/adhoc-way` package (`templates/glosario.md`). If your installed package does not have it yet, read the provisional copy in [`references/glosario.md`](./references/glosario.md).
+Use [`references/glosario.md`](./references/glosario.md): one word per concept, the English terms the team already uses, and the words to avoid.
 
 Technical terms are fine: use the word the context needs (`commit`, `endpoint`, a field name).
 
@@ -40,7 +40,7 @@ dueño (no owner) · clon (no clone) · alcance y fuera de alcance (no scope) ·
 
 ## En inglés, instalados
 
-repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tarea") · ticket (el registro de helpdesk) · workspace · spec · skill · hook · MCP · host · core · vendor (quien provee el agente: Claude Code, Codex, opencode) · feedback · snapshot · digest · artifact (el objeto de Tuqui; "entregable" es el genérico) · build · deploy · release.
+repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tarea") · ticket (el registro de helpdesk) · workspace · spec · skill · hook · MCP · host · core · vendor (quien provee el agente: Claude Code, Codex, opencode) · feedback · snapshot · digest · build · deploy · release.
 
 ## Siglas que usamos
 
@@ -49,7 +49,7 @@ repo · commit · branch · merge · push · PR · issue (de GitHub; no es "tare
 - **ADR**: registro de una decisión (`decisions/`).
 - **CA**: criterio de aceptación.
 - **PR**: pull request.
-- **MCP**: protocolo por el que un agente usa herramientas (Tuqui expone uno).
+- **MCP**: protocolo por el que un agente usa herramientas.
 - **I+D**: investigación y desarrollo.
 - **CX**: Customer Experience, el equipo.
 - Siglas de personas: la que va entre paréntesis en el nombre de Odoo (`jjs`, `mac`, `ffp`).

@@ -2,11 +2,11 @@
 
 Estilo de respuesta para agentes (Claude Code, Codex, Gemini) que le hablan a un dev en español: directo, conciso y con lo concreto a mano, para que no haga falta repreguntar "resumime" o "dame un ejemplo".
 
-> **Estado:** experimento. `ste-es` es el nombre del proyecto hasta que quede definido. Si la prueba sale bien, la convención pasa a [adhoc-way](https://github.com/ingadhoc/adhoc-way) y este repo se archiva.
+> **Estado:** experimento. `ste-es` es el nombre del proyecto hasta que quede definido. Si la prueba sale bien, se decide dónde sigue.
 
 ## Qué es
 
-Las reglas son el texto exacto del brazo `nucleo_diag` que midió el eval: un núcleo sacado de ASD-STE100 (el inglés controlado de los manuales de aviones) y del propio eval, más diagramas de texto solo cuando la respuesta tiene estructura. El vocabulario es el [glosario de adhoc-way](https://github.com/ingadhoc/adhoc-way/blob/main/templates/glosario.md).
+Las reglas son el texto exacto del brazo `nucleo_diag` que midió el eval: un núcleo sacado de ASD-STE100 (el inglés controlado de los manuales de aviones) y del propio eval, más diagramas de texto solo cuando la respuesta tiene estructura. El vocabulario sale de un [glosario](skills/ste-es/references/glosario.md) de una palabra por concepto.
 
 0. La precisión gana: ninguna regla justifica perder un dato o una condición.
 1. La respuesta va en la primera oración.
