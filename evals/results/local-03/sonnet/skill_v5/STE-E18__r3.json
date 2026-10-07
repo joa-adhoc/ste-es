@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n┌───────────────┐   ┌──────────────────┐   ┌──────────────────┐\n│ manage_memory │──►│ DB: tope 50 por  │──►│ _load_chat_setup │\n│ (guardar)     │   │ scope, FIFO      │   │ arma headers     │\n└───────────────┘   └──────────────────┘   └────────┬─────────┘\n                                                    ▼\n┌───────────────┐   ┌──────────────────┐   ┌──────────────────┐\n│ manage_memory │◄──│ modelo           │◄──│ system prompt    │\n│ action='read' │   │ ve \"[read]\"      │   │ (cada turno)     │\n└───────────────┘   └──────────────────┘   └──────────────────┘\n```\n\n- **Tope:** son 50 memorias por scope (por usuario o por workspace). Al agregar la 51ª, la misma transacción borra la más vieja por `created_at`. El borrado es silencioso, pero el modelo se entera por el mensaje de la respuesta del tool.\n- **Header:** cada turno se inyecta `title + summary`. Sin summary, se inyecta el body hasta 250 caracteres. Si el body es más largo, el header termina en `... [read]`.\n- **Cuerpo completo:** el modelo lo pide con `manage_memory(action='read', id=...)` solo cuando lo necesita.\n- **Posición:** los bloques \"Workspace memory\" y \"User memory\" van después de `CURRENT USER` y antes del bloque del proyecto.\n- **Presupuesto:** si los headers superan `_MEMORY_BUDGET_CHARS` (12K caracteres, ~3K tokens), rapidfuzz puntúa cada header contra el mensaje actual del usuario. Se quedan los top-N.\n\n¿Querés el detalle del formato de cada línea del header?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5267,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1525,
+  "output_tokens_details": {
+   "thinking_tokens": 893
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5267,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1525,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5267,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5267
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

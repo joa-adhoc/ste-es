@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El pipeline tiene 3 etapas, precedidas por el Context Assembler. Termina sin mostrar nada en dos casos: el Planner no genera hipótesis, o los guards rechazan todos los teasers.\n\n```\n┌───────────────────┐  bundle markdown   ┌─────────────┐\n│ Context Assembler │ ─────────────────► │ 1. Planner  │\n│ 6 queries (RLS)   │   ~2–4K tokens     └──────┬──────┘\n└───────────────────┘                           │ PlannerOutput\n                                                │ (hypotheses, silence_reason)\n                                                ▼\n                                        ┌───────────────┐\n                                        │ 2. Investigator│\n                                        └──────┬────────┘\n                                               │ InvestigationFindings\n                                               ▼\n                                        ┌───────────────┐\n                                        │ 3. Synthesizer│\n                                        │ + 3 guards    │\n                                        └──────┬────────┘\n                                               │ SynthesizerOutput\n                                               ▼\n                                        0–2 teasers → upsert `insights`\n```\n\n- **Assembler:** junta perfil del workspace y del usuario, memoria, chats de los últimos 7 días e historial de insights de los últimos 14 días. El historial sirve para no repetir datos.\n- **Planner:** propone 0–N hipótesis.\n- **Investigator:** investiga cada hipótesis con herramientas de solo lectura. Los topes de iteraciones y llamadas dependen del registro (`dato`, `observacion`, `alerta`, etc.). Corre hasta 3 hipótesis en paralelo.\n- **Synthesizer:** arma los teasers a partir de los hallazgos. Después pasan 3 guards en orden:\n  1. Regex: rechaza frases como \"seguramente\" o \"cliente A\".\n  2. `rapidfuzz`: entidades y números deben aparecer en el resumen del Investigator con `partial_ratio >= 75`.\n  3. Juez LLM: decide si el teaser está fundamentado.\n\n**Casos sin salida:**\n- **Planner sin hipótesis:** es un silencio válido y no se genera ningún teaser.\n- **Guards rechazan todo:** devuelve `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"`.\n\nSi falla la infraestructura del juez, el teaser pasa. Ese caso no produce silencio.\n\nEl material no dice qué pasa si el Investigator no encuentra nada o se queda sin tiempo. ¿Querés que lo revisemos en el código?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5911,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1194,
+  "output_tokens_details": {
+   "thinking_tokens": 315
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5911,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1194,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5911,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5911
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

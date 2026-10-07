@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 1,
+ "result": "```\nContext Assembler ──► Planner ──► Investigator ──► Synthesizer + guards\n (bundle ~2–4K tk)   0-N hipót.   InvestigationFindings   0-2 teasers\n                                                              │\n                                                              ▼\n                                                      upsert en insights\n```\n\n**Los insights salen de un pipeline de 3 etapas, y termina sin mostrar nada si el Planner no propone hipótesis o si los guards rechazan todos los teasers.**\n\n- **Context Assembler**: corre 6 queries en paralelo bajo el RLS del usuario. Trae perfil del workspace, perfil del usuario, memoria de workspace y de usuario, chats de los últimos 7 días e historial de insights de 14 días. Le pasa al Planner un bundle en markdown de ~2–4K tokens.\n- **Planner** (`planner.py`): un LLM con salida JSON propone 0-N hipótesis. Devuelve `PlannerOutput(hypotheses, silence_reason)`.\n- **Investigator** (`investigator.py`): un agente de Pydantic AI con tools de solo lectura investiga cada hipótesis. Los topes dependen del registro (`dato`/`celebracion`: 4 iteraciones y 6 tool calls; `observacion`: 8 y 15; `alerta`/`analisis`: 12 y 25). Investiga hasta 3 hipótesis en paralelo, con un presupuesto de `(watchdog_sec - 30) / n_hypotheses` por hipótesis. Le pasa `InvestigationFindings` al Synthesizer.\n- **Synthesizer** (`synthesizer.py`, `guards.py`): genera hasta 2 teasers y los pasa por 3 guards en orden:\n  1. ResponseGuard (regex) rechaza frases como \"cliente A\" o \"seguramente\".\n  2. StringGrounding (rapidfuzz) exige que cada entidad y cada número aparezcan en el resumen del Investigator con `partial_ratio >= 75`.\n  3. LLM Judge devuelve `{grounded, reason}`. Si falla por infraestructura, el teaser pasa.\n\n**Casos sin salida:**\n- El Planner devuelve hipótesis vacías. Es un silencio válido y no se genera ningún teaser.\n- Los guards rechazan todos los teasers. El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl material no dice qué pasa si el Investigator agota su presupuesto de tiempo. ¿Querés que lo busque en el código?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5909,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 896,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5909,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 896,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5909,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5909
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

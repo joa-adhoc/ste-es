@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Skill**, salvo que la tool tenga un gate más fino que `odoo_create` genérico.\n\nUn `odoo_create` con defaults es un wrapper 1→1. No cumple (a), porque se logra componiendo `odoo_create`. Tampoco cumple (d), porque el umbral duro excluye los wrappers 1→1 aunque ahorren tokens de esquema. Tampoco aplica (c), salvo que haya compliance dura detrás.\n\n**El único camino a tool nativa es (b2).** Cumple si la tool exige un permiso más acotado que el `create` genérico. Por ejemplo, si el workspace puede habilitar solo este modelo sin abrir `create` en general. Es el mismo criterio de `odoo_copy` (gate `create` en vez de `execute`). Preguntate si el gate propio reduce de verdad el blast radius.\n\n**Si también se expone por el MCP saliente:**\n- (b1) y (c) no valen ahí, porque el router MCP ignora `requires_approval` y no hay un turno donde forzar pasos.\n- Una tool que se justifica solo por (b1) vale únicamente en chat. Para el MCP queda en `MCP_EXCLUDED_TOOLS`, o se baja a skill. Es el caso de `odoo_schedule_activity`.\n- Para exponerla por el MCP necesitás (a), (b2) o (d).\n\n**Resumen operativo:**\n1. Si no hay gate propio más fino, hacé una skill.\n2. Si el gate es solo approval, es tool en chat y excluida del MCP.\n3. Si el gate es una whitelist más fina, es tool en chat y en MCP.\n\n¿Querés que revisemos el gate concreto de tu modelo para ver si califica por (b2)?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5732,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 812,
+  "output_tokens_details": {
+   "thinking_tokens": 208
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5732,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 812,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5732,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5732
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

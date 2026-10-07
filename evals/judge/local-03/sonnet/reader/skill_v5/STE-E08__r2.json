@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás (a), (b1), (b2), (c) y (d) como si ya las conociera, pero no los definiste en la respuesta. ¿Me podés listar en una línea cada criterio (qué significa cada letra) y confirmarme si, para mi caso de odoo_create con defaults sobre un modelo, el gate de (b2) se puede configurar hoy por modelo en el workspace o solo por operación (create/execute)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás los criterios (a), (b1), (b2), (c) y (d) sin definirlos. ¿Me explicás en una línea qué significa cada uno y cuál es el criterio concreto para decidir entre tool nativa y skill?",
+   "extra_note": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Usás (a), (b1), (b2), (c) y (d) como si ya las conociera, pero no los definiste en la respuesta. ¿Me podés listar en una línea cada criterio (qué significa cada letra) y confirmarme si, para mi caso de odoo_create con defaults sobre un modelo, el gate de (b2) se puede configurar hoy por modelo en el workspace o solo por operación (create/execute)?",
+ "followup_answer": "Definiciones, una línea por letra:\n\n- **(a) No componible:** no se logra con las tools genéricas ni con otra tool existente.\n- **(b) Gate o identidad propia** con menor blast radius que la tool genérica equivalente. Se divide en dos:\n  - **(b1)** approval o identidad de policy propia. Vale solo en chat, porque el router MCP ignora `requires_approval`.\n  - **(b2)** whitelist más fina que el `execute` o `create` genérico. Vale en chat y en MCP.\n- **(c) Procedimiento crítico:** un skip del LLM tiene costo real (compliance dura).\n- **(d) Eficiencia o determinismo:** colapsa en 1 call lo que cuesta 3 o más llamadas, un loop no acotado o pasos que el LLM saltearía. Nunca vale para un wrapper 1→1.\n\nSobre tu pregunta: el material no me permite confirmar si el gate `create` se configura por modelo o solo por operación. No tengo `permissions.py` en este directorio ni nada que lo defina.\n\nLo único que dice es que `odoo_message_post` evita el `execute`-per-modelo. Eso sugiere que `execute` se whitelistea por modelo. No dice lo mismo de `create`.\n\nPara cerrarlo, revisá cómo `tuqui_core/chat/permissions.py` y la config del workspace resuelven el permiso `create`. Fijate si la clave incluye el modelo o solo la operación.\n\nSi es solo por operación, tu tool no cumple (b2) y va como skill. ¿Querés que busque eso en el repo si me das la ruta?",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6507,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 867,
+  "output_tokens_details": {
+   "thinking_tokens": 303
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6507,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 867,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6507,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6507
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0dcc900a71"
+ }
+}

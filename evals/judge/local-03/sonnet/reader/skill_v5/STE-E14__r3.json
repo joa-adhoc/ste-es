@@ -1,0 +1,71 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada o se queda sin tiempo/topes para una hipótesis? ¿Esa hipótesis se descarta, llega vacía al Synthesizer o corta todo el pipeline sin mostrar nada?",
+   "note": "La respuesta cubre bien las etapas, pero admite que falta un caso de 'sin salida' (Investigator sin hallazgos o timeout) y ofrece revisar el código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator no encuentra nada o se queda sin tiempo/iteraciones para una hipótesis: se descarta esa hipótesis, se pasa un finding vacío al Synthesizer, o se corta todo el pipeline? Eso define si es otro caso de silencio.",
+   "note": "La respuesta cubre etapas, handoffs y los dos casos de silencio, pero admite un hueco explícito en el comportamiento del Investigator, que es justo un caso de 'termina sin mostrar nada'."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator no encuentra nada o se queda sin tiempo o sin iteraciones: llega un finding vacío o parcial al Synthesizer, se descarta esa hipótesis, o corta todo el pipeline? ¿Y qué ocurre si falla el Planner o el Synthesizer, hay reintento o simplemente no se muestra nada?",
+   "verdict_note": "La respuesta describe bien las etapas y qué pasa entre ellas, pero la parte de 'en qué casos termina sin mostrar nada' queda incompleta: admite que no cubre el caso del Investigator sin resultados o con timeout, que es justamente un camino probable a no mostrar nada."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator no encuentra nada o se queda sin tiempo/topes para una hipótesis? ¿Esa hipótesis se descarta, llega vacía al Synthesizer o corta todo el pipeline sin mostrar nada?",
+ "followup_answer": "El material no define ese caso, así que no puedo decirte cuál de las tres opciones es.\n\nLo que sí documenta:\n- Cada hipótesis tiene topes (`max_iterations`, `max_tool_calls`) y un presupuesto de tiempo de `(watchdog_sec - 30) / n_hypotheses`.\n- El Investigator entrega `InvestigationFindings` al Synthesizer.\n- Los únicos silencios descritos son dos: el Planner sin hipótesis, o los guards rechazando todos los teasers.\n\nNo dice qué pasa al agotar un tope o el tiempo, ni si existe un resultado \"vacío\" o \"parcial\" por hipótesis. Tampoco dice si se descarta, si llega vacía o si corta todo.\n\nHay una pista indirecta. La capa 2 exige que entidades y números aparezcan en el resumen del Investigator, y la capa 3 exige que el teaser esté fundamentado. Una hipótesis que llegue sin hallazgos probablemente se rechace ahí. Es una inferencia mía, no algo que diga el material.\n\nPara confirmarlo, abrí `investigator.py` y revisá cómo maneja el `Semaphore(3)`, el timeout y las excepciones por hipótesis. ¿Querés que lo revise si me pasás el repo?",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6909,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 744,
+  "output_tokens_details": {
+   "thinking_tokens": 291
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6909,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 744,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6909,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6909
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ee1e7b6dd9"
+ }
+}

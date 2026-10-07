@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que el preview del PR corre la migración contra la base de staging real y que se vuelve a aplicar si renombro el archivo. ¿Qué consecuencias concretas tiene eso para mí (qué puede romperse en staging, cómo evito o revierto un problema) y qué tengo que hacer distinto antes de abrir el PR? Sí, pasame el detalle de docs/infra-ci-cd.md.",
+   "reason": "La respuesta cubre bien los pasos de la migración, pero deja abierto el riesgo de staging compartido, que es lo que más puede salir mal y no está explicado."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "El paso 3 dice que agregue el test de aislamiento en tuqui_core/tests/test_rls.py, pero no muestra cómo es. ¿Me pasás un ejemplo concreto de un test existente, con cómo se setea app.current_workspace_id y cómo se verifica que el workspace B no ve las filas del A?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Dijiste que el preview del PR corre la migración contra la base de staging real y que se vuelve a aplicar si renombro el archivo. ¿Qué consecuencias concretas tiene eso para mí (qué puede romperse en staging, cómo evito o revierto un problema) y qué tengo que hacer distinto antes de abrir el PR? Sí, pasame el detalle de docs/infra-ci-cd.md.",
+ "followup_answer": "No tengo `docs/infra-ci-cd.md`: el directorio de trabajo está vacío y el material que me pasaste no incluye ese archivo. Lo que sigue sale solo de lo que ya tengo, y marco lo que es inferencia.\n\n**Lo que dice el material**\n- El preview del PR usa el `DATABASE_ADMIN_URL` de staging, la misma base que usa el runner.\n- La migración se aplica al abrir el PR.\n- El tracking es por nombre de archivo, así que si renombrás el archivo, se aplica de nuevo.\n\n**Qué puede romperse (inferido, confirmalo en el doc)**\n- Una migración no idempotente falla en la segunda aplicación, por ejemplo después de un rename.\n- Un `DROP`, un `ALTER` destructivo o un `UPDATE` masivo afecta datos reales de staging, no una copia.\n- Una tabla a medio crear o una policy mal escrita queda en staging aunque cierres el PR. Cerrar el PR no revierte nada.\n- Un rename deja la versión vieja de la tabla o de la policy en staging, y la nueva se aplica encima.\n\n**Qué hacer distinto antes de abrir el PR**\n1. Corré la migración dos veces contra una base local para probar la idempotencia: `supabase db reset`, y después aplicala de nuevo a mano.\n2. Cerrá el nombre del archivo antes de abrir el PR. No lo renombres después.\n3. Evitá operaciones destructivas sobre tablas existentes en esa migración.\n4. Escribí un script de reversa (`DROP POLICY IF EXISTS`, `DROP TABLE IF EXISTS`) y dejalo a mano, fuera de `supabase/migrations/`, por si hay que limpiar staging.\n\nNo sé cómo se revierte un problema en staging en tu equipo ni quién tiene permiso para hacerlo. Eso lo debe decir la sección \"Un PR preview escribe en la base de staging\" del doc.\n\n¿Me pasás el contenido de `docs/infra-ci-cd.md` o la ruta del repo? Con eso te armo la respuesta con el detalle real.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6834,
+  "cache_read_input_tokens": 61462,
+  "output_tokens": 1053,
+  "output_tokens_details": {
+   "thinking_tokens": 78
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6834,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 746,
+    "cache_read_input_tokens": 22810,
+    "cache_creation_input_tokens": 154,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 154
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8a33f19db0"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Alcanza con el cliente si solo la SPA pinta la descripción. Tocá también el backend si la descripción entra a un prompt LLM, a un mail o sale por MCP. En ese caso resolvé en las dos puntas con la misma cadena: `idioma exacto → en → columna legacy`.\n\n1. **Migración:** fijate si ya existe `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Si no, creá una equivalente:\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` como está.\n2. **API:** devolvé el mapa entero junto con la columna legacy, sin filtrar por idioma. Escribí con `normalize_i18n_keys` y leé con `decode_i18n`, ambos de `tuqui_core/i18n.py`.\n3. **Front:** pintá con\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas el fallback a mano.\n4. **Editor:** agregá dos inputs (ES / EN) en el panel de admin. Al guardar, mandá `description_i18n` con las claves no vacías y espejá `description` con `es || en`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n5. **Backend (solo si aplica):** resolvé con la misma cadena. Tomá el idioma de `resolve_response_language(workspace_id, user_id)` y no leas `Accept-Language`. Si resolvés en el server, incluí el idioma en el `queryKey` de react-query.\n\n¿Sabés quién más consume la descripción además de la SPA? Con eso confirmamos si el paso 5 va.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5740,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 890,
+  "output_tokens_details": {
+   "thinking_tokens": 286
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5740,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 890,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5740,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5740
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

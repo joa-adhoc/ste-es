@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración dice que sin `-- destructive: true` el PR env aplica el drop en la base compartida de staging, pero más abajo decís que el PR env siempre sasaltea la migración porque la rama no es `staging` ni `main`. ¿En qué quedamos? ¿Para qué sirve entonces el marcador en el archivo y cómo se relaciona con la variable `MIGRATIONS_ALLOW_DESTRUCTIVE`? Y si no se sabe si prod tiene el flag, ¿la migración se aplica en main o no?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera frase dice que sin `-- destructive: true` el PR env aplica el drop en la base compartida de staging, pero después decís que el PR env siempre la saltea porque la rama no es staging ni main. ¿En qué se contradicen? ¿Qué cambia concretamente en cada entorno si pongo o no la línea, y qué papel juega el marcador frente al flag MIGRATIONS_ALLOW_DESTRUCTIVE?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera línea dice que sin `-- destructive: true` el PR env aplica el drop en la base compartida de staging, pero más abajo dice que el PR env siempre saltea la migración porque la rama no es staging ni main. ¿Cuál es lo correcto? ¿Qué hace exactamente el marcador `-- destructive: true` en cada paso (PR env, staging, main), y en qué se diferencia de la variable `MIGRATIONS_ALLOW_DESTRUCTIVE`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "La primera oración dice que sin `-- destructive: true` el PR env aplica el drop en la base compartida de staging, pero más abajo decís que el PR env siempre sasaltea la migración porque la rama no es `staging` ni `main`. ¿En qué quedamos? ¿Para qué sirve entonces el marcador en el archivo y cómo se relaciona con la variable `MIGRATIONS_ALLOW_DESTRUCTIVE`? Y si no se sabe si prod tiene el flag, ¿la migración se aplica en main o no?",
+ "followup_answer": "No hay contradicción: las dos frases describen casos distintos, y yo no lo aclaré. Lo que cambia es si el archivo tiene el marcador.\n\n- **Sin `-- destructive: true`:** el runner trata la migración como aditiva y la aplica en todos lados, PR env incluido. Ahí rompe el código viejo de staging.\n- **Con el marcador:** el runner exige dos condiciones a la vez. `MIGRATIONS_ALLOW_DESTRUCTIVE=1` tiene que estar seteada, y `RAILWAY_GIT_BRANCH` tiene que ser `staging` o `main`.\n\nEl PR env hereda el flag de staging, así que la primera condición se cumple. La segunda falla, porque la rama del PR no es ninguna de esas dos. Por eso la saltea sin registrarla, y el deploy posterior al merge la aplica. El marcador es lo que activa ese chequeo, y el flag solo no alcanza.\n\n**¿Se aplica en main si no se sabe si prod tiene el flag?** Sin el flag no se aplica. La regla pide ambas condiciones, así que sin flag el runner la saltea sin registrarla y el deploy sigue sin error. El material no dice si prod tiene el flag. Mi diagrama anterior mostraba \"APLICA\" en main como si fuera seguro, y no lo es. Verificá la variable en el servicio de prod antes del merge. Si no está, el drop no corre y el código nuevo puede fallar contra una columna que sigue existiendo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6381,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 951,
+  "output_tokens_details": {
+   "thinking_tokens": 424
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6381,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 951,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6381,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6381
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "384ef6f53d"
+ }
+}

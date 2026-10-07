@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`connect_odoo` valida las credenciales, decide el vínculo del Member y recién después guarda; si cambia la URL, invalida a todos los members.\n\n```\n┌──────────────────┐   ┌────────────────────┐   ┌──────────────────────┐\n│ _authenticate_   │──►│ _verify_odoo_admin │──►│ get_version          │\n│ odoo → admin_uid │   │ _group             │   │ (major >= MIN_SUPP.) │\n└──────────────────┘   └────────────────────┘   └──────────┬───────────┘\n                                                           ▼\n┌──────────────────┐   ┌────────────────────┐   ┌──────────────────────┐\n│ sync_user_api_key│◄──│ limpiar members    │◄──│ _resolve_link_mode   │\n│ (create_task)    │   │ si url_changed     │   │ + UPDATE workspaces  │\n└──────────────────┘   └────────────────────┘   └──────────────────────┘\n```\n\nCualquier fallo de las tres primeras cajas corta con `ValueError`: el usuario no es admin de sistema (`base.group_system`), la detección falla o la versión es menor a `MIN_SUPPORTED`.\n\n**A qué usuario de Odoo vincula** (`_resolve_link_mode`):\n- `auto`: es el valor por defecto si `current_user.email == odoo_login`. Bindea `Member.odoo_user_id = admin_uid`.\n- `manual`: aplica si el frontend manda `link_current_user_to_odoo='manual'` más `link_odoo_user_id`. Verifica que ese `res.users` exista y bindea ese id.\n- `none`: es el valor por defecto si los emails no coinciden. Deja el Member sin `odoo_user_id`.\n\nEl vínculo es opcional y el rol `owner` no cambia.\n\n**Si cambia la URL:**\n- Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque la identidad puede apuntar a otra instancia.\n- Después se re-aplica el vínculo del usuario que conecta, si el modo es `auto` o `manual`.\n- La respuesta trae `members_invalidated` (0 si la URL no cambió) y un `warning` para la UI.\n\n**Conflicto:** si otro workspace ya tiene el mismo `database.uuid`, el `UPDATE` devuelve 409 por el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n\n¿Querés el detalle de la respuesta `WorkspaceConnectOdooResult`?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5809,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1099,
+  "output_tokens_details": {
+   "thinking_tokens": 205
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5809,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1099,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5809,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5809
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

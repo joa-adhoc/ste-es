@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 1,
+ "result": "`replace` pisa el valor completo del campo. `append` conserva el contenido actual y pone el nuevo abajo, registro por registro.\n\n- **`replace` (por defecto):** no lee nada previo. En `description` o notas internas borra lo que escribió una persona, y el chatter no guarda el valor anterior.\n- **`append`:** actúa solo sobre campos `html` y `text` de `values`. Los demás tipos se reemplazan igual. Concatena HTML crudo, así que links e imágenes de Odoo sobreviven. Si te piden \"agregar\" o \"completar\", mandá `append` con solo el contenido nuevo.\n- **Para vaciar un campo:** usá `replace`. Un valor no-string en `append` (por ejemplo `{\"description\": false}`) se rechaza con `append_requires_text`.\n\n**Si falla a mitad de camino con varios registros:**\n\n- El append es un write por registro, no una transacción. Los registros ya escritos no se revierten.\n- Si falla el registro k y ya se escribió alguno, devuelve `append_partially_applied` con `written_ids`, `failed_id` y `pending_ids`.\n- Reintentá solo `pending_ids`. Incluye al registro fallido, porque tampoco se escribió.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`.\n- Si falla en el primer registro, no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción) y reintentás la llamada entera.\n- Si falla la lectura previa o no se resuelve el schema, devuelve `append_precheck_failed` y no escribe nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5670,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1110,
+  "output_tokens_details": {
+   "thinking_tokens": 545
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5670,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1110,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5670,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5670
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

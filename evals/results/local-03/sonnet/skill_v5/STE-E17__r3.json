@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "skill_v5",
+ "arm_hash": "1df63e680c",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\ntool lanza excepción\n        │\n        ▼\n┌──────────────────────────┐\n│ _wrap_tool (agent.py)    │\n└────────────┬─────────────┘\n             │ ¿es ToolError?\n     sí ◄────┴────► no\n     │              │\n     │              ▼\n     │   ┌─────────────────────┐\n     │   │ classify_unknown    │──► ToolError\n     │   └─────────────────────┘\n     ▼\n┌──────────────────────────┐\n│ DoomLoopGuard.record     │\n└────────────┬─────────────┘\n   counter < 3 │        │ counter ≥ 3\n               ▼        ▼\n   \"[TOOL_ERROR       FATAL\n    class=X]: msg\"   (corta)\n   (exc.for_llm())\n               └───► lo que ve el modelo\n```\n\n- **Qué ve el modelo:** un string `[TOOL_ERROR class=X]: message`, no un string genérico. `X` es una de las clases de `ErrorClass`, y `ToolError` puede traer `retry_after_seconds`.\n- **Clasificación:** `classify_unknown` mapea excepciones de Python y httpx a `ErrorClass`.\n- **`CONNECTION` y `ODOO_NOT_CONNECTED`:** son dos clases con textos distintos. `CONNECTION` es un Odoo caído. `ODOO_NOT_CONNECTED` es que nadie conectó Odoo en este run. A quien no conectó su Odoo no se le dice que la conexión está caída.\n- **Qué cuenta como repetición:** la clave es `\"{tool_name}|{hash(args)}|{error_class}\"`. Solo cuenta el mismo tool, con los mismos args y la misma clase de error.\n- **Corte:** `THRESHOLD=3`. Con el tercer fallo idéntico, `record` devuelve `True` y `_wrap_tool` devuelve FATAL en vez del error normal. Desde ahí, `_wrap_tool` devuelve FATAL a los calls idénticos.\n- **Reinicio:** cualquier éxito limpia todos los contadores.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5347,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1052,
+  "output_tokens_details": {
+   "thinking_tokens": 320
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5347,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1052,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5347,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5347
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

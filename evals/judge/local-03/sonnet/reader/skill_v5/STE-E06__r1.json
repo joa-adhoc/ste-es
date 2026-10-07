@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "El paso 2 es abstracto: ¿me podés mostrar un .env.test.local concreto, con la URL de la base propia (nombre, puerto, usuario) y el REDIS_URL con su índice, y decirme si `make migrate-reset` crea esa base o tengo que crearla antes?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Sí, armame el .env.test.local con un ejemplo concreto: ¿qué variable exacta uso para la URL de la base (DATABASE_URL u otra), cómo se ve el valor para una base propia de mi worktree y cómo creo esa base antes de correr make migrate-reset?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "El paso 2 es abstracto: ¿me podés mostrar un .env.test.local concreto, con la URL de la base propia (nombre, puerto, usuario) y el REDIS_URL con su índice, y decirme si `make migrate-reset` crea esa base o tengo que crearla antes?",
+ "followup_answer": "No puedo darte nombre, puerto ni usuario reales: el material no los trae, y no los voy a inventar. Copiá del `.env.test` los valores del host, el puerto y el usuario. Cambiá solo el nombre de la base y el índice de Redis.\n\n```bash\n# tuqui_core/.env.test.local\n# Mismo nombre de variable que usa .env.test (fijate en .env.test.local.example)\n<VAR_DB_URL>=postgresql://<usuario>:<password>@<host>:<puerto>/<nombre_base_propia>\n\n# Solo si querés soltar el lock: mismo servidor, índice propio\nREDIS_URL=redis://<host>:<puerto>/3\n```\n\n- **Nombre de la base:** elegí uno por worktree, por ejemplo `tuqui_test_<tu_branch>`.\n- **Índice de Redis:** el 3 es un ejemplo. Evitá el 15 (default compartido de `.env.test`) y el 0 (server de desarrollo). Si tu compañero también aísla Redis, que use otro índice.\n- **¿`make migrate-reset` crea la base?** El material no lo dice. Solo dice que `scripts/reset_database.py` \"vacía\" y delega en `scripts/apply_migrations.py`, lo que sugiere que la base ya existe. Creala antes, por ejemplo con `createdb -h <host> -p <puerto> -U <usuario> <nombre_base_propia>`. Para confirmarlo, leé `scripts/reset_database.py`.\n\nCon solo la base propia, el lock sigue haciendo falta. Soltarlo requiere también el Redis propio.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6346,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 841,
+  "output_tokens_details": {
+   "thinking_tokens": 277
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6346,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 841,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6346,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6346
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3a06507d8c"
+ }
+}
