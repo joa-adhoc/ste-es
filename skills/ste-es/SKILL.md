@@ -31,6 +31,10 @@ Respondé de forma concisa, con estas reglas:
 
 Diagram patterns: [`references/diagrams.md`](./references/diagrams.md).
 
+## Plans
+
+When you write a plan with the `html-plan` skill, read [`references/html-plan.md`](./references/html-plan.md): keep its structure and write its prose in Spanish with these rules, not in English STE.
+
 ## Vocabulary
 
 Use [`references/glossary.md`](./references/glossary.md): one word per concept, the English terms the team already uses, and the words to avoid.

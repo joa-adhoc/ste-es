@@ -26,6 +26,8 @@ npx skills add joa-adhoc/ste-es -g -y
 node ~/.agents/skills/ste-es/scripts/install.mjs
 ```
 
+This installs two skills: `ste-es` and `html-plan` (see [Plans](#plans)). To install only `ste-es`, add `--skill ste-es`.
+
 A skill is loaded on demand, so installing it is not enough: in the eval, an installed but inactive skill was never loaded. `install.mjs` turns it on for every session:
 
 - **Claude Code:** a `SessionStart` hook in `~/.claude/settings.json`, plus a block in `~/.claude/CLAUDE.md`.
@@ -38,6 +40,12 @@ It only touches the agents it finds. It is idempotent and leaves the rest of tho
 node ~/.agents/skills/ste-es/scripts/install.mjs --check      # what is installed
 node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove everything
 ```
+
+## Plans
+
+`/html-plan <what to build>` writes an implementation plan as one interactive HTML page: a tree of claims, each shown by a mockup, state machine, call stack, schema or code, with the decisions placed where they matter. Its structure is used as is. Its prose follows the ste-es rules in Spanish instead of English STE: see [`skills/ste-es/references/html-plan.md`](skills/ste-es/references/html-plan.md).
+
+`skills/html-plan/` is an unchanged copy of [html-plan](https://github.com/anthropics/claude-plugins-community/tree/main/html-plan) by Thariq Shihipar (MIT), pinned to the commit in `skills/html-plan/UPSTREAM`. To update it, run `node scripts/sync-html-plan.mjs`, review the diff and commit.
 
 ## What was measured
 
@@ -53,5 +61,7 @@ node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove everythin
 | Preferred over no rules | — | 35 to 19 | 37 to 17 | 31 to 23 | 24 to 30 |
 
 The published skill is `core_diagrams` plus its scope and the glossary. It has the fewest incorrect claims of any arm. The trade-off: on flow cases the judge prefers plain Claude Code (17 to 10), while on cases without structure the skill wins 21 to 6. A variant that keeps step-by-step detail under each diagram (`skill_v3`) did not improve the overall result, so it was not adopted.
+
+The current `SKILL.md` adds one line that points to the html-plan layer; it does not change chat answers.
 
 Limits: one model only, and the judge and the reader are Claude too.
