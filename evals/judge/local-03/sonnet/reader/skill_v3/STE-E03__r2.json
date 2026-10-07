@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Con los node_modules y el .venv linkeados al clone principal, ¿cuál es la secuencia exacta de comandos para no pisar el clone principal? Necesito ver, por ejemplo, si hay que borrar el symlink de web/node_modules antes de `npm ci`, y cómo armar el venv propio del worktree (crear el venv, instalar tuqui_core en editable con la dependencia nueva) sin usar `make install`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que web/node_modules está linkeado al clone principal y después que corra `npm ci` en el worktree. ¿No me borra o pisa los node_modules del clone principal a través del symlink? ¿Tengo que quitar el link antes de correrlo, como en el caso del venv? Y si borro el link del .venv, ¿cuáles son los comandos exactos para armar un venv propio con el editable install apuntando al worktree y con la dependencia nueva?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Antes de correr `npm ci` en el worktree, ¿tengo que borrar primero el symlink de `web/node_modules`? Si no lo hago, ¿`npm ci` pisa o borra los `node_modules` del clone principal? Y para la dependencia de Python, ¿cuáles son los comandos exactos para armar un venv propio en el worktree sin tocar el del clone principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dijiste que web/node_modules está linkeado al clone principal y después que corra `npm ci` en el worktree. ¿No me borra o pisa los node_modules del clone principal a través del symlink? ¿Tengo que quitar el link antes de correrlo, como en el caso del venv? Y si borro el link del .venv, ¿cuáles son los comandos exactos para armar un venv propio con el editable install apuntando al worktree y con la dependencia nueva?",
+ "followup_answer": "Sí, hay riesgo, y la respuesta anterior debió decirlo. Quitá el link antes de correr `npm ci`. El material no dice qué hace `npm ci` con un `node_modules` symlinkeado. Por lo que sé de npm, vacía el contenido de `node_modules` antes de instalar, y eso seguiría el link hasta el clone principal. No lo verifiqué en tu versión, así que no lo pruebes.\n\n```bash\nrm web/node_modules      # sin barra final: borra solo el link\n(cd web && npm ci)\n```\n\nSin la barra final, `rm` borra el symlink y no toca el destino. Con `web/node_modules/` pasaría al revés.\n\nPara el venv propio, el material no da los comandos exactos. Esto es lo estándar, con dos supuestos que tenés que confirmar:\n\n```bash\nrm tuqui_core/.venv      # solo el link\npython3 -m venv tuqui_core/.venv\ntuqui_core/.venv/bin/pip install -e tuqui_core\n```\n\n- **Declaración de la dependencia:** agregala donde el proyecto declara las suyas (`pyproject.toml` o `requirements*.txt`) antes del `pip install`.\n- **Qué instala `make install`:** mirá ese target en el `Makefile` y copiá lo que corre, cambiando solo el venv. Puede instalar extras o un requirements de dev que el comando de arriba no cubre.\n\nDespués corré `make test`. El chequeo \"Venv no encontrado\" debería pasar, porque el venv vuelve a existir en `tuqui_core/.venv`.\n\nSi volvés a correr `make worktree-setup`, fijate que no re-linkee el venv ni `node_modules`. El material no aclara si respeta lo que ya existe.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5933,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1414,
+  "output_tokens_details": {
+   "thinking_tokens": 806
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5933,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1414,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5933,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5933
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b316c15404"
+ }
+}

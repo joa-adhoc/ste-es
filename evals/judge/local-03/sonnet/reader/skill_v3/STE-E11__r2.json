@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está seteado de forma permanente en los deploys de staging y de main (prod)? Si en prod no lo está, ¿la migración queda sin aplicar y sin avisar, o el deploy falla? Y cuando decís 'cerca del inicio del archivo', ¿hay un límite de líneas o tiene que ser literalmente la primera línea?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para que la migración llegue a prod, ¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` ya viene seteado en los deploys de staging y main, o tengo que activarlo yo? Y si no está activo, ¿la migración queda sin registrar y se reintenta en el siguiente deploy, o se saltea y falla en silencio?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` ya está seteado en los deploys de staging y main, o tengo que activarlo yo? Y si no está, ¿la migración queda sin aplicar en prod sin avisar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está seteado de forma permanente en los deploys de staging y de main (prod)? Si en prod no lo está, ¿la migración queda sin aplicar y sin avisar, o el deploy falla? Y cuando decís 'cerca del inicio del archivo', ¿hay un límite de líneas o tiene que ser literalmente la primera línea?",
+ "followup_answer": "El material no responde ninguna de las tres cosas con certeza.\n\n**¿El flag está seteado de forma permanente en staging y prod?**\n- **Staging:** probablemente sí. El material dice que un PR env **hereda** el flag de staging, y así `0180_chat_ga` se aplicó desde un preview.\n- **Prod:** el material no lo dice. Confirmalo en las variables del servicio de prod en Railway.\n\n**Si en prod no está seteado:**\n- El material solo dice que sin las dos condiciones el runner la saltea **sin registrarla**, así que la migración queda sin aplicar y sin entrada en `_migrations`.\n- No dice si el runner emite un aviso ni si el deploy falla. Para saberlo, mirá `tuqui_core/db/migrate.py` o los logs de un deploy donde se saltee una migración.\n- Si el código nuevo de tu PR ya no usa la columna, un salto silencioso no rompe nada. Pero la columna seguiría ahí hasta que alguien setee el flag y redeploye.\n\n**¿Cuántas líneas es \"cerca del inicio\"?**\n- El material no fija un límite ni exige que sea la primera línea.\n- Para no depender de cómo el parser lee el archivo, poné `-- destructive: true` literalmente en la primera línea. Si querés otra posición, revisá cómo `migrate.py` detecta el marker.\n\nMi respuesta anterior también tenía un problema. El diagrama mostraba un deploy a prod con el gate, pero el material solo documenta el gate para las ramas `staging` y `main`. No documenta qué variables tiene cada servicio.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6497,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 733,
+  "output_tokens_details": {
+   "thinking_tokens": 172
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6497,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 733,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6497,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6497
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c5a404f4dd"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`replace` pisa el valor completo del campo; `append` conserva el contenido actual y pone el nuevo abajo. Si el append falla a mitad de camino, los registros ya escritos no se revierten, porque es un write por registro y no una transacción.\n\n**Diferencia**\n\n- `mode=\"replace\"` es el valor por defecto. Pisa todo lo que mandás y no lee nada previo.\n- `mode=\"append\"` aplica solo a campos `html` y `text` de `values`, y lo hace por registro. Los otros tipos de campo se reemplazan igual.\n- Usá `append` cuando te piden *agregar* o *completar*, y mandá solo el contenido nuevo. Un write plano sobre `description` borra lo que escribió una persona, sin rastro en el chatter (tarea 71628).\n- En `html` concatena HTML crudo, así que links, clases e imágenes de Odoo sobreviven. En `text` separa con una línea en blanco.\n- Un rich text vaciado desde la UI (`<p><br></p>`) cuenta como vacío. Un campo con solo una imagen cuenta como contenido.\n\n**Si falla un append con varios registros**\n\n- **Falla el primer registro:** no se escribió nada. Sale como write fallido común (`invalid_values` o la excepción propagada). Reintentá la llamada entera.\n- **Falla el registro k, habiendo escrito alguno antes:** devuelve `append_partially_applied` con tres listas:\n  - `written_ids`: ya escritos, no se revierten.\n  - `failed_id`: el que falló.\n  - `pending_ids`: lo que tenés que reintentar. Incluye al fallido, porque tampoco se escribió.\n- Reintentá solo con `pending_ids`. Si reenviás todo, duplicás contenido en los de `written_ids`.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.\n\n**Otros rechazos**\n\n- `append_precheck_failed`: falla la lectura previa o no se resuelve el schema. No escribe nada, porque sin el valor actual un append sería un replace.\n- `append_requires_text`: mandaste un valor no-string en un campo appendable, por ejemplo `{\"description\": false}`. Para vaciar un campo, usá `mode=\"replace\"`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5615,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 794,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5615,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 794,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5615,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5615
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

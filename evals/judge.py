@@ -105,6 +105,7 @@ def main():
     ap.add_argument("--judge-model", default="sonnet")
     ap.add_argument("--no-pairwise", action="store_true")
     ap.add_argument("--reference", default=REFERENCE, help="arm every other arm is compared against")
+    ap.add_argument("--arms", nargs="*", help="only compare these arms against the reference")
     ap.add_argument("--jobs", type=int, default=4)
     args = ap.parse_args()
 
@@ -122,6 +123,8 @@ def main():
             continue
         for arm in arms:
             if arm == args.reference or (arm == "baseline" and args.reference == REFERENCE):
+                continue
+            if args.arms and arm not in args.arms:
                 continue
             for ans_path in (model_dir / arm).glob("*.json"):
                 cid, run = ans_path.stem.split("__r")

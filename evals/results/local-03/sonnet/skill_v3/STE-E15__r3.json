@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Con `connect_odoo` el workspace guarda las credenciales de Odoo, y el vínculo con un `res.users` es opcional. Si la URL cambia, se limpia la identidad de todos los members.\n\n```\n┌──────────────────────────┐\n│ _authenticate_odoo       │ → admin_uid\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ _verify_odoo_admin_group │ base.group_system\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ get_version              │ → detected_version\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ _resolve_link_mode       │ auto / manual / none\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ UPDATE workspaces        │ 409 si database.uuid repetido\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ limpiar members          │ solo si url_changed\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ UPDATE workspace_members │ solo auto / manual\n└──────────────────────────┘\n```\n\n## Pasos\n\n1. `POST /workspaces/{slug}/odoo` exige auth de owner/admin y llama a `workspaces.service.connect_odoo`.\n2. `_authenticate_odoo` autentica con url, db, login y api key. Devuelve `admin_uid`.\n3. `_verify_odoo_admin_group` chequea `res.users.has_group(uid, 'base.group_system')`. Lanza `ValueError` si el usuario no es admin de sistema en Odoo.\n4. `get_version(url)` detecta la versión mayor, por ejemplo `\"18\"`. Lanza `ValueError` si la detección falla o si la versión es menor que `MIN_SUPPORTED`.\n5. `_resolve_link_mode` decide cómo vincular al Member del usuario actual (ver abajo).\n6. `UPDATE workspaces` guarda `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El rol owner no cambia.\n7. Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) responde 409 Conflict.\n8. Si cambió la URL, se limpia `odoo_user_id` y `odoo_api_key` de todos los members (ver abajo).\n9. Si el modo es `auto` o `manual`, se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para ese Member. Después se lanza `asyncio.create_task(sync_user_api_key(...))`.\n\n## A qué usuario de Odoo vincula\n\nEl owner no necesita identidad en Odoo, así que el vínculo es opcional. `_resolve_link_mode` elige entre tres modos:\n\n- **`auto`**: es el modo por defecto cuando `current_user.email == odoo_login`. Vincula `Member.odoo_user_id = admin_uid`.\n- **`manual`**: aplica cuando el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`. Verifica que ese `res.users` exista y vincula el Member a ese id.\n- **`none`**: es el modo por defecto cuando los emails no coinciden. El Member queda sin `odoo_user_id`.\n\n## Si cambia la URL\n\n- El servicio limpia `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner. Una identidad guardada puede apuntar a otra instancia.\n- La limpieza corre antes del vínculo. Con `auto` o `manual`, el usuario actual queda vinculado de nuevo en la misma llamada.\n- La respuesta (`WorkspaceConnectOdooResult`) trae `members_invalidated` con la cantidad afectada. Vale 0 si la URL no cambió.\n- También trae `warning` para mostrar en la UI, más `link_status` y `linked_odoo_user_id`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5752,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 2020,
+  "output_tokens_details": {
+   "thinking_tokens": 570
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5752,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2020,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5752,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5752
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

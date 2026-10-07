@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado hoy en staging y en prod? Si en prod no está, ¿la migración se saltea sin avisar y queda pendiente, o el deploy falla? ¿Y el drop corre antes o después de que salga el código nuevo que ya no usa la columna?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que staging y main aplican la migración solo si MIGRATIONS_ALLOW_DESTRUCTIVE=1 está seteado en ese entorno. ¿Está seteado hoy en producción (main)? Si no lo está, ¿qué tengo que hacer para que el drop llegue a prod?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado hoy en staging y en prod? Si en prod no está, ¿la migración se saltea sin avisar y queda pendiente, o el deploy falla? ¿Y el drop corre antes o después de que salga el código nuevo que ya no usa la columna?",
+ "followup_answer": "**Staging:** el material no dice si el flag está seteado hoy. Solo lo sugiere: dice que un PR env **hereda** `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, así que staging probablemente lo tiene. Confirmalo en las variables del servicio de Railway.\n\n**Prod:** el material no menciona el flag para prod. Revisalo en las variables del servicio de prod.\n\n**Si en prod no está seteado:** la migración se saltea y queda pendiente. No falla el deploy.\n- El runner saltea \"sin registrarla\" en cualquier caso que no cumpla las dos condiciones, y eso incluye un flag ausente. No queda en `_migrations`.\n- Volvería a intentarse en cada deploy hasta que alguien setee el flag.\n- El material no dice si el runner loguea un aviso al saltear. Fijate en los logs del deploy o en `tuqui_core/db/migrate.py`.\n\n**Orden del drop respecto del código nuevo:** el material no lo define. Solo dice que el runner corre \"al deployar\" (`python -m tuqui_core.db.migrate`). No dice si corre antes de que arranque el código nuevo ni después. Revisá el comando de start o el pre-deploy del servicio en Railway para confirmarlo.\n\nSi el drop corre antes de que salga el código nuevo, el código viejo se rompe en esa ventana. Para evitarlo, sacá el uso de la columna en un PR anterior y dropeala en el siguiente.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6367,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 905,
+  "output_tokens_details": {
+   "thinking_tokens": 381
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6367,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 905,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6367,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6367
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3753ebc70e"
+ }
+}

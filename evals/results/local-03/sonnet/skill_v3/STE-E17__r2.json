@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool falla, `_wrap_tool` en `agent.py` captura la excepción y le devuelve al modelo un string `[TOOL_ERROR class=X]: message`. Si el modelo repite la misma llamada con el mismo error 3 veces, `DoomLoopGuard` responde `FATAL`.\n\n```\n┌──────────────┐   ┌──────────────┐   ┌───────────────────┐\n│ tool excepción│──►│  _wrap_tool  │──►│ ToolError         │\n│              │   │  (agent.py)  │   │ o classify_unknown│\n└──────────────┘   └──────────────┘   └─────────┬─────────┘\n                                                │\n                                                ▼\n                   ┌──────────────┐   ┌───────────────────┐\n                   │ el modelo ve │◄──│ DoomLoopGuard     │\n                   │ for_llm()    │   │ .record(...)      │\n                   └──────────────┘   └─────────┬─────────┘\n                          ▲  counter < 3        │ counter ≥ 3\n                          └─────────────────────┤\n                                                ▼\n                                       ┌──────────────────┐\n                                       │ FATAL            │\n                                       └──────────────────┘\n```\n\n**Del fallo al modelo**\n1. `_wrap_tool` captura la excepción. Si es un `ToolError`, la usa tal cual. Si no, `classify_unknown(exc)` mapea la excepción de Python o httpx a un `ErrorClass`.\n2. El error lleva `error_class`, `message` y `retry_after_seconds`.\n3. `exc.for_llm()` lo serializa como `\"[TOOL_ERROR class=X]: message\"`. Antes el modelo recibía un string genérico.\n4. Las clases posibles son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`.\n\n**Corte del doom loop** (`tuqui_core/chat/guards.py`, `THRESHOLD=3`)\n- `record(tool_name, args, ok, error_class)` cuenta los fallos por la key `\"{tool_name}|{hash(args)}|{error_class}\"`.\n- Cuando el contador de una key llega a 3, `record` devuelve `True`. Entonces `_wrap_tool` devuelve `FATAL` y no deja pasar más llamadas idénticas.\n- Un éxito de cualquier tool limpia todos los contadores.\n- Cambiar los args o la clase de error genera otra key, y el contador de esa key arranca de cero.\n- `CONNECTION` (Odoo caído) y `ODOO_NOT_CONNECTED` (nadie conectó Odoo en este run) son clases distintas. Por eso tienen contadores separados, y el guard corta cada una con su propio aviso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5290,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1292,
+  "output_tokens_details": {
+   "thinking_tokens": 268
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5290,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1292,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5290,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5290
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

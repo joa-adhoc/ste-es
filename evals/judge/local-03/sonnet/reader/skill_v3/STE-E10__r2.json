@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del agent por webhook, si el workspace tiene 'ask' (o el default por ausencia de fila da ASK), ¿qué pasa en concreto cuando no hay un usuario presente para aprobar? ¿Se bloquea, se deniega automáticamente, se ejecuta igual o queda pendiente de aprobación? Decime también qué función o rama de código lo resuelve, porque la respuesta lo dejó sin contestar y me mandó a mirar client_facing_core.py."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso del webhook, si el workspace tiene la tool en \"ask\" (o cae en ASK por default) y no hay nadie para aprobar, ¿qué pasa realmente: se bloquea, se deniega automáticamente o se ejecuta igual? Pasame el comportamiento de chat/client_facing_core.py, porque la respuesta lo dejó sin resolver."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa con un ASK cuando el agent corre por webhook y no hay ningún usuario presente para aprobar? ¿Se bloquea, se ejecuta o se rechaza el turno? Eso es lo que más me importa para el caso 2 y la respuesta no lo dice, solo me manda a mirar `chat/client_facing_core.py`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el caso del agent por webhook, si el workspace tiene 'ask' (o el default por ausencia de fila da ASK), ¿qué pasa en concreto cuando no hay un usuario presente para aprobar? ¿Se bloquea, se deniega automáticamente, se ejecuta igual o queda pendiente de aprobación? Decime también qué función o rama de código lo resuelve, porque la respuesta lo dejó sin contestar y me mandó a mirar client_facing_core.py.",
+ "followup_answer": "No lo puedo decir: el material no define qué pasa con un ASK sin usuario presente. Busqué `evaluate_permission` y `client_facing_core` en el directorio de trabajo, que está vacío, y no encontré código. Cualquier opción que te dé (bloquea, deniega, ejecuta o queda pendiente) sería una suposición.\n\nLo que el material sí confirma:\n- `evaluate_permission(ctx)` en `tuqui_core/chat/permissions.py` devuelve ALLOW, DENY o ASK. Termina en la decisión y no resuelve qué hacer con un ASK.\n- En `webhook`, `exposure` y `scheduled`, el evaluator saltea `user_tool_approvals`. La política es la grilla del workspace.\n- El turno corre con identidad prestada, según `chat/client_facing_core.py`. El material solo lo cita por eso, no describe cómo trata un ASK.\n\nLa rama que resuelve el ASK sin usuario no está en el material, así que no puedo darte su nombre. Probablemente esté donde se consume el resultado de `evaluate_permission` antes de `tool.execute()`.\n\nPara encontrarla, corré esto en el repo:\n\n```bash\ngrep -rn \"evaluate_permission\\|personal_identity_applies\" tuqui_core/\n```\n\nFijate en dos cosas:\n- Qué hace el llamador de `evaluate_permission` con ASK cuando el `ChannelProfile` es `webhook`.\n- Si `tool_usage_log.permission_action` registra un valor distinto para ese caso. Un ASK sin aprobador debería dejar rastro ahí.\n\nSi pegás esos llamadores, te digo cuál de las cuatro opciones es.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6992,
+  "cache_read_input_tokens": 38930,
+  "output_tokens": 821,
+  "output_tokens_details": {
+   "thinking_tokens": 92
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6992,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 591,
+    "cache_read_input_tokens": 22800,
+    "cache_creation_input_tokens": 322,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 322
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3b1e81bbb9"
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El entorno de prod ya tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Si no lo tiene, ¿dónde lo reviso o quién lo setea? Si falta, la migración se saltea en prod sin avisar y la columna no se dropea."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El entorno de prod ya tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1, o tengo que activarlo yo (o alguien del equipo) antes del deploy? Y si el flag no está, ¿el deploy falla o la migración queda salteada sin avisar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE está hoy en 1 en staging y en prod? ¿Dónde lo verifico (Railway, qué servicio/variable)? Si en prod no está, ¿quién lo activa o cómo se aplica la migración ahí?",
+   "note": "La primera oración dice qué poner en el archivo, pero no cubre qué pasa del PR a prod. Esa parte la cubre el resto, aunque deja abierto si el flag está activo en prod."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El entorno de prod ya tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Si no lo tiene, ¿dónde lo reviso o quién lo setea? Si falta, la migración se saltea en prod sin avisar y la columna no se dropea.",
+ "followup_answer": "El material no dice si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, así que no puedo confirmarlo. Tampoco dice quién setea la variable.\n\n- **Dónde revisarlo:** en las variables del servicio de prod en Railway. Es una inferencia mía: el material solo habla de variables de environment de Railway.\n- **Quién la setea:** preguntale al dueño de infra o de Railway. Si hace falta, pedile que la ponga en `1` antes de mergear.\n- **Si falta:** el runner saltea la migración sin registrarla en `_migrations`. El material no dice si deja un aviso en el log, así que no cuentes con uno. La columna queda sin dropear hasta que alguien setee el flag y vuelva a deployar.\n- **Cómo verificarlo después del deploy:** consultá la tabla. Si el archivo no aparece, el runner la salteó.\n\n```sql\nSELECT * FROM _migrations WHERE name LIKE '%<nombre_del_archivo>%';\n```\n\nLa rama no es el problema en prod: el deploy sale de `main`, que cumple la condición de `RAILWAY_GIT_BRANCH`. Lo único que puede fallar es el flag.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6288,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 747,
+  "output_tokens_details": {
+   "thinking_tokens": 319
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6288,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 747,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6288,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6288
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "14d8c3c2b9"
+ }
+}

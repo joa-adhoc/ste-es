@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Cuando `DoomLoopGuard` hace que `_wrap_tool` devuelva `FATAL`, ¿qué pasa después con el run? ¿Se corta el loop del agente y se le avisa al usuario, o el modelo recibe `FATAL` como un resultado más y puede seguir llamando otras tools? Además, ¿la tercera falla ya devuelve `FATAL` o recién la cuarta llamada idéntica?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Hay una contradicción en la parte del corte: ¿quién devuelve FATAL, el DoomLoopGuard o _wrap_tool? Y si al 3er fallo la llamada ya devuelve FATAL, ¿el modelo llega a ver el último '[TOOL_ERROR ...]' o solo FATAL? Además, ¿qué significa exactamente FATAL: es un string que ve el modelo (y entonces qué le dice para que deje de reintentar) o corta el run del chat? Por último, el diagrama dice que con contador < 3 el modelo ve for_llm(), pero no queda claro cuándo se llama a record: ¿antes o después de armar el mensaje?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué ve exactamente el modelo cuando el guard devuelve FATAL: un string tipo `[TOOL_ERROR class=FATAL]: ...` que el modelo todavía puede ignorar, o se corta el turno/run de verdad? Además, si un éxito de cualquier tool limpia todos los contadores, ¿un loop que alterna la llamada que falla con otra que anda no esquiva el guard?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Cuando `DoomLoopGuard` hace que `_wrap_tool` devuelva `FATAL`, ¿qué pasa después con el run? ¿Se corta el loop del agente y se le avisa al usuario, o el modelo recibe `FATAL` como un resultado más y puede seguir llamando otras tools? Además, ¿la tercera falla ya devuelve `FATAL` o recién la cuarta llamada idéntica?",
+ "followup_answer": "**Tercera falla:** con lo que dice el material, la tercera falla idéntica ya devuelve `FATAL`. `record` cuenta la falla y compara `counter ≥ 3`. Con la tercera el contador llega a 3 y `record` devuelve `True`, así que `_wrap_tool` devuelve `FATAL` en esa misma llamada. Los dos primeros fallos devuelven el `[TOOL_ERROR class=X]` normal. Esto lo deduzco del orden `record` → `≥ THRESHOLD`. Confirmalo en `guards.py` y en `_wrap_tool`, por si el guard chequea antes de ejecutar.\n\n**Después del `FATAL`:** el material no lo define. Solo dice que `_wrap_tool` \"devuelve FATAL e impide más calls idénticos\". No describe nada que corte el run ni que avise al usuario. Lo que sí se deduce:\n- `_wrap_tool` devuelve un valor, igual que con cualquier otro error. Así que el modelo recibe `FATAL` como el resultado de esa tool.\n- El guard bloquea solo la key `tool|hash(args)|clase`. Otras tools, u otros args en la misma tool, siguen funcionando.\n- Un éxito de cualquier tool limpia todos los contadores. Después de eso, el modelo puede volver a intentar la llamada bloqueada.\n\nLo que no sé es si hay un corte del loop del agente o un aviso al usuario en otra capa, por ejemplo en el runner del chat. Pasame ese código, o decime y lo busco en el repo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6490,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 821,
+  "output_tokens_details": {
+   "thinking_tokens": 273
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6490,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 821,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6490,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6490
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "169617129a"
+ }
+}

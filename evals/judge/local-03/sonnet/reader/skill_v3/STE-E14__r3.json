@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el presupuesto de tiempo (watchdog) o no encuentra hallazgos para una hipótesis? ¿Se descarta esa hipótesis, se aborta todo el run o igual pasa al Synthesizer? ¿Eso termina en silencio o hay algún fallback que muestre algo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo (watchdog) o no encuentra hallazgos para una hipótesis? ¿Esa hipótesis se descarta, se pasa igual al Synthesizer, o se corta todo el pipeline? Además, ¿qué pasa si falla el Planner o el Synthesizer (error o timeout), se muestra algo o queda en silencio?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo (watchdog) o no encuentra hallazgos para una hipótesis? ¿Esa hipótesis se descarta, se pasa igual al Synthesizer o se corta todo el run? Y si el Synthesizer recibe cero hallazgos, ¿cuenta como silencio?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando el Investigator agota el presupuesto de tiempo (watchdog) o no encuentra hallazgos para una hipótesis? ¿Se descarta esa hipótesis, se aborta todo el run o igual pasa al Synthesizer? ¿Eso termina en silencio o hay algún fallback que muestre algo?",
+ "followup_answer": "El material no lo dice. Describe el presupuesto de tiempo y los topes, pero no qué pasa al agotarlos ni cuando una hipótesis no encuentra hallazgos. No hay ningún fallback documentado que muestre algo.\n\n**Qué sí se puede afirmar**\n- Cada hipótesis tiene un presupuesto de `(watchdog_sec - 30) / n_hypotheses` y topes de `max_iterations` y `max_tool_calls` según el registro.\n- El Synthesizer recibe `InvestigationFindings`.\n- Los únicos finales sin teasers documentados son dos: el Planner devuelve `hypotheses` vacías, o los 3 guards rechazan todo (`synth_all_rejected`).\n\n**Qué es inferencia mía, no del material**\n- Si una hipótesis llega al Synthesizer sin datos, el Layer 2 (StringGrounding) la debería rechazar. Exige que cada entidad y cada número de `teaser.dato` aparezcan en el resumen del Investigator con `partial_ratio >= 75`.\n- Con un resumen vacío o pobre, eso terminaría en silencio. Pero depende de qué le entregue el Investigator al Synthesizer en ese caso.\n\n**Qué no puedo responder con el material**\n- Si se descarta esa hipótesis o se aborta todo el run.\n- Si una hipótesis cortada por tiempo pasa al Synthesizer con hallazgos parciales.\n- Cómo se comporta el run completo si vence el `watchdog_sec` global.\n\nPara confirmarlo, buscá en `investigator.py` el manejo de `asyncio.TimeoutError` y de excepciones alrededor del `Semaphore(3)`. Fijate también si el resultado por hipótesis admite `None` o un estado de fallo. Si me pasás el archivo, te lo respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7302,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 854,
+  "output_tokens_details": {
+   "thinking_tokens": 207
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7302,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 854,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7302,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7302
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ef1a03aa03"
+ }
+}

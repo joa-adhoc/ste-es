@@ -158,16 +158,17 @@ def main():
                                                          needs_reader=True),
                     "words_total": paired_delta(rows[a], rows[REFERENCE], lambda r: r["lint"]["words_total"]),
                 }
+        others = sorted(p.name.removeprefix("pairwise_vs_") for p in (JUDGE / args.run_id / model).glob("pairwise_vs_*"))
         report[model] = {"arms": summary, "deltas": deltas, "pairwise": pairwise(args.run_id, model),
-                         "pairwise_vs_baseline": pairwise(args.run_id, model, "baseline")}
+                         **{f"pairwise_vs_{ref}": pairwise(args.run_id, model, ref) for ref in others}}
         md += [f"## {model}", "", table(summary), "",
                f"Change vs `{REFERENCE}` (per-case median, 95% CI):", ""]
         md += [f"- {k}: {v}" for k, v in deltas.items()]
         md += ["", f"Blind preference (each arm vs `{REFERENCE}`):", ""]
         md += [f"- {k}: {v}" for k, v in report[model]["pairwise"].items()]
-        if report[model]["pairwise_vs_baseline"]:
-            md += ["", "Blind preference (each arm vs `baseline`, plain Claude Code):", ""]
-            md += [f"- {k}: {v}" for k, v in report[model]["pairwise_vs_baseline"].items()]
+        for ref in others:
+            md += ["", f"Blind preference (each arm vs `{ref}`):", ""]
+            md += [f"- {k}: {v}" for k, v in report[model][f"pairwise_vs_{ref}"].items()]
         md.append("")
     out = RESULTS / args.run_id
     (out / "summary.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))

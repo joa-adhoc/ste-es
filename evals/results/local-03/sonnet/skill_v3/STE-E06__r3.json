@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los worktrees comparten la misma DB local de tests. La rama de tu compañero aplicó migraciones, probablemente una destructiva, y le dejó a tu código un esquema sin columnas que todavía lee. Por eso ves `UndefinedColumnError` en tests que no tocaste.\n\nEl lock (`flock`) evita corridas simultáneas, pero no aísla el esquema. Con migraciones distintas, la DB queda con la unión de las dos ramas.\n\n**Arreglo inmediato:** reconstruí la base desde cero (~3 segundos).\n\n```bash\nmake migrate-reset\n```\n\nNo uses `npx supabase db reset`: aborta en el primer prefijo numérico repetido (hoy hay 25). `make migrate-reset` usa el mismo runner que CI y deploy, y solo toca bases locales.\n\n**Para que no vuelva a pasar:** dale a tu worktree su propia base.\n\n1. Copiá la plantilla: `cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local`\n2. Declará ahí la `DATABASE_URL` de una base propia para tu worktree. Los nombres exactos están en el `.example`.\n3. Corré `make migrate-reset` de nuevo para armar esa base.\n\nLos targets cargan `.env.test` y, encima, `.env.test.local` si existe. El archivo está gitignoreado.\n\nCon base propia el lock sigue activo. Para soltarlo con un `TEST_LOCK` distinto, necesitás también un Redis propio. Poné un `REDIS_URL` con un índice de base propio: no uses el 15 (default compartido de `.env.test`) ni el 0 (server de desarrollo). Aislar solo uno de los dos recursos no alcanza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5594,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 602,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5594,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 602,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5594,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5594
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

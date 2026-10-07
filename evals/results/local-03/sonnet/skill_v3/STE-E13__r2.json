@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Salen dos avisos de prueba: uno a 7 días del vencimiento y otro el día que vence, mientras el workspace todavía funciona. Si ya tiene una suscripción viva, el día del vencimiento no sale ningún mail.\n\n```\n 7 días antes ──► día del vencimiento ──┬─ sin suscripción viva ──► plan='free' + mail\n (aviso)          (aviso, 12:00 UTC)    └─ con suscripción viva ──► se limpian flags, sin mail\n```\n\n**Cuándo.** `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Los hitos salen de `billing_trial_warning_days_list`, que por defecto es `{7, 0}`. Si extienden la prueba, vuelve a avisar, porque la marca es el par `trial_warning_for` + `trial_warning_days`.\n\n**A quién.** Los avisos van a:\n- los owners y admins, siempre, aunque estén en `billing_tier = 'none'`;\n- todo miembro con asiento (`billing_tier <> 'none'`).\n\nAdemás, `PlanLapsedBanner` avisa en el chat, sobre el composer, a quien perdió el asistente.\n\n**Qué pasa al vencer sin suscripción viva:**\n- El workspace pasa a `plan='free'`.\n- Se evalúa si hay exceso sobre los límites del plan free.\n- Sale el mail de prueba vencida.\n- La tabla lista el vencimiento de prueba entre quienes setean `account_status='restricted'`. Con exceso, el motivo es `trial_expired_with_excess`. En `restricted` quedan bloqueados el MCP y el chat. El material no aclara qué estado queda si no hay exceso.\n\n**Con suscripción viva.** Se limpian los flags de trial y no se manda nada. El owner no ve ningún cambio, y el cobro se anuncia con su propio recibo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5737,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1295,
+  "output_tokens_details": {
+   "thinking_tokens": 627
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5737,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1295,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5737,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5737
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando solo se refrescan los datos, ¿la versión nueva queda publicada y la ve quien tiene el link, o hay que correr publish a mano? Necesito saberlo para no mostrarle datos viejos o a medio publicar a quien recibió el link."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica automáticamente la versión nueva (mueve published_version_id) o queda solo como current hasta que corra publish? Hoy el link por token, ¿muestra los datos viejos o los refrescados?",
+   "note": "La primera oración responde la parte de la edición. Queda abierta la tercera pregunta (refresh): la respuesta admite que no sabe si publica y manda a confirmarlo en el código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh que solo actualiza los datos publica la versión nueva o queda como current con unpublished_changes hasta que alguien corra publish? Es decir, ¿el que tiene el link ve los datos nuevos o los viejos?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando solo se refrescan los datos, ¿la versión nueva queda publicada y la ve quien tiene el link, o hay que correr publish a mano? Necesito saberlo para no mostrarle datos viejos o a medio publicar a quien recibió el link.",
+ "followup_answer": "Con el material no puedo confirmarlo, pero lo más probable es que haya que correr `publish` a mano.\n\nEl material solo define la publicación para `save`. Si el refresh pasa por `save` con `artifact_id`, crea la v(n+1) solo-data y mueve `current_version_id`, pero no `published_version_id`. El link sigue mostrando la versión publicada anterior, con los datos viejos, hasta que publiques. El material no dice que el refresh de la fase 2 use otro camino, ni que publique solo.\n\nPara no mostrar datos a medio publicar:\n- Revisá que el result del refresh traiga `unpublished_changes: true`. Si lo trae, el link sigue en la versión anterior.\n- Revisá la versión nueva en el viewer interno, que navega por `current_version`.\n- Publicala con un número explícito: `publish(version=n)`. Sin argumento publica la última, que puede no ser la que revisaste si entró otra en el medio.\n\nEl efectivo de la versión publicada `n` toma el `content` y el `data` más recientes hasta `n`. Publicar la versión solo-data muestra el template anterior con los datos nuevos.\n\nPara cerrar la duda, buscá en el código del refresh si llama a `publish` o si escribe `published_version_id`. Ese código no está en este workspace.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6072,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 700,
+  "output_tokens_details": {
+   "thinking_tokens": 251
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6072,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 700,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6072,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6072
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7b5f8b24d1"
+ }
+}

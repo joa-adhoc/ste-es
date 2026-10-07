@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "La respuesta es correcta pero está muy cargada: arranca con un diagrama y mete en medio detalles de AES-GCM, PKCE, RFC 8707 y landing de cuentas de servicio. ¿Me la podés resumir en pocas líneas con el flujo principal (front → backend → provider → callback) y qué pasa si algunas habilidades no contestan: sin ninguna se borra el token y hay connect_error, con alguna queda conectado con connect_warning?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "La respuesta es larga y arranca con un diagrama sin explicar nada. ¿Me la podés resumir en 4-5 líneas: qué hace cada actor (front, backend, provider) en el flujo y qué pasa si algunas habilidades no contestan tras el intercambio? Además, aclarame una cosa: ¿el 'resource' viaja en los pasos 3, 6 y 8 siempre, o solo si el server lo declaró?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "resumen",
+ "followup": "La respuesta es correcta pero está muy cargada: arranca con un diagrama y mete en medio detalles de AES-GCM, PKCE, RFC 8707 y landing de cuentas de servicio. ¿Me la podés resumir en pocas líneas con el flujo principal (front → backend → provider → callback) y qué pasa si algunas habilidades no contestan: sin ninguna se borra el token y hay connect_error, con alguna queda conectado con connect_warning?",
+ "followup_answer": "Sí, ese es el resumen:\n\n1. **Front → backend:** el usuario clickea **Connect** y el front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve el `authorize_url` con un `state` firmado.\n2. **Front → provider:** el front redirige al provider y el usuario autoriza.\n3. **Provider → backend:** el provider redirige a `/api/mcp-oauth/callback?code=...&state=...`. El backend valida el `state`, cambia el `code` por tokens y los guarda encriptados.\n4. **Backend → front:** el backend redirige al SPA con `?connected={server_id}`.\n\n**Prueba de humo:** después del intercambio, el callback introspecta todas las habilidades habilitadas en paralelo.\n\n- **Ninguna contesta:** el backend borra el token y el redirect lleva `connect_error=<motivo>`.\n- **Alguna contesta:** el usuario queda conectado y el redirect lleva `connect_warning=<habilidades>`. Es el estado parcial, y el usuario puede usarlo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7189,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 375,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7189,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 375,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7189,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7189
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "af3b16fc76"
+ }
+}

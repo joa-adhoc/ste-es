@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "skill_v3",
+ "arm_hash": "29138219db",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El chat evalúa en este orden: `workspace_write_models`, después `evaluate_permission(ctx)`, y recién entonces `tool.execute()`. Tu caso 1 termina en ALLOW y el caso 2 ignora la preferencia del miembro.\n\n```\n┌──────────────────────────┐   ┌───────────────────────────────┐   ┌────────────────┐\n│ 1. workspace_write_models│   │ 2. evaluate_permission        │   │ 3. tool.execute│\n│ ¿modelo permitido?       │──►│ deny ► user ► workspace ►     │──►│ tool_usage_log │\n│ no ► corta               │   │ default                       │   │                │\n└──────────────────────────┘   └───────────────────────────────┘   └────────────────┘\n```\n\nDentro del paso 2, en `tuqui_core/chat/permissions.py`, el orden es:\n\n1. Si `workspace_tool_approvals` dice `deny`, el resultado es DENY. Es un piso: ninguna preferencia personal lo levanta.\n2. Si hay fila en `user_tool_approvals` para `(user_id, workspace_id, tool_name)`, esa acción gana.\n3. Si no, se usa `allow` o `ask` de `workspace_tool_approvals`.\n4. Si tampoco hay fila, el default es ASK cuando el recurso está en `approval` (`\"ask\"` o `\"always\"`) y ALLOW cuando no. Para tools de conector sin declaración en el REGISTRY, decide la heurística de verbos más las annotations MCP.\n\n**Caso 1: el admin puso \"ask\" y el miembro \"allow\".** Gana el `allow` del miembro y la tool se ejecuta sin preguntar. El admin solo tiene control firme con `deny`, no con `ask`. Antes de todo eso, `workspace_write_models` tiene que permitir la operación sobre ese modelo.\n\n**Caso 2: el agent que corre por webhook.** Se saltea `user_tool_approvals` entero, igual que en `exposure` y `scheduled`. El turno usa la identidad prestada de un miembro, y su preferencia no es política del canal (`ChannelProfile.personal_identity_applies`). Quedan solo estos pasos:\n- `deny` del workspace ► DENY.\n- `allow` o `ask` del workspace.\n- Default por ausencia de fila.\n\nEl material no dice qué pasa con un ASK en un canal sin usuario presente. Fijate en el código de `chat/client_facing_core.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5604,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1117,
+  "output_tokens_details": {
+   "thinking_tokens": 251
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5604,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1117,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5604,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5604
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

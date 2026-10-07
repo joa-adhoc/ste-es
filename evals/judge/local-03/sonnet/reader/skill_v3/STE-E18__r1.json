@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se pasa del presupuesto de 12K y rapidfuzz se queda con las top-N, ¿cuánto vale N o cómo se calcula? Y las memorias que quedan fuera del prompt, ¿el modelo puede llegar a ellas (por ejemplo con manage_memory action=list o search), o quedan invisibles ese turno?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el top-N de rapidfuzz y cómo se calcula (fijo o hasta llenar los 12K chars)? Y las memorias que quedan fuera del prompt, ¿el modelo puede enterarse de que existen (por ejemplo con manage_memory action=list), o quedan invisibles para ese turno?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando se pasa del presupuesto de 12K y rapidfuzz se queda con las top-N, ¿cuánto vale N o cómo se calcula? Y las memorias que quedan fuera del prompt, ¿el modelo puede llegar a ellas (por ejemplo con manage_memory action=list o search), o quedan invisibles ese turno?",
+ "followup_answer": "El material no define N ni dice cómo se calcula. Solo dice que rapidfuzz puntúa los headers contra el mensaje actual y \"keeps top-N\".\n\nLo único que se puede inferir es que N sale del presupuesto de `_MEMORY_BUDGET_CHARS` (12K caracteres). Probablemente se van sumando headers por puntaje hasta llenarlo. Es una suposición, no figura en el material.\n\nTampoco documenta si el modelo llega a las memorias que quedan afuera. La única acción que menciona es `manage_memory(action='read', id=...)`. Eso no alcanza: el `id` solo aparece en los headers inyectados, así que el modelo no tiene el `id` de una memoria que quedó afuera. No hay evidencia de que existan `list` o `search`.\n\nPara confirmarlo, revisá estos puntos en el código:\n- La función de `tuqui_core/chat/agent.py` que usa `_MEMORY_BUDGET_CHARS` y rapidfuzz, para ver cómo se fija N.\n- Las acciones que acepta el schema de la tool `manage_memory`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6196,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 505,
+  "output_tokens_details": {
+   "thinking_tokens": 118
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6196,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 505,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6196,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6196
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "614477c374"
+ }
+}

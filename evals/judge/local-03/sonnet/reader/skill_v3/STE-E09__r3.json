@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 8 decís que `resource` viaja en los pasos 3, 6 y 8, pero el paso 8 es el refresh y lo describís solo con el umbral de 60 s. ¿Qué hace exactamente el refresh con `resource` y con el refresh token? Además, en el caso de habilidades que no contestan, ¿qué cuenta como 'no contestar' (timeout, error de auth, error del tool) y cuánto espera la introspección antes de darla por fallida?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "Está muy cargada: mezcla el flujo base con detalles de PKCE, scope_profile, RFC 8707, cuentas de servicio y refresh. ¿Me lo resumís en 5 o 6 líneas con solo el camino principal (front → backend → provider → callback) y qué ve el usuario cuando algunas habilidades fallan, dejando los extras aparte?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "Está bien en contenido, pero es largo y mezcla el flujo principal con detalles laterales (resource RFC 8707, service accounts, PKCE, platform connectors). ¿Me lo podés resumir en 5-6 líneas con solo el camino feliz y qué pasa cuando algunas habilidades fallan tras el intercambio?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "resumen",
+ "followup": "Está muy cargada: mezcla el flujo base con detalles de PKCE, scope_profile, RFC 8707, cuentas de servicio y refresh. ¿Me lo resumís en 5 o 6 líneas con solo el camino principal (front → backend → provider → callback) y qué ve el usuario cuando algunas habilidades fallan, dejando los extras aparte?",
+ "followup_answer": "1. **Front:** el usuario clickea **Connect** y el front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con un `state` firmado.\n2. **Provider:** el front redirige al provider, el usuario autoriza y el provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n3. **Callback:** el backend valida el `state`, cambia el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n4. **Prueba de humo:** el callback introspecta todas las habilidades habilitadas en paralelo y redirige al SPA (`/w/{slug}/settings/connectors?connected={server_id}`).\n5. **Ninguna contesta:** el backend borra el token. El redirect lleva `connect_error=<motivo>` y la card muestra el banner de error.\n6. **Alguna contesta:** el usuario queda conectado. El redirect lleva `connect_warning=<habilidades>` y la card muestra el banner de conexión parcial.\n\nQuedan aparte: PKCE, `scope_profile`, `resource` (RFC 8707), el landing de cuentas de servicio y el refresh proactivo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7147,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 790,
+  "output_tokens_details": {
+   "thinking_tokens": 353
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7147,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 790,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7147,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7147
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5730c9ec69"
+ }
+}
