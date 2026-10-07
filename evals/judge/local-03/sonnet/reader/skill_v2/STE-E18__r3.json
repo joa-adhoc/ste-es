@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que con 50 memorias de tamaño máximo el costo queda dentro de los 12K, pero un header puede tener título + 250 caracteres + '... [read]', así que 50 headers ya rozan o pasan los 12K, y con dos scopes (workspace + usuario) serían hasta ~25K. ¿Los 12K de `_MEMORY_BUDGET_CHARS` son por scope o combinados? ¿Y cuántos son 'top N' cuando rapidfuzz filtra, y qué pasa si ni siquiera esos entran en el presupuesto?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Hay una contradicción: decís que con 50 memorias de tamaño máximo el costo queda dentro de los 12K, pero también que si los headers pasan los 12K entra el filtro rapidfuzz. ¿El filtro puede dispararse alguna vez? ¿El título y el summary tienen tope de largo? ¿Los 12K son por sección (workspace y user, hasta 100 memorias en total) o compartidos entre las dos? Y si es compartido, ¿qué sección se recorta primero?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que con 50 memorias de tamaño máximo el costo queda dentro de los 12K, pero también que si los headers pasan el presupuesto entra rapidfuzz. ¿Cuál de las dos vale? Con 50 por scope (hasta 100 entre workspace y usuario) y headers de 250 caracteres más título, parece que sí se puede pasar. ¿Los 12K son un tope compartido o uno por sección? Y cuando se filtra, ¿cuánto es el 'top N' y cómo se decide?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dijiste que con 50 memorias de tamaño máximo el costo queda dentro de los 12K, pero un header puede tener título + 250 caracteres + '... [read]', así que 50 headers ya rozan o pasan los 12K, y con dos scopes (workspace + usuario) serían hasta ~25K. ¿Los 12K de `_MEMORY_BUDGET_CHARS` son por scope o combinados? ¿Y cuántos son 'top N' cuando rapidfuzz filtra, y qué pasa si ni siquiera esos entran en el presupuesto?",
+ "followup_answer": "Tenés razón: mi frase de que 50 memorias de tamaño máximo entran en los 12K no se sostiene, y el material no responde las tres preguntas.\n\n- **Cuenta:** el `body` llega a 250 caracteres, más `... [read]` (10), el título, el prefijo `[tipo / clave]` y el `(id=...)` con UUID (~41). Un header máximo pasa los 300 caracteres. 50 headers dan ~15K, no 12K. La cifra de \"~3K tokens\" del material solo vale si el header promedio ronda los 240 caracteres.\n- **Por scope o combinado:** el material no lo dice. `_MEMORY_BUDGET_CHARS` aparece como un único valor y se describe como \"total header chars\", lo que sugiere un tope combinado. Es una inferencia, no un dato. Si fuera combinado, el techo real son 100 memorias (50 + 50) contra 12K.\n- **Cuántos son \"top N\":** el material no define N. No dice si es un número fijo, o si se agregan headers por puntaje hasta llenar el presupuesto.\n- **Si ni esos entran:** tampoco está documentado. No sabemos si trunca el último header, lo omite o deja la sección vacía.\n\nPara cerrar las tres, revisá la función que arma el bloque de memoria en `_load_chat_setup` (`tuqui_core/chat/agent.py`). Ese código no está en este entorno, así que no pude leerlo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6216,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 781,
+  "output_tokens_details": {
+   "thinking_tokens": 279
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6216,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 781,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6216,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6216
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7cc3ca9381"
+ }
+}

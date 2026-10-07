@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada o se queda sin presupuesto de tiempo (watchdog)? ¿Esa hipótesis se descarta, el Synthesizer igual redacta un teaser, o se corta todo el pipeline? Y si Layer 3 rechaza un teaser, ¿se descarta o se reintenta?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada para una hipótesis, o se queda sin presupuesto de tiempo o de iteraciones (watchdog)? ¿Esa hipótesis se descarta, pasa igual al Synthesizer con findings vacíos o parciales, o aborta todo el run? Necesito saber si hay más casos de salida sin insights además del silencio del Planner y el rechazo total de los guards."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada para una hipótesis, o se queda sin presupuesto de tiempo o de tool calls? ¿Se descarta esa hipótesis, se pasa igual al Synthesizer con findings vacíos o falla todo el run? ¿Eso es un tercer caso de salida sin mostrar nada?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator no encuentra nada o se queda sin presupuesto de tiempo (watchdog)? ¿Esa hipótesis se descarta, el Synthesizer igual redacta un teaser, o se corta todo el pipeline? Y si Layer 3 rechaza un teaser, ¿se descarta o se reintenta?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas, así que no puedo afirmar qué pasa en esos casos.\n\n**Investigator sin hallazgos o sin tiempo**\n- El material solo define los topes (`max_iterations`, `max_tool_calls`) y el presupuesto por hipótesis: `(watchdog_sec - 30) / n_hypotheses`.\n- No dice qué devuelve el Investigator al agotarlos, ni si esa hipótesis se descarta.\n- No dice si el Synthesizer redacta igual con findings parciales ni si el watchdog corta todo el pipeline.\n\n**Layer 3 rechaza un teaser**\n- Lo único explícito es que, si se rechazan todos los teasers, la salida es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. Eso sugiere que el rechazo descarta el teaser.\n- No menciona ningún reintento ni regeneración, pero tampoco dice que no exista.\n- La única excepción documentada es que, si el juez falla por infraestructura, el teaser pasa.\n\nPara confirmarlo, revisá en `investigator.py` el manejo del timeout y de los findings vacíos. En `synthesizer.py`, mirá si hay un loop alrededor de la llamada a los guards.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7278,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 687,
+  "output_tokens_details": {
+   "thinking_tokens": 237
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7278,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 687,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7278,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7278
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "06595aed9b"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes de iteraciones/llamadas sin findings útiles? ¿La hipótesis se descarta, el Synthesizer recibe findings vacíos o parciales, o falla todo el pipeline? Y si el watchdog global vence, ¿se corta sin mostrar nada o se publican los teasers que ya estén listos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo (watchdog) o los topes de iteraciones y tool calls sin findings útiles? ¿Se descarta esa hipótesis, se pasa igual al Synthesizer o se corta el pipeline? ¿Eso también cuenta como un caso en que no se muestra nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tiempo o sus topes de iteraciones/llamadas sin findings útiles? ¿Se descarta esa hipótesis, se pasa igual al Synthesizer, o corta todo el pipeline? Y si el watchdog global vence, ¿qué se registra y qué ve el usuario?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes de iteraciones/llamadas sin findings útiles? ¿La hipótesis se descarta, el Synthesizer recibe findings vacíos o parciales, o falla todo el pipeline? Y si el watchdog global vence, ¿se corta sin mostrar nada o se publican los teasers que ya estén listos?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas. Solo define los topes y el presupuesto de tiempo, pero no dice qué pasa cuando se agotan.\n\n**Qué sí dice el material**\n- Cada hipótesis tiene un tope de iteraciones y de llamadas según su registro (`REGISTER_CAPS`).\n- Cada hipótesis tiene un presupuesto de tiempo de `(watchdog_sec - 30) / n_hypotheses`. Ese `- 30` parece reservar 30 segundos para las etapas posteriores, pero es una inferencia mía.\n- El Synthesizer devuelve `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"` solo cuando los guards rechazan todo.\n\n**Qué no dice**\n- Si una hipótesis que agota tiempo o topes se descarta, o pasa al Synthesizer con findings parciales o vacíos.\n- Si ese caso falla el pipeline entero.\n- Qué hace el watchdog global al vencer, ni si publica los teasers ya listos.\n- Qué pasa si el watchdog vence mientras el Synthesizer o los guards todavía corren.\n\n**Dónde verificarlo**\n- `investigator.py`: buscá cómo maneja el límite de `max_iterations` o `max_tool_calls` y el timeout por hipótesis. Fijate si captura la excepción y qué devuelve en `InvestigationFindings`.\n- Donde se orquesta el pipeline: buscá `watchdog_sec` y fijate si usa `asyncio.wait_for` o `asyncio.timeout`, y si hay un `try/except` que haga el upsert igual.\n- `synthesizer.py`: revisá si con findings vacíos genera teasers o devuelve `teasers=[]` directo.\n\nSi me pasás esos archivos, te lo confirmo con el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7243,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 730,
+  "output_tokens_details": {
+   "thinking_tokens": 87
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7243,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 730,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7243,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7243
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9d54f724d8"
+ }
+}

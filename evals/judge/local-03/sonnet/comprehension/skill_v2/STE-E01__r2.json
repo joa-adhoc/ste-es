@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración va en `supabase/migrations/`. Se crea con `supabase migration new <nombre>` y el archivo queda como `NNNN_descripcion.sql`.",
+  "La tabla necesita una columna `workspace_id uuid NOT NULL`, un índice sobre `workspace_id`, RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y una policy (por ejemplo `mi_tabla_workspace_isolation`) con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, creada dentro de un bloque `DO $$ ... IF NOT EXISTS` para que sea idempotente. Si la tabla no lleva `workspace_id`, es una excepción que hay que discutir antes de armar el PR.",
+  "Porque el preview del PR corre las migraciones contra la base de staging, que es la misma base y no una copia. La migración se aplica en staging al abrir el PR, y si después se renombra el archivo se aplica de nuevo, porque el tracking es por nombre. Por eso la migración debe poder correr varias veces sin error y hay que elegir el nombre definitivo del archivo antes de abrir el PR."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ed5ef0f23f",
+  "control": "cb1718959b"
+ }
+}

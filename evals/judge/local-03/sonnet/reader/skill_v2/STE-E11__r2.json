@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El diagrama dice que el deploy a main (prod) aplica la migración 'si flag = 1'. ¿MIGRATIONS_ALLOW_DESTRUCTIVE está en 1 hoy en el entorno de prod, o solo en staging? Y si no lo está, ¿quién lo activa y cómo, para que el drop llegue a prod? También, ¿'cerca del inicio' es la primera línea o hay un límite de líneas donde el runner busca `-- destructive: true`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En los deploys de staging y main la migración se aplica \"si flag = 1\", pero no dice si `MIGRATIONS_ALLOW_DESTRUCTIVE` está en 1 hoy en prod (y en staging). Si en prod no está activado, ¿mi drop de columna llega a prod o queda salteado? ¿Hay que pedir que lo activen, o lo hace el pipeline?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El diagrama dice que el deploy a main (prod) aplica la migración 'si flag = 1'. ¿MIGRATIONS_ALLOW_DESTRUCTIVE está en 1 hoy en el entorno de prod, o solo en staging? Y si no lo está, ¿quién lo activa y cómo, para que el drop llegue a prod? También, ¿'cerca del inicio' es la primera línea o hay un límite de líneas donde el runner busca `-- destructive: true`?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas. No quiero inventar la respuesta.\n\n- **Flag en prod:** el material solo confirma que staging tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, porque los PR envs lo heredan de ahí. Sobre el entorno de prod no dice nada. Si prod no lo tiene, el runner saltea la migración sin registrarla en cada deploy de `main`, y el drop nunca llega.\n- **Quién lo activa y cómo:** el material no lo documenta. Revisá las variables del servicio de prod en Railway. Si falta, pedíselo a quien administre ese entorno.\n- **\"Cerca del inicio\":** el material no da un límite de líneas. Poné `-- destructive: true` como primera línea del archivo y no dependés de ese límite. Para confirmar el límite real, mirá cómo `tuqui_core/db/migrate.py` busca el marker.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6428,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 656,
+  "output_tokens_details": {
+   "thinking_tokens": 326
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6428,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 656,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6428,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6428
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fc6d0d442a"
+ }
+}

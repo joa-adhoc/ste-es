@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 configurado? Si no lo tiene, el runner saltea la migración también en main y el drop nunca se aplicaría. ¿Cómo lo confirmo y quién lo puede setear?",
+   "_note": "La primera oración da el marker exacto y el efecto (PR env saltea, se aplica post-merge), pero la respuesta deja abierto si prod aplica la migración, que es el destino final de la pregunta."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Y si no lo tiene, ¿cómo lo verifico o quién lo setea, para que el drop no quede salteado en main sin que me entere?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 configurado? Si no se sabe, ¿dónde lo verifico (Railway, qué servicio o variable)? Sin eso no sé si el drop se va a aplicar en main."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 configurado? Si no lo tiene, el runner saltea la migración también en main y el drop nunca se aplicaría. ¿Cómo lo confirmo y quién lo puede setear?",
+ "followup_answer": "El material no dice si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, ni quién puede setearlo. Hay que verificarlo en Railway.\n\nPara confirmarlo, corré esto (el CLI de Railway es conocimiento general, no sale del material):\n\n```bash\nrailway variables --environment production --service <servicio-que-corre-migrate> | grep MIGRATIONS_ALLOW_DESTRUCTIVE\n```\n\nTambién podés mirarlo en el dashboard de Railway, en Variables del servicio, dentro del environment de prod. Fijate que el valor sea exactamente `1`.\n\nSi no tenés acceso a ese environment, pedile el chequeo a quien administre el proyecto de Railway. Quien puede ver las variables de prod es quien puede setearlas. El material no nombra a esa persona ni al equipo, así que preguntá en el equipo de infra.\n\nSi el flag falta, el runner saltea la migración sin registrarla. Lo verificás después del deploy de `main` con la tabla `_migrations`. Si el archivo no figura ahí, el drop no se aplicó:\n\n```sql\nSELECT * FROM _migrations WHERE name LIKE '%<nombre_del_archivo>%';\n```\n\nAjustá `name` a la columna real de la tabla. El material no la especifica.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6292,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 694,
+  "output_tokens_details": {
+   "thinking_tokens": 232
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6292,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 694,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6292,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6292
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "edd337698b"
+ }
+}

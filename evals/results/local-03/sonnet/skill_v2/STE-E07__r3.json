@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "skill_v2",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Hiciste dos cosas mal: invocaste `pytest` desde la raíz y dejaste la expresión de `-k` sin comillas.\n\n**Pytest en la raíz:** la config de la suite vive en `tuqui_core/pyproject.toml`, y desde la raíz pytest no la ve. Pierde el modo asyncio, colecta `evals/tests` y tira miles de fallas que no son del código. El `conftest.py` de la raíz corta esa invocación con un mensaje.\n\n**`make test ARGS=-k a or b`:** el shell parte la expresión en tres palabras, y pytest lee `or` como un path. Por eso ves `file or directory not found: or`.\n\nLa forma correcta es correr `make` desde la raíz y poner comillas internas:\n\n```bash\nmake test ARGS='-k \"a or b\"'\nmake test ARGS=\"tests/test_rls.py -k policy\"   # paths relativos a tuqui_core/\n```\n\nOtros targets: `make test-rls`, `make test-web`, `make test-evals` y `make lint`.\n\nSi querés pytest crudo, hacé `cd tuqui_core` y cargá `.env.test` para lo que lea `os.environ` directo, como hace el Makefile. `pytest tuqui_core/tests/test_x.py` desde la raíz corre igual, pero se saltea el lock del Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5296,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 508,
+  "output_tokens_details": {
+   "thinking_tokens": 48
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5296,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 508,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5296,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5296
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

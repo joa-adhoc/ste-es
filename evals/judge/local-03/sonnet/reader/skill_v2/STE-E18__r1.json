@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el top-N de rapidfuzz y qué pasa con las memorias que quedan afuera del prompt? ¿El modelo sabe que existen, o puede listarlas o leerlas con manage_memory, o directamente no las ve en ese turno?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando los headers superan los 12K caracteres, ¿cuántas memorias quedan exactamente (cuánto vale el N del top-N) y qué pasa con las que no entran? ¿Siguen guardadas y el modelo las puede encontrar, o quedan invisibles hasta que el mensaje del usuario matchee con ellas? Y para completar el ciclo: ¿qué dispara el guardado (cuándo decide el modelo llamar a manage_memory) y cómo se actualiza o borra una memoria?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando hay más de 12K caracteres y rapidfuzz deja solo los top-N, ¿cuánto vale N y qué pasa con las memorias que quedan afuera: el modelo se entera de que existen o simplemente no las ve? Además, ¿el tope de 50 se aplica por scope por separado (user y workspace) y el presupuesto de 12K es compartido entre ambos bloques o es por bloque?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuánto vale N en el top-N de rapidfuzz y qué pasa con las memorias que quedan afuera del prompt? ¿El modelo sabe que existen, o puede listarlas o leerlas con manage_memory, o directamente no las ve en ese turno?",
+ "followup_answer": "El material no define N ni dice qué pasa con las memorias que quedan afuera. Esos datos están en el código del budget guard (`_load_chat_setup` y `_MEMORY_BUDGET_CHARS`), que no tengo acá. Revisalo ahí.\n\nLo que sí se puede decir con el material:\n\n- **Qué ve el modelo:** solo los headers que se inyectan en el system prompt. Las memorias que quedan afuera no aparecen en ese turno.\n- **Cómo sabría que existen:** el material no menciona ningún aviso del tipo \"hay N memorias más\". Si el código no lo agrega, el modelo no sabe que existen.\n- **Leerlas:** `manage_memory(action='read', id=...)` pide un `id`, y el `id` solo aparece en el header. Sin header, el modelo no tiene cómo conocer el `id`.\n- **Listarlas:** el material solo documenta la acción `read`. Si existe una acción `list` o `search`, no está descrita.\n\nPara cerrar las dos dudas, fijate en el código:\n\n1. Si el top-N es un número fijo o se arma sumando headers hasta llegar a 12K caracteres.\n2. Qué acciones acepta `manage_memory`.\n3. Si el bloque inyectado agrega una línea con las memorias omitidas.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5975,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 647,
+  "output_tokens_details": {
+   "thinking_tokens": 196
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5975,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 647,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5975,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5975
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5acfb4809b"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración va en `supabase/migrations/NNNN_descripcion.sql`. El archivo se crea con `supabase migration new <nombre>`, que lo deja con ese formato de nombre (NNNN_descripcion.sql).",
+  "La tabla tiene que llevar la columna `workspace_id` (uuid NOT NULL) con un índice sobre ella, tener RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y una policy que filtre por `workspace_id = current_setting('app.current_workspace_id')::uuid` (en el esqueleto, `mi_tabla_workspace_isolation`). Además hace falta un test de aislamiento en `tuqui_core/tests/test_rls.py` y un modelo Pydantic. Si la tabla no lleva `workspace_id`, es una excepción que hay que discutir antes de armar el PR.",
+  "Porque el preview del PR corre la migración contra la base de staging, que es la misma base y no una copia, y se aplica al abrir el PR. Además, si se renombra el archivo se vuelve a aplicar, porque el tracking es por nombre. Por eso la migración se puede ejecutar más de una vez y tiene que ser idempotente."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "bf3178b78e",
+  "control": "cb1718959b"
+ }
+}

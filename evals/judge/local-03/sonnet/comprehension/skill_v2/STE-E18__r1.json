@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja por `created_at` (FIFO), en la misma transacción en que se guarda la nueva, porque el tope es de 50 por scope. El borrado es silencioso, pero la respuesta del tool le avisa al modelo.",
+  "Cada turno `_load_chat_setup` arma un header por memoria (`title` más `summary`, o el `body` hasta 250 caracteres si no hay `summary`, terminando en `... [read]` si el body es más largo). Si los headers entran en el presupuesto, van todos al prompt, en los bloques `# Workspace memory` y `# User memory`. El resto del contenido (las memorias marcadas `[read]`) llega cuando el modelo llama `manage_memory(action='read', id=...)`.",
+  "Si los headers superan los 12K caracteres (`_MEMORY_BUDGET_CHARS`, ≈ 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se dejan solo los top-N. El texto no dice cuánto vale N."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "5acfb4809b",
+  "control": "2fefeeffdf"
+ }
+}

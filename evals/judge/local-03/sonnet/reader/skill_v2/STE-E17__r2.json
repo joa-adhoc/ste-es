@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que la clave del contador incluye tool_name y que solo cuenta repeticiones de la misma tool. Pero al final decís que el guard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\". ¿Cuál vale? Si la clave lleva el nombre de la tool, tres tools distintas fallando con CONNECTION no deberían disparar el corte. Además, ¿qué texto exacto ve el modelo cuando se devuelve FATAL?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el último punto decís que el guard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\", pero la clave del contador incluye tool_name y los args. ¿Eso significa que el contador se comparte entre tools distintas para esas dos clases, o solo cuenta por tool+args como el resto? Y cuando devuelve FATAL, ¿qué texto exacto ve el modelo y el loop del chat se detiene, o el modelo puede seguir llamando?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. Primero, decís que el guard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\", pero la clave del contador incluye tool_name y hash(args). Entonces, ¿se cuenta por tool o entre tools distintas? Segundo, ¿qué ve exactamente el modelo cuando llega FATAL (el texto literal)? ¿Es solo un string en el tool result, o además se aborta el turno o el run? Si es solo un string, ¿qué impide que el modelo siga reintentando con args distintos?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dijiste que la clave del contador incluye tool_name y que solo cuenta repeticiones de la misma tool. Pero al final decís que el guard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\". ¿Cuál vale? Si la clave lleva el nombre de la tool, tres tools distintas fallando con CONNECTION no deberían disparar el corte. Además, ¿qué texto exacto ve el modelo cuando se devuelve FATAL?",
+ "followup_answer": "Vale la clave: con `\"{tool_name}|{hash(args)}|{error_class}\"`, tres tools distintas fallando con `CONNECTION` no comparten contador y no disparan el corte. Mi \"entre tools\" de antes venía de una frase del material que contradice esa clave, y la repetí sin cuestionarla.\n\nEl material no aclara qué quiere decir \"corta las dos entre tools\". Puede ser una de estas dos cosas:\n\n- **Una lectura laxa:** el guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` en cualquier tool, pero cada tool con su propio contador.\n- **Una lógica que no aparece:** hay un contador aparte para estas dos clases, sin `tool_name` en la clave.\n\nCon lo que tengo, la primera es la única consistente con la clave. Para confirmarlo, revisá `DoomLoopGuard.record` en `tuqui_core/chat/guards.py` y fijate si hay una rama especial para esas dos clases.\n\nSobre el texto de FATAL, el material no lo da. Solo dice que `_wrap_tool` \"devuelve FATAL\". Por el formato de `for_llm()`, debería ser `[TOOL_ERROR class=FATAL]: <message>`. El `<message>` exacto no lo sé, y no lo voy a inventar. Buscalo en `_wrap_tool` (`agent.py`), donde se arma el `ToolError` con `ErrorClass.FATAL` cuando `record` devuelve `True`. Si me pasás ese fragmento o `guards.py`, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6232,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 876,
+  "output_tokens_details": {
+   "thinking_tokens": 324
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6232,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 876,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6232,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6232
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0ac6e4d011"
+ }
+}

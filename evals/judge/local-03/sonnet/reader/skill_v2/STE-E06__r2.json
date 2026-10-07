@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés mostrar un ejemplo concreto de cómo queda el .env.test.local, con el nombre exacto de la variable de la base, un valor de URL propio del worktree, y los valores de REDIS_URL y TEST_LOCK? ¿Y la base hay que crearla antes, o make migrate-reset la crea?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés mostrar cómo queda concretamente el `.env.test.local`? Necesito los nombres exactos de las variables y un valor de ejemplo para la URL de la DB propia, para `REDIS_URL` con índice propio y para `TEST_LOCK`, porque con 'una propia' y 'un índice propio' no sé qué poner."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me podés mostrar un ejemplo concreto de cómo queda el .env.test.local, con el nombre exacto de la variable de la base, un valor de URL propio del worktree, y los valores de REDIS_URL y TEST_LOCK? ¿Y la base hay que crearla antes, o make migrate-reset la crea?",
+ "followup_answer": "El material no da el nombre exacto de la variable de la base, y no puedo inventarlo. Abrí `tuqui_core/.env.test.local.example` y copiá el nombre de ahí.\n\nAsí queda el archivo. `<VARIABLE_DE_LA_BASE>` es lo que falta, y los valores son ejemplos:\n\n```\n# tuqui_core/.env.test.local\n<VARIABLE_DE_LA_BASE>=postgresql://<usuario>:<clave>@localhost:<puerto>/test_mi_worktree\nREDIS_URL=redis://localhost:6379/7\nTEST_LOCK=mi_worktree\n```\n\n- **Base:** usá el mismo formato de URL que `.env.test`, pero con un nombre de base único por worktree.\n- **`REDIS_URL`:** el servidor es el mismo y lo que separa es el índice. Elegí uno que no sea 15 (default compartido de `.env.test`) ni 0 (server de desarrollo). El 7 es un ejemplo.\n- **`TEST_LOCK`:** el material solo dice que tiene que ser distinto del de los otros worktrees. No dice el formato. Un nombre propio del worktree cumple esa condición.\n- **Redis y lock:** poné `REDIS_URL` y `TEST_LOCK` solo si querés soltar el lock. Si solo aislás la base, dejá ambos fuera y el lock sigue activo.\n\nSobre crear la base, el material no lo dice. Dice que `scripts/reset_database.py` \"vacía\" y después aplica las migraciones, y eso sugiere que la base ya existe. Creala antes por las dudas, con `createdb test_mi_worktree` o el equivalente de tu setup. Si `make migrate-reset` falla porque la base no existe, ya sabés el motivo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6237,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1027,
+  "output_tokens_details": {
+   "thinking_tokens": 403
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6237,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1027,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6237,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6237
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ebab9b0b42"
+ }
+}

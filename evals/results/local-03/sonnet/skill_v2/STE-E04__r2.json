@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "skill_v2",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`replace` pisa el valor completo del campo; `append` conserva el contenido actual y pone el nuevo abajo. Si el append falla a mitad de camino, los registros ya escritos no se revierten y el error te dice cuáles reintentar.\n\n**Diferencia**\n\n- `mode=\"replace\"` (por defecto) pisa todo lo que mandás. No lee el valor previo.\n- `mode=\"append\"` conserva el contenido actual de los campos `html` y `text`, por registro. Los demás tipos de campo se reemplazan igual en los dos modos.\n- Usá `append` cuando te piden *agregar* o *completar*, y mandá solo el contenido nuevo. Un write plano en `description` borra lo que escribió una persona, y el chatter no guarda el valor anterior.\n- En `html`, el append concatena HTML crudo, así que links, clases e imágenes sobreviven. En `text`, separa con una línea en blanco.\n\n**Si falla con varios registros**\n\nEl append es un write por registro, no una transacción. El resultado depende de dónde falla:\n\n```\nfalla el pre-read ─────────► append_precheck_failed (no escribe nada)\nfalla el 1er registro ─────► write fallido común (invalid_values o la excepción)\n                             → reintentá la llamada entera\nfalla el registro k (k > 1) ► append_partially_applied\n                             written_ids  → ya escritos, no se revierten\n                             failed_id    → el que falló\n                             pending_ids  → a reintentar (incluye failed_id)\n```\n\n- En el caso parcial, reintentá solo con `pending_ids`. Si reintentás todo, duplicás contenido en los ya escritos.\n- Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`.\n\n**Rechazos que conviene conocer**\n\n- `append` con un valor que no es string (por ejemplo `{\"description\": false}`) da `append_requires_text`. Para vaciar un campo, usá `mode=\"replace\"`.\n- Un rich text vaciado desde la UI (`<p><br></p>`) cuenta como vacío. Un campo con solo una imagen cuenta como contenido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5579,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 730,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5579,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 730,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5579,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5579
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

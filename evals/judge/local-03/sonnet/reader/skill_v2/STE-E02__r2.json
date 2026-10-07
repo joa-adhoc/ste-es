@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La primera oración depende de quién consume la descripción del conector (SPA, prompt, mail o MCP) y no sé cuál es el caso. ¿Dónde se consume hoy? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya cubre la columna description_i18n o tengo que crear otra?",
+   "answer_note": "La respuesta es condicional y deja la decisión backend vs. solo cliente sin resolver."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Quién consume hoy la descripción de los conectores además de la SPA (prompts, mails, superficie MCP)? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya cubre la columna description_i18n en platform_connectors o hay que crear otra?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "La primera oración depende de quién consume la descripción del conector (SPA, prompt, mail o MCP) y no sé cuál es el caso. ¿Dónde se consume hoy? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya cubre la columna description_i18n o tengo que crear otra?",
+ "followup_answer": "No tengo acceso a eso desde acá, así que no puedo confirmar ninguna de las dos cosas. El directorio de trabajo (`/tmp/ste-es-eval-g6vm_y2_`) está vacío. No hay migraciones ni código de conectores para leer, y el material que me pasaste solo nombra el archivo `0201_platform_connectors_description_i18n.sql` como referencia, sin su contenido.\n\n**Qué hacer para cada duda:**\n\n1. **¿La 0201 ya crea `description_i18n`?** Abrila y buscá el `ADD COLUMN`:\n   ```bash\n   cat supabase/migrations/0201_platform_connectors_description_i18n.sql\n   ```\n   Si agrega `description_i18n JSONB` a la tabla de conectores, no crees otra migración. Si además porta datos de una columna `description_en`, ese caso lo cubre la `0206_features_i18n.sql` como referencia. El nombre sugiere que sí cubre la columna, pero el nombre no alcanza como prueba.\n\n2. **¿Quién consume la descripción hoy?** Buscá los usos y fijate en cuáles del backend aparecen:\n   ```bash\n   grep -rn \"description\" --include=*.py --include=*.ts --include=*.tsx . | grep -i connector\n   ```\n   - Si solo aparece en componentes de la SPA (cards, listados), alcanza con el cliente.\n   - Si aparece en el armado de un prompt, en un template de mail o en la superficie MCP saliente, tocá también el backend.\n\nSi me pasás el repo o pegás la salida de esos dos comandos, te doy la respuesta concreta.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6727,
+  "cache_read_input_tokens": 38739,
+  "output_tokens": 781,
+  "output_tokens_details": {
+   "thinking_tokens": 62
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6727,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 572,
+    "cache_read_input_tokens": 22609,
+    "cache_creation_input_tokens": 248,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 248
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f22d4da658"
+ }
+}

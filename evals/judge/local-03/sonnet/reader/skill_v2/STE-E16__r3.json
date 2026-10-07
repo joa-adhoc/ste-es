@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh solo-data mueve `published_version_id`, o el que tiene el link sigue viendo la versión publicada con los datos viejos hasta que se publique explícitamente?",
+   "note": "La primera oración responde bien la pregunta principal (el link sigue en la versión publicada). Falta el tercer punto: la respuesta admite que no sabe si un refresh de datos actualiza lo publicado, y eso es justo lo que se preguntó."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh solo-data mueve `published_version_id`, o el link sigue mostrando los datos viejos hasta que haga `publish` a mano? Necesito saberlo para decidir si los que tienen el link ven los datos actualizados.",
+   "note": "La primera oración responde la pregunta sobre editar, pero la parte de 'qué pasa cuando solo se refrescan los datos' queda sin confirmar: la respuesta misma admite que no lo sabe."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh solo-data mueve published_version_id, o el que tiene el link sigue viendo los datos viejos hasta que se publique la nueva versión? Necesito saber qué ve el que tiene el link después de un refresh, y no me alcanza con que sea 'probablemente no'."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Un refresh solo-data mueve `published_version_id`, o el que tiene el link sigue viendo la versión publicada con los datos viejos hasta que se publique explícitamente?",
+ "followup_answer": "El material no lo dice explícito, pero lo más probable es que no: un refresh solo-data no mueve `published_version_id`, y el link sigue mostrando la versión publicada con los datos viejos hasta que alguien corra `publish`.\n\n- **Qué dice el material:** un `save` con `artifact_id` crea la v(n+1) y mueve solo `current_version_id`. Un refresh crea una versión solo-data, así que por esa regla entra por el mismo camino.\n- **Qué no dice:** si la fase 2 (dashboards regenerables) tiene un camino aparte que publique solo. El material no menciona ninguno.\n- **Qué ve el link:** la ruta por token sirve siempre `published_version`. Se resuelve con `service._effective_version`, que toma el último `content` y el último `data` ≤ esa versión publicada. Un refresh posterior no entra ahí.\n\nPara confirmarlo, buscá quién escribe el puntero:\n\n```\ngrep -rn \"published_version_id\" <ruta-al-módulo>/service.py\n```\n\nSi solo aparece dentro de `publish` y del `save` sin `artifact_id`, está confirmado.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6080,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 604,
+  "output_tokens_details": {
+   "thinking_tokens": 211
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6080,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 604,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6080,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6080
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b39cbcc614"
+ }
+}

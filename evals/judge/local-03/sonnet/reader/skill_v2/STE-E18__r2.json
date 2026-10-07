@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando los headers pasan los 12K chars y se filtra con rapidfuzz, ¿cuántas memorias entran (cuánto vale N) y qué pasa con las que quedan afuera? ¿El modelo no las ve en ese turno, o puede llegar a ellas de alguna forma?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el top-N de rapidfuzz cuando se pasan los 12K chars, y contra qué texto se compara el mensaje (título, summary o cuerpo)? Además, ¿las memorias que quedan afuera del top-N se pueden leer igual, o el modelo ni sabe que existen?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando los headers pasan los 12K chars y se filtra con rapidfuzz, ¿cuánto vale N en el top-N? Y las memorias que quedan afuera, ¿el modelo puede llegar a leerlas o no se entera de que existen?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando los headers pasan los 12K chars y se filtra con rapidfuzz, ¿cuántas memorias entran (cuánto vale N) y qué pasa con las que quedan afuera? ¿El modelo no las ve en ese turno, o puede llegar a ellas de alguna forma?",
+ "followup_answer": "N no está definido en el material: solo dice que rapidfuzz puntúa los headers contra el mensaje actual y \"keeps top-N\". Tampoco dice cuál es el criterio de corte ni si el filtro corta por cantidad o por chars. Eso se ve en el código de `_load_chat_setup`.\n\nSobre las que quedan afuera, el material tampoco lo dice, pero se deduce algo:\n\n- **Ese turno:** sus headers no entran al system prompt, así que el modelo no las ve.\n- **Siguen guardadas:** el filtro solo afecta la inyección. No borra nada. El borrado es solo por el tope de 50.\n- **Acceso por `read`:** `manage_memory(action='read', id=...)` necesita el `id`, y el `id` solo aparece en el header. Si el header no se inyectó, el modelo no tiene cómo conocerlo.\n- **Turno siguiente:** si el mensaje nuevo se parece más a una memoria excluida, esa puede entrar.\n\nNo sé si `manage_memory` tiene una acción `list` o `search` que permita llegar a ellas. El material solo muestra `read`. Revisá la definición del tool en el repo para confirmarlo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6037,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 413,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6037,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 413,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6037,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6037
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "53d36bd155"
+ }
+}

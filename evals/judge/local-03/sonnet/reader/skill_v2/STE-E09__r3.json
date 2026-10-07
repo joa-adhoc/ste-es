@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que el flujo tiene 8 pasos, pero el diagrama solo muestra hasta el 7 y el paso 8 (refresh proactivo) aparece aparte; además mencionás que `resource` viaja en los pasos 3, 6 y 8. ¿Podés aclarar qué hace exactamente el paso 8 y cómo se relaciona con el flujo de conexión? Y en el caso de 'algunas habilidades no contestan', ¿qué cuenta como 'no contesta' (timeout, error, respuesta vacía) y cómo se identifica cuáles fallaron para el warning?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El resumen habla de 8 pasos, pero el diagrama llega al 7 y el paso 8 (refresh proactivo) aparece suelto abajo, y además dice que `resource` viaja en los pasos 3, 6 y 8 sin explicar cuál es cada uno. ¿Podés listar los 8 pasos numerados en orden, con quién hace qué en cada uno?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta dice que son 8 pasos pero el diagrama solo numera del 2 al 7 y el paso 8 (refresh proactivo) aparece aparte, fuera del flujo de conexión. ¿Podés listar los 8 pasos en orden, uno por línea, indicando quién actúa en cada uno (front, backend o provider)? Además, cuando 'ninguna contesta', ¿cómo se define 'contestar' (timeout, error de auth, lista de tools vacía)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "Dijiste que el flujo tiene 8 pasos, pero el diagrama solo muestra hasta el 7 y el paso 8 (refresh proactivo) aparece aparte; además mencionás que `resource` viaja en los pasos 3, 6 y 8. ¿Podés aclarar qué hace exactamente el paso 8 y cómo se relaciona con el flujo de conexión? Y en el caso de 'algunas habilidades no contestan', ¿qué cuenta como 'no contesta' (timeout, error, respuesta vacía) y cómo se identifica cuáles fallaron para el warning?",
+ "followup_answer": "**Paso 8:** no es parte de la conexión. Corre después, cada vez que el backend construye los toolsets, y solo renueva un token que ya existe.\n\n`refresh_if_expired` mira el token guardado en `user_mcp_oauth_tokens`. Si quedan menos de 60s de validez, pide uno nuevo a `token_url`. Ahí también viaja `resource` (RFC 8707), pero solo si está guardado en `OAuthPerUserConfig.resource`.\n\nMi \"8 pasos\" estuvo mal contado. Son 7 pasos de conexión (1 al 7) más el refresh, que ocurre aparte y por eso no está en el diagrama. El `resource` viaja en el paso 3 (authorize), en el 6 (canje) y en el 8 (refresh).\n\n**Qué cuenta como \"no contesta\":** el material no lo define. No dice si es timeout, error del server o respuesta vacía, ni qué timeout se usa. Con lo que tengo solo puedo afirmar esto:\n\n- El callback introspecta todas las habilidades habilitadas en paralelo.\n- Si ninguna contesta, borra el token y redirige con `connect_error=<motivo>`.\n- Si alguna contesta, redirige con `connect_warning=<habilidades>`.\n\nComo el warning lista las habilidades, el callback sabe cuáles fallaron. El material no dice cómo lo decide.\n\nPara confirmar el criterio, revisá el handler de `GET /api/mcp-oauth/callback`, en la parte que introspecta las habilidades. Ahí van a estar el timeout y qué excepciones o respuestas se tratan como falla. Si me pasás ese código, te lo describo con precisión.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7114,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 817,
+  "output_tokens_details": {
+   "thinking_tokens": 231
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7114,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 817,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7114,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7114
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7626a21595"
+ }
+}

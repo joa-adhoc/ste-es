@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando vence la prueba y no hay suscripción, ¿el workspace pasa a account_status='restricted' siempre o solo si hay exceso sobre el plan free? Y si ya tiene suscripción viva, ¿los avisos de 7 días y del día de vencimiento salen igual o se cancelan?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta es ambigua en dos puntos que cambian qué le pasa a mi workspace. Primero, si tiene suscripción viva, ¿salen igual el aviso de 7 días y el del día del vencimiento, o no sale ninguno? Dice que 'no sale nada', pero parece referirse solo al mail de prueba vencida. Segundo, si no tiene suscripción, ¿queda en `restricted` siempre o solo cuando hay exceso? En ese caso, ¿el chat y el MCP quedan bloqueados ese mismo día?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Cuándo exactamente se setea account_status='restricted' con motivo trial_expired_with_excess: solo si al vencer la prueba sin suscripción hay exceso, o siempre que vence sin suscripción? Y si se setea, ¿se bloquean MCP y chat el mismo día del vencimiento?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta es ambigua en dos puntos que cambian qué le pasa a mi workspace. Primero, si tiene suscripción viva, ¿salen igual el aviso de 7 días y el del día del vencimiento, o no sale ninguno? Dice que 'no sale nada', pero parece referirse solo al mail de prueba vencida. Segundo, si no tiene suscripción, ¿queda en `restricted` siempre o solo cuando hay exceso? En ese caso, ¿el chat y el MCP quedan bloqueados ese mismo día?",
+ "followup_answer": "**1. Con suscripción viva:** el material no dice que los avisos previos se omitan. Solo dice que el día del vencimiento se limpian los flags y no sale el mail de prueba vencida. Mi \"no sale nada\" se refería solo a ese momento. Los hitos `{7, 0}` salen del cron sobre la prueba, y el material no menciona ningún filtro por suscripción. Por eso lo más probable es que los dos avisos salgan igual, pero no está confirmado. Revisá en `scheduler/billing_cron.py::_run_trial_expiry` si el chequeo de suscripción viva corre antes o después de enviar los avisos.\n\n**2. Sin suscripción:**\n- **`restricted`:** el material no dice si queda siempre o solo con exceso. La tabla lista \"trial expiry\" entre quienes setean `restricted`, y el motivo se llama `trial_expired_with_excess`. Eso sugiere que solo se setea con exceso, pero es una inferencia.\n- **Chat y MCP:** con `restricted` quedan bloqueados los dos. El material no dice si eso pasa el mismo día del vencimiento. Solo dice que el vencimiento evalúa el exceso en esa corrida.\n- **Sin `restricted`:** el workspace igual pasa a `plan='free'`. Se pierde el asistente para todo el equipo, y `PlanLapsedBanner` lo avisa en el chat.\n\nPara cerrar el punto 2, buscá en `_run_trial_expiry` dónde se setea `account_status='restricted'` y si está dentro de un `if` de exceso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6542,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 997,
+  "output_tokens_details": {
+   "thinking_tokens": 447
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6542,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 997,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6542,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6542
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "517593c1f9"
+ }
+}

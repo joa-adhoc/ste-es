@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. Primero, `make worktree-setup` linkea `node_modules` del clone principal, pero después me decís que corra `npm ci` en el worktree. ¿`npm ci` no borra y reinstala `node_modules`, y si es un symlink no me rompe el del clone principal? ¿Primero tengo que deslinkearlo? Segundo, para la dependencia de Python: si la instalo en el clone principal y el `.venv` es compartido, ¿los tests del worktree la ven sin tocar nada? Y si el editable install apunta al clone principal, ¿cómo es que corre el código del worktree y no el de main?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. Primero, `worktree-setup` linkea `node_modules` del clone principal, y `npm ci` borra y reinstala `node_modules`. ¿Correrlo en el worktree no pisa o borra los `node_modules` del clone principal? ¿Hay que deslinkear antes, o con `web/package.json` modificado cuál es el paso seguro? Segundo, para la dependencia de Python me das dos caminos (instalarla en el clone principal o armar un venv propio) sin comandos. ¿Cuál recomendás si no quiero afectar a los demás worktrees, y cómo lo hago paso a paso sin romper el editable install?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python, ¿me pasás los comandos exactos de la opción del venv propio en el worktree? Es decir: cómo borro el link de .venv, cómo creo el venv, cómo instalo el proyecto con la dependencia nueva sin repuntar el editable install del clone principal, y cómo verifico que `make test` use ese venv."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dos cosas no me cierran. Primero, `make worktree-setup` linkea `node_modules` del clone principal, pero después me decís que corra `npm ci` en el worktree. ¿`npm ci` no borra y reinstala `node_modules`, y si es un symlink no me rompe el del clone principal? ¿Primero tengo que deslinkearlo? Segundo, para la dependencia de Python: si la instalo en el clone principal y el `.venv` es compartido, ¿los tests del worktree la ven sin tocar nada? Y si el editable install apunta al clone principal, ¿cómo es que corre el código del worktree y no el de main?",
+ "followup_answer": "**1. `npm ci` y el symlink:** deslinkeá `web/node_modules` antes de correr `npm ci`. El material no dice qué hace `npm ci` con un symlink, y no lo verifiqué. Con este orden no corrés el riesgo de que borre el `node_modules` del clone principal.\n\n```bash\n# desde el worktree\nrm web/node_modules      # sin barra final: borra solo el link, no el destino\ncd web && npm ci\n```\n\nSolo hace falta para `web/node_modules`. El `node_modules` de la raíz puede seguir linkeado.\n\n**2. Dependencia de Python:** sí, los tests del worktree la ven sin tocar nada. El `.venv` es el mismo, así que lo que instalás en el clone principal queda disponible en todos los worktrees.\n\n```bash\n# en el clone principal\nmake install\n```\n\nEl editable install apunta al clone principal, pero eso no hace que corra el código de main. Los paquetes tienen `__init__.py`, y la raíz del worktree entra primero en `sys.path`. Python importa el código del worktree antes que el del editable install.\n\nEsto vale para tu código, no para la dependencia nueva. La dependencia viene del venv compartido. Si otro worktree no la necesita, la instalación no lo afecta.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5871,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1244,
+  "output_tokens_details": {
+   "thinking_tokens": 809
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5871,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1244,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5871,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5871
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1340e65cc5"
+ }
+}

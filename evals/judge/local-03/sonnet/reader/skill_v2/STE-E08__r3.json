@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c), (d) sin definirlas, y la regla de (d) ('3 o más calls') la tengo que inferir. ¿Me podés listar en una línea qué significa cada criterio, o dónde están documentados, para poder confirmar que mi tool cae en skill y no en (b2)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c) y (d) sin definirlas, así que tengo que adivinar qué significa cada una. ¿Me las podés definir en una línea cada una? Y una pregunta puntual: si quiero los defaults en MCP, ¿alcanza con documentarlos en el skill o hay otra forma de aplicarlos sin una tool nativa?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás las etiquetas (a), (b1), (b2), (c) y (d) sin definirlas y no tengo el doc donde están. ¿Me las explicás en una línea cada una, y me confirmás que en mi caso (un create con defaults sobre un modelo) la respuesta es skill salvo que necesite una whitelist más fina que el create genérico?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa las etiquetas (a), (b1), (b2), (c), (d) sin definirlas, y la regla de (d) ('3 o más calls') la tengo que inferir. ¿Me podés listar en una línea qué significa cada criterio, o dónde están documentados, para poder confirmar que mi tool cae en skill y no en (b2)?",
+ "followup_answer": "Los criterios vienen del material que pegaste, la sección \"Decisión\". Mi respuesta anterior les puso etiqueta sin definirlos. No sé en qué archivo vive ese texto. Solo tengo dos referencias: `tuqui_core/chat/permissions.py` (donde el chat consume `requires_approval`) y la sección \"Permisos — explícitamente NO reusar el hook del chat\" de specs#49.\n\nUna tool nativa necesita cumplir al menos uno de estos ejes. Si no cumple ninguno, va como skill.\n\n- **(a) No componible:** no se logra con las tools genéricas (`odoo_create`, `odoo_write`, etc.) ni con otra tool existente.\n- **(b1) Approval o identidad de policy propia:** vale solo en chat, porque el router MCP ignora `requires_approval`.\n- **(b2) Whitelist más fina:** el gate es más estricto que el `execute` o `create` genérico. Vale en chat y en MCP. Ejemplos: `odoo_copy` y `odoo_message_post`.\n- **(c) Procedimiento crítico:** un skip del LLM tiene costo real, como una compliance dura. Vale solo en chat, porque el MCP no tiene un turno donde forzar pasos.\n- **(d) Eficiencia o determinismo:** colapsa en 1 call lo que cuesta 3 o más calls genéricas, un loop no acotado o pasos que el LLM saltearía. Un wrapper 1→1 nunca califica, aunque ahorre tokens de esquema.\n\nPara confirmar que tu tool cae en skill, chequeá estos puntos:\n\n1. **(a):** el efecto es un `odoo_create` con valores precargados, así que se compone. No califica.\n2. **(d):** es una sola call genérica, o sea 1→1. No califica.\n3. **(b2):** solo califica si el gate es más fino que el `create` genérico. Si el permiso sigue siendo `create` sobre el mismo modelo, no suma.\n4. **(b1) y (c):** aunque apliquen, valen solo en chat. Si exponés la tool por el MCP saliente, no justifican nada.\n\nSi los cuatro dan que no, es skill.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6405,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1142,
+  "output_tokens_details": {
+   "thinking_tokens": 380
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6405,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1142,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6405,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6405
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e84598c53a"
+ }
+}

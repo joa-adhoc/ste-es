@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué texto exacto recibe el modelo cuando el DoomLoopGuard devuelve el error FATAL, y eso termina el run/turno o solo le devuelve ese error y el modelo puede seguir llamando otras tools?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué pasa exactamente cuando el guard devuelve el error FATAL? ¿Qué texto ve el modelo y se corta el turno o el run, o es solo un mensaje más que el modelo puede ignorar y seguir probando, por ejemplo con args apenas distintos que reinician el contador?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me falta la mitad del corte: ¿qué texto exacto ve el modelo cuando el DoomLoopGuard devuelve el error FATAL, y qué pasa en la 4ª llamada idéntica? ¿Se bloquea antes de ejecutar la tool o la tool se ejecuta igual y solo cambia el mensaje? Además, ¿el FATAL termina el turno o el loop del agente, o el modelo puede seguir probando con otros args?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Qué texto exacto recibe el modelo cuando el DoomLoopGuard devuelve el error FATAL, y eso termina el run/turno o solo le devuelve ese error y el modelo puede seguir llamando otras tools?",
+ "followup_answer": "El material no trae el texto exacto del FATAL, así que no puedo citarlo sin inventarlo. Tampoco dice si el run termina.\n\nLo que sí dice: cuando `record` devuelve `True`, `_wrap_tool` \"devuelve FATAL e impide más calls idénticos\". Eso sugiere que el FATAL vuelve como resultado de la tool, probablemente con el formato `\"[TOOL_ERROR class=FATAL]: ...\"` de `for_llm()`. También sugiere que el run sigue y que solo se bloquean los calls idénticos. Es una inferencia, no un dato confirmado.\n\nPara confirmarlo, revisá en el código:\n\n- **Texto:** en `agent.py`, la rama de `_wrap_tool` donde `DoomLoopGuard.record(...)` devuelve `True`. Buscá el `ToolError(ErrorClass.FATAL, ...)` o el string que arma ahí.\n- **Corte del run:** si esa rama hace `raise` o devuelve un string. Si devuelve el string, el modelo puede seguir llamando otras tools. Si levanta una excepción que el loop del agente no captura, el turno termina.\n\nSi me pasás `agent.py` (o el fragmento de `_wrap_tool`), te respondo con el texto exacto.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6185,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 691,
+  "output_tokens_details": {
+   "thinking_tokens": 243
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6185,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 691,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6185,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6185
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8491c9e18d"
+ }
+}

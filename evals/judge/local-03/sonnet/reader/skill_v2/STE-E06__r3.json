@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me das un ejemplo concreto de cómo queda el .env.test.local para mi worktree, con los valores de las variables (nombre de la base, REDIS_URL con índice propio, TEST_LOCK) y el comando para crear esa base nueva? Con 'editá el archivo y apuntalo a una base propia' no sé qué poner exactamente."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la base propia por worktree, ¿me podés dar un ejemplo concreto del `.env.test.local` con las variables y valores que tengo que cambiar (nombre de base, REDIS_URL, TEST_LOCK) y el comando para crear esa base, así no tengo que adivinar a partir del archivo de ejemplo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué tengo que poner exactamente en `.env.test.local` para tener una base propia por worktree (qué variables y valores, por ejemplo el nombre de la base y el índice de Redis), y cómo creo esa base nueva con las migraciones de mi rama? Y si dejo la base propia pero sin Redis propio, ¿puedo seguir usando el lock compartido sin problemas?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me das un ejemplo concreto de cómo queda el .env.test.local para mi worktree, con los valores de las variables (nombre de la base, REDIS_URL con índice propio, TEST_LOCK) y el comando para crear esa base nueva? Con 'editá el archivo y apuntalo a una base propia' no sé qué poner exactamente.",
+ "followup_answer": "El material no trae el nombre de la variable de la base ni el comando para crearla, así que no te los puedo inventar. Lo que sí está documentado es esto.\n\n**Variable de la base:** abrí `tuqui_core/.env.test.local.example`. Ahí está el nombre exacto de la variable. Copiá esa línea y cambiá solo el nombre de la base al final de la URL. Fijate cómo termina la URL en `tuqui_core/.env.test` y reemplazá solo ese nombre.\n\n**Redis:** el índice es el número al final de la URL. El 15 y el 0 ya están usados, así que elegí otro, por ejemplo el 3 (tu compañero tiene que usar uno distinto):\n\n```bash\nREDIS_URL=redis://localhost:6379/3\n```\n\nHost y puerto los asumí. Copialos de `.env.test`, y cambiá solo el índice.\n\n**Nombre de la base:** usá uno por worktree, por ejemplo `tuqui_test_<nombre-del-worktree>`.\n\n**Crear la base:** el material solo dice que `make migrate-reset` la arma desde cero en ~3 segundos y que solo toca bases locales. No dice si crea la base o solo la vacía. Corrélo después de guardar el `.env.test.local`:\n\n```bash\nmake migrate-reset\n```\n\nSi falla porque la base no existe, y tu Postgres local es el que usan los tests, creala con `createdb <nombre>` y repetí el comando.\n\n**`TEST_LOCK`:** el material no dice el formato ni dónde se define. Solo dice que hace falta un valor distinto del de los otros worktrees, y solo si tenés base y Redis propios. Si no estás seguro, dejá el lock por defecto. Es más lento, pero seguro. Preguntale a tu compañero o buscá `TEST_LOCK` en el `Makefile`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6279,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1063,
+  "output_tokens_details": {
+   "thinking_tokens": 424
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6279,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1063,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6279,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6279
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "eb8e10e94c"
+ }
+}

@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada, agota el presupuesto de tiempo o el watchdog lo corta? ¿El Synthesizer recibe findings vacíos o parciales, y en ese caso el resultado también es 'sin insight'?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada o se queda sin tiempo (watchdog)? ¿Devuelve findings vacíos, descarta la hipótesis o corta todo el pipeline, y eso cuenta como otro caso de 'sin mostrar nada'?",
+   "note": "La primera oración responde el caso principal, pero la respuesta admite un hueco sobre el Investigator."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta admite que no cubre qué pasa si el Investigator no encuentra nada o se queda sin tiempo (watchdog). ¿Qué ocurre en esos casos: el Synthesizer recibe findings vacíos, se descarta la hipótesis, o se corta todo el pipeline y se muestra silencio? Además, ¿qué pasa si falla el Planner o el Synthesizer, y cuál es el criterio para quedarse con 0, 1 o 2 teasers?",
+   "note": "El resto es claro y completo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator no encuentra nada, agota el presupuesto de tiempo o el watchdog lo corta? ¿El Synthesizer recibe findings vacíos o parciales, y en ese caso el resultado también es 'sin insight'?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas. No describe qué pasa cuando el Investigator no encuentra nada, agota el presupuesto o lo corta el watchdog. Tampoco dice si el Synthesizer recibe findings vacíos o parciales.\n\n**Lo que sí dice el material**\n- Cada hipótesis tiene un presupuesto de `(watchdog_sec - 30) / n_hypotheses`.\n- El Synthesizer genera teasers desde los findings.\n- StringGrounding compara entidades y números contra el \"resumen combinado del Investigator\".\n- Si los guards rechazan todo, el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\n**Inferencia, no confirmada**\nSi los findings llegan vacíos, un teaser con entidades o números no los encontraría en el resumen. StringGrounding lo rechazaría y el resultado sería `synth_all_rejected`, o sea sin insight. Eso supone que el Synthesizer igual se ejecuta. Si el código corta antes, el resultado sería otro.\n\nUn teaser sin entidades ni números podría pasar StringGrounding sin nada que verificar. Entonces solo lo frenaría el LLM Judge.\n\nPara saber qué pasa con los findings parciales o con el corte del watchdog, revisá `investigator.py` y `synthesizer.py`. Fijate en tres cosas: si el timeout levanta una excepción o devuelve lo acumulado, si las hipótesis sin findings se descartan antes de la síntesis, y dónde se cancela la tarea cuando vence el watchdog.\n\nSi me pasás esos archivos, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7353,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 823,
+  "output_tokens_details": {
+   "thinking_tokens": 234
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7353,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 823,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 7353,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7353
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1395a07572"
+ }
+}

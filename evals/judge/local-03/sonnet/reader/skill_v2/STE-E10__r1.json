@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el webhook cuando la grilla del workspace dice `ask` (o el default cae en ask) y no hay ninguna persona para responder: se bloquea, se ejecuta igual o queda pendiente? Y cuando el agent usa la identidad prestada de un miembro, ¿el `deny` del admin sigue aplicando igual?",
+   "followup_note": "La respuesta resuelve el caso 1 con claridad, pero en el caso 2 deja sin definir justo el escenario más riesgoso (ask sin humano) y me manda a buscar yo en el código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que el material no aclara qué pasa con un `ask` en un canal sin persona que responda, como el webhook. ¿Qué hace el sistema en ese caso: bloquea, ejecuta igual, o queda esperando? Si no lo sabés, ¿podés indicarme el punto exacto del código (función o línea en `chat/client_facing_core.py`) donde se resuelve, para confirmarlo antes de configurar el agent?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el webhook cuando la grilla del workspace dice `ask` y no hay nadie para responder: se bloquea, se ejecuta o queda pendiente? Y para mi caso 1: ¿en qué archivo o función está implementada la precedencia (fila del miembro por sobre `ask` del admin) para confirmarlo en el código?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa en el webhook cuando la grilla del workspace dice `ask` (o el default cae en ask) y no hay ninguna persona para responder: se bloquea, se ejecuta igual o queda pendiente? Y cuando el agent usa la identidad prestada de un miembro, ¿el `deny` del admin sigue aplicando igual?",
+ "followup_answer": "**1. `ask` sin nadie que responda: el material no lo dice.** El evaluator solo devuelve la acción (`ALLOW`, `DENY` o `ASK`). No describe qué hace el canal con un `ASK`. No sé si bloquea, ejecuta o deja pendiente, y no lo voy a suponer.\n\nPara confirmarlo, fijate en estos dos lugares:\n- `chat/client_facing_core.py`: ahí se arma el turno con identidad prestada y se ve cómo maneja un `ASK`.\n- `tool_usage_log`: filtrá por `permission_action` en turnos de canal `webhook` y mirá qué pasó con los que quedaron en `ask`.\n\n**2. El `deny` del admin sigue aplicando igual con identidad prestada.** El paso 1 del evaluator lee `workspace_tool_approvals` y corta con DENY antes de mirar al usuario. El salto por canal sin identidad personal afecta solo al paso 2 (`user_tool_approvals`). Por eso el piso del admin vale en `webhook`, `exposure` y `scheduled`, y ninguna preferencia del miembro lo levanta.\n\n`workspace_write_models` también se chequea antes que todo eso, así que tampoco depende del canal.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6645,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 646,
+  "output_tokens_details": {
+   "thinking_tokens": 210
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6645,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 646,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6645,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6645
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4763d89b0b"
+ }
+}

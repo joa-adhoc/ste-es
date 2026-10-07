@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "skill_v2",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El que tiene el link sigue viendo la versión publicada, no la que editaste. Un `save` sobre un artifact existente crea la v(n+1) y mueve `current_version_id`, pero no `published_version_id`.\n\n```\n save (con artifact_id)            publish(version?)\n        │                                 │\n        ▼                                 ▼\n┌────────────────┐               ┌─────────────────────┐\n│current_version │               │ published_version   │\n│  (v3, nueva)   │               │  (v1, la del link)  │\n└───────┬────────┘               └──────────┬──────────┘\n        │                                   │\n        ▼                                   ▼\n┌────────────────┐               ┌─────────────────────┐\n│ viewer interno │               │    ruta por token   │\n│ con selector   │               │ siempre published   │\n└────────────────┘               └─────────────────────┘\n```\n\n- **Aviso:** el result trae `unpublished_changes: true` y el viewer muestra un banner.\n- **Publicar:** `publish()` publica la última versión por defecto. `publish(version)` publica la que indiques.\n- **Revert:** publicá una versión anterior.\n- **Primer `save`:** sin `artifact_id` crea la v1 y la publica, así el link no arranca en 404.\n\n**Refresh de datos:**\n- Crea una versión solo-data, con `content` en `NULL`.\n- Para la versión `n`, `service._effective_version` resuelve `content` y `data` por separado. Toma el último `content IS NOT NULL` ≤ n y el último `data IS NOT NULL` ≤ n.\n- Por eso un refresh no puede romper el diseño.\n- Si el artifact ya existe, el `data` se valida contra el `data_schema` guardado. Si el shape no es compatible, se rechaza antes de escribir.\n\nEl material no dice si un refresh solo-data mueve `published_version_id`. Por la regla de `save` con `artifact_id`, probablemente no. Confirmalo en `service` antes de contar con eso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5302,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 984,
+  "output_tokens_details": {
+   "thinking_tokens": 302
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5302,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 984,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5302,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5302
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
