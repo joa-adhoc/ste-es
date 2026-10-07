@@ -6,7 +6,7 @@ A response style for coding agents (Claude Code, Codex, Gemini) that talk to dev
 
 ## What it is
 
-The rules are the exact text of the `core_diagrams` arm measured by the eval: a small core taken from ASD-STE100 (the controlled English of aircraft maintenance manuals) and from the eval itself, plus text diagrams only when the answer has structure. Vocabulary comes from a [glossary](skills/ste-es/references/glossary.md) with one word per concept.
+The rules adapt ASD-STE100 (the controlled English of aircraft maintenance manuals) to Spanish, plus text diagrams only when the answer has structure. They are the exact text measured by the eval. Vocabulary comes from a [glossary](skills/ste-es/references/glossary.md) with one word per concept.
 
 0. Precision wins: no rule justifies dropping a fact or a condition.
 1. The answer goes in the first sentence.
@@ -51,19 +51,15 @@ Plans use the Adhoc look: [`themes/adhoc.css`](themes/adhoc.css) holds the brand
 
 ## What was measured
 
-[`evals/`](evals/) compares plain Claude Code against several versions of the rules: 18 cases, 3 runs per case, isolated Claude Code. Reference run `local-03` (Sonnet):
+[`evals/`](evals/) compares plain Claude Code with this skill: 18 cases, 3 runs per case, isolated Claude Code, Sonnet.
 
-| | No rules | Core | Core + diagrams | **This skill** (`skill_v2`) | STE-ES v1 (13 rules) |
-|---|---|---|---|---|---|
-| Answers in the first sentence | 31% | 94% | 91% | 89% | 46% |
-| Follow-up questions | 69% | 52% | 59% | 54% | 57% |
-| Tokens to understand | 92.5k | 70.8k | 78.7k | 78.1k | 82.1k |
-| Conditions kept | 99.4% | 99.4% | 98.2% | 98.2% | 97.6% |
-| Incorrect claims | 28 | 14 | 20 | **5** | 14 |
-| Preferred over no rules | — | 35 to 19 | 37 to 17 | 31 to 23 | 24 to 30 |
+| | Plain Claude Code | ste-es |
+|---|---|---|
+| Answers in the first sentence | 31% | 89% |
+| Follow-up questions | 69% | 54% |
+| Tokens to understand | 92.5k | 78.1k |
+| Facts / conditions kept | 99.7% / 99.4% | 98.3% / 98.2% |
+| Incorrect claims | 28 | 5 |
+| Blind preference | 23 | 31 |
 
-The published skill is `core_diagrams` plus its scope and the glossary. It has the fewest incorrect claims of any arm. The trade-off: on flow cases the judge prefers plain Claude Code (17 to 10), while on cases without structure the skill wins 21 to 6. A variant that keeps step-by-step detail under each diagram (`skill_v3`) did not improve the overall result, so it was not adopted.
-
-The current `SKILL.md` adds one line about html-plan; it does not change chat answers.
-
-Limits: one model only, and the judge and the reader are Claude too.
+Limits: one model only, and the judge and the reader are Claude too. Earlier versions and their results are in the git history.

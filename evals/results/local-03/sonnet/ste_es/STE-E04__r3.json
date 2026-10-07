@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Diferencia:** `replace` pisa el valor completo del campo con lo que mandás. `append` conserva el contenido actual y pone el nuevo abajo.\n\n- **`replace`** es el modo por defecto. No lee nada previo, así que no paga lectura extra.\n- **`append`** solo conserva el contenido de los campos `html` y `text`. Los demás tipos de campo se reemplazan igual.\n- Usá `append` cuando te pidan *agregar* o *completar*, y mandá solo el contenido nuevo. Un write plano en `description` borra lo que escribió una persona, y el chatter no guarda el valor anterior.\n- En `html`, el append concatena HTML crudo, así que links, clases e imágenes sobreviven. En `text`, separa con una línea en blanco.\n- `append` rechaza valores que no sean texto (`append_requires_text`). Para vaciar un campo usá `replace`.\n\n**Si falla a mitad de camino:** el append es un write por registro, no una transacción. Los registros ya escritos no se revierten.\n\n```\nids:  [ 1 ]──[ 2 ]──[ 3 ]──[ 4 ]──[ 5 ]\n        ok     ok   falla  sin     sin\n                           tocar   tocar\n        └written_ids┘ │    └─────┬─────┘\n                 failed_id=3     │\n                      └──────────┘\n                    pending_ids = [3, 4, 5]\n```\n\n- El error es `append_partially_applied`, con `written_ids`, `failed_id` y `pending_ids`.\n- Reintentá solo con `pending_ids`. Incluye al fallido, porque tampoco se escribió.\n- Los ids escritos quedan en `tool_usage_log.write_metadata`, con `partial: true`.\n- Si falla el **primer** registro, no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción), y ahí reintentás la llamada entera.\n- Si falla el pre-read o no se resuelve el schema, el append falla cerrado con `append_precheck_failed` y no escribe nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5575,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 907,
+  "output_tokens_details": {
+   "thinking_tokens": 193
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5575,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 907,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5575,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5575
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

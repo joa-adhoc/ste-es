@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "```\n┌───────────────────┐   ┌──────────────────────┐   ┌────────────────────────┐\n│ manage_memory     │──►│ DB: tope de 50 por   │──►│ _load_chat_setup       │\n│ (el modelo guarda)│   │ scope, FIFO          │   │ arma un header por     │\n└───────────────────┘   └──────────────────────┘   │ memoria, cada turno    │\n                                                   └───────────┬────────────┘\n                                                               ▼\n┌───────────────────┐   ┌──────────────────────┐   ┌────────────────────────┐\n│ manage_memory     │◄──│ Modelo recibe el     │◄──│ ¿Headers > 12K chars   │\n│ (action='read')   │   │ system prompt        │   │ (_MEMORY_BUDGET_CHARS)?│\n└───────────────────┘   └──────────────────────┘   └────────────────────────┘\n```\n\n- **Tope:** hay 50 memorias por scope: por usuario en user-scope, por workspace en workspace-scope. La memoria 51 borra la más vieja por `created_at`, en la misma transacción. El borrado es silencioso, pero la respuesta del tool le avisa al modelo.\n- **Header:** es `title` más `summary`. Sin `summary`, usa el `body` hasta 250 caracteres. Si el `body` es más largo, el header termina en `... [read]`.\n- **Lectura:** el modelo llama `manage_memory(action='read', id=...)` solo para las memorias marcadas `[read]`.\n- **Posición en el prompt:** el bloque `# Workspace memory` y el bloque `# User memory` van después de `CURRENT USER` y antes del bloque de proyecto.\n- **Si hay muchas:** con 12K caracteres o menos (≈ 3K tokens), entran todos los headers. Con más, `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y deja solo los top-N.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5172,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1384,
+  "output_tokens_details": {
+   "thinking_tokens": 704
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5172,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1384,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5172,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5172
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

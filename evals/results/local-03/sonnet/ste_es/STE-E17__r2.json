@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool falla, `_wrap_tool` convierte la excepción en un string `[TOOL_ERROR class=X]: message` que ve el modelo. Si el mismo error se repite 3 veces, el `DoomLoopGuard` devuelve FATAL.\n\n```\n┌──────────────┐  excepción   ┌──────────────────────────────┐\n│ tool         │─────────────►│ _wrap_tool (agent.py)        │\n└──────────────┘              │ ToolError → se usa tal cual  │\n                              │ otra → classify_unknown(exc) │\n                              └──────────────┬───────────────┘\n                                             │ error_class\n                                             ▼\n                              ┌──────────────────────────────┐\n                              │ DoomLoopGuard.record(        │\n                              │  tool_name, args, ok,        │\n                              │  error_class)                │\n                              └───────┬──────────────┬───────┘\n                          counter < 3 │              │ counter ≥ 3\n                                      ▼              ▼\n                     ┌────────────────────┐  ┌───────────────┐\n                     │ exc.for_llm()      │  │ FATAL         │\n                     │ [TOOL_ERROR        │  │ (corta calls  │\n                     │  class=X]: message │  │  idénticos)   │\n                     └────────────────────┘  └───────────────┘\n```\n\nLo que el dibujo no muestra:\n\n- **Clave del contador:** `\"{tool_name}|{hash(args)}|{error_class}\"`. Solo cuenta repeticiones de la misma tool, con los mismos args y la misma clase de error.\n- **Reset:** cualquier éxito limpia todos los contadores, no solo el de esa tool.\n- **`THRESHOLD=3`:** al llegar a 3, `record` devuelve `True` y `_wrap_tool` devuelve FATAL en lugar del mensaje original.\n- **`CONNECTION` y `ODOO_NOT_CONNECTED`:** son clases distintas con textos distintos. `CONNECTION` es un Odoo caído (falla el transporte). `ODOO_NOT_CONNECTED` significa que nadie conectó Odoo en este run (`require_adapter` en `tools/base.py`). El guard corta las dos entre tools, cada una con su aviso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5250,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1013,
+  "output_tokens_details": {
+   "thinking_tokens": 231
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5250,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1013,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5250,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5250
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

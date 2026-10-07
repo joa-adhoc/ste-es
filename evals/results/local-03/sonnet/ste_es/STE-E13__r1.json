@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Avisos:** salen dos, uno cuando faltan 7 días y otro el día que vence, mientras el workspace todavía funciona. El cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Los hitos salen de `platform_config.billing_trial_warning_days_list`, que por defecto es `{7, 0}`.\n\n**Destinatarios:**\n- Owners y admins, siempre, aunque estén en `billing_tier = 'none'`.\n- Todo miembro con asiento (`billing_tier <> 'none'`), porque el asistente deja de responder para todo el equipo.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Si se extiende la prueba:** vuelve a avisar. El sistema guarda `trial_warning_for` (la fecha de fin avisada) y `trial_warning_days` (el hito más chico enviado). Si cambia la fecha de fin, empieza de nuevo.\n\n**El día que vence, sin suscripción viva:**\n- El workspace pasa a `plan='free'`.\n- Se evalúa el exceso de miembros respecto del plan free.\n- Sale el mail de prueba vencida.\n- Según la tabla de `account_status`, el vencimiento de prueba lo deja en `restricted`. Eso bloquea MCP y chat. El motivo `trial_expired_with_excess` sugiere que esto aplica cuando hay exceso, pero el material no lo confirma. Verificalo en `scheduler/billing_cron.py` si te importa ese caso.\n\n**Con suscripción viva, sí cambia:**\n- Se limpian los flags de trial.\n- No se manda ningún mail, porque el owner no ve ningún cambio. El cobro se anuncia con su propio recibo.\n- El workspace sigue operativo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5705,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1145,
+  "output_tokens_details": {
+   "thinking_tokens": 502
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5705,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1145,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5705,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5705
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

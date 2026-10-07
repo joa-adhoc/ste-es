@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El chat guarda como máximo 50 memorias por alcance y inyecta solo un header corto de cada una en cada turno. El cuerpo completo se lee solo si el modelo lo pide.\n\n```\nGUARDAR\n┌─────────────┐   ┌─────────────────────────┐   ┌──────────────────┐\n│ Modelo      │──►│ ¿Ya hay 50 en el        │──►│ Respuesta del    │\n│ guarda      │   │ alcance? Borra la más   │   │ tool avisa del   │\n│             │   │ vieja por created_at    │   │ borrado          │\n└─────────────┘   └─────────────────────────┘   └──────────────────┘\n\nCADA TURNO (_load_chat_setup)\n┌─────────────┐   ┌─────────────────────────┐   ┌──────────────────┐\n│ Headers de  │──►│ ¿Pasan 12K chars?       │──►│ System prompt    │\n│ memorias    │   │ Sí: rapidfuzz contra el │   │ (después de      │\n│             │   │ mensaje, top-N          │   │ CURRENT USER)    │\n└─────────────┘   └─────────────────────────┘   └────────┬─────────┘\n                                                         ▼\n                                                ┌──────────────────┐\n                                                │ manage_memory    │\n                                                │ (action='read')  │\n                                                └──────────────────┘\n```\n\n- **Alcance:** el tope de 50 vale por usuario (memorias de usuario) y por workspace (memorias de workspace).\n- **Borrado:** ocurre en la misma transacción de DB que el guardado, y el modelo se entera por el mensaje del tool.\n- **Header:** es el título más el summary. Si no hay summary, usa el cuerpo hasta 250 caracteres.\n- **Marca `[read]`:** si el cuerpo supera los 250 caracteres y no hay summary, el header termina en `... [read]`. El modelo llama a `manage_memory(action='read', id=...)` solo para esas memorias.\n- **Costo:** con 50 memorias de tamaño máximo, el costo por turno queda en unos 3K tokens.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5174,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1993,
+  "output_tokens_details": {
+   "thinking_tokens": 1258
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5174,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1993,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5174,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5174
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

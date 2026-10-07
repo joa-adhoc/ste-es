@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el runner trata la migración como aditiva y la aplica desde el PR env contra la base compartida de staging. Eso rompe el código viejo que sigue corriendo ahí.\n\n```\n┌──────────────┐   ┌───────────────┐   ┌────────────────┐   ┌──────────────┐\n│ PR env       │   │ CI / pytest / │   │ deploy rama    │   │ deploy rama  │\n│ (Railway)    │──►│ e2e           │──►│ staging        │──►│ main (prod)  │\n│ SALTEA       │   │ APLICA        │   │ APLICA         │   │ APLICA       │\n│ sin registrar│   │ base efímera  │   │ si flag = 1    │   │ si flag = 1  │\n└──────────────┘   └───────────────┘   └────────────────┘   └──────────────┘\n```\n\n- **PR env:** hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero el runner también mira `RAILWAY_GIT_BRANCH`. Como la rama no es `staging` ni `main`, saltea la migración y no la registra en `_migrations`. Si hay marcadores de Railway sin rama estampada, el gate falla cerrado y también saltea.\n- **Deploy de `staging` o `main`:** el runner aplica la migración solo si se cumplen las dos condiciones: flag en 1 y rama `staging` o `main`. Como no quedó registrada, el deploy posterior al merge la aplica.\n- **CI, e2e y pytest:** aplican la migración porque son bases efímeras que activan el opt-in (`MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest).\n- **`make migrate`:** no aplica la migración. Apunta a la base de desarrollo local, que se comparte entre worktrees, y ahí el flag no se activa.\n\nLas migraciones aditivas del mismo PR sí se aplican a la base de staging desde el preview. Eso tiene consecuencias al mergear y al renombrar archivos, que explica `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5435,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1249,
+  "output_tokens_details": {
+   "thinking_tokens": 454
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5435,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1249,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5435,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5435
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

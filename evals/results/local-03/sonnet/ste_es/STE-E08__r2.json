@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Hacé una skill, salvo que la tool cumpla (b2). Un `odoo_create` con defaults es componible con las tools genéricas y es un wrapper 1→1, así que no califica por (a) ni por (d).\n\n**Criterio:** una tool nativa tiene que cumplir al menos uno de estos ejes. Si no cumple ninguno, va como skill.\n\n- **(a)** No se logra con las tools genéricas. No aplica: `odoo_create` ya lo hace.\n- **(b)** Gate o identidad propia con menor blast radius que la tool genérica.\n  - **(b1)** Approval propio: vale solo en chat.\n  - **(b2)** Whitelist más fina que `create` genérico: vale en chat y en MCP.\n- **(c)** Procedimiento crítico donde un skip del LLM tiene costo real. Vale solo en chat.\n- **(d)** Colapsa 3 o más llamadas, o un loop no acotado, en una sola call. Un wrapper 1→1 nunca califica, aunque ahorre tokens de esquema.\n\n**Qué revisar en tu caso:**\n- Si la tool solo pone defaults, es una skill.\n- Si el gate de `create` queda acotado a ese modelo, con una whitelist más fina que la genérica, califica por (b2) y puede ser nativa. Es el mismo razonamiento que `odoo_copy` y `odoo_message_post`.\n- Si la tool junta además varias llamadas (por ejemplo, buscar o resolver IDs antes de crear), evaluá (d).\n\n**Si también se expone por el MCP saliente:** sí cambia. (b1) y (c) no tienen palanca ahí, porque el router MCP ignora `requires_approval` y no hay un turno donde forzar pasos. Allí la tool solo se justifica por (a), (b2) o (d). Si tu justificación era un approval, no alcanza para el MCP.\n\nEs el caso de `odoo_schedule_activity`: su único diferencial era (b1), así que bajó a system skill.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5635,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 954,
+  "output_tokens_details": {
+   "thinking_tokens": 258
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5635,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 954,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5635,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5635
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

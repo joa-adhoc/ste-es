@@ -15,7 +15,7 @@ CASES = HERE / "cases.yml"
 RESULTS = HERE / "results"
 JUDGE = HERE / "judge"
 
-ARM_ORDER = ["baseline", "terse", "core", "core_plus", "core_diagrams", "core_vocab", "full_v1_no_diagrams", "full_v1", "skill_v2", "skill_v3", "skill_v4", "skill_v5"]
+ARM_ORDER = ["baseline", "ste_es"]
 
 # Flags that keep the user's setup out of the run: no user/local settings
 # (hooks, plugins), no CLAUDE.md outside the empty cwd, no MCP servers, no
@@ -30,7 +30,7 @@ ISOLATION_FLAGS = [
 ]
 ISOLATION_ENV = {"ENABLE_CLAUDEAI_MCP_SERVERS": "false"}
 NO_TOOLS = ("--tools=",)
-REFERENCE = "terse"
+REFERENCE = "baseline"
 
 
 def load_cases():

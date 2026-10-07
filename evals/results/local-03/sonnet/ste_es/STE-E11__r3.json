@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Con eso el PR env no la aplica, y la aplica el deploy real después del merge.\n\n```\n┌──────────────┐   ┌───────────────┐   ┌──────────────────┐\n│ PR env       │──►│ merge         │──►│ deploy staging   │\n│ (base de     │   │               │   │ o main           │\n│  staging)    │   │               │   │                  │\n│ SALTEA, no   │   │               │   │ APLICA y registra│\n│ registra     │   │               │   │ en _migrations   │\n└──────────────┘   └───────────────┘   └──────────────────┘\n```\n\n- **Por qué se saltea en el PR env:** el runner exige dos condiciones. Necesita `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. El PR env hereda el flag de staging, pero su rama es otra, así que no cumple la segunda.\n- **Por qué importa:** el PR env comparte base con el servicio de staging, que sigue con el código anterior. Si se aplicara el drop, ese código se rompería para todos.\n- **Sin el marker:** el runner trata la migración como aditiva y la aplica desde el preview. Eso ya pasó con `0180_chat_ga`.\n- **En CI y local:** `scripts/apply_migrations.py` aplica la migración solo donde el workflow o el conftest activan el flag, o sea en bases efímeras. `make migrate` no la aplica, porque la base de desarrollo local es compartida entre worktrees.\n- **Migraciones aditivas del mismo PR:** no llevan marker y sí se aplican a la base de staging desde el preview. Fijate en [`docs/infra-ci-cd.md`](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging) qué pasa al mergear o renombrar el archivo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5439,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1043,
+  "output_tokens_details": {
+   "thinking_tokens": 359
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5439,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1043,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5439,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5439
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

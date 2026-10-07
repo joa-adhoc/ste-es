@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El admin registra el server una sola vez. Después, cada usuario recorre este flujo: el front pide la URL, el provider autentica, el backend canjea el `code` y prueba las habilidades antes de redirigir al SPA.\n\n```\n Front (SPA)              Backend                    Provider\n     │ GET /api/mcp-oauth/    │                          │\n     │ {server_id}/start      │                          │\n     │───────────────────────►│                          │\n     │ authorize_url + state  │                          │\n     │◄───────────────────────│                          │\n     │ redirect                                          │\n     │──────────────────────────────────────────────────►│\n     │                        │ GET /api/mcp-oauth/      │\n     │                        │ callback?code&state      │\n     │                        │◄─────────────────────────│\n     │                        │ code → tokens (token_url)│\n     │                        │─────────────────────────►│\n     │                        │◄─────────────────────────│\n     │                        │ guarda tokens cifrados   │\n     │                        │ en user_mcp_oauth_tokens │\n     │                        │ prueba de humo           │\n     │ redirect al SPA        │ (todas las habilidades)  │\n     │◄───────────────────────│                          │\n```\n\n**Lo que el dibujo no muestra**\n\n- **Paso previo:** el admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. El usuario entra a `/connectors` y clickea **Connect**.\n- **`state`:** va firmado con AES-GCM, dura 10 minutos y lleva `{server_id, user_id, issued_at, nonce}`. Puede sumar `code_verifier` (PKCE) y `scope_profile` en los platform connectors. El backend lo valida en el callback.\n- **Parámetros de la URL:** incluye `access_type=offline` y `prompt=consent`. Google emite refresh tokens solo si están los dos. El segundo fuerza un nuevo refresh token en cada authorize, así un disconnect+reconnect no queda sin refresh. Los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n- **`resource` (RFC 8707):** viaja en el authorize, en el canje del `code` y en el refresh. El backend lo manda solo si el server declaró su URI canónica y quedó guardado en `OAuthPerUserConfig.resource`. Los conectores viejos siguen andando sin indicator. Un valor adivinado es peor, porque el AS que valida rechaza lo que no reconoce.\n- **Landing:** el redirect final va a `/w/{slug}/settings/connectors?connected={server_id}`. Si el dueño es una cuenta de servicio, va a `/w/{slug}/settings/members/{member_id}?connected=...`. El dueño define el destino, no hay un `return_to` aparte.\n- **Refresh:** `refresh_if_expired` corre al construir los toolsets y renueva el token si quedan menos de 60 s de validez.\n\n**Si algunas habilidades no contestan**\n\nEl callback introspecta en paralelo todas las habilidades habilitadas.\n\n| Resultado | Qué hace el backend | Qué ve el usuario |\n|---|---|---|\n| Ninguna contesta | Borra el token, porque no sirve para nada | Redirect con `connect_error=<motivo>` y banner de error en la card |\n| Alguna contesta | Deja al usuario conectado | Redirect con `connect_warning=<habilidades>` y banner de conexión parcial |\n\nCon respuesta parcial no se desconecta al usuario. Desconectarlo por una habilidad rota sería peor que el estado parcial que sí puede usar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5652,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1709,
+  "output_tokens_details": {
+   "thinking_tokens": 433
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5652,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1709,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5652,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5652
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

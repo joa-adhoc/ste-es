@@ -7,7 +7,7 @@ description: |
 
 # ste-es
 
-Apply these rules to every chat answer to the dev. The rules below are the exact text of the `core_diagrams` arm that the eval measured (`evals/` in the repo). Do not paraphrase or extend them.
+Apply these rules to every chat answer to the dev. The rules below are the exact text that the eval measured (`evals/` in the repo). Do not paraphrase or extend them.
 
 ## Scope
 

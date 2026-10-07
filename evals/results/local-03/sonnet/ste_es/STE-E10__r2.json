@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si el admin puso \"ask\" y el miembro \"allow\", gana el \"allow\" del miembro. En el webhook se ignora la preferencia personal y manda la grilla del workspace.\n\n```\n┌──────────────────────────────────────────────┐\n│ 1. workspace_write_models                    │\n│    ¿el modelo permite la operación?          │\n└──────────────────────────────────────────────┘\n        │ no ──► se corta (el tool no llega al gate)\n        ▼ sí\n┌──────────────────────────────────────────────┐\n│ 2. workspace_tool_approvals = deny ?         │\n└──────────────────────────────────────────────┘\n        │ sí ──► DENY (piso del admin)\n        ▼ no\n┌──────────────────────────────────────────────┐\n│ 3. user_tool_approvals (user, workspace,     │\n│    tool). Se saltea en exposure, webhook,    │\n│    scheduled                                 │\n└──────────────────────────────────────────────┘\n        │ hay fila ──► gana esa action\n        ▼ no hay fila / canal sin identidad\n┌──────────────────────────────────────────────┐\n│ 4. workspace_tool_approvals: allow / ask     │\n└──────────────────────────────────────────────┘\n        │ sin fila\n        ▼\n┌──────────────────────────────────────────────┐\n│ 5. Default: recurso en approval → ASK,       │\n│    si no → ALLOW                             │\n└──────────────────────────────────────────────┘\n        │ allow / ask concedido\n        ▼\n   tool.execute() ──► tool_usage_log (permission_action)\n```\n\n**Admin \"ask\", miembro \"allow\":** el paso 2 solo corta con `deny`. Como \"ask\" no es un piso, el paso 3 encuentra la fila del miembro y su `allow` gana. Esto vale solo si el canal tiene identidad personal. Si el admin quiere impedirlo, tiene que poner `deny`.\n\n**Agent por webhook:** el turno corre con la identidad prestada de un miembro. Por eso el paso 3 se saltea entero y la preferencia de esa persona no cuenta. Decide el paso 2 (`deny`), luego el 4 (`allow` o `ask` del workspace) y, sin fila, el 5.\n\nEl material no dice cómo se resuelve un `ask` en un canal sin persona que responda. Fijate en `chat/client_facing_core.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5568,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1092,
+  "output_tokens_details": {
+   "thinking_tokens": 267
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5568,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1092,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5568,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5568
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

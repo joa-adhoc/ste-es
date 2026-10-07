@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Si el admin puso `ask` y el miembro `allow`, gana el miembro: ejecuta sin preguntar. Solo un `deny` del admin es piso. En el webhook se ignora la preferencia del miembro y decide la grilla del workspace.\n\n```\n┌──────────────────────────────────────────────┐\n│ 1. workspace_write_models                    │\n│    ¿el modelo permite la operación?          │\n└──────────────────────────────────────────────┘\n        │ no ──► bloquea        │ sí\n                                ▼\n┌──────────────────────────────────────────────┐\n│ 2. workspace_tool_approvals = deny           │\n└──────────────────────────────────────────────┘\n        │ sí ──► DENY           │ no\n                                ▼\n┌──────────────────────────────────────────────┐\n│ 3. user_tool_approvals                       │\n│    (user_id, workspace_id, tool_name)        │\n│    se sasaltea en exposure/webhook/scheduled│\n└──────────────────────────────────────────────┘\n        │ hay fila ──► gana     │ no hay fila\n                                ▼\n┌──────────────────────────────────────────────┐\n│ 4. workspace_tool_approvals = allow / ask    │\n└──────────────────────────────────────────────┘\n        │ no hay fila\n        ▼\n┌──────────────────────────────────────────────┐\n│ 5. default: ASK si el recurso está en        │\n│    approval, ALLOW si no                     │\n└──────────────────────────────────────────────┘\n        ▼\n   tool.execute() ──► tool_usage_log (permission_action)\n```\n\n**Tu caso 1 (admin `ask`, miembro `allow`):**\n- El paso 2 no lo frena, porque el piso es solo `deny`.\n- En el paso 3 la fila del miembro gana, así que el resultado es ALLOW.\n- Si el admin hubiera puesto `deny`, el resultado sería DENY sin importar la preferencia del miembro.\n- Antes de todo eso, `workspace_write_models` tiene que permitir la operación sobre ese modelo.\n\n**Tu caso 2 (agent por webhook):**\n- El canal `webhook` no tiene identidad personal, así que el paso 3 se saltea entero.\n- El agent corre con la identidad prestada de un miembro, pero la preferencia de esa persona no cuenta.\n- Decide la grilla del workspace: `deny` bloquea, `allow` o `ask` se aplican, y sin fila rige el default del paso 5.\n- El material no dice qué pasa con un `ask` en un canal sin persona que responda. Fijate en `chat/client_facing_core.py` o en `tool_usage_log`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5572,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1179,
+  "output_tokens_details": {
+   "thinking_tokens": 261
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5572,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1179,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5572,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5572
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
