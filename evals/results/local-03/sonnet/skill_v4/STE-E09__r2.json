@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si después del intercambio algunas habilidades no contestan, el usuario queda conectado con aviso. El token se borra solo si no contesta ninguna.\n\n```\n┌───────┐ GET /start ┌─────────┐ authorize_url ┌──────────┐\n│ Front │───────────►│ Backend │──────────────►│ Provider │\n└───────┘            └─────────┘  (vía Front)  └────┬─────┘\n                                                    │ ?code&state\n                                                    ▼\n                                      ┌──────────────────────────┐\n                                      │ Backend /callback        │\n                                      │ valida state, code→token │\n                                      │ guarda en user_mcp_...   │\n                                      └────────────┬─────────────┘\n                                                   ▼\n                                      ┌──────────────────────────┐\n                                      │ Prueba de humo           │\n                                      │ todas las habilidades    │\n                                      └──────┬────────────┬──────┘\n                                   ninguna   │            │  alguna\n                                             ▼            ▼\n                              ┌──────────────────┐ ┌─────────────────┐\n                              │ borra el token   │ │ queda conectado │\n                              │ connect_error    │ │ connect_warning │\n                              └──────────────────┘ └─────────────────┘\n```\n\n- El `state` va firmado con AES-GCM y vence a los 10 minutos.\n- La URL lleva `access_type=offline` y `prompt=consent`, porque Google solo emite refresh token con ambos.\n- El `resource` de RFC 8707 viaja solo si el discovery lo guardó.\n- Después, `refresh_if_expired` renueva el token si quedan menos de 60 s.\n\n¿Querés el detalle del redirect final según el dueño?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5745,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 2023,
+  "output_tokens_details": {
+   "thinking_tokens": 1438
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5745,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2023,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5745,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5745
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Sí, contame las consecuencias en staging: si el preview del PR aplica la migración contra la base real y se reaplica al renombrar el archivo, ¿qué riesgos hay (datos o tablas duplicadas, policies repetidas, cambios que no se pueden deshacer) y cómo los evito antes de abrir el PR?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Sí, contame el detalle de las consecuencias en staging: si el preview aplica la migración contra la base real y se reaplica al renombrar el archivo, ¿qué pasa si la migración ya corrió y la renombro, o si falla a mitad? ¿Cómo la revierto y qué tengo que hacer antes de pushear para no romper staging?",
+   "note": "La primera oración responde la pregunta (idempotente + RLS con policy + test de aislamiento), pero la respuesta deja abierto un riesgo real sobre staging sin explicar, y además hay dudas sobre la policy: no tiene FORCE RLS ni WITH CHECK, y no se aclara de dónde sale app.current_workspace_id."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Sí, contame el detalle de las consecuencias en staging: si el preview aplica la migración contra la base real y se reaplica al renombrar el archivo, ¿cómo evito dejar basura o romper datos en staging mientras itero el PR, y cómo la reviso o la revierto si sale mal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Sí, contame las consecuencias en staging: si el preview del PR aplica la migración contra la base real y se reaplica al renombrar el archivo, ¿qué riesgos hay (datos o tablas duplicadas, policies repetidas, cambios que no se pueden deshacer) y cómo los evito antes de abrir el PR?",
+ "followup_answer": "El material que tengo no trae las consecuencias completas. Están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`, y ese archivo no lo tengo. Leelo antes de abrir el PR.\n\nLo que sí dice el material:\n- **Tablas, índices y policies duplicados:** con `IF NOT EXISTS` y el bloque `DO $$` no se duplican al reaplicar.\n- **Renombrado:** el tracking es por nombre, así que la migración corre otra vez bajo el nombre nuevo. Elegí el nombre definitivo antes de abrir el PR.\n\nEsto es inferencia mía, no está en el material: lo que corra en staging queda ahí aunque cierres el PR. Evitá `DROP`, `DELETE` y `UPDATE` masivos o cualquier cambio que no puedas deshacer a mano.\n\nAntes de abrir el PR, corré la migración dos veces en una base local. La segunda no tiene que dar error.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6278,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 756,
+  "output_tokens_details": {
+   "thinking_tokens": 407
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6278,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 756,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6278,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6278
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7502b48224"
+ }
+}

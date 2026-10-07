@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que el Planner puede devolver 0-N hipótesis y que el Investigator junta hallazgos, pero no queda claro qué pasa si el Investigator no encuentra nada que valga la pena (¿el Synthesizer recibe hallazgos vacíos y devuelve cero teasers, o hay un corte antes?). Además, ¿qué recibe exactamente el Synthesizer del Investigator (el resumen completo o solo hallazgos filtrados) y qué hace cada guard (regex, partial_ratio, Judge) para rechazar un teaser? ¿Hay otros casos de silencio, como errores o timeouts del Planner o del Investigator?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada o falla (error, timeout)? ¿Eso también termina en silencio, o el Synthesizer igual escribe teasers? Y si falla el Context Assembler, ¿qué se muestra?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si falla el Context Assembler o el Investigator (timeout, error de una query, cero hallazgos útiles)? ¿Eso también termina sin mostrar nada, o solo valen los dos casos que mencionás (Planner con cero hipótesis y guards que rechazan todo)? Y qué estructura concreta recibe cada etapa de la anterior."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator no encuentra nada o falla (error, timeout)? ¿Eso también termina en silencio, o el Synthesizer igual escribe teasers? Y si falla el Context Assembler, ¿qué se muestra?",
+ "followup_answer": "El material no lo dice: no documenta qué pasa si falla el Investigator ni el Context Assembler. Tampoco dice qué muestra la app en esos casos.\n\n- **Investigator sin hallazgos, con error o con timeout**: el material no describe el manejo de errores. Lo único relacionado es el presupuesto de tiempo por hipótesis, `(watchdog_sec - 30) / n_hypotheses`. Si el Synthesizer recibe un resumen vacío, el Layer 2 probablemente rechace todo teaser con entidades o números, porque no los encuentra en el resumen. Eso termina en `synth_all_rejected`. Es una inferencia mía, no algo documentado.\n- **Context Assembler**: no hay ninguna información sobre fallas.\n\nPara confirmarlo, revisá `investigator.py`, `synthesizer.py` y el orquestador que llama al pipeline. ¿Querés que los busque?",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6653,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 557,
+  "output_tokens_details": {
+   "thinking_tokens": 237
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6653,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 557,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6653,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6653
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "414c0a1919"
+ }
+}

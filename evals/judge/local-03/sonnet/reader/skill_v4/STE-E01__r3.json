@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 2 decís que el preview del PR corre la migración contra la base de staging, que es la misma base, y que si renombro el archivo se vuelve a aplicar. ¿Qué implica eso en concreto para mí? ¿Puedo romper staging, tengo que limpiar algo o evitar algún tipo de cambio? Además, en la policy usás current_setting('app.current_workspace_id'): ¿dónde se setea ese valor en tuqui, o tengo que hacerlo yo en el código?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 2 decís que el preview del PR corre la migración contra la base de staging, que es la misma base, y que si renombro el archivo se vuelve a aplicar. ¿Qué implica eso en concreto para mí: la tabla se crea en la base de staging compartida apenas abro el PR, y qué tengo que hacer (o evitar) para no pisar o ensuciar datos de otros? Sí, contame el detalle de docs/infra-ci-cd.md."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 2 decís que el preview de mi PR corre la migración contra la base de staging y que es la misma base, y que si renombro el archivo se vuelve a aplicar. ¿Qué significa eso en la práctica para mí? ¿Mi migración toca la base de staging real compartida antes del merge, y qué tengo que hacer o evitar (por ejemplo no renombrar el archivo, no meter cambios destructivos)? Además, ¿qué tiene que verificar exactamente el test de aislamiento en test_rls.py, y dónde va el modelo Pydantic?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "En el paso 2 decís que el preview del PR corre la migración contra la base de staging, que es la misma base, y que si renombro el archivo se vuelve a aplicar. ¿Qué implica eso en concreto para mí? ¿Puedo romper staging, tengo que limpiar algo o evitar algún tipo de cambio? Además, en la policy usás current_setting('app.current_workspace_id'): ¿dónde se setea ese valor en tuqui, o tengo que hacerlo yo en el código?",
+ "followup_answer": "**Staging:** sí, tu migración corre sobre la base real de staging, no sobre una copia. Eso implica tres cosas:\n\n- Si la migración falla o rompe algo, el daño queda en staging. Por eso tiene que ser idempotente.\n- Si renombrás el archivo, el runner la aplica de nuevo, porque trackea por nombre de archivo. Con `IF NOT EXISTS` esa segunda corrida no falla.\n- Evitá cambios destructivos (`DROP`, `DELETE`, `ALTER` sobre tablas existentes) en la migración. Esto lo infiero de que la base es compartida, no está en el material.\n\nEl material que tengo no dice si hay que limpiar algo a mano, por ejemplo una tabla que quedó con un nombre viejo. Eso está en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging). Leé esa sección antes de abrir el PR.\n\n**`app.current_workspace_id`:** el material no dice dónde se setea. No puedo confirmar si tuqui lo hace por vos en algún middleware o conexión, o si lo tenés que hacer en tu código. Buscalo en el repo:\n\n```bash\ngrep -rn \"app.current_workspace_id\" --include=*.py .\n```\n\nSi lo setea un middleware o la capa de conexión, no tenés que hacer nada. Si el setting no está seteado cuando corre la query, `current_setting` tira error. El test de `test_rls.py` te lo va a mostrar.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6341,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 864,
+  "output_tokens_details": {
+   "thinking_tokens": 323
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6341,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 864,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6341,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6341
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "700f596e0e"
+ }
+}

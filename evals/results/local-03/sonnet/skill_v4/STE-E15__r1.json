@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "`connect_odoo` valida las credenciales contra Odoo, guarda todo en `workspaces` y, si corresponde, vincula al que conecta.\n\n```\n┌────────────────────────────────────┐\n│ POST /workspaces/{slug}/odoo       │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ _authenticate_odoo  → admin_uid    │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ _verify_odoo_admin_group           │\n│ (base.group_system)                │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ get_version → detected_version     │\n│ (falla si major < MIN_SUPPORTED)   │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ _resolve_link_mode                 │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ UPDATE workspaces                  │\n│ (409 si repite database.uuid)      │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ Si cambió la URL: limpia members   │\n└─────────────────┬──────────────────┘\n                  ▼\n┌────────────────────────────────────┐\n│ auto/manual: UPDATE workspace_     │\n│ members + sync_user_api_key        │\n└────────────────────────────────────┘\n```\n\n- **Vinculación:** `auto` es el valor por defecto si `current_user.email == odoo_login` y usa `admin_uid`. `manual` exige `link_odoo_user_id` y verifica que ese `res.users` exista. `none` es el valor por defecto si los emails no coinciden y deja el member sin `odoo_user_id`.\n- **Cambio de URL:** se limpian `odoo_user_id` y `odoo_api_key` de todos los members, owner incluido. La respuesta trae `members_invalidated` y un `warning`.\n- El rol `owner` nunca se modifica.\n\n¿Querés el detalle de los errores de cada paso?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5811,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1049,
+  "output_tokens_details": {
+   "thinking_tokens": 284
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5811,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1049,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5811,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5811
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

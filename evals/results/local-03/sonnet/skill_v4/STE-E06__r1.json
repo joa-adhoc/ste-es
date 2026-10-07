@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los worktrees comparten la misma DB local de tests. Si la rama de tu compañero trae una migración destructiva, la DB queda sin columnas que tu código todavía lee, y de ahí el `UndefinedColumnError` en tests que no tocaste.\n\nPara arreglarlo ahora, corré esto en tu worktree:\n\n```bash\nmake migrate-reset\n```\n\nArma una base desde cero en ~3 segundos con el mismo runner de CI. No uses `npx supabase db reset`: aborta en los prefijos de migración repetidos.\n\nPara que no vuelva a pasar, dale a tu worktree su propia base:\n\n```bash\ncp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n# editá la URL de la base para que sea propia de este worktree\n```\n\nEl archivo está gitignoreado y pisa a `.env.test`. El lock de `flock` no aísla el esquema: solo evita corridas simultáneas.\n\nSi además querés soltar el lock, necesitás también un Redis propio. Usá un índice distinto en `REDIS_URL`, que no sea el 15 ni el 0. Con solo uno de los dos recursos aislado, no alcanza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5649,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 408,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 408,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5649,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5649
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

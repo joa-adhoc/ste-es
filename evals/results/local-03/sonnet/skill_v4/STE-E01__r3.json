@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Tu migración tiene que ser idempotente y llevar RLS. Además va con un test y un modelo Pydantic.\n\n1. Creá el archivo con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n2. Escribí todo idempotente. El preview de tu PR corre la migración contra la base de staging, que es la misma base. Si renombrás el archivo, se vuelve a aplicar.\n3. Agregá RLS con la policy sobre `workspace_id`.\n4. Escribí el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n5. Creá el modelo Pydantic.\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  workspace_id uuid NOT NULL\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_idx ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nNo filtres por `workspace_id` solo en la aplicación: RLS es la defensa principal.\n\n¿Querés el detalle de las consecuencias en staging (`docs/infra-ci-cd.md`)?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5508,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 762,
+  "output_tokens_details": {
+   "thinking_tokens": 131
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5508,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 762,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5508,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5508
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

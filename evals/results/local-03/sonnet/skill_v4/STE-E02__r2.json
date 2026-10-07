@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Alcanza con el cliente si solo la SPA pinta la descripción. Si además entra a un prompt, un mail o sale por MCP, tocá también el backend.\n\n1. **Migración:** dejá la columna legacy y agregá la nueva.\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Fijate en `0201_platform_connectors_description_i18n.sql`: puede que ya exista.\n2. **API:** devolvé el mapa entero junto con la columna legacy, sin filtrar por idioma. Usá `normalize_i18n_keys` al escribir y `decode_i18n` al leer, de `tuqui_core/i18n.py`.\n3. **Front:** resolvé con el helper, sin escribir el fallback a mano.\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n4. **Editor admin:** dos inputs (ES / EN). Al guardar, mandá `description_i18n` con las claves no vacías y espejá la legacy con `es || en`. Referencia: `AdminAgentEditorPage.tsx:95-115`.\n5. **Backend (solo si aplica):** resolvé con la misma cadena `idioma → en → legacy`. Tomá el idioma de `resolve_response_language(workspace_id, user_id)`, no de `Accept-Language`. Si resolvés en el server, incluí el idioma en el `queryKey` de react-query.\n\n¿Querés que revise si algún conector alimenta un prompt o el MCP?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5738,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 781,
+  "output_tokens_details": {
+   "thinking_tokens": 239
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5738,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 781,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5738,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5738
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

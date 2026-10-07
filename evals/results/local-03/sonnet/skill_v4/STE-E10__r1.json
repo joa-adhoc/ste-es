@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El orden es: modelo permitido, evaluator de permisos, ejecución. El evaluator mira primero el `deny` del workspace, después la preferencia del usuario, después la grilla del workspace y al final el default.\n\n```\n┌──────────────────────────┐\n│ workspace_write_models   │─ no permitido ──► bloqueado\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ workspace_tool_approvals │─ deny ──► DENY (piso)\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ user_tool_approvals      │─ hay fila ──► gana su action\n│ (se saltea en webhook)   │\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ workspace_tool_approvals │─ allow / ask\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ default per-tool         │─ ASK si el recurso está en approval, si no ALLOW\n└──────────────────────────┘\n```\n\n- **Admin \"ask\", miembro \"allow\"**: gana el miembro y la tool se ejecuta (ALLOW). Solo el `deny` del admin es un piso; un `ask` es una preferencia que el usuario puede pisar.\n- **Agent por webhook**: el evaluator ignora `user_tool_approvals`, porque el turno corre con la identidad prestada de un miembro. Manda la grilla del workspace, así que en tu caso da ASK.\n\n¿Querés el detalle de qué pasa con un ASK en un canal sin usuario presente? El material no lo cubre.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5665,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 803,
+  "output_tokens_details": {
+   "thinking_tokens": 237
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5665,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 803,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5665,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5665
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

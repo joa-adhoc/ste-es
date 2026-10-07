@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "```\n Front (SPA)            Backend                    Provider\n     │                      │                          │\n     │── GET /start ───────►│ arma state firmado       │\n     │◄─ authorize_url ─────│                          │\n     │── redirect ─────────────────────────────────────►│\n     │                      │◄── callback?code&state ──│\n     │                      │── code → tokens ────────►│\n     │                      │ guarda tokens cifrados   │\n     │                      │ prueba de humo           │\n     │◄─ redirect ?connected=server_id ─│              │\n```\n\n- **State:** AES-GCM, vence a los 10 min. Lleva `server_id`, `user_id`, `nonce` y, si corresponde, PKCE.\n- **Refresh:** `refresh_if_expired` corre al construir los toolsets si quedan menos de 60 s.\n- **`resource` (RFC 8707):** viaja en el authorize, en el intercambio y en el refresh. El backend lo manda solo si el discovery lo guardó.\n\n**Si algunas habilidades no contestan:** el callback introspecta todas las habilitadas en paralelo.\n- **Ninguna contesta:** borra el token y redirige con `connect_error=<motivo>`.\n- **Alguna contesta:** deja al usuario conectado y redirige con `connect_warning=<habilidades>`.\n\n¿Querés el detalle del state o de PKCE?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5747,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 931,
+  "output_tokens_details": {
+   "thinking_tokens": 458
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5747,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 931,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5747,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5747
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

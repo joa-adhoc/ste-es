@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El pipeline arma un contexto y lo pasa por tres etapas. Cada una entrega su salida a la siguiente.\n\n```\n┌───────────────────┐   ┌─────────┐   ┌──────────────┐   ┌─────────────┐\n│ Context Assembler │──►│ Planner │──►│ Investigator │──►│ Synthesizer │\n│ bundle ~2–4K tok  │   │ 0-N     │   │ Investigation│   │ + 3 guards  │\n│                   │   │ hipótes.│   │ Findings     │   │ 0-2 teasers │\n└───────────────────┘   └─────────┘   └──────────────┘   └─────────────┘\n```\n\n- **Context Assembler**: corre 6 queries en paralelo bajo el RLS del usuario. Arma un bundle en markdown con perfiles, memoria, chats de los últimos 7 días e `insight_history` de 14 días para evitar repetir.\n- **Planner**: propone hipótesis. Cada una tiene un registro (`dato`, `observacion`, `alerta`…) que define cuánto puede investigar el Investigator.\n- **Investigator**: investiga hasta 3 hipótesis a la vez con herramientas de solo lectura.\n- **Synthesizer**: escribe los teasers y los pasa por tres guards: regex, `partial_ratio >= 75` contra el resumen del Investigator y un LLM Judge.\n\n**No se muestra nada cuando:**\n1. El Planner devuelve cero hipótesis. Es un silencio válido, con `silence_reason`.\n2. Los guards rechazan todos los teasers. El resultado es `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"`.\n\nSi falla la infraestructura del Judge, el teaser pasa. Ese caso no genera silencio.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5911,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 814,
+  "output_tokens_details": {
+   "thinking_tokens": 189
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5911,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 814,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5911,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5911
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

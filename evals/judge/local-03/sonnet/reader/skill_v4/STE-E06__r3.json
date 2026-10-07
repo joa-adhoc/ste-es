@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué valor exacto tengo que poner en .env.test.local para tener una base propia (nombre de la base / DATABASE_URL), y cómo confirmo que make migrate-reset va a apuntar a esa base y no a la compartida con mi compañero?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué variable exacta del .env.test.local tengo que cambiar para que mi worktree use una base propia (el nombre de la variable y un ejemplo de valor), y cómo evito que el nombre choque con el de otros worktrees?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "En .env.test.local decís \"poné una base propia para este worktree\", pero no sé qué variable editar ni qué valor poner. ¿Me das un ejemplo concreto de la línea (nombre de la variable y cómo quedaría la URL o el nombre de la base para mi worktree)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Qué valor exacto tengo que poner en .env.test.local para tener una base propia (nombre de la base / DATABASE_URL), y cómo confirmo que make migrate-reset va a apuntar a esa base y no a la compartida con mi compañero?",
+ "followup_answer": "El material no dice el nombre de la variable ni el valor exacto, así que no te lo puedo inventar. Solo dice que `.env.test.local` pisa a `.env.test` y que la base propia se declara ahí.\n\nSacá el nombre y el formato de la fuente:\n\n```bash\ncat tuqui_core/.env.test.local.example   # variable y formato esperados\ncat tuqui_core/.env.test                 # la URL compartida que tenés que pisar\n```\n\nCopiá la variable que use `.env.test` para la base, y cambiá solo el nombre de la base por uno único de tu worktree (por ejemplo, el nombre del branch).\n\nPara confirmar el destino de `make migrate-reset`, no hay garantía en el material de que lea `.env.test.local`. Chequealo antes de correrlo:\n\n```bash\nmake -n migrate-reset                      # muestra el comando sin ejecutarlo\ngrep -n \"env\\|DATABASE\" scripts/reset_database.py\n```\n\nFijate dos cosas:\n- Si el target carga `.env.test.local`, o si `reset_database.py` toma la URL de otro lado.\n- Si el nombre de la base que imprime es el tuyo y no el compartido.\n\nSi no queda claro, no lo corrés: `reset_database.py` vacía la base a la que apunte. Pasame la salida de `make -n` y el `.env.test.local.example` y lo revisamos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6103,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 665,
+  "output_tokens_details": {
+   "thinking_tokens": 186
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6103,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 665,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6103,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6103
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a8c1cd9dcf"
+ }
+}

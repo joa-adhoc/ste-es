@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración solo cubre la parte de cómo entra al prompt, no el ciclo completo. ¿Qué pasa exactamente cuando hay muchas memorias: el tope de 50 por scope se aplica por separado a usuario y workspace, y cuántas headers (N) se seleccionan con rapidfuzz cuando se pasa de 12K chars? Además, ¿cómo se guarda una memoria, qué parámetros recibe manage_memory y cómo se actualiza o borra una existente?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La primera oración solo cubre la parte de la inyección al prompt, no el ciclo completo desde que se guarda. Además faltan datos: ¿cuántos headers entran (el top-N) cuando se pasa de 12K chars? ¿Qué pasa con el cuerpo completo y cómo se lo pide el modelo (qué tool/parámetros)? ¿Y los 50 son por scope (usuario/workspace/proyecto) o en total?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se pasan los 12K y se filtra con rapidfuzz, ¿cuánto vale N del top-N y qué pasa con las memorias que quedan afuera? ¿El modelo puede enterarse de que existen o se vuelven invisibles hasta que el mensaje las matchee? Además, ¿el límite de 12K es por scope o total?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La primera oración solo cubre la parte de la inyección al prompt, no el ciclo completo desde que se guarda. Además faltan datos: ¿cuántos headers entran (el top-N) cuando se pasa de 12K chars? ¿Qué pasa con el cuerpo completo y cómo se lo pide el modelo (qué tool/parámetros)? ¿Y los 50 son por scope (usuario/workspace/proyecto) o en total?",
+ "followup_answer": "El modelo guarda con `manage_memory`, el sistema borra la más vieja al pasar 50 por scope, y cada turno inyecta solo el header; el cuerpo se pide con `manage_memory(action='read', id=...)`.\n\n```\n┌───────────────┐   ┌──────────────────┐   ┌───────────────────┐\n│ manage_memory │──►│ tope 50 por scope│──►│ _load_chat_setup  │\n│ (guardar)     │   │ borra la más vieja│  │ headers → prompt  │\n└───────────────┘   └──────────────────┘   └─────────┬─────────┘\n        ▲                                            │\n        │ action='read', id=...                      ▼\n        │ (si el header termina en [read])  ┌───────────────────┐\n        └───────────────────────────────────│ modelo en el turno│\n                                            └───────────────────┘\n```\n\n- **Top-N:** el material no define el número. Dice solo que, sobre 12K chars (`_MEMORY_BUDGET_CHARS`), rapidfuzz puntúa los headers contra tu mensaje y deja los top-N. Para el valor exacto, mirá `_load_chat_setup`.\n- **Tope:** son 50 por scope, no en total. Hay un scope de usuario (por usuario) y uno de workspace (por workspace), así que pueden convivir hasta 100. El material no menciona un scope de proyecto: solo hay un bloque de proyecto en el prompt.\n- **Cuerpo:** el material solo muestra `action='read'` con `id`. No documenta otros parámetros.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6025,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1256,
+  "output_tokens_details": {
+   "thinking_tokens": 717
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6025,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1256,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6025,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6025
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "46a4b23aef"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el PR env la aplica contra la base compartida de staging y rompe el código anterior para todos.\n\n```\n┌─────────────────────┐   ┌──────────────────────┐   ┌─────────────────────┐\n│ PR env (Railway)    │──►│ merge a staging/main │──►│ deploy real         │\n│ saltea, no registra │   │                      │   │ aplica y registra   │\n└─────────────────────┘   └──────────────────────┘   └─────────────────────┘\n```\n\n- **Condiciones:** el runner aplica la migración solo si `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y** `RAILWAY_GIT_BRANCH` es `staging` o `main`. El PR env hereda el flag de staging, pero su rama es otra, así que la saltea.\n- **CI y pytest:** `scripts/apply_migrations.py` la aplica en bases efímeras, que activan el flag por base.\n- **Local:** `make migrate` no la aplica, porque la base de desarrollo es compartida entre worktrees.\n\n¿Querés el detalle de las migraciones aditivas, que sí se aplican desde el preview?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5532,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1100,
+  "output_tokens_details": {
+   "thinking_tokens": 672
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5532,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1100,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5532,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5532
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

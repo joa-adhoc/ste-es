@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas como (b1), (b2), (c) y (d) sin explicar qué es cada una. Solo se define (b) en general, y (b1) y (b2) aparecen después sin definición. ¿Qué es exactamente (b1) frente a (b2)? ¿Y qué quiere decir que el router MCP ignore `requires_approval`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas (a), (b), (b1), (b2), (c), (d) sin definir bien (b1) vs (b2). ¿Podés explicarme con una frase cada una qué significan (b1) y (b2), y decirme con un ejemplo concreto de mi tool con defaults si cae en alguna?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas como (a), (b), (b1), (b2), (c) y (d) sin definir bien (b1) y (b2), y habla de 'gate', 'identidad propia' y 'whitelist más fina'. ¿Me podés explicar con palabras simples qué es (b1) y qué es (b2), y cómo sé si mi tool con defaults cae en alguno, con un ejemplo concreto de mi caso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa etiquetas como (b1), (b2), (c) y (d) sin explicar qué es cada una. Solo se define (b) en general, y (b1) y (b2) aparecen después sin definición. ¿Qué es exactamente (b1) frente a (b2)? ¿Y qué quiere decir que el router MCP ignore `requires_approval`?",
+ "followup_answer": "(b) es una tool con un gate propio, más estrecho que el de la tool genérica equivalente. La diferencia entre (b1) y (b2) es dónde vale ese gate.\n\n**(b1) Approval o identidad de policy propia.** La tool exige que el dev apruebe la llamada antes de ejecutarse, o tiene su propia identidad en la policy de permisos. Eso solo funciona en el chat, porque solo el chat consume `requires_approval`.\n\n**(b2) Whitelist más fina.** La tool se gatea con un permiso más chico que el genérico. Vale en chat y en MCP, porque es una restricción de permisos y no depende de pedir aprobación.\n\nEjemplos de (b2):\n- `odoo_copy` pide el permiso `create` en vez de `execute`.\n- `odoo_message_post` usa un gate propio por `messaging_mode` del workspace, en vez de `execute` por modelo.\n\n**Qué significa que el router MCP ignore `requires_approval`.** Una tool puede declarar `requires_approval=True`. El chat lee ese flag en `tuqui_core/chat/permissions.py` y frena la llamada hasta que el dev apruebe. El router MCP no lee el flag, así que la tool se ejecuta sin frenar. Un cliente MCP externo no tiene un canal de approval, por eso un gate que dependa de eso no protege nada.\n\n**(c)** es un procedimiento crítico donde un skip del LLM tiene costo real, por ejemplo compliance dura. Solo sirve en chat, porque el MCP no tiene un turno donde forzar pasos.\n\n**(d)** es eficiencia: la tool colapsa en una call lo que cuesta ≥3 calls genéricas, o un loop no acotado. Un wrapper 1→1 nunca califica.\n\nPara tu tool: si solo agrega defaults, es skill. Solo cambia si tiene una whitelist más fina que `create` (b2).",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6391,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 667,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6391,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 667,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 6391,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6391
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d93e30bb2c"
+ }
+}

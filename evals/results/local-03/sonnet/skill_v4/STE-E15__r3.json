@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`connect_odoo` valida las credenciales en Odoo, decide el vínculo del Member y guarda todo en `workspaces`. El rol `owner` no se toca.\n\n```\nPOST /workspaces/{slug}/odoo\n        │\n        ▼\n┌─ _authenticate_odoo ──────────┐\n│ JsonRpcTransport.authenticate │──► admin_uid\n└───────────────┬───────────────┘\n                ▼\n┌─ _verify_odoo_admin_group ────┐\n│ has_group base.group_system   │──► ValueError si no es admin\n└───────────────┬───────────────┘\n                ▼\n┌─ get_version ─────────────────┐\n│ detected_version              │──► ValueError si falla o < MIN_SUPPORTED\n└───────────────┬───────────────┘\n                ▼\n┌─ _resolve_link_mode ──────────┐\n│ auto / manual / none          │\n└───────────────┬───────────────┘\n                ▼\n┌─ UPDATE workspaces ───────────┐\n│ odoo_url, db, login, uid,     │──► 409 si otro workspace tiene el mismo\n│ api_key, version              │    database.uuid\n└───────────────┬───────────────┘\n                ▼\n┌─ si url_changed ──────────────┐\n│ limpia odoo_user_id y         │\n│ odoo_api_key de TODOS los     │\n│ members                       │\n└───────────────┬───────────────┘\n                ▼\n┌─ si auto o manual ────────────┐\n│ UPDATE workspace_members      │\n│ + sync_user_api_key (async)   │\n└───────────────────────────────┘\n```\n\n**Qué usuario vincula (`_resolve_link_mode`):**\n- `auto`: es el modo por defecto si `current_user.email == odoo_login`. Vincula el Member a `admin_uid`.\n- `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`. Verifica que ese `res.users` exista y vincula a ese id.\n- `none`: es el modo por defecto si los emails no coinciden. El Member queda sin `odoo_user_id`.\n\n**Si cambia la URL:** se limpian los members, incluido el owner, porque la identidad puede apuntar a otra instancia. La respuesta trae `members_invalidated` con la cantidad y un `warning` para la UI. Si la URL no cambió, `members_invalidated` es 0.\n\n¿Querés el detalle de los campos de `WorkspaceConnectOdooResult`?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5813,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 1114,
+  "output_tokens_details": {
+   "thinking_tokens": 243
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5813,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1114,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5813,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5813
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

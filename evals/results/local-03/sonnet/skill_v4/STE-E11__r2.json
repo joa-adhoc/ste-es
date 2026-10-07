@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "skill_v4",
+ "arm_hash": "a7eda361d7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el runner la trata como aditiva y la aplica desde el preview a la base compartida de staging, lo que rompe el código viejo.\n\n```\n┌────────────┐   ┌────────────┐   ┌─────────────┐   ┌────────────┐\n│ CI (bases  │   │ PR env     │   │ deploy      │   │ deploy     │\n│ efímeras)  │   │ Railway    │   │ staging     │   │ main       │\n│ se aplica  │   │ se saltea  │   │ se aplica   │   │ se aplica  │\n└────────────┘   └────────────┘   └─────────────┘   └────────────┘\n                  sin registrar   al mergear a      con el flag\n                                  staging           en 1\n```\n\n- El PR env saltea la migración sin registrarla, así que el deploy real posterior al merge la aplica.\n- Para aplicarla, el deploy necesita `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Un PR env hereda el flag, por eso el runner mira también la rama.\n- `make migrate` no la aplica en tu base local, porque esa base se comparte entre worktrees.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5534,
+  "cache_read_input_tokens": 16130,
+  "output_tokens": 734,
+  "output_tokens_details": {
+   "thinking_tokens": 284
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5534,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 734,
+    "cache_read_input_tokens": 16130,
+    "cache_creation_input_tokens": 5534,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5534
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
