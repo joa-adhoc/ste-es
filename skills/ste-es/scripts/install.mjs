@@ -151,7 +151,7 @@ function show(steps, install) {
   }
   console.log("This will change:");
   for (const s of steps) console.log(`  - ${s.agent}: ${s.what} in ${s.path}`);
-  if (install) console.log(`\nThe block is plain text:\n\n${BLOCK}`);
+  if (steps.some((s) => s.after.includes(BLOCK))) console.log(`\nThe block is plain text:\n\n${BLOCK}`);
   console.log("Each file is backed up next to itself (*.ste-es-backup-<time>) before it changes.");
 }
 
