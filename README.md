@@ -28,18 +28,32 @@ node ~/.agents/skills/ste-es/scripts/install.mjs
 
 This installs two skills: `ste-es` and `html-plan` (see [Plans](#plans)). To install only `ste-es`, add `--skill ste-es`.
 
-A skill is loaded on demand, so installing it is not enough: in the eval, an installed but inactive skill was never loaded. `install.mjs` turns it on for every session:
+A skill is loaded on demand, so installing it is not enough: in the eval, an installed but inactive skill was never loaded. `install.mjs` turns it on for every session by adding one plain-text block to the global instructions of each agent it finds:
 
-- **Claude Code:** a `SessionStart` hook in `~/.claude/settings.json`, plus a block in `~/.claude/CLAUDE.md`.
-- **Codex:** a block in `~/.codex/AGENTS.md`.
-- **Gemini CLI:** a block in `~/.gemini/GEMINI.md`.
+- **Claude Code:** `~/.claude/CLAUDE.md`
+- **Codex:** `~/.codex/AGENTS.md`
+- **Gemini CLI:** `~/.gemini/GEMINI.md`
 
-It only touches the agents it finds. It is idempotent and leaves the rest of those files alone.
+It shows what it will change and asks before writing. It backs up each file first (`*.ste-es-backup-<time>`) and never deletes those backups. It is idempotent and leaves the rest of those files alone. It exits with 1 when you decline, when there is no terminal to ask in, when a write fails, or when a file could not be checked.
 
 ```bash
-node ~/.agents/skills/ste-es/scripts/install.mjs --check      # what is installed
-node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove everything
+node ~/.agents/skills/ste-es/scripts/install.mjs --dry-run    # only show the plan
+node ~/.agents/skills/ste-es/scripts/install.mjs --yes        # apply without asking
+node ~/.agents/skills/ste-es/scripts/install.mjs --check      # what is installed in each agent (exit 1 if anything is missing)
+node ~/.agents/skills/ste-es/scripts/install.mjs --uninstall  # remove the block and the old hook (backups stay)
 ```
+
+## Security
+
+Skill scanners can flag a skill whose script writes to an agent's global configuration, because it is how a persistent prompt injection works. This is what `install.mjs` does and does not do:
+
+- **It writes only the block shown above**, between `<!-- ste-es:start -->` and `<!-- ste-es:end -->`. The block is text: it asks the agent to load the skill.
+- **It never runs on its own.** It adds no hooks, so nothing from this repo executes when a session starts. Updating the skill changes text, not code that runs by itself.
+- **You run it, see the plan, and confirm.** Without a terminal (for example, when an agent runs it) it only shows the plan; `--yes` is for scripts you control.
+
+Version 1 added a `SessionStart` hook that ran this script in every session. **If you installed version 1, run `install.mjs` again**: it removes that hook. Until then the hook still starts `node` in each session, but it only shows you a message with that command. The message goes to you, not to the model.
+
+To skip the script, paste the block into the files above by hand. The skill works the same.
 
 ## Plans
 
