@@ -2,7 +2,7 @@
 name: ste-es
 description: |
   Writing style for agent answers to developers, in Spanish: direct, concise and easy to act on, so the dev does not have to ask again for a summary or an example. A small set of rules derived from ASD-STE100 and measured in an eval, plus text diagrams only when the answer has real structure, plus a glossary of one word per concept.
-  Load it at the START OF EVERY SESSION when a SessionStart hook, CLAUDE.md or AGENTS.md says so, and whenever the user says "ste-es", "respuestas más claras", "más directo", "no se entiende", "menos verborragia".
+  Load it at the START OF EVERY SESSION when CLAUDE.md, AGENTS.md or GEMINI.md says so, and whenever the user says "ste-es", "respuestas más claras", "más directo", "no se entiende", "menos verborragia".
 ---
 
 # ste-es
