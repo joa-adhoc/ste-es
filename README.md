@@ -6,16 +6,16 @@ A response style for coding agents (Claude Code, Codex, Gemini) that talk to dev
 
 ## What it is
 
-The rules adapt ASD-STE100 (the controlled English of aircraft maintenance manuals) to Spanish, plus text diagrams only when the answer has structure. They are the exact text measured by the eval. Vocabulary comes from a [glossary](skills/ste-es/references/glossary.md) with one word per concept.
+The rules adapt ASD-STE100 (the controlled English of aircraft maintenance manuals) to Spanish, plus text diagrams only when the answer has structure. They are the exact text measured by the eval.
 
-0. Precision wins: no rule justifies dropping a fact or a condition.
+0. Precision wins: no rule justifies dropping a fact or a condition. An error, a failing test, a security warning and what a destructive action loses arrive whole.
 1. The answer goes in the first sentence.
 2. Include the command or the concrete example.
 3. Short sentences.
 4. Active voice.
-5. No filler.
+5. Start with the fact and stop when the dev can act, shown with two examples.
 6. Voseo (Rioplatense Spanish).
-7. Diagrams only for 3 or more related parts, without repeating them in the text.
+7. Diagrams only for 3 or more related parts, never for an answer that depends on conditions, and without repeating them in the text.
 
 The rules themselves are in Spanish, because they shape Spanish answers. Details: [`skills/ste-es/SKILL.md`](skills/ste-es/SKILL.md).
 
@@ -65,15 +65,18 @@ Plans use the Adhoc look: [`themes/adhoc.css`](themes/adhoc.css) holds the brand
 
 ## What was measured
 
-[`evals/`](evals/) compares plain Claude Code with this skill: 18 cases, 3 runs per case, isolated Claude Code, Sonnet.
+[`evals/`](evals/) compares plain Claude Code with this skill and with the alternatives: 29 cases, 3 runs per case, isolated Claude Code, Sonnet (run `local-04`, 2026-11-18).
 
-| | Plain Claude Code | ste-es |
-|---|---|---|
-| Answers in the first sentence | 31% | 89% |
-| Follow-up questions | 69% | 54% |
-| Tokens to understand | 92.5k | 78.1k |
-| Facts / conditions kept | 99.7% / 99.4% | 98.3% / 98.2% |
-| Incorrect claims | 28 | 5 |
-| Blind preference | 23 | 31 |
+| | Plain Claude Code | `Concise` output style | ste-es (this version) | ste-es (previous) |
+|---|---|---|---|---|
+| Answers in the first sentence | 55% | 76% | 97% | 89% |
+| Follow-up questions | 48% | 44% | 45% | 48% |
+| Tokens to understand | 130k | 91k | 105k | 106k |
+| Facts / conditions kept | 98.4% / 98.8% | 96.8% / 97.5% | 97.5% / 97.9% | 95.9% / 97.1% |
+| Incorrect claims | 47 | 32 | 22 | 13 |
+| Voseo | 85% | 86% | 100% | 100% |
+| Blind preference against plain | — | 65 to 22 | 60 to 27 | 54 to 33 |
 
-Limits: one model only, and the judge and the reader are Claude too. Earlier versions and their results are in the git history.
+This version beats the previous one 47 to 40, and wins back the flow cases (18 to 9) that the previous one lost against plain Claude Code. Against the built-in `Concise` style it ties (44 to 42): in Claude Code, `Concise` gives about the same with fewer tokens, and ste-es adds voseo, the answer first and fewer incorrect claims.
+
+Limits: one model only, and the judge and the reader are Claude too. Codex and opencode are not measured. Earlier versions and their results are in the git history.
