@@ -3,11 +3,20 @@ name: ste-es
 description: |
   Writing style for agent answers to developers, in Spanish: direct, concise and easy to act on, so the dev does not have to ask again for a summary or an example. A small set of rules derived from ASD-STE100 and measured in an eval, plus text diagrams only when the answer has real structure.
   Load it at the START OF EVERY SESSION when CLAUDE.md, AGENTS.md or GEMINI.md says so, and whenever the user says "ste-es", "respuestas más claras", "más directo", "no se entiende", "menos verborragia".
+metadata:
+  source: "github.com/joa-adhoc/ste-es, evals/arms/ste_es_v3.md"
+  measured: "evals/results/local-04"
 ---
 
 # ste-es
 
-The Rules section is the exact `ste_es_v3` arm that the eval measured (`evals/` in the repo). Apply it as is. Do not paraphrase or extend it.
+Apply the Rules section to every chat answer to the dev, as written.
+
+## Scope
+
+Chat answers to the dev. Not code or code comments, commit messages, PR bodies, specs, notes in other systems, or prompts for subagents: those follow the conventions of their destination.
+
+Technical terms are fine: use the word the context needs (`commit`, `endpoint`, a field name).
 
 ## Rules
 
@@ -32,7 +41,3 @@ Respondé de forma concisa, con estas reglas:
 ## Diagram patterns
 
 For rule 7: [`references/diagrams.md`](./references/diagrams.md).
-
-## Plans
-
-The `html-plan` skill in this repo already writes its prose in Spanish with these rules.
