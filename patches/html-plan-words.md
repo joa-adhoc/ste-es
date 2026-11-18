@@ -2,7 +2,7 @@
 
 The exhibits are the plan. Words only name them.
 
-**Write all prose in Spanish, with the `ste-es` rules (voseo, short sentences, active voice, no filler) and its glossary. Do not write the plan in English.** This applies to claims, captions, pins, questions, options and notes. Set `<html lang="es">`.
+**Write all prose in Spanish, with the `ste-es` rules (voseo, short sentences, active voice, no filler). Do not write the plan in English.** This applies to claims, captions, pins, questions, options and notes. Set `<html lang="es">`.
 
 - **Claims at levels 1 and 2 are sentences that can be true or false, 12 words at most.** Count the words. A level-3 claim is only a place: `file:line · symbol`.
 - **A caption is one sentence: what to notice.** A pin is a clause. An option's `<small>` is 12 words at most.
