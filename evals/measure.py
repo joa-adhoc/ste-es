@@ -6,6 +6,7 @@
 import argparse
 import json
 import random
+from collections import defaultdict
 from statistics import mean, median
 
 from common import ARM_ORDER, JUDGE, REFERENCE, RESULTS, load_cases, tokens_to_understand
@@ -106,8 +107,6 @@ GROUP_METRICS = ("n", "followup_rate", "facts_kept", "conditions_kept", "incorre
 
 
 def group_of(case):
-    if case.get("structure"):
-        return "flow"
     return case["category"] if case["category"] in GROUPS else "other"
 
 
@@ -119,23 +118,18 @@ def group_summary(rows):
         if not sub:
             continue
         s = arm_summary(sub)
-        s["diagram_rate"] = round(mean(r["lint"]["diagram"] for r in sub), 2)
+        s["diagram_rate"] = s["diagram_rate_structure" if g == "flow" else "diagram_rate_flat"]
         out[g] = {k: s[k] for k in GROUP_METRICS}
     return out
 
 
 def group_table(groups):
-    arms = [a for a in ARM_ORDER if a in groups]
-    lines = []
+    parts = []
     for g in GROUPS:
-        present = [a for a in arms if g in groups[a]]
-        if not present:
-            continue
-        lines += [f"**{g}**", "", "| metric | " + " | ".join(present) + " |", "|---|" + "---|" * len(present)]
-        for m in GROUP_METRICS:
-            lines.append(f"| {m} | " + " | ".join(str(groups[a][g][m]) for a in present) + " |")
-        lines.append("")
-    return "\n".join(lines)
+        per_arm = {a: groups[a][g] for a in groups if g in groups[a]}
+        if per_arm:
+            parts += [f"**{g}**", "", table(per_arm, GROUP_METRICS), ""]
+    return "\n".join(parts)
 
 
 def paired_delta(rows_a, rows_b, fn, needs_reader=False):
@@ -148,32 +142,36 @@ def paired_delta(rows_a, rows_b, fn, needs_reader=False):
     return {"median": round(median(deltas), 3), "ci95": bootstrap_ci(deltas), "n": len(deltas)}
 
 
-def pairwise(run_id, model, reference=REFERENCE, cases=None):
+def count_wins(wins, arm, reference):
+    return {arm: wins.count(arm), "tie": wins.count("tie"), reference: wins.count(reference), "n": len(wins)}
+
+
+def pairwise(run_id, model, cases, reference=REFERENCE):
     out = {}
     folder = "pairwise" if reference == REFERENCE else f"pairwise_vs_{reference}"
     base = JUDGE / run_id / model / folder
     if not base.exists():
         return out
     for other_dir in base.iterdir():
-        verdicts = [(p.stem.split("__")[0], json.loads(p.read_text())["winner_arm"]) for p in other_dir.glob("*.json")]
         arm = other_dir.name
-
-        def count(wins):
-            return {arm: wins.count(arm), "tie": wins.count("tie"), reference: wins.count(reference), "n": len(wins)}
-
-        out[arm] = count([w for _, w in verdicts])
-        if cases:
-            out[arm]["by_group"] = {g: count([w for cid, w in verdicts if group_of(cases[cid]) == g])
-                                    for g in GROUPS if any(group_of(cases[cid]) == g for cid, _ in verdicts)}
+        wins, by_group = [], defaultdict(list)
+        for p in other_dir.glob("*.json"):
+            w = json.loads(p.read_text())["winner_arm"]
+            wins.append(w)
+            by_group[group_of(cases[p.stem.split("__")[0]])].append(w)
+        out[arm] = count_wins(wins, arm, reference)
+        out[arm]["by_group"] = {g: count_wins(by_group[g], arm, reference) for g in GROUPS if g in by_group}
     return out
 
 
-def table(summary):
-    cols = ["n", "reader_coverage", "comprehension", "comprehension_not_stated", "followup_rate", "reader_agreement",
+SUMMARY_COLS = ["n", "reader_coverage", "comprehension", "comprehension_not_stated", "followup_rate", "reader_agreement",
             "followup_types", "answer_first", "tokens_to_understand_total", "tokens_to_understand_median",
             "output_tokens_median", "input_tokens_median", "words_total_median", "words_median", "facts_kept", "conditions_kept",
             "contradicted", "incorrect", "violations_per100", "voseo_share",
             "diagram_rate_structure", "diagram_rate_flat", "diagram_errors"]
+
+
+def table(summary, cols=SUMMARY_COLS):
     arms = [a for a in ARM_ORDER if a in summary]
     lines = ["| metric | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
     for c in cols:
@@ -204,8 +202,8 @@ def main():
                     "words_total": paired_delta(rows[a], rows[REFERENCE], lambda r: r["lint"]["words_total"]),
                 }
         others = sorted(p.name.removeprefix("pairwise_vs_") for p in (JUDGE / args.run_id / model).glob("pairwise_vs_*"))
-        report[model] = {"arms": summary, "deltas": deltas, "pairwise": pairwise(args.run_id, model, cases=cases),
-                         **{f"pairwise_vs_{ref}": pairwise(args.run_id, model, ref, cases) for ref in others},
+        report[model] = {"arms": summary, "deltas": deltas, "pairwise": pairwise(args.run_id, model, cases),
+                         **{f"pairwise_vs_{ref}": pairwise(args.run_id, model, cases, ref) for ref in others},
                          "groups": {a: group_summary(r) for a, r in rows.items()}}
         md += [f"## {model}", "", table(summary), "",
                f"Change vs `{REFERENCE}` (per-case median, 95% CI):", ""]

@@ -39,21 +39,20 @@ def load_cases():
 
 def arm_text(arm):
     """Arms are frozen snapshots in arms/<arm>.md, so editing AGENTS.md or the skills never
-    silently changes an arm that already has answers. To measure a new version, add a new arm."""
-    if arm == "baseline":
+    silently changes an arm that already has answers. To measure a new version, add a new arm.
+    An arm made only of settings (arms/<arm>.settings.json) needs no .md."""
+    path = HERE / "arms" / f"{arm}.md"
+    if path.exists():
+        return path.read_text().strip()
+    if arm == "baseline" or arm_settings(arm):
         return ""
-    return (HERE / "arms" / f"{arm}.md").read_text().strip()
+    raise FileNotFoundError(f"arm {arm!r} has neither arms/{arm}.md nor arms/{arm}.settings.json")
 
 
 def arm_settings(arm):
     """Optional Claude Code settings for an arm (arms/<arm>.settings.json), e.g. a built-in output style."""
     path = HERE / "arms" / f"{arm}.settings.json"
     return path.read_text().strip() if path.exists() else ""
-
-
-def arm_extra(arm):
-    settings = arm_settings(arm)
-    return ("--settings", settings) if settings else ()
 
 
 def arm_hash(arm):
@@ -78,13 +77,16 @@ def tokens_to_understand(answer, reader):
     return answer["usage"].get("output_tokens", 0) + extra
 
 
-def claude(prompt, append_system="", model=None, extra=(), timeout=600):
-    """Run `claude -p` in a fresh empty directory. Returns the parsed JSON result."""
+def claude(prompt, arm=None, model=None, extra=(), timeout=600):
+    """Run `claude -p` in a fresh empty directory, with the arm's text and settings if one is given.
+    Returns the parsed JSON result."""
     cmd = ["claude", "-p", *ISOLATION_FLAGS, *extra]
     if model:
         cmd += ["--model", model]
-    if append_system:
-        cmd += ["--append-system-prompt", append_system]
+    if arm and arm_text(arm):
+        cmd += ["--append-system-prompt", arm_text(arm)]
+    if arm and arm_settings(arm):
+        cmd += ["--settings", arm_settings(arm)]
     env = {**os.environ, **ISOLATION_ENV}
     with tempfile.TemporaryDirectory(prefix="ste-es-eval-") as cwd:
         proc = subprocess.run(

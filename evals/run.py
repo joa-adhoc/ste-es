@@ -9,7 +9,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
-from common import ARM_ORDER, RESULTS, arm_extra, arm_hash, arm_text, claude, load_cases, parse_json_block
+from common import RESULTS, arm_hash, claude, load_cases, parse_json_block
 
 CANARY = (
     "Sin usar tools. Devolvé solo un JSON con esta forma: "
@@ -44,7 +44,7 @@ def one(run_dir, model, arm, case, run):
         if stored != arm_hash(arm):
             raise RuntimeError(f"stale answer ({stored} != {arm_hash(arm)}): the arm changed; use a new --run-id")
         return "skip"
-    out = claude(case["prompt"], append_system=arm_text(arm), model=model, extra=arm_extra(arm))
+    out = claude(case["prompt"], arm=arm, model=model)
     if out.get("is_error") or not out.get("result", "").strip():
         raise RuntimeError(f"empty or error result: {out.get('subtype')}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,7 +62,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--models", nargs="+", default=["sonnet"])
-    ap.add_argument("--arms", nargs="+", default=ARM_ORDER)
+    ap.add_argument("--arms", nargs="+", required=True, help="every arm costs a full set of answers, so name them")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--cases", nargs="*", help="case ids; default all")
     ap.add_argument("--jobs", type=int, default=4)
