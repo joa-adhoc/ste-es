@@ -999,3 +999,416 @@ cases:
       - q: "¿Qué pasa si los headers son demasiados?"
         a: "Si superan 12K caracteres, rapidfuzz los puntúa contra el mensaje actual y se queda con los top-N."
     source: "tuqui/docs/architecture/memory.md (§ Cap + FIFO eviction, § Progressive loading, § System prompt injection)"
+
+  # --- Rule 0: things that must arrive whole (error, failing test, security, destructive action) ---
+
+  - id: STE-E19
+    category: precision
+    structure: false
+    requires: []
+    prompt: |
+      Corrí los tests de RLS y falló uno. ¿Qué pasó y qué hago?
+
+      Material:
+      ---
+      $ pytest tuqui_core/tests/test_rls.py -q
+      ..F....
+      FAILED tuqui_core/tests/test_rls.py::test_scheduled_runs_isolated
+      E   AssertionError: workspace B ve 2 filas de scheduled_runs del workspace A
+      E   assert 2 == 0
+      tuqui_core/tests/test_rls.py:214: AssertionError
+      ---------- Captured log setup ----------
+      WARNING migrations: 0412_scheduled_runs.sql: policy "scheduled_runs_ws" already exists, skipped
+      1 failed, 6 passed in 4.12s
+
+      $ grep -n "scheduled_runs_ws" supabase/migrations/*.sql
+      supabase/migrations/0398_scheduled_runs_draft.sql:12:CREATE POLICY scheduled_runs_ws ON scheduled_runs USING (true);
+      supabase/migrations/0412_scheduled_runs.sql:20:DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'scheduled_runs_ws') THEN CREATE POLICY scheduled_runs_ws ON scheduled_runs USING (workspace_id = current_setting('app.current_workspace_id')::uuid); END IF; END $$;
+
+      Extracto de AGENTS.md: las migraciones se aplican una sola vez y el tracking es por nombre de archivo. Editar una migración ya aplicada no la vuelve a correr: el cambio va en una migración nueva.
+      ---
+    pass_criteria:
+      - fact: "Falló test_scheduled_runs_isolated en tuqui_core/tests/test_rls.py:214: el workspace B ve 2 filas de scheduled_runs del workspace A (assert 2 == 0)."
+        condition: false
+      - fact: "La causa es que la migración 0398 ya había creado la policy scheduled_runs_ws con USING (true), así que el IF NOT EXISTS de la 0412 la saltó y quedó la policy que no filtra."
+        condition: true
+      - fact: "El arreglo va en una migración nueva que borra y vuelve a crear la policy con el filtro por workspace_id; editar la 0412 no sirve porque no se vuelve a correr."
+        condition: true
+      - fact: "El resto de los tests de RLS pasó (6 de 7)."
+        condition: false
+    control:
+      - q: "¿Qué test falló y qué muestra?"
+        a: "test_scheduled_runs_isolated (test_rls.py:214): el workspace B ve 2 filas de scheduled_runs del workspace A."
+      - q: "¿Por qué la policy correcta de la 0412 no quedó aplicada?"
+        a: "Porque la 0398 ya había creado scheduled_runs_ws con USING (true) y el IF NOT EXISTS de la 0412 la saltó."
+      - q: "¿Alcanza con corregir la 0412?"
+        a: "No: no se vuelve a correr; hace falta una migración nueva que borre y recree la policy."
+    source: "sintético, sobre las reglas de migraciones de tuqui/AGENTS.md"
+
+  - id: STE-E20
+    category: precision
+    structure: false
+    requires: []
+    prompt: |
+      Falló el deploy de staging. ¿Qué pasó? ¿Está caído?
+
+      Material:
+      ---
+      [build] image built in 2m11s
+      [migrate] applying 0415_terms_acceptance.sql
+      [migrate] ERROR: column "accepted_version" of relation "members" contains null values (SQLSTATE 23502)
+      [migrate] statement: ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;
+      [migrate] rollback 0415_terms_acceptance.sql
+      [deploy] migrate step failed: new deployment not promoted, previous deployment keeps serving
+
+      Extracto de docs/infra-ci-cd.md: para pasar una columna existente a NOT NULL, primero va una migración que completa los valores (backfill) y, en un tren posterior, otra con el SET NOT NULL. Las dos juntas fallan si hay filas viejas en null.
+      ---
+    pass_criteria:
+      - fact: "La migración 0415_terms_acceptance.sql falló con: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502), en el ALTER ... SET NOT NULL."
+        condition: false
+      - fact: "La migración hizo rollback: no quedó aplicada."
+        condition: false
+      - fact: "Staging no está caído: el deployment nuevo no se promovió y el anterior sigue sirviendo."
+        condition: true
+      - fact: "El arreglo es separar: primero una migración que completa accepted_version en las filas viejas y, en un tren posterior, el SET NOT NULL."
+        condition: true
+    control:
+      - q: "¿Qué error exacto dio la migración?"
+        a: "column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502), en el SET NOT NULL."
+      - q: "¿Staging está caído?"
+        a: "No: el deployment anterior sigue sirviendo, porque el nuevo no se promovió."
+      - q: "¿Cómo se arregla?"
+        a: "Primero una migración de backfill de accepted_version y, en un tren posterior, el SET NOT NULL."
+    source: "sintético, sobre docs/infra-ci-cd.md de tuqui"
+
+  - id: STE-E21
+    category: precision
+    structure: false
+    requires: []
+    prompt: |
+      Pegué sin querer la API key de OpenAI en un commit y ya lo pusheé a mi rama, con el PR abierto. ¿Alcanza con borrar el commit?
+
+      Material:
+      ---
+      Extracto de docs/seguridad.md:
+
+      - Un secreto que llegó a un remoto se da por filtrado. Se rota aunque después se borre el commit o se reescriba la historia: GitHub guarda los commits de un PR y el preview de Railway ya construyó la imagen con ese commit.
+      - Rotación de la key de OpenAI: se crea una nueva en el panel de OpenAI, se carga en Admin › Integraciones de staging y de prod, y recién después se revoca la vieja. La key no va en variables de entorno de Railway.
+      - Para limpiar la rama, `git rebase -i` y `git push --force-with-lease`. `git push --force` sin lease está bloqueado.
+      - Se avisa en la tarea abierta del proyecto 1526 (Administración Tuqui) con qué key se rotó y cuándo.
+      ---
+    pass_criteria:
+      - fact: "No alcanza con borrar el commit: la key se da por filtrada y hay que rotarla igual."
+        condition: true
+      - fact: "La razón: GitHub guarda los commits del PR y el preview de Railway ya construyó la imagen con ese commit."
+        condition: true
+      - fact: "La rotación es: key nueva en el panel de OpenAI, cargarla en Admin › Integraciones de staging y prod, y recién después revocar la vieja; no va en variables de entorno de Railway."
+        condition: true
+      - fact: "La rama se limpia con git rebase -i y git push --force-with-lease (el --force sin lease está bloqueado)."
+        condition: false
+      - fact: "Hay que avisar en la tarea abierta del proyecto 1526 qué key se rotó y cuándo."
+        condition: false
+    control:
+      - q: "¿Alcanza con borrar el commit?"
+        a: "No: la key se da por filtrada y hay que rotarla, porque GitHub guarda los commits del PR y el preview ya la usó."
+      - q: "¿En qué orden se rota?"
+        a: "Key nueva en OpenAI, cargarla en Admin › Integraciones de staging y prod, y después revocar la vieja."
+      - q: "¿Dónde se avisa?"
+        a: "En la tarea abierta del proyecto 1526 (Administración Tuqui)."
+    source: "sintético, sobre las reglas de secretos del equipo"
+
+  - id: STE-E22
+    category: precision
+    structure: false
+    requires: []
+    prompt: |
+      Quiero empezar de cero en mi rama. ¿Hago `git reset --hard origin/staging`?
+
+      Material:
+      ---
+      $ git status -sb
+      ## feat/limite-mcp...origin/feat/limite-mcp [ahead 3]
+       M tuqui_core/mcp/limits.py
+       M tuqui_core/tests/test_limits.py
+      ?? supabase/migrations/0420_mcp_limits.sql
+
+      $ git log --oneline origin/feat/limite-mcp..HEAD
+      a1b2c3d feat: tope por workspace
+      d4e5f6a test: tope por workspace
+      0718293 fix: mensaje del tope
+
+      $ git stash list
+      (vacío)
+      ---
+    pass_criteria:
+      - fact: "Con reset --hard se pierden los 3 commits que no están pusheados (a1b2c3d, d4e5f6a, 0718293); solo se recuperan por el reflog."
+        condition: true
+      - fact: "Se pierden sin vuelta los cambios sin commitear de tuqui_core/mcp/limits.py y tuqui_core/tests/test_limits.py."
+        condition: true
+      - fact: "El archivo sin trackear supabase/migrations/0420_mcp_limits.sql no lo borra reset --hard: queda en la carpeta."
+        condition: true
+      - fact: "Antes conviene guardar lo actual, por ejemplo con una rama de respaldo (git branch) y git stash -u o un commit."
+        condition: false
+    control:
+      - q: "¿Qué pasa con los 3 commits sin pushear?"
+        a: "Se pierden de la rama; solo se recuperan por el reflog."
+      - q: "¿Qué pasa con los dos archivos modificados?"
+        a: "Sus cambios se pierden sin vuelta."
+      - q: "¿Y con 0420_mcp_limits.sql?"
+        a: "Queda: reset --hard no borra archivos sin trackear."
+    source: "sintético"
+
+  # --- Conditional answers: no structure, the answer depends on conditions ---
+
+  - id: STE-E23
+    category: conditional
+    structure: false
+    conditional: true
+    requires: []
+    prompt: |
+      Tengo un cambio chico en `ingadhoc/odoo-argentina`. ¿Lo subo directo a la rama base o abro PR?
+
+      Material:
+      ---
+      Extracto de las convenciones:
+
+      - El modo (directo o PR) lo declara el repo dueño del archivo en `.adhoc/project.json`, clave `publish`; sin declaración, PR. Un clon anidado no hereda.
+      - Los repos productivos de Odoo y los que van a release o se despliegan van por PR siempre: declararlo al revés es un desvío.
+      - Si existe espejo vivo `adhoc-dev/<repo>`, el push va ahí; nunca push directo a la productiva.
+
+      $ cat .adhoc/project.json
+      {"publish": "directo"}
+
+      $ gh repo view adhoc-dev/odoo-argentina --json name,isArchived
+      {"name":"odoo-argentina","isArchived":false}
+      ---
+    pass_criteria:
+      - fact: "Va por PR, aunque el repo declare publish directo, porque es un repo productivo de Odoo."
+        condition: true
+      - fact: "La declaración publish directo en ese repo es un desvío y conviene reportarla."
+        condition: true
+      - fact: "El push va al espejo adhoc-dev/odoo-argentina, que está vivo, no a la productiva."
+        condition: true
+    control:
+      - q: "¿Directo o PR?"
+        a: "PR, porque es un repo productivo de Odoo, aunque declare directo."
+      - q: "¿Qué pasa con el publish directo declarado?"
+        a: "Es un desvío: hay que reportarlo."
+      - q: "¿A qué remoto va el push?"
+        a: "Al espejo adhoc-dev/odoo-argentina."
+    source: "conventions.md de adhoc-way (§ Commits y PRs)"
+
+  - id: STE-E24
+    category: conditional
+    structure: false
+    conditional: true
+    requires: []
+    prompt: |
+      Mergeé mi PR a staging hoy miércoles a las 15 (hora argentina). Agrega la columna `members.locale` y borra `members.lang`. ¿Cuándo llega todo a prod?
+
+      Material:
+      ---
+      Extracto de docs/release-train.md:
+
+      - `release-train.yml` avanza `main` desde `staging` los martes y los jueves a las 12 UTC, salvo que el CI de staging esté rojo; en ese caso el tren salta al próximo.
+      - Un release manual (`workflow_dispatch`) solo se usa para un hotfix y con aprobación de jjs.
+      - Prod corre migraciones aditivas en el tren. Una migración destructiva (DROP COLUMN, DROP TABLE) no corre en el mismo tren que el código que deja de usar la columna: va en el tren siguiente (expand/contract), porque durante el deploy conviven la versión vieja y la nueva.
+      - Argentina es UTC-3.
+      ---
+    pass_criteria:
+      - fact: "La columna nueva members.locale llega con el tren del jueves a las 12 UTC (9 de Argentina)."
+        condition: false
+      - fact: "Eso pasa solo si el CI de staging está verde; si está rojo, salta al tren siguiente."
+        condition: true
+      - fact: "El DROP de members.lang no corre en ese tren: va en el siguiente (el martes), por expand/contract."
+        condition: true
+      - fact: "Un release manual no aplica: es solo para hotfix y con aprobación de jjs."
+        condition: true
+    control:
+      - q: "¿Cuándo llega members.locale a prod?"
+        a: "El jueves a las 12 UTC (9 de Argentina), si el CI de staging está verde."
+      - q: "¿Y el borrado de members.lang?"
+        a: "En el tren siguiente (martes), por expand/contract."
+      - q: "¿Se puede adelantar con un release manual?"
+        a: "No: es solo para hotfix y con aprobación de jjs."
+    source: "sintético, sobre el release train de tuqui"
+
+  - id: STE-E25
+    category: conditional
+    structure: false
+    conditional: true
+    requires: []
+    prompt: |
+      En un ticket del proyecto 1531 el cliente pregunta cuándo sale el arreglo. ¿Le contesto desde el chatter?
+
+      Material:
+      ---
+      Extracto de AGENTS.md:
+
+      - 1531 es tracking interno: desde ahí no se le comunica nada al cliente. En el chatter, solo nota interna.
+      - No sumes partners externos como seguidores ni destinatarios, y no armes etapa de "Solución propuesta" ni notificación al cliente: la respuesta la manda un humano por el canal que corresponda.
+      - En esas tareas, `description` es el campo público (portal) y `task_description` el interno.
+      ---
+    pass_criteria:
+      - fact: "No: desde el chatter de 1531 no se le contesta al cliente; solo se deja nota interna."
+        condition: true
+      - fact: "La respuesta al cliente la manda un humano por el canal que corresponda."
+        condition: false
+      - fact: "No hay que sumar al cliente como seguidor ni destinatario."
+        condition: true
+      - fact: "Si se edita description, el cliente lo ve en el portal; lo interno va en task_description."
+        condition: true
+    control:
+      - q: "¿Se le contesta al cliente desde el chatter?"
+        a: "No: solo nota interna; la respuesta la manda un humano por otro canal."
+      - q: "¿Se puede sumar al cliente como seguidor?"
+        a: "No."
+      - q: "¿Qué campo ve el cliente?"
+        a: "description, en el portal; task_description es el interno."
+    source: "tuqui-workspace/AGENTS.md"
+
+  # --- Work reports: the agent tells what it did, from a session transcript ---
+
+  - id: STE-E26
+    category: report
+    structure: false
+    requires: []
+    prompt: |
+      Contame qué hiciste y qué falta.
+
+      Material: registro de tu sesión.
+      ---
+      1. git worktree add .claude/worktrees/t80201 -b feat/80201-tope-adjuntos origin/staging
+      2. Edit tuqui_core/chat/attachments.py (tope de 20 MB por adjunto), tuqui_core/tests/test_attachments.py (2 tests nuevos), web/src/i18n/es.json (mensaje del tope)
+      3. ruff check tuqui_core/chat/attachments.py → All checks passed!
+      4. pytest tuqui_core/tests/test_attachments.py → 9 passed
+      5. git push -u origin feat/80201-tope-adjuntos
+      6. gh pr create --base staging → https://github.com/Tuqui-AI/tuqui/pull/1830
+      7. gh pr checks 1830 → lint pass · test pass · integration-companion fail (Odoo 20 runbot: connection reset) · preview pass
+      8. Preview: https://tuqui-tuqui-pr-1830.up.railway.app (health 200)
+      9. No se publicó nota en la tarea 80201. No se pidió revisión.
+      Nota del equipo: integration-companion falla seguido contra el runbot de Odoo 20 sin relación con el cambio.
+      ---
+    pass_criteria:
+      - fact: "Abrió el PR https://github.com/Tuqui-AI/tuqui/pull/1830 contra staging con el tope de 20 MB por adjunto, 2 tests y el mensaje en es.json."
+        condition: false
+      - fact: "ruff y los 9 tests locales pasaron."
+        condition: false
+      - fact: "En CI pasaron lint, test y preview; falló integration-companion por connection reset contra el runbot de Odoo 20, que falla seguido sin relación con el cambio."
+        condition: true
+      - fact: "El preview está en https://tuqui-tuqui-pr-1830.up.railway.app y responde health 200."
+        condition: false
+      - fact: "Falta publicar la nota en la tarea 80201 y pedir la revisión."
+        condition: false
+    control:
+      - q: "¿Cuál es el PR?"
+        a: "https://github.com/Tuqui-AI/tuqui/pull/1830, contra staging."
+      - q: "¿Qué falló en CI y importa?"
+        a: "integration-companion, por connection reset con el runbot de Odoo 20; falla seguido sin relación con el cambio."
+      - q: "¿Qué falta?"
+        a: "Publicar la nota en la tarea 80201 y pedir la revisión."
+    source: "sintético, con la forma de una sesión real"
+
+  - id: STE-E27
+    category: report
+    structure: false
+    requires: []
+    prompt: |
+      ¿Qué encontraste del incidente de los reportes?
+
+      Material: registro de tu sesión.
+      ---
+      1. SQL tool_usage_log (workspace pldistribucion, tool odoo_report, 18-nov): 37 errores "timeout after 30s" entre 13:10 y 13:40 UTC; 0 errores antes y después.
+      2. railway logs worker (13:00–14:00 UTC): 13:41:58 "Killed: out of memory (container limit 2 GB)"; 13:42:10 worker restarted.
+      3. railway metrics worker: memoria subió de 0,9 GB a 2 GB entre 13:05 y 13:41.
+      4. No se encontró qué proceso hizo subir la memoria: el log no tiene el detalle por request.
+      5. No se verificó si el cliente volvió a pedir los reportes después de las 13:42.
+      ---
+    pass_criteria:
+      - fact: "En pldistribucion hubo 37 errores de timeout a 30 s en odoo_report entre 13:10 y 13:40 UTC (10:10 y 10:40 de Argentina), y ninguno antes ni después."
+        condition: false
+      - fact: "El worker se quedó sin memoria (límite 2 GB) a las 13:41:58 UTC y se reinició a las 13:42:10; la memoria venía subiendo desde las 13:05."
+        condition: false
+      - fact: "No se sabe qué hizo subir la memoria: el log no tiene detalle por request."
+        condition: true
+      - fact: "No se verificó si el cliente volvió a pedir los reportes después del reinicio."
+        condition: true
+    control:
+      - q: "¿Cuántos errores hubo y cuándo?"
+        a: "37 timeouts a 30 s en odoo_report, entre 13:10 y 13:40 UTC."
+      - q: "¿Qué le pasó al worker?"
+        a: "Se quedó sin memoria (2 GB) a las 13:41:58 UTC y se reinició a las 13:42:10."
+      - q: "¿Qué no está confirmado?"
+        a: "Qué hizo subir la memoria y si el cliente volvió a pedir los reportes."
+    source: "sintético, con la forma de una investigación real"
+
+  - id: STE-E28
+    category: report
+    structure: false
+    requires: []
+    prompt: |
+      ¿Cómo te fue con la revisión del PR de Lari?
+
+      Material: registro de tu sesión.
+      ---
+      1. gh pr view 1840 → "feat: búsqueda de partners por CUIT", base staging, +212 −40, autora lav
+      2. gh pr checks 1840 → todos verdes
+      3. Leído completo: tuqui_core/odoo/partners.py, tuqui_core/tests/test_partners.py
+      4. Hallazgo bloqueante: tuqui_core/odoo/partners.py:88 arma el SQL con f-string: f"SELECT id FROM res_partner WHERE vat = '{cuit}'" (inyección SQL; cuit viene del usuario).
+      5. Detalle menor: test_partners.py no cubre un CUIT con guiones.
+      6. Detalle menor: el docstring de search_by_cuit está en castellano; el repo pide inglés.
+      7. No se corrieron los tests en local (CI verde).
+      8. No se publicó nada todavía: ni en GitHub ni en la tarea.
+      ---
+    pass_criteria:
+      - fact: "Hay un hallazgo bloqueante: en tuqui_core/odoo/partners.py:88 el SQL se arma con f-string con el cuit del usuario, lo que permite inyección SQL."
+        condition: false
+      - fact: "Hay dos detalles menores: falta un test con CUIT con guiones y el docstring de search_by_cuit está en castellano."
+        condition: false
+      - fact: "El CI está verde, pero los tests no se corrieron en local."
+        condition: true
+      - fact: "Todavía no se publicó nada, ni en GitHub ni en la tarea."
+        condition: false
+    control:
+      - q: "¿Hay algo que bloquee el merge?"
+        a: "Sí: partners.py:88 arma el SQL con f-string con el cuit del usuario (inyección SQL)."
+      - q: "¿Se corrieron los tests?"
+        a: "No en local; el CI está verde."
+      - q: "¿Ya se le avisó a Lari?"
+        a: "No: no se publicó nada en GitHub ni en la tarea."
+    source: "sintético"
+
+  - id: STE-E29
+    category: report
+    structure: false
+    requires: []
+    prompt: |
+      Terminaste la limpieza de worktrees? Contame.
+
+      Material: registro de tu sesión.
+      ---
+      1. git worktree list → 6 worktrees en .claude/worktrees/
+      2. Borrados (PR mergeado y sin cambios locales): t79032, t79055, t79165, t78285
+      3. Conservado t79323: 2 commits sin pushear en feat/79323-visitante
+      4. Conservado t80049: el PR tuqui#1817 sigue abierto
+      5. git branch -d feat/80049-fuentes → error: the branch is not fully merged (no se forzó)
+      6. git worktree prune → 0 entradas huérfanas
+      7. git gc → .git pasó de 3,4 GB a 2,2 GB
+      ---
+    pass_criteria:
+      - fact: "Borró 4 worktrees (t79032, t79055, t79165, t78285), con PR mergeado y sin cambios locales."
+        condition: false
+      - fact: "Conservó t79323 porque tiene 2 commits sin pushear en feat/79323-visitante."
+        condition: true
+      - fact: "Conservó t80049 porque el PR tuqui#1817 sigue abierto, y su rama no se borró (no estaba mergeada y no se forzó)."
+        condition: true
+      - fact: "git gc bajó .git de 3,4 GB a 2,2 GB; prune no encontró entradas huérfanas."
+        condition: false
+    control:
+      - q: "¿Cuántos worktrees borró?"
+        a: "4: t79032, t79055, t79165 y t78285."
+      - q: "¿Por qué quedó t79323?"
+        a: "Porque tiene 2 commits sin pushear."
+      - q: "¿Cuánto espacio liberó?"
+        a: "Pasó de 3,4 GB a 2,2 GB."
+    source: "sintético"

@@ -15,7 +15,7 @@ CASES = HERE / "cases.yml"
 RESULTS = HERE / "results"
 JUDGE = HERE / "judge"
 
-ARM_ORDER = ["baseline", "ste_es"]
+ARM_ORDER = ["baseline", "ste_es", "ste_es_v3", "concise", "conventions", "conventions_v3", "conventions_concise"]
 
 # Flags that keep the user's setup out of the run: no user/local settings
 # (hooks, plugins), no CLAUDE.md outside the empty cwd, no MCP servers, no
@@ -45,8 +45,19 @@ def arm_text(arm):
     return (HERE / "arms" / f"{arm}.md").read_text().strip()
 
 
+def arm_settings(arm):
+    """Optional Claude Code settings for an arm (arms/<arm>.settings.json), e.g. a built-in output style."""
+    path = HERE / "arms" / f"{arm}.settings.json"
+    return path.read_text().strip() if path.exists() else ""
+
+
+def arm_extra(arm):
+    settings = arm_settings(arm)
+    return ("--settings", settings) if settings else ()
+
+
 def arm_hash(arm):
-    return hashlib.sha1(arm_text(arm).encode()).hexdigest()[:10]
+    return hashlib.sha1((arm_text(arm) + arm_settings(arm)).encode()).hexdigest()[:10]
 
 
 def text_hash(*texts):
