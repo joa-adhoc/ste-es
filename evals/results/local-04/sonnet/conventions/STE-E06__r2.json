@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Qué está pasando\n\nLos worktrees comparten la misma DB local (y el mismo Redis). Tu compañero tiene una rama con una migración destructiva, por ejemplo una que borra o renombra columnas. Al correr sus tests, esa migración se aplicó sobre la base compartida. Tu código todavía lee esas columnas, así que tus tests, que no tocaste, fallan con `UndefinedColumnError`.\n\nEl `flock` de los targets de test evita que dos corridas se pisen al mismo tiempo. No aísla el esquema: si dos worktrees tienen migraciones distintas, la DB local queda con la unión de ambas. Por eso el lock no te protege de esto.\n\n## Cómo arreglarlo\n\n1. Dale a tu worktree una base propia. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local` (está gitignoreado) y apuntá la URL de la DB a una base que sea solo tuya. Los targets de test cargan `.env.test` y después ese archivo, que lo pisa.\n2. Armala desde cero con `make migrate-reset`. Tarda unos 3 segundos y solo toca bases locales.\n3. Volvé a correr los tests.\n\nNo uses `npx supabase db reset`. Aborta en el primer prefijo de migración repetido (hoy hay 25, por ejemplo 0143 y 0144). `make migrate-reset` usa el mismo runner que CI y deploy, que sí maneja prefijos repetidos.\n\n## Para que no vuelva a pasar\n\n- Mientras cada worktree tenga su base, el esquema ya no se contamina entre ramas. Eso resuelve tu síntoma.\n- El lock sigue siendo necesario si compartís Redis. Para soltarlo con un `TEST_LOCK` distinto, necesitás base y Redis propios. Para el Redis, poné en `.env.test.local` un `REDIS_URL` con un índice de base propio. El 15 es el default compartido de `.env.test` y el 0 es el del server de desarrollo, así que elegí otro. Aislar solo uno de los dos recursos no alcanza.\n- Si tu compañero también usa una base propia, su rama con migraciones deja de afectar a las demás.\n\nNo ejecuté nada: esto sale del material que me pasaste. Los nombres exactos de las variables en `.env.test.local` están en el `.env.test.local.example`, que no vi.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10302,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 837,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10302,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 837,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10302,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10302
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

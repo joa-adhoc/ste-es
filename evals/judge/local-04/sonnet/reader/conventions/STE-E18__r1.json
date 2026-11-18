@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el N del top-N que rapidfuzz se queda cuando se pasa el presupuesto de 12K caracteres, y leer una memoria con read la hace menos propensa a ser desalojada o solo cuenta created_at?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el top-N que filtra rapidfuzz cuando se pasa el presupuesto de 12K caracteres? ¿El presupuesto se cuenta por scope o sobre los dos juntos? ¿Qué pasa con el orden de las memorias que quedan: el de relevancia o el original?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el N del top-N que se queda cuando se pasa el presupuesto de 12K caracteres, y cuando el desalojo borra la más vieja por created_at, ¿un read la \"refresca\" o no?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cuál es el N del top-N que rapidfuzz se queda cuando se pasa el presupuesto de 12K caracteres, y leer una memoria con read la hace menos propensa a ser desalojada o solo cuenta created_at?",
+ "followup_answer": "**N del top-N:** el material no lo dice. Solo afirma que rapidfuzz puntúa los headers contra el mensaje actual y \"se queda con los top-N\". No da el valor, ni si es fijo o se calcula para entrar en los 12K caracteres. Eso se cierra mirando `_load_chat_setup` en `tuqui_core/chat/agent.py` y el código que aplica `_MEMORY_BUDGET_CHARS`. No lo verifiqué, porque ese código no está en este directorio.\n\n**Efecto de `read` sobre el desalojo:** por lo escrito, `read` no la protege. La regla dice que se borra \"the oldest by `created_at`\", y `created_at` se fija al crear la memoria. Nada en el material dice que `read` actualice ese campo ni que exista un `last_read_at` o un `updated_at` usado para desalojar. Así que, según el texto, una memoria muy leída pero vieja es la primera en salir cuando entra la 51.\n\nEsto último es una lectura del texto y no una comprobación. Para confirmarlo, hay que revisar la rama `read` de `manage_memory` y la query de desalojo. Si ninguna toca otro campo que `created_at`, queda confirmado.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11039,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 501,
+  "output_tokens_details": {
+   "thinking_tokens": 80
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11039,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 501,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11039,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11039
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e0cefc5f9a"
+ }
+}

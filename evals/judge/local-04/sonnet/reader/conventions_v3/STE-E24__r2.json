@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con el add de `locale` y el drop de `lang` juntos, así que no puedo dividirlo antes de mergear. ¿Qué hago ahora: revierto el drop en staging antes del tren del jueves 12 UTC y lo mando en un PR aparte, o el jueves sale todo igual y el drop se frena de otra forma?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con el add y el drop juntos, así que no puedo \"mergear hoy solo el add\". ¿Tengo que revertir el drop en staging antes del tren del jueves 12 UTC, o el tren frena solo la migración destructiva? ¿Y qué pasa con el drop si no hago nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR entero a staging, con el add y el drop juntos. Para el tren del jueves, ¿qué pasa con el drop que ya está en staging? ¿Se bloquea solo, o tengo que revertirlo en staging antes del jueves 12 UTC? Y si lo revierto y lo vuelvo a mergear después, ¿igual llega el martes 24?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado en staging con el add de `locale` y el drop de `lang` juntos, así que no puedo dividirlo antes de mergear. ¿Qué hago ahora: revierto el drop en staging antes del tren del jueves 12 UTC y lo mando en un PR aparte, o el jueves sale todo igual y el drop se frena de otra forma?",
+ "followup_answer": "**Revertí el drop en staging antes del jueves 12 UTC (09:00 ART).** El tren avanza `main` desde `staging`, y el extracto no describe otra forma de frenar una migración. Si el drop sigue en staging el jueves, sale con el código. Es lo que `release-train.md` prohíbe. Otra forma de frenarlo, como un flag o un freeze, no figura en el extracto: no verificado.\n\n1. **Hoy, un PR que saque solo la migración `DROP COLUMN members.lang`.** No revertís el PR entero, porque eso también sacaría el add de `locale` y el cambio de código. Tiene que quedar el add y el código que ya no usa `lang`.\n2. **Confirmá que ese PR entró a staging con el CI verde** antes del jueves a las 09:00 ART. Si el CI de staging queda rojo, el tren del jueves se salta y no sale nada.\n3. **Después del tren del jueves, mergeá un PR nuevo con el drop.** Hacelo solo cuando confirmes que el jueves corrió de verdad y que el código nuevo ya está en `main`. Tiene que entrar a staging antes del martes 24 a las 12 UTC (09:00 ART).\n\nSi el jueves se salta por CI rojo, el código sale el martes. En ese caso no mergees el PR del drop antes de ese tren, porque saldría junto con el código. El drop pasa al jueves 26.\n\nLa migración del drop probablemente ya corrió en la base de staging. Revertir el PR no devuelve la columna. Si algo en staging todavía lee `members.lang`, va a fallar. Revisá si hace falta recrearla a mano en esa base.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10917,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1225,
+  "output_tokens_details": {
+   "thinking_tokens": 647
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10917,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1225,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 10917,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10917
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "80c2717a16"
+ }
+}

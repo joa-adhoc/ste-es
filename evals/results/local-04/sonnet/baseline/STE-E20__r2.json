@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en el paso `[migrate]`. Intentó hacer `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL`, pero la columna `accepted_version` tiene filas existentes con valores null, así que Postgres rechazó el cambio (SQLSTATE 23502). La migración se revirtió completa.\n\n**¿Está caído?** No, según el log. El deploy nuevo no se promovió y \"previous deployment keeps serving\", o sea que staging sigue sirviendo la versión anterior. La imagen se construyó bien; lo único que falló fue la migración. No puedo verificarlo directamente desde acá, así que si querés confirmarlo, probá un health check o abrí staging.\n\n**Causa raíz:** según `docs/infra-ci-cd.md`, pasar una columna existente a NOT NULL requiere dos pasos separados: primero una migración de backfill que complete los valores, y en un tren posterior otra con el `SET NOT NULL`. La 0415 hizo el `SET NOT NULL` sin que el backfill haya corrido antes.\n\n**Cómo arreglarlo:**\n1. Dejar en 0415 solo lo que sea seguro (por ejemplo, agregar la columna como nullable, si todavía no existe) o quitar el `SET NOT NULL`.\n2. Agregar una migración de backfill que complete `accepted_version` en las filas viejas.\n3. Hacer el `SET NOT NULL` en una migración de un tren posterior, cuando el backfill ya esté aplicado.\n\nSi querés, puedo revisar el archivo de la migración en el repo y proponerte la división. Desde acá no lo veo, porque este directorio no tiene el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3335,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 612,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3335,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 612,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3335,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3335
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

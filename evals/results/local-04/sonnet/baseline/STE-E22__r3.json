@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No lo hagas todavía: tal como está, `git reset --hard origin/staging` descarta trabajo que no existe en ningún otro sitio.\n\n- **Cambios sin commitear:** `limits.py` y `test_limits.py` están modificados, y el reset los borra sin posibilidad de recuperarlos. El archivo sin seguimiento (`0420_mcp_limits.sql`) sobrevive al reset, pero quedaría suelto sobre una base distinta.\n- **3 commits sin pushear:** `a1b2c3d`, `d4e5f6a` y `0718293` solo están en tu máquina. Después del reset solo los recuperarías por reflog.\n- **Referencia desactualizada:** `origin/staging` es lo que tu clon conoce de la última vez que hiciste fetch, así que conviene hacer `git fetch` antes.\n\nSi de verdad quieres empezar de cero, lo más seguro es dejar un respaldo y partir de staging en una rama limpia:\n\n```bash\n# 1. Respaldo de todo (commits + cambios + el .sql)\ngit add -A\ngit commit -m \"wip: respaldo antes de reiniciar\"\ngit branch backup/limite-mcp\n\n# 2. Actualizar y reiniciar\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nEl `git add -A` mete el `.sql` en el commit de respaldo. Así el reset no deja un archivo suelto y todo queda en `backup/limite-mcp`.\n\nOtra opción, que no toca `feat/limite-mcp`:\n\n```bash\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nCon ella tu rama actual queda intacta como referencia. Además, `feat/limite-mcp` ya existe en el remoto, y un reset local te obligaría a un `push --force` si luego quisieras subirla con el mismo nombre.\n\nSi estás seguro de que no quieres nada de lo actual, haz el reset sin respaldo. Aun así, recuerda que los commits quedarían solo en el reflog, que caduca.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3259,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 931,
+  "output_tokens_details": {
+   "thinking_tokens": 222
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3259,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 931,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3259,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3259
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

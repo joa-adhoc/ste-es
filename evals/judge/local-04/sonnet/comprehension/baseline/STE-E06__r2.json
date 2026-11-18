@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la base de tests local (y el Redis) se comparten entre todos los worktrees: cuando tu compañero corre pytest en su rama, el conftest aplica sus migraciones sobre esa DB, y si alguna es destructiva (borra o renombra una columna), tu código, que todavía lee esa columna, falla con UndefinedColumnError.",
+  "No: el lock (flock) de los targets make test, test-rls, etc. evita que corran dos a la vez, pero no aísla el esquema; la DB queda con la unión de las migraciones de ambos worktrees.",
+  "Ahora: en tu worktree corrés `make migrate-reset`, que arma una base desde cero en ~3 segundos con las migraciones de tu rama (usa scripts/reset_database.py y scripts/apply_migrations.py, solo toca bases locales; no uses `npx supabase db reset` porque aborta con prefijos numéricos repetidos). Ojo: si tu compañero sigue usando la misma base, le pisás el esquema. Para que no se repita: copiá tuqui_core/.env.test.local.example a tuqui_core/.env.test.local, configurá ahí una DATABASE_URL a una base propia con nombre distinto por worktree y corré make migrate-reset. Mantené el lock mientras compartan Redis; solo podés soltarlo (con un TEST_LOCK distinto) si además tenés Redis propio, con otro índice en REDIS_URL (no 15 ni 0). El texto aclara que no dice el nombre exacto de la variable de la base en .env.test.local y que hay que mirar el .env.test.local.example."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "819732e725",
+  "control": "d71584ce60"
+ }
+}

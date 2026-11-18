@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`connect_odoo` valida las credenciales y que el usuario sea admin de Odoo. Después detecta la versión, decide el vínculo del owner, guarda todo en `workspaces` y limpia a los members si cambió la URL.\n\n```\nPOST /workspaces/{slug}/odoo  (auth owner/admin)\n        │\n        ▼\n┌──────────────────────────┐\n│ _authenticate_odoo       │  JsonRpcTransport.authenticate → admin_uid\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ _verify_odoo_admin_group │  has_group(uid, 'base.group_system')\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ get_version(url)         │  detected_version, ej. \"18\"\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ _resolve_link_mode       │  auto / manual / none\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ UPDATE workspaces        │  odoo_url, odoo_db, odoo_login,\n│                          │  odoo_uid, odoo_api_key, odoo_version\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ if url_changed: limpiar  │  odoo_user_id / odoo_api_key\n│ members                  │  de todos los members\n└────────────┬─────────────┘\n             ▼\n┌──────────────────────────┐\n│ UPDATE workspace_members │  solo si link_mode es auto o manual\n│ + sync_user_api_key      │\n└──────────────────────────┘\n```\n\n**Fallas que cortan el flujo**\n- `_verify_odoo_admin_group` lanza `ValueError` si el usuario no es admin de sistema (`base.group_system`).\n- `get_version` lanza `ValueError` si falla la detección o si la versión mayor es menor que `MIN_SUPPORTED`.\n- El `UPDATE workspaces` devuelve 409 Conflict si otro workspace ya tiene el mismo `database.uuid`. Lo fuerza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n\n**Cómo decide a qué usuario de Odoo vincula**\n\n`_resolve_link_mode` elige el modo y vincula el Member del usuario que conecta:\n- `auto`: es el modo por defecto cuando `current_user.email == odoo_login`. Asigna `Member.odoo_user_id = admin_uid`.\n- `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`. El backend verifica que ese `res.users` exista y vincula el Member a ese id.\n- `none`: es el modo por defecto cuando los emails no coinciden. El Member queda sin `odoo_user_id`.\n\nLa vinculación es opcional. El rol `owner` no cambia y no necesita identidad en Odoo.\n\n**Si cambia la URL**\n\nCon `url_changed`, el servicio limpia `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner. La identidad puede apuntar a otra instancia. La limpieza corre antes de la vinculación. Si el modo es `auto` o `manual`, el owner que conecta queda vinculado de nuevo y se lanza `sync_user_api_key` en segundo plano (`asyncio.create_task`).\n\nEl resultado (`WorkspaceConnectOdooResult`) trae `members_invalidated` (0 si la URL no cambió), `warning`, `link_status` y `linked_odoo_user_id`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5604,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1267,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5604,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1267,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5604,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5604
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿La expulsión FIFO por tope de 50 se aplica antes o independientemente del filtro por presupuesto de 12K caracteres? Es decir, ¿cuál es el orden real: primero se guarda y expulsa en BD y luego en cada turno se filtra con rapidfuzz, o interactúan de otra forma? Además, ¿qué pasa si ni siquiera los top-N headers entran en el presupuesto?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El tope de 50 por ámbito y los headers de unos 250 caracteres pueden sumar más de 12K caracteres, así que el filtro de rapidfuzz sí se activa. ¿Entonces el costo de ~3K tokens es un máximo garantizado por el presupuesto o una estimación? ¿El presupuesto de 12K es por ámbito o total entre workspace y usuario? ¿Cómo se define el N de 'top-N'?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿La expulsión FIFO por tope de 50 se aplica antes o independientemente del filtro por presupuesto de 12K caracteres? Es decir, ¿cuál es el orden real: primero se guarda y expulsa en BD y luego en cada turno se filtra con rapidfuzz, o interactúan de otra forma? Además, ¿qué pasa si ni siquiera los top-N headers entran en el presupuesto?",
+ "followup_answer": "Son independientes y ocurren en momentos distintos. Eso sale del material, que no describe su interacción de forma explícita.\n\n- **Al escribir:** `manage_memory` crea la memoria. Si el ámbito pasa de 50, se borra la más antigua por `created_at` en la misma transacción. Es un borrado permanente en BD.\n- **En cada turno:** `_load_chat_setup` lee las memorias que quedaron, como máximo 50 por ámbito. Si la suma de headers supera `_MEMORY_BUDGET_CHARS` (12K), rapidfuzz filtra contra el mensaje actual. El filtro no toca la BD.\n\nLo único que los conecta es que la expulsión acota la entrada del filtro. Este nunca ve más de 50 memorias por ámbito.\n\n**Si ni los top-N entran en el presupuesto:** el material no lo define, ni cómo se elige N ni qué pasa si no alcanza. En la práctica es difícil que ocurra. Cada header es título + resumen (o hasta 250 caracteres de cuerpo) + id, es decir unos 300 caracteres. En 12K caben unas 40 memorias, así que un top-N razonable cabe sin problema. Un header solo no puede acercarse a 12K, salvo que el resumen no tenga límite de largo, algo que el material tampoco aclara.\n\nOtro punto sin definir: son dos ámbitos, así que el máximo real es 100 memorias. No queda claro si el presupuesto de 12K es compartido o por ámbito. El texto dice \"total header chars\", lo que sugiere que es compartido.\n\nPara saber cómo se elige N y qué pasa en el caso límite, hay que leer `_load_chat_setup` y la lógica de `_MEMORY_BUDGET_CHARS` en el código. Si quieren, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5217,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1186,
+  "output_tokens_details": {
+   "thinking_tokens": 554
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5217,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1186,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5217,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5217
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "271387dc4f"
+ }
+}

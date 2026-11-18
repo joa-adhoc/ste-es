@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás los ejes (a), (b1), (b2), (c) y (d) sin definir (b1) ni (b2) y sin explicar bien la diferencia entre ambos. ¿Podés decirme qué significan exactamente (b1) y (b2), y cómo saber si el gate de create por modelo que tengo ya alcanza o si necesito una whitelist más fina?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Las letras (a), (b1), (b2), (c), (d) las usás como si ya las conociera, pero no las definiste todas (b1 y b2 no están explicadas). ¿Qué significa exactamente (b1) vs (b2), y en mi caso (un create con defaults sobre un solo modelo), cómo decido si necesito una whitelist más fina que el gate genérico de create?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas como (a), (b1), (b2), (c) y (d) sin definir (b1) ni (b2) por separado. ¿Podés explicarme con palabras simples qué distingue (b1) de (b2), y decirme cuál aplica a mi caso si mis 'defaults' son solo valores fijos en el payload?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Usás los ejes (a), (b1), (b2), (c) y (d) sin definir (b1) ni (b2) y sin explicar bien la diferencia entre ambos. ¿Podés decirme qué significan exactamente (b1) y (b2), y cómo saber si el gate de create por modelo que tengo ya alcanza o si necesito una whitelist más fina?",
+ "followup_answer": "**(b1) y (b2) son los dos casos del eje (b), el de \"gate o identidad propia con menor blast radius que la tool genérica\". Se separan por dónde se aplica el gate.** Todo sale del material que pegaste. No vi `permissions.py`.\n\n- **(b1): approval o identidad de policy propia.** La tool tiene su propia entrada de policy, o pide aprobación de la persona antes de correr (`requires_approval`). Eso solo lo lee el chat. El router MCP lo ignora, así que en el MCP saliente no aporta nada.\n- **(b2): whitelist más fina que el gate genérico.** La tool se autoriza con un permiso más angosto que el que exigiría hacer lo mismo con las tools genéricas.\n  - `odoo_copy` pasa por el gate `create`. Hacerlo con las genéricas pediría `execute`, que es mucho más amplio.\n  - `odoo_message_post` pasa por un gate propio, `messaging_mode` del workspace. Con las genéricas sería `execute` por modelo.\n  - Es una whitelist, no un prompt de aprobación. Por eso vale en chat y en MCP.\n\nMi ejemplo anterior (\"crear solo en ese modelo con esos campos\") era una paráfrasis mía, no algo que diga el material. El material habla de un gate más angosto que `execute` o `create` genérico. No habla de restringir campos.\n\n**Cómo saber si el gate de create por modelo ya alcanza:**\n\n1. Tu tool se reduce a un `odoo_create` sobre un modelo. El gate genérico equivalente es `create` sobre ese modelo.\n2. Si la tool también se gatearía como `create` sobre ese modelo, el gate es el mismo. Ya alcanza, (b2) no aplica y va como skill. La skill llama a `odoo_create`, así que hereda ese gate igual.\n3. Solo hay (b2) si la tool necesita un permiso distinto y más angosto que `create` sobre el modelo. Por ejemplo, que un workspace pueda ejecutar esta operación sin tener `create` abierto sobre el modelo. Tiene que ser una necesidad real, no una preferencia.\n\nEn ese tercer caso, el material no dice si una entrada de policy propia cuenta como (b1) o como (b2). Si la distinción importa para tu decisión, conviene confirmarla con quien mantiene el criterio. Lo que sí está claro es que un gate propio que solo se apoya en approval (b1) no sirve si la tool sale por el MCP.\n\n**No verificado:** cómo se declara hoy el gate de cada tool y si `odoo_create` ya lo resuelve por modelo. Se cierra leyendo `tuqui_core/chat/permissions.py` y la definición de `odoo_copy` como referencia.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11917,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1855,
+  "output_tokens_details": {
+   "thinking_tokens": 890
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11917,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1855,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11917,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11917
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c573bb24cf"
+ }
+}

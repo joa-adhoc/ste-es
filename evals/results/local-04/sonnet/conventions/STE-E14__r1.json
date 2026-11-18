@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Cómo se generan los insights diarios\n\nEl pipeline tiene un ensamblador de contexto y tres etapas. Termina en 0 a 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n## Context Assembler (`context_assembler.py`)\n\nNo es una etapa del pipeline, pero la alimenta. Corre 6 consultas en paralelo bajo el RLS del usuario:\n\n- Perfil del workspace: descripción de la empresa, rubro y objetivos.\n- Perfil del usuario: rol y preferencias.\n- Memoria del workspace y memoria del usuario.\n- Conversaciones de los últimos 7 días: título y último mensaje, sin resumen con LLM.\n- Historial de insights de los últimos 14 días, para no repetir datos ya mostrados.\n\n**Entrega:** un bundle en markdown de unos 2–4K tokens.\n\n## Etapa 1: Planner (`planner.py`)\n\n- Usa Gemini Flash con salida JSON estructurada y temperatura 1.0. El modelo sale de `platform_config.insights_planner_model`, y si no está configurado usa el de la plataforma.\n- El prompt es `INSIGHTS_PLANNER_PROMPT`.\n- Toma el bundle y propone 0 a N hipótesis.\n\n**Entrega:** `PlannerOutput(hypotheses, silence_reason)`.\n\n## Etapa 2: Investigator (`investigator.py`)\n\n- Es un agente de Pydantic AI con herramientas de solo lectura, es decir, las del registro que no requieren `approval`.\n- Investiga cada hipótesis con un tope según su registro:\n\n| Registro | max_iterations | max_tool_calls | reasoning |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta` / `analisis` | 12 | 25 | medium |\n\n- Investiga hasta 3 hipótesis a la vez (`asyncio.Semaphore(3)`).\n- El tiempo por hipótesis es `(watchdog_sec - 30) / n_hipótesis`.\n\n**Entrega:** `InvestigationFindings`, con un resumen de lo encontrado por hipótesis.\n\n## Etapa 3: Synthesizer + guards (`synthesizer.py`, `guards.py`)\n\nEl LLM redacta los teasers a partir de los hallazgos (JSON estructurado, temperatura 1.0). Después, cada teaser pasa por tres guards en orden:\n\n1. **ResponseGuard (regex):** rechaza patrones sospechosos, como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` o `\"[nombre]\"`.\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` debe aparecer en el resumen combinado del investigador, con `partial_ratio >= 75`.\n3. **LLM Judge:** usa el mismo modelo que el synthesizer, con temperatura cero, y devuelve `{grounded: bool, reason: str}`. Si el juez falla por un problema de infraestructura, el teaser pasa, para no bloquear por un error ajeno.\n\n**Entrega:** `SynthesizerOutput` con 0 a 2 teasers, que se guardan con upsert.\n\n## Cuándo termina sin mostrar nada\n\nSegún el material, hay dos casos:\n\n- **Silencio del Planner:** devuelve cero hipótesis. Es un resultado válido y no se genera ningún teaser. El motivo queda en `silence_reason`.\n- **Rechazo total en la etapa 3:** todos los teasers caen en alguno de los guards. El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\n## Lo que el material no aclara\n\n- **Topes y tiempo agotado:** no dice qué pasa si una hipótesis agota sus topes de iteraciones o herramientas, o el presupuesto de tiempo. Tampoco dice si el Synthesizer corre cuando el Investigator no encontró nada, ni qué pasa si una consulta del Context Assembler o el Planner fallan. Si en alguno de esos casos también termina vacío, habría que mirarlo en el código.\n- **Límite de 2 teasers:** no dice dónde se aplica, ni si el Synthesizer lo cumple por prompt o si se corta después de los guards.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10564,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1566,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10564,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1566,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10564,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10564
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

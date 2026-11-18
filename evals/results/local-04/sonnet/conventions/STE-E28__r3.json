@@ -1,0 +1,44 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La revisión está hecha, pero no publiqué nada todavía, ni en GitHub ni en la tarea. El PR #1840 (\"feat: búsqueda de partners por CUIT\", base `staging`, +212 −40, autora `lav`) tiene un hallazgo que bloquea y dos detalles menores.\n\n**Bloqueante: inyección SQL**\n- En `tuqui_core/odoo/partners.py:88` la consulta se arma con un f-string: `f\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"`.\n- El `cuit` viene del usuario, así que se puede inyectar SQL.\n- Habría que pasarlo como parámetro de la consulta, o usar el ORM, en vez de interpolarlo en el texto.\n\n**Detalles menores**\n- `tuqui_core/tests/test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\n**Verificación**\n- Los checks del PR están todos verdes en CI.\n- Leí completos `partners.py` y `test_partners.py`.\n- No corrí los tests en local, así que eso queda como no verificado. El CI verde tampoco detectó la inyección, porque ningún test la ejercita.\n\nNo tengo a mano la URL completa del PR, solo el número, así que no la pongo para no inventarla.\n\n¿Publico la revisión en el PR pidiendo cambios por la inyección, con los dos detalles como comentarios menores?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9649,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 819,
+  "output_tokens_details": {
+   "thinking_tokens": 301
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 819,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9649,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9649
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

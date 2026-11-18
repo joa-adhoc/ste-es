@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Avisos**\n\nEl cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Por defecto hay dos hitos, `{7, 0}`:\n\n- **A la semana:** el aviso de \"por vencer\".\n- **El día que vence:** el aviso sale mientras el workspace todavía funciona.\n\nLos hitos se configuran en `platform_config.billing_trial_warning_days_list`. Lo enviado se registra con el par `trial_warning_for` y `trial_warning_days`. Si extienden la prueba, vuelve a avisar.\n\n**A quién**\n\n- **Owners y admins:** siempre, aunque estén en `billing_tier = 'none'`.\n- **Miembros con asiento (`billing_tier <> 'none'`):** también. El asistente deja de responder para todo el equipo, y quien no puede pagar sí puede pedirlo.\n- **Chat:** cuando pierden el asistente, `PlanLapsedBanner` les avisa sobre el composer.\n\n**Qué pasa el día que vence, sin suscripción viva**\n\n- El plan pasa a `free`, se evalúa si hay exceso sobre los límites del plan gratuito y sale el mail de \"vencida\", a los mismos destinatarios.\n- Si hay exceso, el workspace queda `restricted` (motivo `trial_expired_with_excess`) y se bloquean el MCP y el chat. Esto lo infiero del nombre del motivo y de la tabla de `account_status`; el texto no dice explícitamente que `restricted` dependa del exceso.\n- Si no hay exceso, el material no dice que se restrinja.\n\n**Si ya tiene una suscripción viva**\n\nAl vencer se limpian los flags de trial y no se manda nada. No cambia nada que el owner pueda ver, y el cobro se anuncia con su propio recibo. El workspace no pasa a `free` ni se restringe.\n\n**No verificado**\n\n- Si los avisos de la semana y del día también salen cuando ya hay suscripción viva. El material solo aclara que no sale mail al vencer.\n- Qué pasa si faltan menos de 7 días cuando arranca el circuito. El hito de 7 días probablemente salga en la próxima corrida, pero habría que leer `billing_cron.py` para confirmarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10447,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1353,
+  "output_tokens_details": {
+   "thinking_tokens": 562
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10447,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1353,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10447,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10447
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

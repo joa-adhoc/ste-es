@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el runner trata la migración como aditiva y la aplica desde el preview del PR a la base de staging compartida. Ahí el staging, que sigue con el código anterior, pierde la columna y se rompe para todos.\n\nCon la marca, pasa esto:\n\n- **PR preview de Railway:** la saltea y no la registra en `_migrations`. Esto vale aunque el preview herede `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, porque el runner mira también la rama (`RAILWAY_GIT_BRANCH`). Si hay marcadores de Railway y no hay rama estampada, falla cerrado.\n- **Deploy de `staging` o `main`, tras el merge:** la aplica, siempre que el environment tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Hacen falta las dos condiciones. El material no dice si prod tiene el flag puesto, así que verificalo antes de contar con eso.\n- **CI y pytest (`scripts/apply_migrations.py`):** la aplica. Las bases efímeras activan el flag en el workflow o con `allow_destructive=True` en el conftest.\n- **`make migrate` local:** la saltea. Apunta a la base de desarrollo, que se comparte entre worktrees, y ahí el flag no se activa.\n\nSi además agregás migraciones aditivas en el mismo PR, esas sí se aplican desde el preview. Eso tiene consecuencias al mergear y al renombrar archivos, y están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10837,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1038,
+  "output_tokens_details": {
+   "thinking_tokens": 449
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10837,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1038,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10837,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10837
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

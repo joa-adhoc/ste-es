@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice si prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 activado. ¿Cómo confirmo eso, y cuál es la forma exacta del marker (por ejemplo, ¿va como comentario SQL en la primera línea y es sensible a espacios o mayúsculas)? Además, ¿prod despliega desde main?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 activo en Railway? Y si no, ¿qué hago para que el drop se aplique ahí?",
+   "note": "La primera oración dice qué poner en el archivo y el resumen del flujo, pero la respuesta deja abierto si prod aplica la migración, que es parte central de la pregunta (hasta que llega a prod). Además hay una inconsistencia: el diagrama habla de 'deploy rama staging' y 'deploy rama main' pero la pregunta es por prod, y no queda claro si prod corresponde a main."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 activado en Railway? Y en el diagrama la rama main aparece como 'deploy', ¿prod despliega desde main o desde otra rama? Necesito confirmarlo para saber si el drop se aplica en prod o se saltea ahí también."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El material no dice si prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 activado. ¿Cómo confirmo eso, y cuál es la forma exacta del marker (por ejemplo, ¿va como comentario SQL en la primera línea y es sensible a espacios o mayúsculas)? Además, ¿prod despliega desde main?",
+ "followup_answer": "No puedo confirmar ninguna de las tres con el material. Lo que el material sí dice es esto:\n\n- **Marker:** la línea es `-- destructive: true`, \"cerca del inicio del archivo\". No dice si es sensible a mayúsculas, a espacios o a la posición exacta. Un comentario SQL no cambia el resultado de la migración. Para la forma exacta, leé el parseo en `tuqui_core/db/migrate.py` y en `scripts/apply_migrations.py`. Copiá la línea de una migración destructiva ya mergeada, por ejemplo `0180_chat_ga`, que no es un ejemplo de marker bien puesto. Esa migración se aplicó desde un preview, así que no sirve de modelo.\n- **Flag en prod:** mirá las variables del servicio de prod en Railway, ya sea en el dashboard o con la CLI:\n\n  ```bash\n  railway variables --environment <env-prod> --service <servicio>\n  ```\n\n  Buscá `MIGRATIONS_ALLOW_DESTRUCTIVE`. El material solo dice que el gate exige `=1`. Si el flag no está, el runner saltea la migración sin registrarla y el drop nunca llega a prod.\n- **Rama de prod:** el material no dice de qué rama despliega prod. Solo dice que el gate aplica en deploys de `staging` o `main`. Prod puede ser `main`, pero eso es una suposición. Confirmalo en Settings → Source del servicio de prod en Railway, o con `RAILWAY_GIT_BRANCH` en ese entorno. Si prod despliega de otra rama, el gate también saltea la migración ahí.\n\nMi respuesta anterior asumió que `main` es prod. Eso no está en el material.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6427,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 944,
+  "output_tokens_details": {
+   "thinking_tokens": 341
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6427,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 944,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6427,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6427
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ddd1ab026d"
+ }
+}

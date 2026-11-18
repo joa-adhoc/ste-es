@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando falla el Planner o el Context Assembler, y qué pasa si el Investigator se queda sin tiempo o iteraciones, o si el Synthesizer devuelve 0 teasers por sí mismo? ¿En esos casos el pipeline termina en silencio, reintenta o tira error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator se queda sin tiempo o sin iteraciones, y qué pasa si falla el Planner o el Assembler? ¿Eso termina sin mostrar nada o se reintenta? También, ¿qué sucede si el Synthesizer devuelve 0 teasers por sí mismo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator se queda sin tiempo o iteraciones, cuando el Synthesizer devuelve 0 teasers por sí mismo, o cuando falla el Planner o el Assembler? ¿En esos casos también termina sin mostrar nada o se rompe el pipeline?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando falla el Planner o el Context Assembler, y qué pasa si el Investigator se queda sin tiempo o iteraciones, o si el Synthesizer devuelve 0 teasers por sí mismo? ¿En esos casos el pipeline termina en silencio, reintenta o tira error?",
+ "followup_answer": "El material no define ninguno de esos casos, así que no puedo decirte si terminan en silencio, reintento o error. Cualquier respuesta sería inventada.\n\n**Qué dice el material en cada caso**\n\n| Caso | Qué se sabe | Qué falta |\n|---|---|---|\n| Falla el Context Assembler | Corre 6 queries en paralelo bajo RLS. | Si una query fallida aborta todo, se omite esa fuente o se reintenta. |\n| Falla el Planner | Devuelve `PlannerOutput(hypotheses, silence_reason)`. Solo la lista vacía está definida como silencio válido. | Si una excepción, un JSON inválido o un timeout se convierten en silencio, en reintento o en error. |\n| El Investigator se queda sin tiempo o iteraciones | Existen `REGISTER_CAPS` y un presupuesto de `(watchdog_sec - 30) / n_hypotheses` por hipótesis. | Qué ocurre al llegar al tope. Puede descartar la hipótesis, devolver findings parciales o fallar. |\n| El Synthesizer devuelve 0 teasers por sí mismo | Solo se define `synth_all_rejected` cuando los guards rechazan todo. | Si el 0 propio se trata igual, con qué `debug_note` y si hay reintento. |\n\n**Lo único definido**\n\n- Si el LLM Judge falla por infraestructura, el teaser pasa.\n- Hay un `watchdog_sec`, que sugiere un timeout global del pipeline. El material no dice qué hace al dispararse.\n\n**Cómo resolverlo**\n\nEl código no está en este directorio, así que no puedo verificarlo. Si me pasás el repo, reviso `context_assembler.py`, `planner.py`, `investigator.py` y `synthesizer.py`. Busco `try/except`, `retry`, `TimeoutError` y los `debug_note` para darte el comportamiento real.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6588,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 835,
+  "output_tokens_details": {
+   "thinking_tokens": 166
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6588,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 835,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6588,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6588
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1c96ac99c8"
+ }
+}

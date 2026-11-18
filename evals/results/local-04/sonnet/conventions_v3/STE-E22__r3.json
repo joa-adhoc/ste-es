@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**No lo hagas todavía:** ese `reset --hard` borra tus cambios sin commitear y deja tus 3 commits sin push colgados del reflog.\n\nLo que perdés si lo corrés ahora:\n\n- **Sin commitear, irrecuperable:** `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py` (modificados). El `reset --hard` los descarta y no quedan en el reflog.\n- **Commiteado, sin push:** `a1b2c3d`, `d4e5f6a` y `0718293`. Salen de la rama, pero se recuperan con `git reflog`.\n- **Sin trackear:** `supabase/migrations/0420_mcp_limits.sql` sobrevive al `reset --hard`. Pero un `git clean` lo borraría.\n\nAdemás, `origin/staging` puede estar desactualizado. Hacé `git fetch origin` primero.\n\nPara empezar de cero sin perder nada, guardá todo en una rama de respaldo y recién después reseteá:\n\n```bash\ngit branch backup/limite-mcp-antes-de-reset        # guarda los 3 commits\ngit add -A && git commit -m \"wip: respaldo\"        # guarda lo modificado y la migración\ngit branch -f backup/limite-mcp-antes-de-reset     # actualiza el respaldo con ese commit\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nCon eso la rama queda limpia sobre `origin/staging` y todo lo anterior vive en `backup/limite-mcp-antes-de-reset`.\n\nSi en cambio querés una rama nueva y dejar esta como está, es más simple y no destruye nada:\n\n```bash\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nLos cambios sin commitear no viajan limpios a la rama nueva. Si querés llevarlos, commitealos antes o usá `git stash`.\n\nSi no querés conservar nada, confirmámelo y te doy el comando directo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10014,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 692,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10014,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 692,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10014,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10014
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

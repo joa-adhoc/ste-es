@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults es componible con las tools genéricas, y un wrapper 1→1 no califica por (d).\n\n## Criterio, aplicado a tu caso\n\n- **(a) No componible:** no cumple. `odoo_create` con los valores por defecto ya lo hace.\n- **(b) Gate o identidad propia:** cumple solo si hay una whitelist más fina, o un approval propio. Preguntate si necesitás gatear este modelo con un permiso distinto del `create` genérico.\n- **(c) Procedimiento crítico:** cumple solo si saltear un paso tiene costo real de compliance. Con \"algunos defaults\" no parece.\n- **(d) Eficiencia:** no cumple. Es 1 llamada genérica, y el umbral duro excluye los wrappers 1→1, aunque ahorren tokens de esquema.\n\nSi ningún eje aplica, va como skill que indique los defaults y llame a `odoo_create`.\n\n## Qué cambia con el MCP saliente\n\nCambia poco para tu caso, pero achica las salidas posibles:\n\n- **(b1) y (c) no tienen palanca en MCP.** No hay canal de approval ni un turno donde forzar pasos. Si tu única justificación era approval propio o procedimiento, en MCP no sirve.\n- **Solo quedan (a), (b2) y (d).** Para una tool de \"create con defaults\", el único camino realista es (b2).\n- **(b2) vale en chat y en MCP.** Es el caso de `odoo_copy`, que gatea con `create` en vez de `execute`. Si tu tool permite crear solo en ese modelo, con una whitelist más fina que el `create` genérico, justifica ser nativa en las dos superficies.\n\n## Cómo decidir\n\n1. ¿El gate del modelo difiere del `create` genérico y es más estricto? Si sí, es (b2): tool nativa.\n2. Si el diferencial es solo un approval (b1), vale en chat y no en MCP. Tendrías que excluirla del MCP, como `odoo_schedule_activity` en `MCP_EXCLUDED_TOOLS`, y en ese caso conviene bajarla a skill.\n3. Si el diferencial es solo ahorrar al LLM pasar los defaults, es skill.\n\nEl precedente más parecido es `odoo_schedule_activity`: componible, con (b1) como único diferencial, ya excluida del MCP, y por eso la bajaron a skill.\n\nSi me decís qué modelo es y qué protege el gate, te digo cuál de los tres casos es.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10869,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 886,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10869,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 886,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10869,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10869
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E24",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Resumen:** el código y la columna nueva llegan a prod el **jueves 19/11 a las 12 UTC (09:00 ART)**. El borrado de `members.lang` llega el **martes 24/11 a las 12 UTC (09:00 ART)**. Para eso hay que separar tu PR en dos.\n\n**Cálculo**\n- Tu merge a staging es el miércoles 18/11 a las 15:00 ART, o sea 18:00 UTC. Eso es después del tren del martes y antes del de jueves.\n- El próximo tren es el jueves 19/11 a las 12:00 UTC, siempre que el CI de staging esté verde. Si está rojo, salta al martes 24/11 a las 12 UTC, y el borrado se corre un tren más.\n\n**El problema: el PR junta una migración aditiva y una destructiva**\n- `ADD COLUMN locale` es aditiva y puede ir en el tren del jueves junto con el código que deja de usar `lang`.\n- `DROP COLUMN lang` no puede correr en ese mismo tren. Durante el deploy conviven la versión vieja y la nueva, y la vieja todavía lee `lang`. Tiene que ir en el tren siguiente.\n\n**Qué hacer**\n1. Deja en este PR solo el `ADD COLUMN locale`, el cambio de código y, si hace falta, el backfill de `lang` a `locale`.\n2. Abre un segundo PR con el `DROP COLUMN lang`. Mergealo a staging **después** de que salga el tren del jueves (después de las 12 UTC del 19/11) y antes del martes 24/11 a las 12 UTC.\n\n| Qué | Cuándo llega a prod |\n|---|---|\n| `members.locale` y código nuevo | Jueves 19/11, 12:00 UTC (09:00 ART) |\n| Borrado de `members.lang` | Martes 24/11, 12:00 UTC (09:00 ART) |\n\nUn `workflow_dispatch` manual solo se usa para hotfixes y necesita la aprobación de jjs, así que no sirve para acelerar esto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3354,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1169,
+  "output_tokens_details": {
+   "thinking_tokens": 446
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3354,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1169,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3354,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3354
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

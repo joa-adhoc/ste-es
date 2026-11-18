@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Pasos para que la migración pase el review:\n\n1. **Crear el archivo**: `supabase migration new <nombre>` → `supabase/migrations/NNNN_descripcion.sql`.\n\n2. **Idempotente (obligatorio)**:\n   - `CREATE TABLE IF NOT EXISTS ...` (con columna `workspace_id uuid NOT NULL`).\n   - `CREATE INDEX IF NOT EXISTS ...`\n   - Policy envuelta así:\n     ```sql\n     DO $$ BEGIN\n       IF NOT EXISTS (\n         SELECT 1 FROM pg_policies\n         WHERE tablename = '<tabla>' AND policyname = '<policy>'\n       ) THEN\n         CREATE POLICY <policy> ON <tabla>\n           USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n       END IF;\n     END $$;\n     ```\n\n3. **RLS**: `ALTER TABLE <tabla> ENABLE ROW LEVEL SECURITY;` (ya es idempotente, no necesita guard).\n\n4. **Test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n\n5. **Modelo Pydantic** correspondiente.\n\nAdemás:\n- No filtres por `workspace_id` solo en la capa de aplicación: RLS es la defensa principal.\n- El preview del PR corre la migración contra la base de **staging** real (no una copia), y se vuelve a aplicar si renombrás el archivo, porque el tracking es por nombre. Por eso la idempotencia no es una formalidad. Pensá bien el nombre antes de abrir el PR.\n- El detalle de las consecuencias está en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\nNota: el chequeo de `pg_policies` en mi ejemplo es una forma de cumplir la regla del `DO $$ ... IF NOT EXISTS`. El material no especifica la consulta exacta, así que ajustala si el repo tiene una convención.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4359,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 716,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4359,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 716,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4359,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4359
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

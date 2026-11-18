@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Qué está pasando\n\nEs muy probable que sea el esquema compartido. La DB local de tests es una sola para todos los worktrees. El `conftest` aplica las migraciones de la rama que corre, así que si la rama de tu compañero trae una migración destructiva (borra o renombra una columna), la DB queda sin esa columna. Tu código, que no tiene esa migración, todavía la lee y falla con `UndefinedColumnError` en tests que no tocaste.\n\nEl lock (`flock`) no lo evita. Solo impide que dos corridas pisen la DB al mismo tiempo. No aísla el esquema, y la DB queda con la unión de las migraciones de las dos ramas.\n\nNo verifiqué que sea tu caso. Lo cierra mirar qué columna falta y comprobar que la borra o renombra una migración de la otra rama.\n\n## Cómo arreglarlo\n\n1. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`. Ese archivo está gitignoreado y se carga encima de `.env.test`.\n2. Apuntá ahí la URL de la base a una propia de tu worktree. Los nombres exactos de las variables están en el `.example`.\n3. Corré `make migrate-reset`. Arma la base desde cero en unos 3 segundos y solo toca bases locales.\n\nHacelo en ese orden. Si corrés `migrate-reset` antes de cambiar la URL, vaciás la base compartida y le rompés la corrida a tu compañero.\n\nNo uses `npx supabase db reset`. Aborta en el primer prefijo numérico repetido y hoy hay 25. `make migrate-reset` usa el mismo runner que CI y deploy, que sí los maneja.\n\n## Para que no vuelva a pasar\n\n- Con una base propia por worktree, el problema de esquema desaparece.\n- El lock sigue haciendo falta mientras compartan Redis. Si querés soltarlo con un `TEST_LOCK` distinto, necesitás también un Redis propio: poné en `REDIS_URL` un índice de base que no sea el 15 (el default compartido) ni el 0 (el del server de desarrollo). Aislar solo uno de los dos recursos no alcanza.\n- Mientras tanto, una sola corrida de pytest a la vez por máquina.\n\nTu compañero también tiene que hacer lo mismo en su worktree, porque la base propia vale por worktree y no por persona.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10298,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1188,
+  "output_tokens_details": {
+   "thinking_tokens": 349
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10298,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1188,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10298,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10298
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

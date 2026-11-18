@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Qué pasó\n\nLa migración `0398_scheduled_runs_draft.sql` (línea 12) ya había creado la policy `scheduled_runs_ws` con `USING (true)`: deja pasar todas las filas, sin filtrar por workspace.\n\nDespués, `0412_scheduled_runs.sql` intentó crear la policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero la envolvió en un `IF NOT EXISTS` por nombre. Como el nombre ya existía, la saltó. Es lo que dice el warning del setup: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\nResultado: la policy vigente es la abierta del borrador, y el workspace B ve las 2 filas del A. El test está bien; detectó una fuga real de aislamiento entre workspaces.\n\nLo que vi es el test, el log y el grep. No verifiqué el estado real de la base, así que lo siguiente es lo que cerraría la duda.\n\n## Qué hacer\n\n1. **Verificá el estado real** en cada base donde corrieron esas migraciones (incluida producción):\n   ```sql\n   SELECT policyname, qual FROM pg_policies WHERE tablename = 'scheduled_runs';\n   ```\n   Si `qual` es `true`, el problema no es solo del test.\n\n2. **No edites 0398 ni 0412.** Según AGENTS.md, las migraciones ya aplicadas no se vuelven a correr y el tracking es por nombre de archivo. Editarlas no arregla ninguna base que ya las aplicó. El arreglo va en una migración nueva (el número siguiente al último que exista), por ejemplo:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n   El `DROP` más `CREATE` explícitos evitan repetir el problema del `IF NOT EXISTS`, que fue lo que ocultó el error. Conviene confirmar que RLS esté habilitado (`ENABLE ROW LEVEL SECURITY`) y, según el resto del esquema, agregar `WITH CHECK` para las escrituras.\n\n3. **Corré de nuevo** `test_rls.py` y confirmá que pasa. Si es una base local o de test, es barato. Para el resto de las bases, que lo valide el CI.\n\n4. **Si producción tenía la policy abierta**, hay que tratarlo como un incidente de aislamiento de datos: avisar a quien corresponda y revisar si hubo accesos cruzados. Eso lo decide la persona, no se resuelve solo con la migración.\n\n5. Opcional: revisá si otras migraciones usan el patrón `IF NOT EXISTS` por nombre para policies. Pueden tener el mismo defecto silencioso.\n\nSi querés, te armo la migración nueva cuando me pases el número de la última y el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9866,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1060,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9866,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1060,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9866,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9866
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

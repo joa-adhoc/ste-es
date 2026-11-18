@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Esto sale solo del material que pegaste. No lo contrasté con el código, así que lo marco como no verificado.\n\n## Recorrido de `connect_odoo`\n\n`POST /workspaces/{slug}/odoo` exige auth de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`:\n\n1. **Autenticación en Odoo.** `_authenticate_odoo` llama a `JsonRpcTransport.authenticate` con url, db, login y API key. Devuelve `admin_uid`.\n2. **Chequeo de admin.** `_verify_odoo_admin_group` verifica `base.group_system` con `res.users.has_group`. Si el usuario de esas credenciales no es admin de sistema, levanta `ValueError`.\n3. **Versión.** `get_version(url)` detecta la versión mayor, por ejemplo \"18\". Si la detección falla o la versión es menor que `MIN_SUPPORTED`, levanta `ValueError`.\n4. **Modo de vinculación.** `_resolve_link_mode` decide cómo se vincula el `Member` de quien conecta (ver la sección siguiente).\n5. **`UPDATE workspaces`.** Guarda `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. Las credenciales quedan en el workspace, no en el member, y el rol `owner` no se toca. Si otro workspace ya tiene el mismo `database.uuid`, responde 409. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n6. **Si cambió la URL:** se limpian los members (ver la sección de cambio de URL).\n7. **Si el modo es `auto` o `manual`:** se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para ese `workspace_id` y `user_id`. Después se dispara `asyncio.create_task(sync_user_api_key(...))`, que sincroniza la API key del usuario sin bloquear la respuesta.\n8. **Respuesta.** `WorkspaceConnectOdooResult`, que extiende `WorkspaceRead` con `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## A qué usuario de Odoo vincula\n\nLa vinculación es opcional. Un owner es un rol administrativo de Tuqui y no necesita identidad en Odoo. Hay tres modos:\n\n| Modo | Cuándo | Qué hace |\n|---|---|---|\n| `auto` | Es el valor por defecto si `current_user.email == odoo_login` | Vincula `Member.odoo_user_id = admin_uid`, el uid de las credenciales que acaban de autenticar |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` más `link_odoo_user_id` | Verifica que ese `res.users` exista y vincula el member a ese id |\n| `none` | Es el valor por defecto si los emails no coinciden | No toca `odoo_user_id` del member |\n\nEn `auto` no se busca ningún usuario por email. El email solo decide si se usa `auto`. Una vez elegido, se vincula el `admin_uid`.\n\n## Qué pasa si cambia la URL\n\n- **Efecto:** se limpian `odoo_user_id` y `odoo_api_key` de todos los members, owner incluido. Un id de `res.users` de una instancia no sirve en otra.\n- **Reporte:** `members_invalidated` informa cuántos members se limpiaron. Vale 0 si la URL no cambió. `warning` lleva el mensaje que muestra la UI.\n- **Orden:** según el diagrama, la limpieza va antes del paso de vinculación. Por eso quien conecta queda re-vinculado enseguida si el modo es `auto` o `manual`. Con `none` queda sin vínculo, igual que el resto.\n\n## Preguntas abiertas (no están en el material)\n\n- Cómo se calcula `url_changed`, por ejemplo si se normaliza la URL o si compara también la db.\n- Si el 409 por `database.uuid` ocurre antes o después de limpiar los members, y si todo corre en una sola transacción. Si no es así, un 409 podría dejar el estado a medias.\n- Qué pasa si `sync_user_api_key` falla. Al ser una tarea en segundo plano, el error no llega a la respuesta.\n\nPara cerrar esas tres, habría que leer `workspaces.service.connect_odoo` en el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10464,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1915,
+  "output_tokens_details": {
+   "thinking_tokens": 340
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10464,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1915,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10464,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10464
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

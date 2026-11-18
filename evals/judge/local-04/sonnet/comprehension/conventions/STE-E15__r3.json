@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema: el usuario de las credenciales se verifica con `res.users.has_group` en el grupo `base.group_system`. Si no lo es, se levanta `ValueError`. Además la autenticación en Odoo debe funcionar (url, db, login y API key) y la versión mayor detectada debe ser al menos `MIN_SUPPORTED`; si falla la detección o es menor, también se levanta `ValueError`.",
+  "Vincula automático (`auto`) cuando `current_user.email == odoo_login`, que es el valor por defecto en ese caso; se vincula `Member.odoo_user_id = admin_uid`, el uid de las credenciales que autenticaron. Deja al member sin usuario de Odoo (`none`) cuando los emails no coinciden, que es el valor por defecto en ese caso; no toca `odoo_user_id` del member. También hay modo `manual`, si el frontend manda `link_current_user_to_odoo='manual'` más `link_odoo_user_id`, que verifica que ese `res.users` exista y vincula el member a ese id.",
+  "Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, owner incluido, porque un id de `res.users` de una instancia no sirve en otra. `members_invalidated` informa cuántos members se limpiaron (0 si la URL no cambió) y `warning` lleva el mensaje que muestra la UI. Según el diagrama, la limpieza va antes de la vinculación, así que quien conecta queda re-vinculado enseguida si el modo es `auto` o `manual`; con `none` queda sin vínculo, igual que el resto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "dd58669f36",
+  "control": "d70443294a"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR trae el ADD de `locale` y el DROP de `lang` juntos. Tal como está, ¿el DROP corre el jueves 19/11 con el código o el martes 24/11? Si hay que separarlo, ¿quién mantiene el tren para confirmarlo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Con las dos migraciones en el mismo PR, ¿el tren del jueves 19/11 corre también el DROP de members.lang, o el tren separa solo las migraciones destructivas? Si no las separa, ¿el DROP tiene que ir en un PR aparte para que salga recién el martes 24/11?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera parte dice que el DROP llega el martes 24/11, pero al final aclarás que, como mi PR trae las dos migraciones juntas, el DROP podría correr el jueves con el código. Con el PR tal como está, ¿cuándo corre el DROP de members.lang? ¿El tren separa solo las migraciones destructivas, o tengo que partir el PR sí o sí para que no corra el jueves?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR trae el ADD de `locale` y el DROP de `lang` juntos. Tal como está, ¿el DROP corre el jueves 19/11 con el código o el martes 24/11? Si hay que separarlo, ¿quién mantiene el tren para confirmarlo?",
+ "followup_answer": "Tal como está, el DROP viaja con el código en el tren del jueves 19/11. El doc no dice que el tren separe las migraciones, así que el martes 24/11 no está garantizado.\n\nEl tren avanza `main` desde `staging` como una unidad. Tu PR entra entero, y el doc no menciona ningún mecanismo que reparta sus migraciones entre dos trenes. Si nada lo frena, el `DROP COLUMN` corre el jueves, y eso rompe la regla expand/contract. Durante el deploy conviven la versión vieja y la nueva, y la vieja todavía lee `lang`.\n\nSeparalo en dos PRs:\n1. **PR 1 (hoy):** `ADD COLUMN locale` y el código que deja de usar `lang`. Llega a prod el jueves 19/11 a las 12 UTC.\n2. **PR 2:** `DROP COLUMN lang`. Mergealo a staging después de que el jueves llegue a prod. Corre el martes 24/11 a las 12 UTC, o el jueves 26/11 si el CI de staging está rojo ese día.\n\nSobre quién mantiene el tren: el extracto no lo dice. Solo nombra a jjs como quien aprueba los hotfixes manuales, y eso no lo hace dueño del tren. Preguntá en el canal del equipo de plataforma o fijate en el `CODEOWNERS` de `release-train.yml`. No tengo acceso a ninguno de los dos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4817,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 937,
+  "output_tokens_details": {
+   "thinking_tokens": 431
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4817,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 937,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 4817,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4817
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1cf607d27d"
+ }
+}

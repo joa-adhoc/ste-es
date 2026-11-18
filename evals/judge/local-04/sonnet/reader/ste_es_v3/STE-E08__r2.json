@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No te dije el modelo ni los defaults todavía: ¿cuál sería el caso concreto? Y como la respuesta usa ejes (a), (b1), (b2), (c), (d) sin definirlos del todo, ¿me podés confirmar en cuál cae si el modelo es X con defaults Y, y si la tool va a estar expuesta por el MCP saliente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El modelo es el de la tool nueva y los defaults son fijos. ¿Eso implica una whitelist o un gate propio (b2), o son solo defaults de conveniencia? Y la tool, ¿también se va a exponer por el MCP saliente o solo en chat?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "No te dije el modelo ni los defaults todavía: ¿cuál sería el caso concreto? Y como la respuesta usa ejes (a), (b1), (b2), (c), (d) sin definirlos del todo, ¿me podés confirmar en cuál cae si el modelo es X con defaults Y, y si la tool va a estar expuesta por el MCP saliente?",
+ "followup_answer": "No puedo confirmar el eje sin el modelo y los defaults, y todavía no los tengo. Si es un `odoo_create` con defaults sobre un modelo, el caso base es **skill**. Solo cambia si cumple (b2).\n\n**Definiciones (según el material):**\n- **(a) No componible:** las tools genéricas no pueden hacerlo. Un `odoo_create` con defaults sí se puede componer, así que no cumple.\n- **(b1) Approval o identidad de policy propia:** `requires_approval` solo lo consume el chat. El router MCP lo ignora.\n- **(b2) Whitelist más fina que el `create` genérico:** vale en chat y en MCP. Ejemplo: `odoo_copy` con gate `create` en vez de `execute`.\n- **(c) Procedimiento crítico:** saltear un paso tiene costo de compliance duro.\n- **(d) Eficiencia:** colapsa ≥3 calls o un loop no acotado en una sola. Un wrapper 1→1 nunca califica.\n\n**Cómo cae según lo que me pases:**\n\n| Si el caso es… | Eje | Chat | MCP saliente |\n|---|---|---|---|\n| Solo defaults de conveniencia sobre `odoo_create` | ninguno | skill | skill |\n| Permiso `create` acotado a ese modelo, que el `create` genérico no da | (b2) | nativa | nativa |\n| Necesita approval del usuario | (b1) | nativa | no sirve: excluila con `MCP_EXCLUDED_TOOLS` o hacela skill |\n| Además de crear, hace ≥3 calls o un loop (lookups, post-procesos) | (d) | nativa | nativa |\n| Un default omitido tiene costo de compliance real | (c) | nativa | no sirve: ahí no hay turno donde forzar pasos |\n\n**Lo que sí cambia con el MCP:** (b1) y (c) dejan de contar. Una tool pensada solo con esos ejes queda sin justificación ahí.\n\nPasame el modelo X, los defaults Y, y si el gate sería más fino que `create` o necesita approval. Con eso te digo en qué fila cae.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5939,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1008,
+  "output_tokens_details": {
+   "thinking_tokens": 257
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5939,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1008,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5939,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5939
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "205eb0a059"
+ }
+}

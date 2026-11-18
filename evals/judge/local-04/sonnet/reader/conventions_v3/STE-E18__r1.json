@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El presupuesto de 12K caracteres es por scope o para workspace y usuario juntos, y cuánto vale N en el filtro de rapidfuzz? Además, ¿qué pasa con una memoria que queda fuera del filtro: sigue guardada y cuenta para el tope de 50?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Los 12K de `_MEMORY_BUDGET_CHARS` son por scope o para workspace y usuario juntos, y cuánto vale N en el filtro de rapidfuzz?",
+   "reason": "La primera oración resume el ciclo completo, pero el material deja abiertos el alcance del presupuesto y el valor de N, y eso afecta qué pasa con muchas memorias."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el filtro por similitud, y el presupuesto de 12K caracteres es por scope o para workspace y usuario juntos? Además, ¿qué pasa con las memorias que quedan fuera del filtro: el modelo se entera de que existen o simplemente no las ve ese turno?",
+   "extra": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El presupuesto de 12K caracteres es por scope o para workspace y usuario juntos, y cuánto vale N en el filtro de rapidfuzz? Además, ¿qué pasa con una memoria que queda fuera del filtro: sigue guardada y cuenta para el tope de 50?",
+ "followup_answer": "Ninguna de las tres cosas está en el material. Es lo que se puede decir con lo que hay, y lo demás se confirma en el código.\n\n**Presupuesto de 12K: por scope o junto.** No está definido. La única pista es la frase \"total header chars\", que sugiere una suma de todo lo inyectado (workspace + usuario). Es una lectura de la redacción, no un hecho. Para cerrarlo, mirá en `_load_chat_setup` (`tuqui_core/chat/agent.py`) si `_MEMORY_BUDGET_CHARS` se compara contra una lista unificada o contra cada bloque por separado.\n\n**Valor de N.** El material no lo da. Dice \"keeps top-N\" sin fijar si N es una constante, un número que sale de ir llenando el presupuesto hasta los 12K, o un porcentaje. Tampoco dice el criterio de desempate ni si hay un puntaje mínimo. Buscalo en el mismo `_load_chat_setup`, donde se llama a `rapidfuzz`.\n\n**Memoria que queda fuera del filtro.** Probablemente sigue guardada y cuenta para el tope de 50, pero es inferencia. Lo que sí dice el material es que el tope borra por `created_at` dentro de la transacción de guardado. Eso no tiene nada que ver con el filtro, que solo decide qué headers entran al prompt de ese turno. Por eso el filtro no debería borrar nada. Lo que no se ve en el material es si ese turno el modelo sabe que hay memorias omitidas. Si no lo sabe, no tiene motivo para llamar a `manage_memory(action='read', ...)` sobre una que no ve.\n\nSi querés, te ayudo a revisar esa función cuando tengas el repo a mano. En este directorio no hay código, así que no lo puedo verificar desde acá.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11735,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 758,
+  "output_tokens_details": {
+   "thinking_tokens": 123
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11735,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 758,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11735,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11735
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5cf00319ac"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Avisos**\n\nHay dos hitos, que salen de `billing_trial_warning_days_list` (default `{7, 0}`):\n\n- **7 días antes:** aviso de \"la prueba está por vencer\". Con el vencimiento la semana que viene, este es el que sale primero.\n- **El día del vencimiento:** segundo aviso, mientras el workspace todavía funciona.\n\nEl cron `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Es una tarea diaria, no un envío exacto por hora.\n\nPara no repetir envíos se guarda un par de campos: `trial_warning_for` (la fecha de fin para la que se avisó) y `trial_warning_days` (el hito más chico ya enviado). Si la prueba se extiende, la fecha de fin cambia y los avisos vuelven a salir.\n\n**A quién**\n\nLos avisos de prueba (por vencer y vencida) van a:\n- los owners y admins, siempre, aunque no tengan asiento (`billing_tier = 'none'`);\n- todos los miembros con asiento (`billing_tier <> 'none'`).\n\nLos owners y admins reciben el aviso aunque no tengan asiento porque son quienes deciden. Un miembro nuevo nace sin plan, así que un equipo en prueba puede no tener a nadie con asiento.\n\nAdemás, en el chat `PlanLapsedBanner` muestra un aviso sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence (sin suscripción)**\n\n- `plan` pasa a `'free'`.\n- Se evalúa si hay exceso respecto de los límites del plan free.\n- Sale el mail de prueba vencida.\n\nSi hay exceso, el workspace queda en `account_status = 'restricted'` con razón `trial_expired_with_excess`. En ese estado el MCP y el chat quedan bloqueados.\n\nEl material no dice qué pasa si no hay exceso. Presumiblemente el workspace sigue `active` con plan free, pero eso no está escrito. Habría que mirar el código de `_run_trial_expiry` para confirmarlo.\n\n**Si ya tiene una suscripción viva**\n\nSí cambia:\n- Se limpian los flags de trial.\n- **No se manda ningún mail.** Para el owner no cambió nada visible, y el cobro se anuncia con su propio recibo.\n\nUna duda: el material no aclara si los avisos previos (el de 7 días) también se omiten cuando ya hay suscripción. Solo dice que al vencer no se manda nada. Para saberlo habría que revisar el cron.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4178,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 894,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4178,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 894,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4178,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4178
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

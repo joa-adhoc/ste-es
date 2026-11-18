@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults es componible con las tools genéricas y es un wrapper 1→1, así que no cumple (a) ni (d).\n\n**Criterio:** la tool nativa necesita cumplir al menos un eje. Evaluá los cuatro contra tu caso:\n\n- **(a) No componible:** no cumple. `odoo_create` con los defaults en los `vals` hace lo mismo.\n- **(d) Eficiencia:** no cumple. Es una sola call genérica, y el umbral duro excluye los wrappers 1→1 aunque ahorren tokens de esquema.\n- **(c) Procedimiento crítico:** solo si saltear los defaults tiene costo de compliance real. Un default de conveniencia no alcanza.\n- **(b) Gate propio:** es el único eje que podría salvarla. Depende de la superficie (ver abajo).\n\n**Cuándo sí sería nativa:**\n- Si los defaults implican una whitelist más fina que el `create` genérico (por ejemplo, restringir a ese modelo y esos campos). Eso es (b2) y vale en chat y en MCP.\n- Si necesita approval propio. Eso es (b1) y vale solo en chat.\n- Si el flujo agrega más pasos (por ejemplo, crear más lookups o post-procesos) y llega a ≥3 calls o a un loop no acotado. Ahí aplica (d).\n\n**¿Cambia algo con el MCP saliente?** Sí, si exponés la tool por ahí. Ahí (b1) y (c) no tienen palanca, porque el router MCP ignora `requires_approval` y no hay un turno donde forzar pasos. La tool solo se justifica por (a), (b2) o (d).\n\nSi tu única justificación era (b1), el caso es igual que `odoo_schedule_activity`. Pasa a skill, o queda nativa solo para chat y la excluís del MCP con `MCP_EXCLUDED_TOOLS`. Pero entonces el eje no justifica la tool, porque la skill logra lo mismo.\n\n**Recomendación:** hacela skill, salvo que me digas qué gate o whitelist propios tendría. Si me pasás el modelo y los defaults, te digo en cuál eje cae.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4826,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 776,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4826,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 776,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4826,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4826
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta muestra el diagrama pero no dice en una frase qué ve el modelo cuando falla una tool. Además hay una contradicción: ¿el modelo ve el error fatal solo cuando se repite 3 veces lo mismo, o también en la primera falla? Y para ODOO_NOT_CONNECTED, que no es un error transitorio, ¿realmente tiene sentido que el guard lo corte después de 3 intentos, o debería cortar de una?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El diagrama y el texto no cierran: ¿qué pasa exactamente cuando el contador llega a 3? ¿El FATAL reemplaza el [TOOL_ERROR ...] de esa tercera llamada o recién aparece en la cuarta? Y cuando dice 'sin más calls idénticos', ¿se bloquea la ejecución de la tool o solo se devuelve el mensaje FATAL al modelo? Además, ¿qué texto exacto ve el modelo en el caso FATAL?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué texto exacto recibe el modelo en el error FATAL? Y una vez que el contador llega a 3, ¿la tool deja de ejecutarse o se ejecuta igual y el guard solo reemplaza el resultado? ¿Los contadores viven por run, por turno o por sesión de chat?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta muestra el diagrama pero no dice en una frase qué ve el modelo cuando falla una tool. Además hay una contradicción: ¿el modelo ve el error fatal solo cuando se repite 3 veces lo mismo, o también en la primera falla? Y para ODOO_NOT_CONNECTED, que no es un error transitorio, ¿realmente tiene sentido que el guard lo corte después de 3 intentos, o debería cortar de una?",
+ "followup_answer": "**Qué ve el modelo:** cuando falla una tool, ve un string `\"[TOOL_ERROR class=X]: message\"` en lugar de la excepción cruda.\n\n**Contradicción:** mi diagrama era ambiguo, pero no hay contradicción.\n- En la primera falla el modelo ve el error clasificado, no FATAL. Lo mismo pasa en la segunda falla idéntica.\n- En la tercera falla idéntica, `record` devuelve `True` y `_wrap_tool` devuelve FATAL en lugar del texto clasificado. Los calls siguientes con los mismos args y la misma clase también reciben FATAL.\n- \"Idéntica\" significa la misma key: tool, hash de args y `error_class`.\n- `FATAL` también es un valor de `ErrorClass`. El material no dice qué excepciones `classify_unknown` mapea a esa clase, así que no sé si pueden dar FATAL en la primera falla.\n\n**ODOO_NOT_CONNECTED:** conviene que corte de una. Mi recomendación se apoya en el material, pero no vi el código.\n- El material lo define como \"nadie conectó Odoo para este run\". Reintentar no lo arregla, porque nada cambia entre un call y el siguiente.\n- Con `THRESHOLD=3`, el modelo gasta dos calls inútiles antes del corte. Además, el texto de las dos primeras fallas puede invitarlo a reintentar.\n- Hay una condición: si el dev pudiera conectar Odoo a mitad del run, cortar de una sería un error. Por lo que dice el material (\"para este run\"), no parece posible.\n\nSi querés cambiarlo, hay dos opciones:\n1. Que `record` use umbral 1 para `ODOO_NOT_CONNECTED`.\n2. Que el aviso de esa clase diga desde la primera vez \"no reintentes: pedile al usuario que conecte Odoo\".\n\nCon la opción 2 el guard sigue igual y el modelo deja de reintentar sin cambiar el umbral.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6249,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1378,
+  "output_tokens_details": {
+   "thinking_tokens": 679
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6249,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1378,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6249,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6249
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "237ceb747d"
+ }
+}

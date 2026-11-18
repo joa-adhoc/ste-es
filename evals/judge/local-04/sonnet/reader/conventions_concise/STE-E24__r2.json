@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con el DROP incluido, así que \"sacalo de este PR\" no me alcanza. ¿Qué hago concretamente para que el DROP no salga en el tren de mañana a las 09:00 ART? ¿Hago un revert del PR entero y mergeo dos PRs nuevos, o un revert solo de la migración? ¿Hasta qué hora de hoy tengo que tenerlo resuelto, y qué pasa si no llego?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el DROP incluido, así que \"sacalo de este PR\" no se puede hacer tal cual. ¿Tengo que hacer un revert parcial del DROP en staging antes del jueves 09:00 ART y después reabrir la migración en otro PR? Y si no llego o no lo hago, ¿qué pasa: sale todo junto el jueves, se bloquea el tren, o hay algún chequeo que lo frene?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR a staging con el DROP incluido. Para que el DROP no esté en staging cuando salga el tren del jueves, ¿tengo que hacer un revert del PR entero y reabrirlo sin el DROP, o alcanza con un commit que saque solo la migración? ¿Y qué pasa si no llego antes de las 12 UTC del jueves y el tren sale con el DROP?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado en staging con el DROP incluido, así que \"sacalo de este PR\" no me alcanza. ¿Qué hago concretamente para que el DROP no salga en el tren de mañana a las 09:00 ART? ¿Hago un revert del PR entero y mergeo dos PRs nuevos, o un revert solo de la migración? ¿Hasta qué hora de hoy tengo que tenerlo resuelto, y qué pasa si no llego?",
+ "followup_answer": "**Revertí solo la migración, no el PR entero.** Hacé un PR contra staging que saque únicamente el `DROP COLUMN members.lang`. El resto (`members.locale` y el código que deja de usar `lang`) es la fase \"expand\" y puede salir mañana. Un revert completo obligaría a rehacer dos PRs sin necesidad.\n\n1. Abrí el PR de revert parcial hoy y mergealo a staging.\n2. Esperá a que el CI de staging quede verde. Si queda rojo, el tren de mañana se salta. Eso evita que el DROP salga mañana, pero no lo saca de staging, así que el martes 24 saldría junto con el código. No cuenta como solución.\n3. Después del tren de mañana, abrí otro PR con el DROP y mergealo antes del martes 24 a las 12 UTC (09:00 ART).\n\n**Hora límite:** el doc no fija un corte previo, y el tren sale mañana a las 12 UTC (09:00 ART). Como el revert necesita CI verde, mergealo hoy. No tengo verificado cuánto tarda el CI de staging ni si el tren toma el estado de staging al arrancar o antes.\n\n**Si no llegás:** el DROP sale mañana en el mismo tren que el código nuevo. Durante el deploy la versión vieja sigue leyendo `lang` y puede fallar. Además el DROP es irreversible: un rollback del código no recupera la columna ni sus datos.\n\nSi ves que no llegás, avisale a jjs hoy. El doc no describe cómo pausar el tren, pero sí que jjs aprueba los releases manuales, así que es quien puede decidir.\n\n**Sin verificar:** si la migración ya corrió en la base de staging, el revert no restaura `lang` ahí. Cuando reintroduzcas el DROP, confirmá que la herramienta de migraciones no choque con una migración ya aplicada.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10931,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1539,
+  "output_tokens_details": {
+   "thinking_tokens": 881
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10931,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1539,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10931,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10931
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0cbf539883"
+ }
+}

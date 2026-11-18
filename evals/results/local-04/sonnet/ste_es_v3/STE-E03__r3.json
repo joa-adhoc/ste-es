@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup` desde el worktree. Eso linkea al clone principal el `.venv`, los `.env`, los `node_modules` y `.mcp.json`. Sin ese paso, `make test` falla con \"Venv no encontrado\".\n\nDespués, por tu tarea:\n\n1. **Dependencia de Python nueva:** no corras `make install` en el worktree. El target se niega, porque escribiría en el venv del clone principal y le repuntaría el editable install. Instalala en el clone principal. La otra opción es borrar el link del `.venv` y armar un venv propio en el worktree.\n2. **Cambio en `web/package.json`:** corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal y no incluyen tu cambio.\n\nCon eso ya podés correr los tests:\n\n```bash\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake lint                                     # ruff check + format check\n```\n\nFijate en un detalle: si instalás la dependencia en el clone principal, el resto de los worktrees también la ven, porque comparten el venv. El código que corre sigue siendo el de cada worktree.\n\nUn aviso sobre `npm ci`: el material no aclara si rompe el link de `node_modules`. Si el `node_modules` del worktree sigue siendo un symlink al clone principal, el `npm ci` puede escribir ahí. Verificalo con `ls -ld web/node_modules` antes de correrlo. Si es un symlink, borralo primero con `rm web/node_modules`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4393,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 603,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4393,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 603,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4393,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4393
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

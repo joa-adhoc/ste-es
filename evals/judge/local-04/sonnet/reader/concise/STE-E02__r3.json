@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración dice que alcanza con el cliente, pero la nota final dice que igual hay que tocar el backend (exponer y normalizar el campo). ¿Cuál es la respuesta definitiva: hay que tocar el backend o no? Y si sí, ¿qué cambio mínimo exacto hace falta, dado que la migración 0201 ya existe?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera frase dice que alcanza con el cliente, pero al final aclarás que el backend igual necesita el cambio mínimo del paso 2 (exponer y normalizar description_i18n). Entonces, ¿tengo que tocar el backend o no? Y en mi caso concreto, ¿cómo sé si la descripción del conector entra a un prompt, mail o MCP, y cómo verifico si la migración 0201 ya creó la columna en la tabla de conectores?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "La primera oración dice que alcanza con el cliente, pero la nota final dice que igual hay que tocar el backend (exponer y normalizar el campo). ¿Cuál es la respuesta definitiva: hay que tocar el backend o no? Y si sí, ¿qué cambio mínimo exacto hace falta, dado que la migración 0201 ya existe?",
+ "followup_answer": "**Sí, hay que tocar el backend, pero sólo para guardar y exponer el campo.** No tiene que resolver idioma. Mi primera frase fue imprecisa: \"alcanza con el cliente\" quiere decir que el cliente es el único que resuelve el idioma. No quiere decir que el backend quede intacto.\n\nCon la 0201 ya aplicada, el cambio mínimo es este. No revisé el código, así que primero confirmá qué parte ya está hecha.\n\n1. **Lectura:** la query y el serializer de conectores tienen que devolver `description_i18n` junto con `description`.\n   - Pasalo por `decode_i18n`, porque asyncpg puede devolver `str` o dict.\n   - Mandá el mapa entero, sin filtrar por idioma.\n2. **Escritura:** el endpoint de create/update de conectores tiene que aceptar `description_i18n`.\n   - Pasalo por `normalize_i18n_keys` antes de persistir.\n   - Si el editor manda `description` espejada con `es || en`, esa columna ya se guarda como hoy.\n\nSi ya hay un endpoint que expone `description_i18n` y otro que lo escribe normalizado, el backend no necesita nada más.\n\nEl resto va en el cliente. Leés con `localizedField(row.description_i18n, row.description, i18n.language)`. El editor tiene dos inputs, ES y EN, y manda sólo las claves no vacías. No hace falta tocar el `queryKey`.\n\nSi además la descripción entra a un prompt, un mail o sale por MCP, el backend sí tiene que resolver con `lang → en → legacy`. En ese caso `lang` sale de `resolve_response_language`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5652,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 977,
+  "output_tokens_details": {
+   "thinking_tokens": 395
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5652,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 977,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5652,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5652
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9bfe6fbe76"
+ }
+}

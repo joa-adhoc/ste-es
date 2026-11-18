@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los insights salen de un pipeline de 3 etapas, precedido por un ensamblador de contexto. Termina con 0 a 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n```\nContext Assembler ─► Planner ─► Investigator ─► Synthesizer + Guards ─► 0-2 Teasers\n```\n\n## Qué hace cada etapa\n\n**Context Assembler** (`context_assembler.py`)\n- Corre 6 queries en paralelo bajo el RLS del usuario.\n- Trae perfil del workspace, perfil del usuario, memoria (scope workspace y user), conversaciones de los últimos 7 días e historial de insights de los últimos 14 días.\n- Devuelve un bundle en markdown de ~2–4K tokens.\n- El historial de insights sirve como señal de dedup.\n\n**Etapa 1: Planner** (`planner.py`)\n- Usa Gemini Flash con salida JSON y temperatura 1.0.\n- Lee el bundle y devuelve `PlannerOutput(hypotheses, silence_reason)`.\n- Genera de 0 a N hipótesis.\n\n**Etapa 2: Investigator** (`investigator.py`)\n- Un agente Pydantic AI con herramientas de solo lectura investiga cada hipótesis.\n- Los límites dependen del registro:\n\n| Registro | max_iterations | max_tool_calls | reasoning |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta` / `analisis` | 12 | 25 | medium |\n\n- Investiga hasta 3 hipótesis en paralelo (`Semaphore(3)`).\n- Cada hipótesis tiene un presupuesto de tiempo de `(watchdog_sec - 30) / n_hypotheses`.\n\n**Etapa 3: Synthesizer + Guards** (`synthesizer.py`, `guards.py`)\n- Genera los teasers a partir de los hallazgos.\n- Aplica tres guards en orden:\n  1. **ResponseGuard (regex):** rechaza patrones sospechosos como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` o `\"[nombre]\"`.\n  2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado del investigador con `partial_ratio >= 75`.\n  3. **LLM Judge:** usa el mismo modelo que el synthesizer, con temperatura 0. Devuelve `{grounded, reason}`.\n\n## Qué pasa entre etapas\n\n- **Assembler → Planner:** el bundle de contexto en markdown.\n- **Planner → Investigator:** la lista de hipótesis.\n- **Investigator → Synthesizer:** los `InvestigationFindings`.\n- **Synthesizer → Guards:** los teasers candidatos. Los guards los comparan contra el resumen combinado del investigador.\n\n## Casos en que no se muestra nada\n\n1. **El Planner devuelve 0 hipótesis.** Es un silencio válido, explicado en `silence_reason`. No se genera ningún teaser.\n2. **Los guards rechazan todos los teasers.** El resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nUn fallo de infraestructura del Judge no cuenta como rechazo. En ese caso el teaser pasa, para no bloquear por un error de infra.\n\nEl material no dice qué pasa si el Investigator se queda sin tiempo o sin herramientas, ni si el Synthesizer devuelve 0 teasers por sí mismo. Tampoco dice qué ocurre si falla el Planner. Para esos casos, revisá el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5007,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1348,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5007,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1348,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5007,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5007
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

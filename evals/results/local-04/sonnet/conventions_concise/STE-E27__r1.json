@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Lo más probable es que el worker se quedara sin memoria y eso causara los timeouts. Es una inferencia por coincidencia de horarios: no encontramos el proceso que consumía la memoria.\n\n**Qué se verificó**\n- Entre 13:10 y 13:40 UTC hubo 37 errores \"timeout after 30s\" en `odoo_report` (workspace pldistribucion). Antes y después no hubo ninguno.\n- La memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41.\n- A las 13:41:58 el worker murió por \"out of memory (container limit 2 GB)\" y a las 13:42:10 se reinició.\n\n**Qué no se sabe**\n- Qué request o proceso hizo subir la memoria. El log no trae detalle por request, así que la causa raíz sigue abierta.\n- Si el cliente volvió a pedir reportes después de las 13:42. Los 0 errores posteriores no prueban que se resolvió: pueden ser solo que nadie pidió nada.\n\n**Para cerrarlo**\n- Consultar `tool_usage_log` después de las 13:42 y ver si hay llamadas a `odoo_report` con resultado OK.\n- Agregar logging por request, o métricas de memoria por proceso, en el worker. Sin eso, si se repite, vamos a estar igual de ciegos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10243,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 734,
+  "output_tokens_details": {
+   "thinking_tokens": 265
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10243,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 734,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10243,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10243
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

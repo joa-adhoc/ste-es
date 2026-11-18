@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Qué pasó:** la policy `scheduled_runs_ws` quedó con `USING (true)` y no filtra por workspace.\n\nLa migración `0398_scheduled_runs_draft.sql` la creó así, como borrador. La `0412` intenta crearla bien, pero su guard `IF NOT EXISTS` ve que ya existe una con ese nombre y la saltea. El warning del setup lo dice: `policy \"scheduled_runs_ws\" already exists, skipped`. El resultado es que el workspace B ve las filas del A. Es una fuga entre tenants, no solo un test rojo.\n\n**Qué hacer:**\n\n1. No edites la 0412 ni la 0398. Según AGENTS.md, el tracking es por nombre de archivo, así que una migración ya aplicada no se vuelve a correr.\n2. Creá una migración nueva (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que reemplace la policy:\n\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n\n   Si la tabla no tiene `ENABLE ROW LEVEL SECURITY` (y `FORCE` si corresponde), verificalo en la 0398 o la 0412 y agregalo ahí también.\n3. Corré de nuevo `pytest tuqui_core/tests/test_rls.py -q` para confirmar. Todavía no lo corrí, así que el arreglo no está verificado.\n4. Revisá si la 0398 llegó a algún entorno real (staging o producción). Si llegó, la policy abierta estuvo activa ahí y conviene evaluar si hubo lecturas cruzadas entre workspaces.\n\nAdemás, el patrón `IF NOT EXISTS` para policies oculta este tipo de desvío. Para policies conviene `DROP POLICY IF EXISTS` seguido de `CREATE`, así el resultado no depende de lo que haya quedado antes.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10519,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 738,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10519,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 738,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10519,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10519
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

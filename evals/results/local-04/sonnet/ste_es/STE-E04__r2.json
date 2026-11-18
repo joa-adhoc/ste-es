@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`replace` pisa el valor completo del campo; `append` lee el valor actual de los campos `html` y `text` y pone lo nuevo abajo, registro por registro.\n\n- **`replace`** (por defecto): escribe lo que mandás y no lee nada antes. Sobre prosa larga borra lo que había y no queda rastro en el chatter.\n- **`append`**: concatena HTML crudo, así que links a registros, clases e imágenes sobreviven. En campos `text` separa con una línea en blanco. Los demás tipos de campo se reemplazan igual en los dos modos.\n- **Cuándo usar `append`**: cuando te piden *agregar* o *completar*. Mandá solo el contenido nuevo.\n- **Vaciar un campo**: `{\"description\": false}` con `append` se rechaza con `append_requires_text`. Para vaciarlo usá `mode=\"replace\"`.\n\n**Si el append falla a mitad de camino**\n\nEl append es un write por registro, no una transacción. Los registros ya escritos no se revierten. Ejemplo con `ids=[1,2,3,4]` y una falla en el 3:\n\n```\nids:   1 ──► 2 ──► 3 ──► 4\n       ok    ok    FALLA  sin tocar\n\nwritten_ids: [1, 2]\nfailed_id:   3\npending_ids: [3, 4]\n```\n\nEl error es `append_partially_applied`. Reintentá solo con `pending_ids`, que incluye al fallido porque tampoco se escribió. Si reintentás con la lista original, duplicás contenido en 1 y 2. Los ids escritos quedan en `tool_usage_log.write_metadata` con `partial: true`.\n\nHay dos casos que no devuelven `append_partially_applied`:\n\n- **Falla en el primer registro**: no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada), y ahí reintentar la llamada entera es correcto.\n- **Falla el pre-read o el schema**: devuelve `append_precheck_failed` y no escribe. Sin el valor actual, un append sería un replace.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5465,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 872,
+  "output_tokens_details": {
+   "thinking_tokens": 156
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5465,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 872,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5465,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5465
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

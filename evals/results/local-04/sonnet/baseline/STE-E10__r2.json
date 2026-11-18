@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si no permite la operación sobre ese modelo, el tool se corta acá y nunca llega al evaluator.\n2. **`evaluate_permission`**, en este orden y con el primero que aplique:\n   1. `workspace_tool_approvals` con `deny` → **DENY**. Es un piso: ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` para `(user, workspace, tool)`. Si hay fila, gana su `action`. **Se saltea en canales sin identidad personal** (`exposure`, `webhook`, `scheduled`).\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila:\n      - **ASK** si el recurso está en `approval` (`\"ask\"` o `\"always\"`).\n      - **ALLOW** si no.\n      - Para tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin en \"ask\", miembro en \"allow\"\n\nEn el chat normal **se ejecuta sin preguntar**.\n\n- El `ask` del admin no es un `deny`, así que el paso 2.1 no lo bloquea.\n- En el paso 2.2 la fila del miembro existe y gana: `allow`.\n- El `ask` del admin (paso 2.3) nunca se evalúa.\n\nSi el admin quiere que nadie pueda saltearse la confirmación, tiene que poner `deny`. `ask` funciona como el valor por defecto del workspace, que cada miembro puede sobrescribir para sí mismo en ese workspace. Los otros miembros, sin fila propia, siguen recibiendo ASK.\n\n## Caso 2: agent por webhook\n\nEl paso 2.2 se saltea entero. El turno corre con la identidad prestada de un miembro (`client_facing_core.py`), pero la preferencia de esa persona no se considera política del canal (`ChannelProfile.personal_identity_applies`). Queda así:\n\n1. `workspace_write_models` tiene que permitir la operación.\n2. Si el workspace tiene `deny` para el tool, el resultado es DENY.\n3. Si tiene `allow`, el resultado es ALLOW. Si tiene `ask`, es ASK.\n4. Si no hay fila, aplica el default: ASK si el recurso está en `approval`, ALLOW si no.\n\nEl `allow` personal del miembro del caso 1 no cuenta acá. Si el admin dejó `ask` en el workspace, el webhook recibe ASK.\n\n**Lo que el material no dice** es qué pasa con un ASK en un canal sin humano presente (rechazo automático, espera, etc.). Eso depende de cómo el canal resuelve el \"asked-granted\" y habría que mirarlo en el código. Si querés, lo busco.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4049,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1455,
+  "output_tokens_details": {
+   "thinking_tokens": 423
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4049,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1455,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4049,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4049
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

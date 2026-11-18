@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Flujo completo de OAuth por usuario para un conector MCP\n\n## Antes del flujo: configuración (paso 1)\nUn admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Esto se hace una vez por server. Después, cada usuario se conecta por separado.\n\n## Paso a paso\n\n| # | Quién | Qué pasa |\n|---|-------|----------|\n| 2 | **Front** | El usuario abre `/connectors` y hace clic en **Connect**. |\n| 3 | **Front → Backend** | `GET /api/mcp-oauth/{server_id}/start`. El backend arma la `authorize_url` con un `state` firmado. |\n| 4 | **Front → Provider** | El front redirige el navegador al provider. |\n| 5 | **Provider → Backend** | El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. |\n| 6 | **Backend ↔ Provider** | El backend valida el `state`, canjea `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`. |\n| 7 | **Backend → Front** | Redirect al SPA con el resultado. |\n| 8 | **Backend** | Refresh proactivo de tokens, más adelante. |\n\n### Detalles de cada paso\n\n**Paso 3: `start`**\n- El `state` va cifrado con AES-GCM y tiene un TTL de 10 minutos.\n- Su payload es `{server_id, user_id, issued_at, nonce}`. Opcionalmente lleva `code_verifier` (PKCE) y `scope_profile` (para platform connectors).\n- La URL incluye `access_type=offline` y `prompt=consent`. Google solo emite refresh tokens si están ambos. El primero los pide y el segundo fuerza que se re-emitan en cada authorize. Así, un disconnect seguido de reconnect no se queda sin refresh token. Los otros providers ignoran los parámetros desconocidos (RFC 6749 §3.1).\n\n**Paso 6: callback**\n- Validar el `state` cubre la firma, el TTL y que el `user_id` corresponda. El `state` también sirve para recuperar el `code_verifier` de PKCE.\n- Los tokens se guardan encriptados.\n\n**Paso 7: redirect final**\n- Por defecto va a `/w/{slug}/settings/connectors?connected={server_id}`.\n- Si el dueño es una cuenta de servicio, va a `/w/{slug}/settings/members/{member_id}?connected=...`. El destino sale del dueño de la conexión, no de un `return_to` aparte.\n\n**Paso 8: refresh**\n- `refresh_if_expired` corre al construir los toolsets. Renueva el token si le quedan menos de 60 s de validez.\n\n### `resource` de RFC 8707\nViaja en los pasos 3, 6 y 8, es decir en el authorize, en el canje del code y en el refresh. Solo se manda si el server declaró su URI canónica en la protected-resource metadata. Ese valor queda en `OAuthPerUserConfig.resource`, que escribe el discovery.\n\nSi no hay valor guardado, no se manda nada. Los conectores creados antes de que existiera el campo siguen funcionando sin indicator. Mandar un valor adivinado es peor que no mandarlo, porque un authorization server que valida el `resource` rechaza cualquier valor que no reconozca.\n\n## Qué pasa si algunas habilidades no contestan\n\nDespués del canje, y antes del redirect final, el callback hace una **prueba de humo**. Introspecciona **todas** las habilidades habilitadas en paralelo y hay tres resultados posibles:\n\n- **Todas contestan:** el flujo termina normal, con `?connected=...`.\n- **Ninguna contesta:** el token no sirve para nada. Se **borra** y el redirect lleva `connect_error=<motivo>`. La card muestra el banner de error y el usuario queda desconectado.\n- **Solo algunas contestan:** el usuario **queda conectado** y el redirect lleva `connect_warning=<habilidades>`. La card muestra el banner de conexión parcial con las habilidades que fallaron.\n\nEl caso parcial es una decisión de diseño. Desconectar al usuario por una habilidad rota sería peor que dejarlo en un estado parcial que sí puede usar.\n\n## Dos cosas que el material no aclara\n- **Qué pasa con las habilidades rotas después.** El material no dice si hay reintento ni cómo se recupera el usuario. Lo probable es que el usuario pueda reconectar, pero no está especificado.\n- **Si el redirect del caso parcial también incluye `connected=`.** Es razonable suponer que sí, porque el usuario queda conectado, pero el texto solo menciona `connect_warning`.\n\nSi tenés acceso al código del callback, puedo revisar esos dos puntos ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4127,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1728,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4127,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1728,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4127,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4127
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

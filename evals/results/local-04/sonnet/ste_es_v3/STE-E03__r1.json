@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Corré `make worktree-setup` desde el worktree, y después `npm ci` si tocaste `web/package.json`. La dependencia de Python va por otro camino.\n\n```bash\nmake worktree-setup   # linkea .venv, .env, node_modules, .mcp.json, etc. del clone principal\ncd web && npm ci      # solo porque tocaste web/package.json\ncd ..\nmake test\nmake test-web\n```\n\n**Dependencia de Python:**\n- No corras `make install` en el worktree. Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te avisa.\n- Instalala en el clone principal, o borrá el link de `tuqui_core/.venv` y armate un venv propio en el worktree.\n\n**Por qué `npm ci`:** `web/node_modules` queda linkeado al clone principal. Sin `npm ci`, `make test-web` corre contra las dependencias de esa otra rama.\n\nPara correr un subconjunto: `make test ARGS=\"tests/test_rls.py -k policy\"`. Los paths son relativos a `tuqui_core/`.\n\n**Cuidado con `npm ci`:** como `web/node_modules` es un link, `npm ci` lo borra y lo reinstala. Mirá antes si el link sigue apuntando al clone principal, porque ahí podrías pisarle los `node_modules` a la otra rama. El material no aclara cómo se comporta con el link. Si dudás, borrá el link a mano (`rm web/node_modules`) antes de correr `npm ci`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4393,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 522,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4393,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 522,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4393,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4393
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La tabla dice que en prod se aplica solo si MIGRATIONS_ALLOW_DESTRUCTIVE=1 y que el material no lo confirma. ¿Prod tiene ese flag en 1? Si no, ¿mi drop queda salteado en silencio tras el merge, y cómo lo detecto?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta dice que en prod hay que verificar que MIGRATIONS_ALLOW_DESTRUCTIVE=1 esté seteado pero que el material no lo aclara. ¿Está seteado en prod? Si no, ¿la migración queda sin aplicarse en silencio y cómo me doy cuenta? Además, ¿el marker `-- destructive: true` tiene que estar en una línea específica del archivo o 'cerca del inicio' alcanza?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1? La respuesta dice que el material no lo aclara, y de eso depende que el drop llegue a prod o quede salteado sin registrarse en _migrations. ¿Dónde lo verifico, o quién lo sabe?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "La tabla dice que en prod se aplica solo si MIGRATIONS_ALLOW_DESTRUCTIVE=1 y que el material no lo confirma. ¿Prod tiene ese flag en 1? Si no, ¿mi drop queda salteado en silencio tras el merge, y cómo lo detecto?",
+ "followup_answer": "El material no dice si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y desde acá no puedo verlo. Si no lo tiene, el runner saltea tu drop y no lo registra. El material tampoco dice si el runner deja un log de ese salto, así que no cuentes con que avise.\n\nVerificalo antes del merge, no después:\n\n```bash\n# Variable en el servicio de prod (ajustá servicio y environment a los tuyos)\nrailway variables --environment production --service <servicio> | grep MIGRATIONS_ALLOW_DESTRUCTIVE\n```\n\nSi no aparece o no vale `1`, pedile a quien administra prod que la setee antes de mergear.\n\nPara detectar un salto después del deploy, mirá la base de prod:\n\n```sql\n-- ¿Quedó registrada? (corré \\d _migrations para ver el nombre real de la columna)\nSELECT * FROM _migrations WHERE name LIKE '%<tu_archivo>%';\n\n-- ¿Sigue existiendo la columna?\nSELECT column_name FROM information_schema.columns\nWHERE table_name = 'chats' AND column_name = 'legacy_flag';\n```\n\n- **Archivo ausente en `_migrations` y columna presente:** el runner la salteó.\n- **Después de arreglar el flag:** un nuevo deploy de `main` la aplica, porque nunca se registró.\n- **Logs del deploy:** buscá el nombre de tu archivo en el output de `python -m tuqui_core.db.migrate`. Si el runner loguea el salto, ahí aparece.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5675,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1054,
+  "output_tokens_details": {
+   "thinking_tokens": 502
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5675,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1054,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5675,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5675
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "52190415e6"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging, no es hipotético. ¿Eso significa que el jueves 19/11 saldría todo junto, con el DROP COLUMN incluido, y rompería la regla? Si es así, ¿tengo que revertir el merge y rehacerlo en dos PRs antes del tren de mañana, o cuál es el paso concreto ahora?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "¿Me lo podés resumir en dos líneas con las fechas finales? Cuándo llega `locale` a prod y cuándo llega el borrado de `lang`, y si el PR así como está se puede mergear o hay que partirlo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado en staging, no es hipotético. ¿Eso significa que el jueves 19/11 saldría todo junto, con el DROP COLUMN incluido, y rompería la regla? Si es así, ¿tengo que revertir el merge y rehacerlo en dos PRs antes del tren de mañana, o cuál es el paso concreto ahora?",
+ "followup_answer": "Sí: si el `DROP COLUMN` ya está en staging, el tren del jueves 19/11 a las 12 UTC (09:00 ART) lo lleva a prod junto con el código, y eso rompe la regla expand/contract. No veo tu repo desde acá, así que no verifiqué qué migraciones tiene el PR ni si el tren bloquea esto solo. El extracto no dice que lo bloquee, así que no cuentes con eso.\n\nAntes del jueves a las 09:00 ART, sacá el `DROP COLUMN` de staging:\n\n1. Revertí el merge (o, más liviano, hacé un PR que quite solo la migración del drop). Para que el tren lo tome, tiene que estar mergeado en staging y con el CI verde antes de esa hora.\n2. El PR 1 queda con `locale` y sin el uso de `lang`, y sale el jueves. Si hace falta rehacerlo, rehacelo sin el drop.\n3. Abrí el PR 2 con solo el `DROP COLUMN lang`, pero no lo mergees hasta que el tren del jueves haya llegado a prod. Si lo mergeás antes, sale en el mismo tren. Mergeado después, sale el martes 24/11 a las 12 UTC, o el jueves 26/11 si el martes se salta.\n\nNo te sirve esperar a que el CI esté rojo para que el tren salte, ni usar un release manual: ese es solo para hotfix y necesita la aprobación de jjs.\n\nSi tu PR tiene un backfill de `lang` a `locale`, confirmá que siga en el PR 1 después del revert. Staging lo comparte más gente, así que avisá antes de revertir.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10886,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1356,
+  "output_tokens_details": {
+   "thinking_tokens": 779
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10886,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1356,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10886,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10886
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0fe70214d3"
+ }
+}

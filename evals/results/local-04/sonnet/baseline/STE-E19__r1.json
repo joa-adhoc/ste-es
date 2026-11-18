@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Qué pasó\n\nLa migración `0398_scheduled_runs_draft.sql` (un borrador) creó la policy `scheduled_runs_ws` con `USING (true)`, es decir, **sin ningún filtro**: cualquier workspace ve todas las filas.\n\nDespués, `0412_scheduled_runs.sql` intentó crear la policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero la envolvió en un `IF NOT EXISTS` por nombre. Como la policy del borrador ya existía con el mismo nombre, la migración la **saltó** (el warning del log: `already exists, skipped`). Resultado: la policy abierta quedó vigente y el test detecta correctamente que el workspace B ve 2 filas del A.\n\nEsto no es un test frágil: es una **fuga real de aislamiento entre workspaces**, y si esa migración ya corrió en producción, está pasando ahí también.\n\n## Qué hacer\n\n1. **No edites `0398` ni `0412`.** Según AGENTS.md, las migraciones aplicadas no se vuelven a correr y el tracking es por nombre de archivo, así que el cambio no tendría efecto (y en entornos nuevos divergiría de los existentes).\n2. **Crea una migración nueva** (p. ej. `0413_fix_scheduled_runs_policy.sql`) que reemplace la policy sin el guard:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY;  -- idempotente; confirma que esté activo\n   ```\n   Considera agregar también `WITH CHECK` con la misma condición para que los INSERT/UPDATE tampoco crucen workspaces.\n3. **Reejecuta** `pytest tuqui_core/tests/test_rls.py`; debería pasar los 7.\n4. **Verifica producción/staging:** consulta `SELECT policyname, qual FROM pg_policies WHERE tablename = 'scheduled_runs';`. Si ahí aparece `true`, la exposición es real y conviene priorizar el deploy de la migración nueva y evaluar si hubo acceso indebido a esos datos.\n5. **Prevención:** evita el patrón `IF NOT EXISTS` por nombre para policies de seguridad (esconde justo este tipo de error); usa `DROP POLICY IF EXISTS` + `CREATE`. Un check en CI que falle ante policies con `USING (true)` también ayudaría.\n\nNo tengo el repo a mano, así que lo anterior sale solo de los logs que pegaste; si quieres, puedo escribir la migración en tu proyecto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3596,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1012,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3596,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1012,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3596,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3596
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

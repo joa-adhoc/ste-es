@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si el workspace no permite la operación sobre ese modelo, el tool se corta ahí y no llega al gate de runtime. Esto vale para todos los canales.\n2. **`evaluate_permission`**, en este orden:\n   1. **Deny del workspace**: si `workspace_tool_approvals` dice `deny`, el resultado es DENY. Es un piso y ninguna preferencia personal lo levanta.\n   2. **`user_tool_approvals`** de `(user, workspace, tool)`: si hay fila, esa acción gana. Se saltea entera en canales sin identidad personal (`exposure`, `webhook`, `scheduled`).\n   3. **`workspace_tool_approvals`** con `allow` o `ask`.\n   4. **Default por ausencia de fila**: ASK si el recurso está en `approval` (`ask` o `always`), ALLOW si no. En tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Tu caso 1: admin en \"ask\", miembro en \"allow\"\n\nEn el chat se ejecuta sin preguntar, siempre que el paso 1 haya dado allow.\n\n- El paso 2.1 solo mira `deny`. Un `ask` del admin no es piso, así que no frena nada.\n- En el paso 2.2 el miembro tiene fila propia en ese workspace, y esa fila gana sobre la grilla del workspace.\n- El `ask` del admin es una política por defecto que cada miembro puede relajar. Si el admin quiere que nadie la relaje, tiene que poner `deny`.\n- Si en cambio el miembro pone `deny` sobre un `allow` del admin, también gana el miembro.\n\n## Tu caso 2: agent por webhook\n\nAcá la preferencia personal no cuenta. El turno corre con la identidad prestada de un miembro, pero esa preferencia no es política del canal (`personal_identity_applies` es falso). La decisión queda así:\n\n1. Se aplica `write_models`.\n2. Si la grilla del workspace dice `deny`, se bloquea.\n3. Se saltea `user_tool_approvals`, aunque ese miembro tenga `allow`.\n4. Se aplica la grilla del workspace: `allow` ejecuta y `ask` pregunta.\n5. Sin fila, se aplica el default según el `approval` del recurso.\n\nNo verificado: el material no dice qué pasa cuando el resultado en un webhook es ASK, porque no hay un humano que responda. Podría quedar pendiente, rechazarse o fallar. Lo cerraría leer `chat/client_facing_core.py` o probarlo con un webhook de prueba.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10318,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1344,
+  "output_tokens_details": {
+   "thinking_tokens": 364
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10318,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1344,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10318,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10318
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

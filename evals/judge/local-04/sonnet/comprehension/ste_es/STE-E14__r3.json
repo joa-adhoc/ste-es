@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El pipeline tiene estas etapas, en orden: 1) Context Assembler (6 queries en paralelo, arma un bundle markdown); 2) Planner (propone hipótesis, con Gemini Flash); 3) Investigator (investiga cada hipótesis, hasta 3 en paralelo); 4) Synthesizer (genera los teasers a partir de los findings); 5) Guards en 3 capas (ResponseGuard → StringGrounding → LLM Judge). Al final salen 0-2 teasers que se guardan con upsert en `insights`. El texto presenta el pipeline como de 3 etapas, pero el diagrama muestra además las guards como un paso aparte.",
+  "Termina sin mostrar nada en dos casos: 1) el Planner devuelve `hypotheses` vacío (silencio válido, con `silence_reason`, y no se genera ningún teaser); 2) las guards rechazan todos los teasers (resultado `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`), ya sea por ResponseGuard (patrón sospechoso), StringGrounding (entidad o número sin match con partial_ratio >= 75 en el resumen del Investigator) o LLM Judge (`grounded: false`). Qué pasa si el Investigator agota su tiempo o sus tool calls sin resultados: el texto no lo dice.",
+  "Si el Judge falla por infraestructura, el teaser pasa y ese caso no genera silencio."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a2b2416543",
+  "control": "2010a7802d"
+ }
+}

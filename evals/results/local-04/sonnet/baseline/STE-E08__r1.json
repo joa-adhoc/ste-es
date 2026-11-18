@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Por defecto: skill.** Un `odoo_create` con defaults es un wrapper 1→1 sobre una tool genérica, y según tu criterio eso solo se justifica si pasa por algún eje.\n\n**Cómo aplicarlo a tu caso**\n\n- **(a) No componible:** no aplica. `odoo_create` con el modelo y los valores ya lo hace.\n- **(d) Eficiencia:** no aplica. Es 1 call genérica, y el umbral duro excluye explícitamente los wrappers 1→1, aunque ahorres tokens de esquema.\n- **(c) Procedimiento crítico:** solo si saltarse los defaults tiene costo de compliance real. Es raro para \"unos defaults\".\n- **(b) Gate más fino:** es el único eje con chances reales. Preguntate si necesitás un gate o una identidad de policy distinta a la de `create` genérico sobre ese modelo.\n  - Si el gate es approval (b1), solo vale en chat.\n  - Si es una whitelist más fina (b2), vale en chat y en MCP. El caso típico es poder permitir \"crear X\" sin habilitar `create` sobre cualquier modelo.\n\nEntonces: si lo que querés es solo ahorrarle al LLM pasar los defaults, es **skill**, que le indica el modelo y los defaults y llama a `odoo_create`. Si querés poder otorgar o negar esa creación específica sin abrir `create` genérico, es **tool nativa por (b)**.\n\n**¿Cambia algo con el MCP saliente?**\n\nSí, porque ahí se achican las palancas:\n\n- `requires_approval` lo consume solo el chat y el router MCP lo ignora. Si tu justificación es (b1), la tool no tiene razón de ser en MCP. Es el mismo caso que `odoo_schedule_activity`, que terminó en `MCP_EXCLUDED_TOOLS`.\n- (c) tampoco tiene palanca en MCP, porque no hay un turno donde forzar pasos.\n- En MCP solo sobreviven **(a)**, **(b2)** y **(d)**. Para tu tool, en la práctica queda **(b2)**.\n\n**Cómo decidir**\n\n1. ¿Qué gate querés? Si es solo approval, es tool de chat y hay que excluirla del MCP (agregarla a `MCP_EXCLUDED_TOOLS`).\n2. Si es whitelist por modelo, es tool nativa y se expone en ambas superficies.\n3. Si no hay gate propio, es skill.\n\nSi querés, pasame el modelo y los defaults y te digo qué eje aplica.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4112,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 902,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4112,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 902,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4112,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4112
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

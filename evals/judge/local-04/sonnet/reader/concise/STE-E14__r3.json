@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando el Investigator no encuentra nada o se agota su presupuesto de tiempo, y cuando el Synthesizer no genera ningún teaser? ¿Termina en silencio, reintenta o se registra algún error?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada, si se agota el presupuesto de tiempo de una hipótesis o si el Synthesizer no genera teasers? ¿Termina en silencio, se reintenta o se registra algún error?",
+   "note": "La primera oración solo dice que hay 3 etapas y un ensamblador; no responde directamente cómo se generan los insights ni los casos de silencio."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator no encuentra nada, cuando se agota el presupuesto de tiempo o el watchdog, o cuando el Synthesizer devuelve 0 teasers? ¿Termina en silencio, se reintenta o se guarda algún registro de error?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente cuando el Investigator no encuentra nada o se agota su presupuesto de tiempo, y cuando el Synthesizer no genera ningún teaser? ¿Termina en silencio, reintenta o se registra algún error?",
+ "followup_answer": "No lo puedo confirmar: el material no describe esos tres casos. No dice si terminan en silencio, si reintentan ni si registran un error.\n\n**Lo que sí dice el material**\n- Si el Planner devuelve 0 hipótesis, es silencio válido y queda un `silence_reason`.\n- Si los guards rechazan todos los teasers, la salida es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n- Si el LLM Judge falla por infraestructura, el teaser pasa. Es el único manejo de errores documentado.\n- Existe un `watchdog_sec`, y cada hipótesis recibe `(watchdog_sec - 30) / n_hipótesis`. Los 30 s probablemente se reservan para la síntesis, pero eso es una suposición mía.\n\n**Lo que no dice**\n- Qué devuelve el Investigator si no encuentra nada, si se agota el tiempo o si se agotan `max_iterations` o `max_tool_calls`. Tampoco dice si esa hipótesis se descarta o pasa al Synthesizer con findings parciales.\n- Qué hace el watchdog al dispararse: cancelar, devolver parciales o marcar error.\n- Qué pasa si el Synthesizer devuelve `teasers=[]` desde el LLM, antes de los guards. Solo está documentado el `debug_note` de `synth_all_rejected`.\n- Si hay reintentos o logging de errores en cualquier etapa.\n\nPara confirmarlo hay que mirar `investigator.py` (manejo de timeout y de caps), `synthesizer.py` y el orquestador que aplica el watchdog. Si me pasás esos archivos, te lo trazo exacto.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6160,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 914,
+  "output_tokens_details": {
+   "thinking_tokens": 316
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6160,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 914,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6160,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6160
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7db2c8a12d"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Hay un paso previo (etapa 0) y tres etapas, en este orden: 0. Context Assembler (arma el bundle de contexto con 6 consultas en paralelo), 1. Planner (propone hipótesis), 2. Investigator (investiga cada hipótesis), 3. Synthesizer + Guards (redacta los teasers y los pasa por ResponseGuard, StringGrounding y LLM Judge). Al final se hace un upsert en la tabla `insights`, con 0 a 2 teasers.",
+  "Termina sin mostrar nada en dos casos: 1) el Planner no propone hipótesis (silencio válido, `hypotheses` vacío con el motivo en `silence_reason`, y no se genera ningún teaser); 2) todos los teasers son rechazados por las guardas (resultado `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`), porque un teaser cae si falla el regex, el grounding o el judge.",
+  "Si el judge falla por infraestructura, el teaser pasa, para no bloquear por un error técnico. En ese caso no se suprime nada, pero tampoco se verificó el grounding."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "2379e9b5e3",
+  "control": "2010a7802d"
+ }
+}

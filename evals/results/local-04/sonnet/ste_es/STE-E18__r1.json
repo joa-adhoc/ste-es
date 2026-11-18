@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cuando hay muchas, la memoria más vieja por `created_at` se borra al llegar la 51ª, y el prompt de cada turno recibe solo los headers, no los cuerpos.\n\n```\n┌──────────────┐   ┌──────────────────┐   ┌────────────────────┐\n│ manage_memory│──►│ Cap: 50 por scope│──►│ _load_chat_setup   │\n│ (guardar)    │   │ la 51ª borra la  │   │ arma headers       │\n└──────────────┘   │ más vieja        │   └─────────┬──────────┘\n                   └──────────────────┘             ▼\n┌──────────────┐   ┌──────────────────┐   ┌────────────────────┐\n│ manage_memory│◄──│ Header con [read]│◄──│ ¿Headers > 12K     │\n│ action=read  │   │ en el prompt     │   │ chars? rapidfuzz   │\n└──────────────┘   └──────────────────┘   │ deja los top-N     │\n                                          └────────────────────┘\n```\n\n- **Guardado:** el cap es 50 por scope: por usuario en user-scope, por workspace en workspace-scope. El borrado ocurre en la misma transacción de DB. Es silencioso para el dev, pero la respuesta del tool le avisa al modelo.\n- **Header:** `title` más `summary`. Sin `summary`, usa el cuerpo hasta 250 caracteres. Si el cuerpo pasa de 250 y no hay `summary`, el header termina en `... [read]`.\n- **Cuerpo:** el modelo lo pide solo cuando lo necesita, con `manage_memory(action='read', id=...)`.\n- **Posición en el prompt:** va en `_load_chat_setup` de `tuqui_core/chat/agent.py`, después del bloque `CURRENT USER` y antes del bloque de proyecto. Primero sale `# Workspace memory (shared with team)` y después `# User memory (personal)`.\n- **Presupuesto:** `_MEMORY_BUDGET_CHARS` es 12K caracteres (~3K tokens). Si los headers lo superan, rapidfuzz puntúa cada header contra el mensaje actual del usuario y se queda con los top-N. Así, en ese caso, la memoria que entra al prompt cambia según lo que el usuario escribe en cada turno.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5064,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1190,
+  "output_tokens_details": {
+   "thinking_tokens": 379
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5064,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1190,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5064,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5064
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

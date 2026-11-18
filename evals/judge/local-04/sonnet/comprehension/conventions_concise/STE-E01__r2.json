@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración se crea con `supabase migration new <nombre>` y queda en `supabase/migrations/NNNN_descripcion.sql`. El nombre del archivo define el orden de aplicación.",
+  "La tabla necesita una columna `workspace_id uuid NOT NULL`, un índice sobre `workspace_id`, RLS habilitado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y una policy (por ejemplo `mi_tabla_workspace_isolation`) con el filtro `workspace_id = current_setting('app.current_workspace_id')::uuid`. Además, un test de aislamiento y un modelo Pydantic. La policy va dentro de un bloque `DO $$` que chequea `pg_policies`, porque no tiene `IF NOT EXISTS`.",
+  "Porque el preview del PR corre las migraciones contra la base de staging real, no contra una copia, y si se renombra el archivo se vuelve a aplicar, ya que el tracking es por nombre. Por eso la migración tiene que poder ejecutarse más de una vez sin romper. El texto remite a `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging` para las consecuencias completas, que no están en el texto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "5aa2bdd695",
+  "control": "cb1718959b"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el add y el drop juntos. ¿Qué tengo que hacer ahora para que el DROP COLUMN no salga en el tren del jueves 19/11 a las 12 UTC? ¿Hago un revert parcial en staging antes de esa hora y después abro el PR del drop aparte, o hay otra forma?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el ADD y el DROP juntos. ¿Qué tengo que hacer ahora antes del jueves a las 12 UTC para que el DROP no viaje en ese tren: revertir el merge y abrir dos PRs, o el tren ya separa las migraciones destructivas solo? Y en resumen: ¿el ADD llega el jueves 19/11 y el DROP el martes 24/11?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con el add y el drop juntos, y vos decís que el drop no puede viajar en el tren del jueves. ¿Qué hago ahora para que el drop no salga el jueves: revierto el PR en staging y lo separo en dos, o hay otra forma de sacarlo de ese tren? Y si no llego a hacerlo antes de las 12 UTC del jueves, ¿qué pasa con la columna `lang` en prod?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado a staging con el add y el drop juntos. ¿Qué tengo que hacer ahora para que el DROP COLUMN no salga en el tren del jueves 19/11 a las 12 UTC? ¿Hago un revert parcial en staging antes de esa hora y después abro el PR del drop aparte, o hay otra forma?",
+ "followup_answer": "Sí: sacá solo el DROP de staging con un PR nuevo, antes de las 09:00 ART del jueves (12 UTC). No hagas un revert del PR entero, porque eso también sacaría el add y el cambio de código.\n\n1. Creá un branch desde staging y sacá solo la migración del drop:\n   ```bash\n   git switch -c revert-drop-members-lang origin/staging\n   git rm <ruta/de/la/migración-drop-lang>\n   git commit -m \"Sacar DROP COLUMN members.lang del tren del 19/11\"\n   ```\n   Si el drop está en un commit aparte, usá `git revert <sha>`. Si comparte commit con el add, borrá a mano solo esa migración.\n2. Mergeá ese PR a staging con margen antes del jueves 12 UTC. El jueves el tren lleva el add y el código, sin el drop.\n3. Cuando el jueves llegue a prod, abrí el PR del drop y mergealo antes del martes 24/11 a las 12 UTC. Va en el tren del martes.\n\n- **CI rojo:** si el CI de staging queda rojo el jueves por este revert, el tren salta al martes 24. Entonces el add y el código también se demoran y el drop pasa al tren del 26/11.\n- **Migración ya aplicada:** si la migración del drop ya corrió en la base de staging, sacar el archivo no devuelve la columna. Recreá `members.lang` a mano en esa base, o el código viejo falla ahí.\n- **Sin otra forma:** el tren mueve todo `staging`, así que no podés excluir un commit sin sacarlo de staging. El release manual (`workflow_dispatch`) es solo para hotfix y necesita la aprobación de jjs.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5524,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1252,
+  "output_tokens_details": {
+   "thinking_tokens": 655
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5524,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1252,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5524,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5524
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ec45003829"
+ }
+}

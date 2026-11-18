@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué pasó:** la policy `scheduled_runs_ws` ya existía desde la migración `0398_scheduled_runs_draft.sql` con `USING (true)`, o sea, deja ver todas las filas a cualquier workspace. La `0412` intentó crear la policy correcta (`workspace_id = current_setting(...)`), pero su guard `IF NOT EXISTS` la salteó porque el nombre ya estaba tomado. El warning de setup lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`. Resultado: la RLS de `scheduled_runs` es efectivamente abierta, y el test acierta al fallar. Es una fuga entre workspaces, no un test roto.\n\n**Qué hacer:**\n\n1. **No edites la 0398 ni la 0412.** Según AGENTS.md, el tracking es por nombre de archivo, así que editarlas no las vuelve a correr (y en entornos donde ya se aplicaron, no cambia nada).\n2. **Creá una migración nueva** (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que reemplace la policy:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n   Conviene agregar también `WITH CHECK` con la misma condición si querés que valga para escrituras, y confirmar que `ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY` (y `FORCE`, si aplica) esté en alguna migración.\n3. Corré de nuevo `pytest tuqui_core/tests/test_rls.py`.\n4. **Revisá los entornos ya desplegados:** si la 0412 corrió en staging o producción, ahí la policy también quedó en `USING (true)`. Hay que aplicar la migración nueva y evaluar si hubo lecturas cruzadas mientras tanto.\n\nNo verificado: no tengo el repo acá, así que no confirmé si hay otras policies con el mismo patrón `IF NOT EXISTS` sobre nombres heredados de borradores. Vale un `grep` de `CREATE POLICY` repetidos entre migraciones.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10519,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 821,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10519,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 821,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10519,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10519
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué pasó**\n\nLa migración `0398_scheduled_runs_draft.sql` (un borrador) creó la policy `scheduled_runs_ws` con `USING (true)`, es decir, sin ningún filtro: cualquier workspace ve todas las filas.\n\nDespués, `0412_scheduled_runs.sql` intenta crear la policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero la envuelve en un `IF NOT EXISTS` por nombre. Como el borrador ya había creado una policy con ese nombre, la 0412 la omitió en silencio (el WARNING del log: `already exists, skipped`). Resultado: la tabla quedó con la policy abierta y el workspace B ve las 2 filas del A.\n\nEl test está haciendo su trabajo: esto es una fuga real de datos entre workspaces, no un problema del test.\n\n**Qué hacer**\n\n1. **No edites 0398 ni 0412.** Según AGENTS.md, las migraciones ya aplicadas no se vuelven a correr, así que el cambio no tendría efecto donde ya se aplicaron.\n2. **Crea una migración nueva** (por ejemplo `04xx_fix_scheduled_runs_rls.sql`, con el siguiente número libre) que reemplace la policy:\n\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n\n   Verifica además que RLS esté habilitado en la tabla (`ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY;`, y `FORCE` si el rol de la app es el owner). Si quieres, agrega `WITH CHECK` con la misma condición para que también se restrinja la escritura.\n3. **Vuelve a correr** `pytest tuqui_core/tests/test_rls.py`; debería pasar.\n4. **Revisa los entornos ya desplegados** (staging/producción): si la 0398 llegó a aplicarse allí, la fuga existe ahí también. Aplica la migración nueva cuanto antes y evalúa si hubo accesos cruzados que haya que revisar o notificar.\n5. **Prevención:** el patrón `IF NOT EXISTS` por nombre oculta este tipo de errores. Para policies es mejor `DROP POLICY IF EXISTS` + `CREATE POLICY`, y conviene que el warning de \"skipped\" en migraciones haga fallar el CI.\n\nAún no he tocado ningún archivo. Si quieres, puedo crear la migración nueva; dime el siguiente número de migración o déjame mirar el directorio.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3596,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 976,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3596,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 976,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3596,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3596
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Tu compañero aplicó una migración destructiva de su rama sobre la base local, que es compartida entre worktrees. Ahora la base no tiene columnas que tu código todavía lee, y por eso ves `UndefinedColumnError` en tests que no tocaste. El lock de `flock` solo evita corridas simultáneas. No aísla el esquema, así que la base queda con la unión de las migraciones de los dos worktrees.\n\nPara arreglarlo y que no se repita, dale a tu worktree su propia base:\n\n1. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`. El archivo está gitignoreado. Apuntá ahí la URL de la base a una propia de este worktree.\n2. Corré `make migrate-reset`. Arma la base desde cero en unos 3 segundos y solo toca bases locales. No uses `npx supabase db reset`, porque aborta en los prefijos de migración repetidos.\n3. Hacé el paso 1 antes que el 2. Si no, `migrate-reset` resetea la base compartida y le rompe la corrida a tu compañero.\n\nCon la base propia ya no te pisan el esquema, pero seguís compartiendo Redis y el lock. Para soltar el lock, poné además un `REDIS_URL` con un índice propio (no el 15 ni el 0) y un `TEST_LOCK` distinto. Si aislás solo la base o solo Redis, el lock tiene que seguir.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10956,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 837,
+  "output_tokens_details": {
+   "thinking_tokens": 331
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10956,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 837,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10956,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10956
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

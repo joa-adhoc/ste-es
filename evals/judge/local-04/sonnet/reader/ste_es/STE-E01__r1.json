@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La policy usa current_setting('app.current_workspace_id'), pero no dice quién setea ese valor ni cómo. ¿Lo setea el application layer en cada conexión/transacción, y cómo hago lo mismo en el test de aislamiento? Además, ¿el nombre NNNN de la migración lo asigna el comando o tengo que elegir el número, dado que renombrar el archivo la vuelve a aplicar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me mostrás un ejemplo concreto de cómo tiene que ser el test de aislamiento en tuqui_core/tests/test_rls.py (fixtures, cómo se setea app.current_workspace_id y qué se asserta), o un test existente que pueda copiar? Y ya que estamos, ¿dónde va el modelo Pydantic?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La policy usa current_setting('app.current_workspace_id'), pero no dice quién setea ese valor ni cómo. ¿Lo setea el application layer en cada conexión/transacción, y cómo hago lo mismo en el test de aislamiento? Además, ¿el nombre NNNN de la migración lo asigna el comando o tengo que elegir el número, dado que renombrar el archivo la vuelve a aplicar?",
+ "followup_answer": "El material no dice quién setea `app.current_workspace_id` ni cómo, y tampoco dice si el comando asigna el número. Lo que sigue es conocimiento general de Postgres y del CLI de Supabase, no del repo. Confirmalo contra el código.\n\n**Quién setea el valor**\n\nLo normal es que el application layer lo setee en cada transacción, antes de cualquier query:\n\n```sql\nSELECT set_config('app.current_workspace_id', '<uuid-del-workspace>', true);\n```\n\nEl `true` limita el valor a la transacción actual, como `SET LOCAL`. Así no se filtra a otra request cuando la conexión vuelve al pool. Buscá en `tuqui_core` dónde se llama `set_config` o `current_workspace_id`. Ahí está el mecanismo real.\n\n**En el test de aislamiento**\n\nHacé lo mismo que el application layer, dentro de una transacción:\n\n1. Insertá filas para dos workspaces distintos.\n2. Corré `set_config(..., 'A', true)` y verificá que un `SELECT` ve solo las filas de A.\n3. Corré `set_config(..., 'B', true)` y verificá lo mismo para B.\n4. Verificá que un `INSERT` con el `workspace_id` del otro workspace falla.\n\nMirá cómo lo hacen los tests existentes en `tuqui_core/tests/test_rls.py` y copiá su fixture de conexión.\n\n**Dos trampas**\n\n- RLS no aplica al superusuario ni al dueño de la tabla, salvo que uses `FORCE ROW LEVEL SECURITY`. Si el test conecta con ese rol, pasa aunque la policy esté mal. Confirmá con qué rol conecta.\n- La policy no usa `current_setting(..., true)`. Si nadie setea el valor, la query falla con error en vez de devolver cero filas.\n- La policy de arriba no tiene `WITH CHECK`. Postgres reutiliza el `USING` para los `INSERT`, así que el paso 4 debería fallar igual.\n\n**El número NNNN**\n\nLo asigna el comando, no lo elegís vos. Ojo con un desvío: el material dice `NNNN_descripcion.sql`, pero el CLI de Supabase genera por defecto un prefijo de timestamp (`20261118153000_nombre.sql`). Corré el comando y mirá qué nombre sale. Comparalo con los archivos que ya hay en `supabase/migrations/`.\n\nFijá el nombre antes de abrir el PR. Si lo renombrás después, el tracking es por nombre y la migración se vuelve a aplicar sobre staging.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6511,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1362,
+  "output_tokens_details": {
+   "thinking_tokens": 453
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6511,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1362,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6511,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6511
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "46af6f2734"
+ }
+}

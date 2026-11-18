@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Hay una contradicción: la guía dice que para agentes de IA conviene una pasada completa antes de entregar, pero la convención de Adhoc dice que la validación pesada la corre CI. Para mí, como dev (no agente), ¿qué aplica exactamente? ¿Y en qué casos concretos del código transversal (config, db.pool, etc.) debería correr la suite entera local, con qué comando?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Hay una contradicción entre la excepción para agentes (correr la suite completa una vez antes de entregar) y la convención de Adhoc (la validación pesada la corre CI). ¿Cuál regla rige hoy para mí, y qué umbral concreto cuenta como 'cambio transversal' para correr la suite entera local?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué regla aplico yo cuando soy un agente de IA: corro la suite completa una vez antes de entregar o dejo que la valide CI? Y para los cambios transversales, ¿cuál es la lista exacta de módulos y el comando concreto para correr la suite entera?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Hay una contradicción: la guía dice que para agentes de IA conviene una pasada completa antes de entregar, pero la convención de Adhoc dice que la validación pesada la corre CI. Para mí, como dev (no agente), ¿qué aplica exactamente? ¿Y en qué casos concretos del código transversal (config, db.pool, etc.) debería correr la suite entera local, con qué comando?",
+ "followup_answer": "**Como dev, te aplica la regla general:** corrés `make test ARGS=<lo que tocaste>` y `make lint`, y la suite completa la corre CI. La excepción de agentes de IA no es para vos. Se apoya en que un agente no tiene tu criterio para elegir el subconjunto, y vos sí lo tenés.\n\n**Cambios transversales.** Es la única excepción del material que te toca. Si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, cada una arrastra ~76% de los archivos de test según el grafo de imports. Ahí \"lo que tocaste\" ya no es un subconjunto útil, y por eso la guía recomienda la suite completa local. El material no da más casos que esos cinco. Si tocás otro módulo muy importado, no hay regla escrita: ahí decidís vos.\n\n**Comando.** El material solo da `make test ARGS=<...>`. Lo más probable es que la suite completa sea `make test` sin `ARGS`, pero no lo verifiqué porque no tengo el repo ni el `Makefile`. Mirá `make help` o el target `test` para confirmarlo.\n\n**Sobre la contradicción que marqué antes.** Lo planteé solo para agentes, pero la convención de Adhoc dice que las suites largas no se lanzan en la máquina del dev. Eso choca también con la excepción transversal. El material no resuelve cuál gana. Lo que sigue es mi lectura, no una regla escrita:\n\n- Con CI en ~4 min, correr la suite entera local para un cambio transversal rinde poco. Lo mismo te dice CI en paralelo, sin ocupar tu máquina.\n- Corré local los tests de los módulos que tocaste y el lint. Si el cambio es transversal, pusheá y mirá `gh pr checks`.\n- Si algo falla en CI y no entendés por qué, reproducilo local antes del siguiente push. Eso sí está en la guía.\n- Si preferís la suite entera local, la guía te lo respalda para esos cinco módulos.\n\nConviene reportar el choque por `tuqui-report-feedback` o `adhoc-way-contribute`, para que la guía y la convención digan lo mismo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11055,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1211,
+  "output_tokens_details": {
+   "thinking_tokens": 442
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11055,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1211,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11055,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11055
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d1906cfc05"
+ }
+}

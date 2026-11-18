@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No todavía: ese comando descartaría trabajo que no está en ningún otro lado.\n\nLo que perdés con `git reset --hard origin/staging`:\n\n- **Cambios sin commitear** en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`. Se borran y no hay vuelta atrás.\n- **Los 3 commits sin pushear** (`a1b2c3d`, `d4e5f6a`, `0718293`). Quedan solo en el reflog.\n- El archivo sin trackear `supabase/migrations/0420_mcp_limits.sql` no lo toca `reset --hard`, pero seguiría ahí y chocaría con tu rama nueva.\n\nLa rama no tiene stash ni copia remota de ese trabajo (`ahead 3`), así que `origin/feat/limite-mcp` tampoco lo respalda.\n\nSi de verdad querés empezar de cero, primero guardá todo en una rama de respaldo:\n\n```bash\ngit switch -c backup/limite-mcp\ngit add -A\ngit commit -m \"wip: respaldo antes de reiniciar\"\ngit switch feat/limite-mcp\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nCon eso el trabajo queda en `backup/limite-mcp` y lo recuperás cuando quieras.\n\nDos cosas más:\n\n- **Si \"de cero\" es otra rama:** es más seguro crear una nueva desde la base con `git switch -c feat/limite-mcp-v2 origin/staging`. Dejás la actual intacta y no reescribís nada.\n- **El `.sql`:** si la migración ya no sirve, borralo a mano. Si sirve, el commit de respaldo lo incluye.\n\nConfirmame cuál de las dos opciones preferís y te doy los comandos finales. No corrí nada: no tengo acceso a ese repo desde acá.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10010,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 645,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10010,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 645,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10010,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10010
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

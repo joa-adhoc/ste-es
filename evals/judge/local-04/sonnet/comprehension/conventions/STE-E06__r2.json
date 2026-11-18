@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque los worktrees comparten la misma DB local (y el mismo Redis). La rama de tu compañero tiene una migración destructiva (por ejemplo, borra o renombra columnas) que se aplicó sobre la base compartida al correr sus tests. Tu código todavía lee esas columnas, así que tus tests fallan con `UndefinedColumnError`.",
+  "No. El texto dice que el `flock` de los targets de test solo evita que dos corridas se pisen al mismo tiempo, pero no aísla el esquema: si dos worktrees tienen migraciones distintas, la DB local queda con la unión de ambas. (El texto no menciona específicamente 'pytest'; habla del `flock` de los targets de test.)",
+  "Dándole a tu worktree una base propia: 1) copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local` (gitignoreado) y apuntá la URL de la DB a una base solo tuya; 2) armala desde cero con `make migrate-reset` (unos 3 segundos, solo toca bases locales); 3) volvé a correr los tests. No uses `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a7c515d26d",
+  "control": "d71584ce60"
+ }
+}

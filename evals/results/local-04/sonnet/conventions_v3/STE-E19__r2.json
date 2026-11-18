@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "La policy `scheduled_runs_ws` quedó con la versión del borrador (`USING (true)`), que deja pasar todas las filas, y por eso el workspace B ve las 2 filas del A.\n\n**Qué pasó**\n\n1. `0398_scheduled_runs_draft.sql:12` creó la policy con `USING (true)`.\n2. `0412_scheduled_runs.sql:20` intenta crear la versión correcta, pero la protege con `IF NOT EXISTS` por nombre.\n3. Como la policy ya existía, la 0412 la salteó. El log lo avisa: `policy \"scheduled_runs_ws\" already exists, skipped`.\n4. La policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`) nunca se aplicó.\n\nEs un bug real de aislamiento, no un test frágil. Si esto llegó a un entorno con datos, un workspace puede leer los `scheduled_runs` de otro.\n\n**Qué hacer**\n\nNo edites la 0398 ni la 0412: según `AGENTS.md`, ya aplicadas no se vuelven a correr. Creá una migración nueva (el número es un ejemplo; usá el siguiente libre):\n\n```sql\n-- supabase/migrations/0413_fix_scheduled_runs_policy.sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nAntes de aplicarla, verificá dos cosas, que yo no pude comprobar con lo que pegaste:\n\n- **RLS habilitado:** que la tabla tenga `ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY`. Si no, la policy no filtra nada. Se mira con `SELECT relrowsecurity FROM pg_class WHERE relname = 'scheduled_runs';`.\n- **Escrituras:** si la tabla acepta inserts o updates, agregá `WITH CHECK` con la misma condición. Con solo `USING`, un workspace podría escribir filas con otro `workspace_id`.\n\n**Después**\n\n1. Corré `pytest tuqui_core/tests/test_rls.py -q` y confirmá que pasa el `test_scheduled_runs_isolated`.\n2. Revisá si la 0398 ya está aplicada en staging o producción. Si lo está, esas bases tienen la policy abierta y la migración nueva las corrige, pero conviene revisar si hubo accesos cruzados mientras tanto.\n3. En el PR, explicá la razón: el `IF NOT EXISTS` de la 0412 enmascaró la policy del borrador. Para evitar que se repita, no uses `IF NOT EXISTS` por nombre en policies. Usá `DROP POLICY IF EXISTS` seguido de `CREATE POLICY`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10347,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1029,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10347,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1029,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10347,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10347
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

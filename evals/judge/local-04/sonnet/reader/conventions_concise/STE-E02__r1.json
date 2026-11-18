@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué consume hoy el campo `description` de los conectores: sólo la SPA, o también algún prompt, mail o la superficie MCP del backend? Pasame dónde se lee (o el código de los conectores) y con eso te confirmo si alcanza con migración, API y cliente."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Hoy, ¿la descripción de los conectores la consume sólo la SPA o también algún prompt, mail o la superficie MCP? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya está aplicada en todos los entornos?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué consume hoy el campo `description` de los conectores: sólo la SPA, o también algún prompt, mail o la superficie MCP del backend? Pasame dónde se lee (o el código de los conectores) y con eso te confirmo si alcanza con migración, API y cliente.",
+ "followup_answer": "No puedo decirte qué consume hoy `description`. El directorio de trabajo está vacío y no es un repo, así que no tengo el código de los conectores. Tampoco puedo confirmar que `0201_platform_connectors_description_i18n.sql` exista o esté aplicada: lo saqué del material, no del código.\n\nLo tenés que mirar vos en el repo. Buscá estos tres lugares:\n\n- **Prompts y mails:** `grep -rn \"description\" tuqui_core/ | grep -i connector`. Si alguna plantilla de prompt o de mail arma texto con `connector.description`, el backend tiene que resolver el idioma.\n- **Superficie MCP saliente:** buscá dónde se serializan los conectores hacia afuera, como tools o listados MCP. Si `description` sale ahí, también va en backend.\n- **SPA:** si sólo la leen cards o listados del front, alcanza con migración, API y cliente.\n\nSi el grep sólo encuentra el serializer de la API y componentes de la SPA, alcanza con migración, API, front y editor (pasos 1 a 4). Si aparece en un prompt, un mail o MCP, sumá los pasos 5 y 6: resolver en el server con `lang → en → legacy`, tomando el idioma de `resolve_response_language`, e incluir el idioma en el `queryKey`.\n\nSi me pasás el resultado del grep, o me abrís una sesión en el repo, te digo cuál de los dos casos es.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12340,
+  "cache_read_input_tokens": 46531,
+  "output_tokens": 804,
+  "output_tokens_details": {
+   "thinking_tokens": 169
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12340,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 505,
+    "cache_read_input_tokens": 29233,
+    "cache_creation_input_tokens": 405,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 405
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c01bd20013"
+ }
+}

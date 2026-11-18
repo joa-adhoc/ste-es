@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo puedo confirmar que no tengo cambios sin commitear ni commits sin pushear antes de resetear? Y si mi rama ya está pusheada o no tiene trabajo propio, ¿alcanza con el `git reset --hard origin/staging` directo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmarme cuál es la rama en la que estoy parado y si ese trabajo sin pushear ya está respaldado en algún lado? Y además, ¿el `git add -A` del respaldo no va a incluir también el .sql sin trackear y cualquier otro archivo que no quiero commitear? ¿Cuál de las dos opciones (respaldo + reset --hard, o rama nueva desde origin/staging) me recomendás para mi caso?",
+   "note": "La respuesta es clara en el 'no todavía', pero termina pidiendo que yo elija entre opciones sin una recomendación firme, así que necesito que me diga cuál le parece mejor antes de ejecutar."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo puedo confirmar que no tengo cambios sin commitear ni commits sin pushear antes de resetear? Y si mi rama ya está pusheada o no tiene trabajo propio, ¿alcanza con el `git reset --hard origin/staging` directo?",
+ "followup_answer": "Corré estos tres comandos. Si los tres dan vacío, no perdés nada.\n\n```bash\ngit fetch origin\ngit status --porcelain                  # vacío = sin cambios, ni staged, ni sin trackear\ngit log --oneline @{u}..HEAD            # vacío = nada sin pushear a tu rama remota\ngit log --oneline HEAD --not --remotes  # vacío = ningún commit existe solo en tu máquina\n```\n\n- **`git fetch` primero:** sin él, `@{u}` y `origin/staging` pueden estar desactualizados y el chequeo miente.\n- **`git status -sb`:** sirve de atajo. Si el encabezado trae `ahead N` o hay líneas debajo (`M`, `??`), hay trabajo local.\n- **El tercer comando** es el más estricto. Cubre el caso en que tu rama no tiene upstream y `@{u}` falla.\n\n**Si está limpio y todo pusheado, alcanza con el reset directo.** `git reset --hard origin/staging` no pierde nada, porque los commits siguen en `origin/feat/limite-mcp`.\n\nHay dos consecuencias:\n\n- **Tu rama local diverge de la remota.** Para publicarla vas a necesitar `git push --force-with-lease`. Si hay un PR abierto sobre esa rama, el push le reemplaza todo el contenido.\n- **El reset descarta archivos modificados o staged, pero no los sin trackear ni los ignorados.** Por eso el `??` de `0420_mcp_limits.sql` sobrevive aunque resetees.\n\nCon el estado que pegaste (2 archivos modificados, 1 sin trackear, `ahead 3`) los chequeos no dan vacío. **No** alcanza con el reset directo ahí; seguí con el respaldo de antes.\n\nSi querés empezar de cero sin tocar nada, `git switch -c <rama-nueva> origin/staging` evita toda esta verificación. No corrí ninguno de estos comandos: no tengo acceso a tu repo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10963,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1424,
+  "output_tokens_details": {
+   "thinking_tokens": 726
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10963,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1424,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 10963,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10963
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ac902b05cb"
+ }
+}

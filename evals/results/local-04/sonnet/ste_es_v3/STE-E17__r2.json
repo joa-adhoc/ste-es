@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool falla, `_wrap_tool` (en `agent.py`) atrapa la excepción y le devuelve al modelo un string `[TOOL_ERROR class=X]: message`. Si el modelo repite lo mismo 3 veces, el `DoomLoopGuard` lo corta con FATAL.\n\n```\n┌──────────────┐   ┌────────────┐   ┌───────────────┐   ┌──────────────────┐\n│ tool lanza   │──►│ _wrap_tool │──►│ ErrorClass    │──►│ DoomLoopGuard    │\n│ excepción    │   │ (agent.py) │   │ (tool_errors) │   │ .record(...)     │\n└──────────────┘   └────────────┘   └───────────────┘   └────────┬─────────┘\n                                                                 │\n                                   counter < 3 │                 │ counter ≥ 3\n                                               ▼                 ▼\n                                  ┌─────────────────┐   ┌─────────────────┐\n                                  │ exc.for_llm()   │   │ FATAL, bloquea  │\n                                  │ [TOOL_ERROR ..] │   │ calls idénticos │\n                                  └─────────────────┘   └─────────────────┘\n```\n\n**Del fallo al modelo**\n\n1. Si la excepción es `ToolError`, `_wrap_tool` la usa tal cual. Ya trae `error_class`, `message` y `retry_after_seconds`.\n2. Si es otra excepción (Python o httpx), `classify_unknown(exc)` la mapea a un `ErrorClass`.\n3. `_wrap_tool` devuelve `exc.for_llm()`, o sea `\"[TOOL_ERROR class=X]: message\"`. Antes devolvía un string genérico.\n\n**Cómo se corta el loop**\n\n- `record(tool_name, args, ok, error_class)` arma la key `\"{tool_name}|{hash(args)}|{error_class}\"` y cuenta cada falla.\n- Con `THRESHOLD=3`, cuando el contador llega a 3, `record` devuelve `True`. Entonces `_wrap_tool` devuelve FATAL e impide más calls idénticos.\n- Cualquier éxito limpia todos los contadores, no solo los de esa tool.\n- Como la clase está en la key, la misma tool con los mismos args cuenta aparte si falla con otra clase.\n- `CONNECTION` (Odoo caído) y `ODOO_NOT_CONNECTED` (nadie conectó Odoo en este run) tienen textos distintos. El guard corta las dos entre tools, cada una con su aviso.\n\nEl material no dice en qué orden exacto corren `record` y `for_llm`. Tampoco dice qué texto lleva el mensaje FATAL. Para eso, fijate en `_wrap_tool`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4443,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1436,
+  "output_tokens_details": {
+   "thinking_tokens": 468
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4443,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1436,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4443,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4443
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

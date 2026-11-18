@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no nombra el test de forma explícita, pero indica volver a correr `pytest tuqui_core/tests/test_rls.py -q`, es decir, los tests de RLS. Falla porque la policy `scheduled_runs_ws` quedó con `USING (true)`, así que el workspace B ve todo (los datos de otros workspaces).",
+  "Porque la 0412 usa `IF NOT EXISTS` y la policy ya existía con ese nombre (creada abierta por la 0398), así que la creación se salteó. Ese es el warning del log.",
+  "No. La 0398 y la 0412 ya están aplicadas y el tracking es por nombre de archivo, así que no se vuelven a correr; no hay que editarlas. Hay que crear una migración nueva (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que haga DROP POLICY IF EXISTS y vuelva a crear la policy con filtro por workspace, y revisar que staging y producción no sigan con la policy abierta (`true`)."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "5ed71d4317",
+  "control": "8368a6d09b"
+ }
+}

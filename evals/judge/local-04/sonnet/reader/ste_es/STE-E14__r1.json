@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los límites sin findings, o si falla el Planner o el Synthesizer? ¿Se muestra algo, se reintenta o se guarda un silencio?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el presupuesto de tiempo (watchdog) o sus límites sin devolver findings, y qué pasa si falla el Planner o el Synthesizer (excepción, timeout, JSON inválido)? ¿Se muestra algo, se reintenta o se guarda un silencio con motivo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el tiempo o sus límites sin findings, o cuando falla el Planner o el Synthesizer? ¿Termina sin mostrar nada, reintenta o tira error?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota el tiempo o los límites sin findings, o si falla el Planner o el Synthesizer? ¿Se muestra algo, se reintenta o se guarda un silencio?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas (mostrar algo, reintentar o guardar un silencio). No describe qué pasa cuando falla una etapa, ni hay reintentos ni manejo de errores del Planner, el Investigator o el Synthesizer.\n\nEsto es lo único que dice el material sobre los bordes:\n\n- **Investigator:** define los topes (`max_iterations`, `max_tool_calls`) y el presupuesto de tiempo por hipótesis, `(watchdog_sec - 30) / n_hypotheses`. No dice qué devuelve al agotarlos, si entrega findings parciales, si descarta la hipótesis o si lanza un error.\n- **Planner y Synthesizer:** el material solo cubre el caso en que devuelven una salida vacía válida (`silence_reason` o `debug_note=\"synth_all_rejected: ...\"`). No cubre una excepción o un timeout.\n- **LLM Judge:** es el único fallo con regla explícita. Si falla por infraestructura, el teaser pasa.\n- **Guardado:** el diagrama indica un `upsert` en `insights` de los 0-2 teasers. El material no dice si un silencio, con su `silence_reason` o `debug_note`, se persiste o solo queda en logs.\n\nPara saberlo hay que leer el manejo de excepciones en `investigator.py`, `planner.py` y `synthesizer.py`. También hay que ver el código que llama al pipeline y hace el `upsert`, y el `watchdog_sec`. No tengo ese código en este entorno. Si me pasás el repo o esos archivos, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7158,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 777,
+  "output_tokens_details": {
+   "thinking_tokens": 221
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7158,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 777,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 7158,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7158
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2c6a334f5d"
+ }
+}

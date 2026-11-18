@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Avisos (dos hitos de prueba, por defecto `{7, 0}`)**\n\n- **7 días antes**: aviso de \"prueba por vencer\".\n- **El día que vence**: segundo aviso, mientras el asistente todavía funciona.\n- Ambos salen del cron diario `_run_trial_expiry`, a las **12:00 UTC** (9 h en Argentina).\n- Los hitos son configurables (`billing_trial_warning_days_list`).\n- No se repiten: se marca con el par `trial_warning_for` + `trial_warning_days`. Si extienden la prueba, la fecha de fin cambia y vuelve a avisar.\n- El contenido (planes, precios, qué deja de funcionar) se deriva del estado, no de los catálogos de idioma.\n\n**A quién**\n\n- Siempre a **owners y admins**, aunque estén en `billing_tier = 'none'`. Un equipo en prueba puede no tener a nadie con asiento.\n- Además, a **todo miembro con asiento** (`billing_tier <> 'none'`). El asistente deja de responder para todo el equipo, y quien no puede pagar sí puede pedirlo.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence (sin suscripción viva)**\n\n- `plan = 'free'`.\n- Se evalúa si hay exceso sobre los límites del plan free.\n- Sale el mail de prueba vencida, a los mismos destinatarios.\n- Si hay exceso, el workspace pasa a `account_status = 'restricted'` con razón `trial_expired_with_excess`. Eso bloquea MCP y chat. Esto último lo infiero de la tabla de `account_status`, que lista \"trial expiry\" como causa de `restricted`. El material no detalla cuándo exactamente se marca.\n- Sin exceso, el material no dice que se restrinja.\n\n**Si ya tiene una suscripción viva**\n\n- Se limpian los flags de trial.\n- **No se manda ningún aviso**: para el owner no cambió nada visible, y el cobro se anuncia con su propio recibo.\n- El workspace no baja a free ni se restringe por este circuito.\n\n**Matiz**\n\nEl material no aclara si los avisos de 7 días y del día 0 también se suprimen cuando ya hay suscripción. Solo dice explícitamente que al vencer no se manda nada. Conviene confirmarlo en `_run_trial_expiry`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4176,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 857,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4176,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 857,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4176,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4176
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

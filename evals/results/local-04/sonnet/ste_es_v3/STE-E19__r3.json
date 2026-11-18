@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La policy `scheduled_runs_ws` quedó con `USING (true)` porque la migración 0398 la creó primero y la 0412 la salteó. Por eso el workspace B ve las filas del A.\n\n**Qué pasó**\n\n```\n0398_scheduled_runs_draft.sql   CREATE POLICY ... USING (true)          ← se aplicó\n0412_scheduled_runs.sql         IF NOT EXISTS (...) → ya existe, skipped ← la policy correcta nunca se creó\n```\n\nEl guard `IF NOT EXISTS` de la 0412 compara solo por nombre. Encontró la policy del draft y no hizo nada. El log lo avisa: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\n**Qué hacer**\n\nSegún AGENTS.md, no edites la 0412: ya se aplicó y no se vuelve a correr. Creá una migración nueva, por ejemplo `supabase/migrations/0413_fix_scheduled_runs_policy.sql`. Ajustá el número al siguiente libre.\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nDespués:\n\n1. Corré `pytest tuqui_core/tests/test_rls.py -q` y confirmá que pasa.\n2. Verificá que RLS esté habilitado en la tabla: `SELECT relrowsecurity FROM pg_class WHERE relname = 'scheduled_runs';`. Si da `f`, agregá `ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY;` a la migración.\n\n**Atención con producción**: si la 0398 ya corrió en otros entornos, esos entornos tienen la policy abierta (`USING (true)`). Aplicá la 0413 en todos y revisá si hubo lecturas cruzadas entre workspaces.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4308,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 706,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4308,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 706,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4308,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4308
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

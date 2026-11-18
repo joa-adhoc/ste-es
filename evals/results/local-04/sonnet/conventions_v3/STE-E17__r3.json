@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cuando una tool tira una excepción, `_wrap_tool` en `agent.py` la convierte en un string `[TOOL_ERROR class=X]: message`, y ese string es lo que ve el modelo. Si el mismo error se repite 3 veces, el `DoomLoopGuard` lo corta con un error `FATAL`.\n\n## Camino de la falla\n\n1. La tool lanza una excepción, que `_wrap_tool` captura.\n2. Si es un `ToolError`, lo usa tal cual. Si es otra excepción de Python o httpx, `classify_unknown(exc)` la mapea a un `ErrorClass`.\n3. `_wrap_tool` llama a `DoomLoopGuard.record(tool_name, args, ok=False, error_class)`.\n4. Si `record` devuelve `False`, `_wrap_tool` retorna `exc.for_llm()`. El modelo lo recibe como resultado de la tool, por ejemplo `[TOOL_ERROR class=NOT_FOUND]: ...`.\n5. Si `record` devuelve `True`, `_wrap_tool` devuelve un error `FATAL` en lugar del mensaje original.\n\nLa clase le dice al modelo qué hacer: no es lo mismo `RATE_LIMIT` (esperar), `INVALID_INPUT` (corregir los argumentos) o `PERMISSION` (no insistir).\n\n`CONNECTION` y `ODOO_NOT_CONNECTED` tienen textos distintos. `CONNECTION` es un Odoo caído (falla el transporte). `ODOO_NOT_CONNECTED` es que nadie conectó Odoo para ese run. A quien no conectó su Odoo no se le dice que la conexión está caída.\n\n## Corte del reintento\n\n- **Clave:** `\"{tool_name}|{hash(args)}|{error_class}\"`. Solo cuenta lo idéntico: misma tool, mismos argumentos y misma clase de error.\n- **Umbral:** `THRESHOLD=3`. Cuando el contador llega a 3, `record` devuelve `True` y el modelo recibe `FATAL`.\n- **Reinicio:** cualquier éxito limpia todos los contadores, no solo el de esa clave.\n- Cambiar los argumentos, o que el error cambie de clase, abre un contador nuevo.\n\n## No verificado\n\n- **Orden del corte:** el material no dice si el `FATAL` se devuelve en la llamada que alcanza el umbral o recién en la siguiente. Tampoco dice si \"impide más calls idénticos\" significa que ni se ejecutan. Se cierra leyendo `_wrap_tool`.\n- **Alcance entre tools:** dice que el guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` \"entre tools\", pero la clave incluye `tool_name`, y eso solo cuenta repeticiones dentro de una misma tool. Hay que mirar `guards.py` para saber si esas dos clases se agrupan aparte.\n- **`retry_after_seconds`:** no consta si `for_llm()` lo incluye en el texto.\n- **Texto del `FATAL`:** no consta qué mensaje recibe el modelo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10484,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1594,
+  "output_tokens_details": {
+   "thinking_tokens": 490
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10484,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1594,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10484,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10484
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

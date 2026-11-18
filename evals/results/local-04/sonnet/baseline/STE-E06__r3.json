@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Qué está pasando\n\nTodos los worktrees comparten **la misma base de datos local** (y el mismo Redis). Tu compañero corrió tests con una rama que tiene migraciones, y esas migraciones se aplicaron sobre la base compartida. Si alguna es destructiva (borra o renombra una columna), tu código, que todavía lee esa columna, falla con `UndefinedColumnError` en tests que ni tocaste.\n\nEl síntoma engaña: no dice \"falta una migración\", dice que falta una columna.\n\nEl `flock` que toman los targets (`test`, `test-rls`, etc.) evita que dos corridas se pisen **al mismo tiempo**. No aísla el esquema. Si dos worktrees tienen migraciones distintas, la base queda con la unión de las dos.\n\n## Cómo arreglarlo ahora\n\nDesde tu worktree:\n\n```bash\nmake migrate-reset\n```\n\nEsto arma una base desde cero en unos 3 segundos con las migraciones de **tu** rama. Solo toca bases locales.\n\nNo uses `npx supabase db reset`. Aborta en el primer prefijo numérico repetido (hoy hay 25), y `migrate-reset` ya resuelve eso.\n\nOjo: si tu compañero está corriendo tests en ese momento, se la vas a pisar. Avisale o esperá a que termine. Y como la base es compartida, a él le va a quedar el esquema de tu rama, así que el problema se invierte hasta que cada uno tenga la suya.\n\n## Cómo evitar que se repita\n\nDale a tu worktree su propia base:\n\n1. Copiá el ejemplo: `cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local`. El archivo está gitignoreado.\n2. Apuntá ahí la URL de la base a una propia, con un nombre distinto por worktree. Los targets cargan `.env.test` y encima este archivo.\n3. Corré `make migrate-reset` para crearla.\n4. Pedile a tu compañero que haga lo mismo con la suya.\n\nCon eso, las migraciones de una rama no le tocan el esquema a la otra.\n\n**Sobre el lock y Redis:** con base propia ya se resuelve el `UndefinedColumnError`. El lock, en cambio, sigue siendo necesario mientras compartan Redis. Si querés correr en paralelo sin esperar, además de la base necesitás un `REDIS_URL` con un índice de base propio. Elegí uno distinto del 15, que es el default compartido de `.env.test`, y del 0, que usa el server de desarrollo. Después podés usar un `TEST_LOCK` distinto. Aislar solo uno de los dos recursos no alcanza.\n\nNo sé cómo se nombra la variable de la base en `.env.test.local.example`. Mirá el ejemplo antes de editar, porque el material no la menciona.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4031,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 984,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4031,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 984,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4031,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4031
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

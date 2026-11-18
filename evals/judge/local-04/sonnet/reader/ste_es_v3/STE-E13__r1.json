@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando vence la prueba sin exceso, ¿el workspace también queda en `restricted` o solo pasa a `free` con el asistente funcionando? Y si ya tiene suscripción viva, ¿el aviso de 7 días se manda o se suprime desde antes? Confirmalo en `scheduler/billing_cron.py::_run_trial_expiry`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta deja dos puntos sin cerrar que afectan lo que pasa el día del vencimiento y quién recibe qué: ¿el workspace queda en 'restricted' también cuando vence sin exceso (o solo pasa a 'free' sin bloqueo de MCP y chat)? Y ¿el aviso de 7 días se manda a quien ya tiene suscripción viva, o el cron lo suprime antes de llegar a ese hito?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Faltan dos datos para quedarme tranquilo: ¿el workspace queda en `restricted` también cuando la prueba vence sin exceso, o solo con exceso (`trial_expired_with_excess`)? Y ¿el aviso de 7 días se manda también a workspaces que ya tienen suscripción viva, o el cron los saltea antes de avisar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando vence la prueba sin exceso, ¿el workspace también queda en `restricted` o solo pasa a `free` con el asistente funcionando? Y si ya tiene suscripción viva, ¿el aviso de 7 días se manda o se suprime desde antes? Confirmalo en `scheduler/billing_cron.py::_run_trial_expiry`.",
+ "followup_answer": "El directorio de trabajo está vacío, así que no pude abrir `scheduler/billing_cron.py`. No puedo confirmar ninguna de las dos cosas en el código. Lo que sigue sale solo del material.\n\n**Vence sin exceso: el material no lo dice.**\n- Dice que sin suscripción viva pasa a `plan='free'`, se evalúa exceso y sale el mail.\n- Dice que `restricted` lo setea \"trial expiry\", pero solo nombra `trial_expired_with_excess` como motivo. Eso sugiere que `restricted` depende del exceso. Es una inferencia mía, no un dato.\n- Si queda `restricted`, el chat y MCP quedan bloqueados. Si queda `active`, el asistente sigue funcionando.\n\n**Aviso de 7 días con suscripción viva: el material tampoco lo dice.**\n- Solo describe que al vencer se limpian los flags y no se manda nada.\n- No aclara si el cron filtra por suscripción antes de enviar el aviso de 7 días.\n\nPara resolverlo, abrí `_run_trial_expiry` y fijate en dos puntos:\n1. Si el seteo de `account_status='restricted'` está dentro del `if` de exceso o fuera de él.\n2. Si el filtro de la query de candidatos o el envío del hito excluye a los workspaces con suscripción viva.\n\nSi me pasás la ruta del repo o pegás la función, lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6228,
+  "cache_read_input_tokens": 63844,
+  "output_tokens": 717,
+  "output_tokens_details": {
+   "thinking_tokens": 24
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6228,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 500,
+    "cache_read_input_tokens": 23379,
+    "cache_creation_input_tokens": 138,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 138
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e1cd50459f"
+ }
+}

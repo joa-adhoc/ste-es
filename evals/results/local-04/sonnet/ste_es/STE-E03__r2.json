@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Corré `make worktree-setup` desde el worktree, instalá la dependencia Python en el clone principal y corré `npm ci` en el worktree.\n\n```bash\n# 1. En el worktree: linkea .venv, .env, node_modules, .mcp.json, etc. al clone principal\nmake worktree-setup\n\n# 2. Dependencia Python nueva: instalala en el clone principal, no acá\ncd <ruta-al-clone-principal> && make install\n\n# 3. De vuelta en el worktree: node_modules propio porque tocaste web/package.json\nnpm ci --prefix web   # o `cd web && npm ci`\n\n# 4. Tests\nmake test\nmake test-web\n```\n\n- **No corras `make install` en el worktree.** Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te avisa.\n- **Alternativa para la dependencia Python:** borrá el link de `tuqui_core/.venv` y armá un venv propio en el worktree. Así el clone principal no cambia.\n- **Efecto de instalar en el clone principal:** el `.venv` es compartido, así que todos los worktrees ven la dependencia nueva.\n- **Sin `make worktree-setup`**, `make test` falla con \"Venv no encontrado\".\n- **Sobre `npm ci`:** los `node_modules` son del clone principal, y por eso `npm ci` va en el worktree antes de `make test-web`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5094,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 683,
+  "output_tokens_details": {
+   "thinking_tokens": 201
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5094,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 683,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5094,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5094
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

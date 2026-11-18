@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults es un wrapper 1→1: no cumple (a) (es componible con `odoo_create`), ni (d) (el umbral duro excluye wrappers 1→1, aunque ahorre tokens de esquema). Los defaults los puede poner la skill en las instrucciones.\n\n**Criterio:** tool nativa solo si cumple al menos uno de (a) no componible, (b) gate/identidad propia con menor blast radius, (c) procedimiento crítico, (d) colapsa ≥3 calls o un loop no acotado. Si no, skill.\n\n**Lo que tendrías que revisar antes de decidir:**\n\n- **(b2) es la única vía realista para tu caso.** Si la tool tuviera un gate `create` más fino que el genérico (como `odoo_copy`), calificaría y valdría en chat y MCP. Pero un `odoo_create` con defaults sobre un modelo fijo solo cae acá si la whitelist es más estrecha que la del `odoo_create` genérico (por ejemplo, permitir crear solo en ese modelo sin habilitar `create` genérico). Si el gate es el mismo, no califica.\n- **(c)** aplica solo si hay un paso de compliance duro que el LLM no puede saltear. Si los defaults son solo conveniencia, no.\n- **(d)** aplica si además de crear hay que resolver cosas antes (por ejemplo, buscar partner, validar, crear líneas) y eso suma ≥3 calls o un loop. Si es una sola call, no.\n\n**Si la tool también se expone por el MCP saliente:** sí cambia. (b1) y (c) no tienen palanca ahí (no hay approval ni turno donde forzar pasos; `requires_approval` lo ignora el router MCP). Entonces en MCP solo se justifica por (a), (b2) o (d). Si tu justificación en chat era approval propio (b1), en MCP desaparece, y es el caso de `odoo_schedule_activity`: se demotó a skill y ya estaba en `MCP_EXCLUDED_TOOLS`.\n\n**Regla práctica:** si tu único argumento es \"evita que el LLM arme el payload\" o \"ahorra tokens de esquema\", es skill. Si es \"whitelist más estrecha\" (b2) o \"colapsa un procedimiento multi-call\" (d), es tool y funciona en ambas superficies.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4581,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 828,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4581,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 828,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4581,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4581
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

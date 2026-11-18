@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración habla de \"dos redirects\", pero el diagrama muestra más pasos (clic, GET /start, redirect al provider, callback, redirect a la SPA) y el paso 8 de refresh ni aparece dibujado. ¿Cuáles son exactamente los dos redirects y cómo se numeran los pasos del flujo? Además, ¿qué significa \"no contestan\" para una habilidad (timeout, error HTTP, 401) y cómo decide el backend que una habilidad contestó o no?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El diagrama arranca en el paso 2 y el texto habla de un paso 8 que no aparece dibujado, y la primera oración no cuenta el flujo, solo dice que hay dos redirects. ¿Podés listar los pasos 1 a 8 en orden, indicando en cada uno quién actúa (front, backend o provider) y qué dos redirects son los que mencionás?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera frase dice que hay 'dos redirects', pero el diagrama muestra el paso 4 (front → provider) y el paso 7 (backend → SPA), y además el GET /start. ¿Cuáles son exactamente esos dos redirects? Y aclarame qué significa 'no contestan' para una habilidad: ¿es timeout, error de auth, 401/403 o cualquier fallo en la prueba de humo? ¿Qué pasa con el token en el caso parcial si esa habilidad falló justamente por scopes insuficientes?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La primera oración habla de \"dos redirects\", pero el diagrama muestra más pasos (clic, GET /start, redirect al provider, callback, redirect a la SPA) y el paso 8 de refresh ni aparece dibujado. ¿Cuáles son exactamente los dos redirects y cómo se numeran los pasos del flujo? Además, ¿qué significa \"no contestan\" para una habilidad (timeout, error HTTP, 401) y cómo decide el backend que una habilidad contestó o no?",
+ "followup_answer": "Fue un error mío: son tres redirects, no dos. El material no define qué significa \"no contestan\" ni cómo decide el backend.\n\n**Los tres redirects**\n- **Paso 4:** el front redirige al navegador del usuario al provider.\n- **Paso 5:** el provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n- **Paso 7:** el backend redirige al SPA, a `/w/{slug}/settings/connectors?connected={server_id}` o a la página del miembro.\n\n**Numeración del flujo**\n1. El admin registra el server (previo, una sola vez).\n2. El usuario clickea **Connect**.\n3. El front llama a `GET /start` y el backend devuelve `authorize_url`.\n4. El front redirige al provider.\n5. El provider redirige al callback.\n6. El backend valida el state, intercambia el code y guarda los tokens. Después corre la prueba de humo.\n7. El backend redirige al SPA.\n8. `refresh_if_expired` corre más tarde, al construir los toolsets. No forma parte del connect, por eso no estaba en el dibujo. El paso 1 tampoco, porque es previo.\n\n**Qué es \"no contestan\"**\n- El material solo dice que el callback \"introspecta todas las habilidades habilitadas en paralelo\". Una habilidad \"contesta\" o no según esa introspección.\n- No dice si un timeout, un error HTTP o un 401 cuentan como \"no contesta\". Tampoco dice si hay reintentos ni qué timeout se usa.\n- No voy a suponerlo. Si me pasás el código del callback, lo busco ahí. Sin acceso al repo, ese dato tiene que salir de quien escribió esa parte.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7108,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 921,
+  "output_tokens_details": {
+   "thinking_tokens": 328
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7108,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 921,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 7108,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7108
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c76efcb7f8"
+ }
+}

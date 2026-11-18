@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta se contradice en lo del venv: dice que instale la dependencia de Python en el clone principal, pero ese venv es compartido con el worktree y con otras ramas. ¿Eso no rompe a los demás worktrees o a main si mi dependencia nueva todavía no está mergeada? ¿Cuál es la forma segura de hacerlo: venv propio en el worktree (con qué comandos exactos) o instalar en el principal? Y para web, ¿cuál es la secuencia exacta (borrar el link `web/node_modules` y después `npm ci`) para no tocar el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Para la dependencia de Python no me quedó claro qué hago exactamente: ¿la instalo en el clone principal (con qué comando, y se rompe algo en otros worktrees que comparten ese venv) o armo un venv propio en el worktree (con qué pasos para que `make test` lo use en vez del link)? Y para `web/package.json`, ¿borro el link `web/node_modules` antes de `npm ci` o no? Quedó dicho que eso no está verificado, así que necesito saber cuál es el camino seguro."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo instalo la dependencia de Python nueva en el clone principal sin que rompa otros worktrees, y si borro el link de web/node_modules para hacer npm ci, ¿tengo que borrar también el link de tuqui_core/.venv y armar un venv propio con un comando concreto (cuál)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta se contradice en lo del venv: dice que instale la dependencia de Python en el clone principal, pero ese venv es compartido con el worktree y con otras ramas. ¿Eso no rompe a los demás worktrees o a main si mi dependencia nueva todavía no está mergeada? ¿Cuál es la forma segura de hacerlo: venv propio en el worktree (con qué comandos exactos) o instalar en el principal? Y para web, ¿cuál es la secuencia exacta (borrar el link `web/node_modules` y después `npm ci`) para no tocar el del clone principal?",
+ "followup_answer": "Tenés razón. Mi respuesta anterior ponía como primera opción instalar en el clone principal, y es la peor.\n\n**Python: usá un venv propio.** Instalar en el clone principal modifica el venv que comparten main y los demás worktrees. Tu dependencia quedaría instalada ahí antes de estar mergeada. Si además mueve versiones de otros paquetes, cambia el entorno de todos. Nada de eso figura en el material. Es lo que se deduce de que el venv sea compartido.\n\nDesde el worktree, esta es la secuencia que yo usaría:\n\n```bash\nrm tuqui_core/.venv     # sin barra final: borra solo el link, no el venv del principal\nmake -n install         # dry-run: mirá qué hace el target antes de correrlo\nmake install            # solo si el dry-run crea el venv e instala\n```\n\nNo verifiqué los comandos exactos. El material dice solo \"borrá el link y armate un venv propio\". No dice si `make install` funciona una vez borrado el link, ni cómo se declaran las dependencias. Por eso el `make -n`: te muestra qué comandos corre el target. Si el target sigue negándose, armá el venv a mano con esos mismos comandos.\n\n**Web: la secuencia que describís es la correcta.** Tampoco figura en el material, pero es la lógica del link:\n\n```bash\nrm web/node_modules     # sin barra final: borra solo el link\ncd web && npm ci\n```\n\n`npm ci` borra e instala `node_modules`. Con el link todavía puesto, escribiría en el `node_modules` del clone principal. Borrando el link primero, instala en una carpeta local del worktree.\n\nNo vuelvas a correr `make worktree-setup` después. Probablemente recree los links. No lo verifiqué.\n\nTampoco sé si `web/` usa el `node_modules` de la raíz, que también se linkea. Si `make test-web` falla por módulos faltantes, revisá eso primero.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11449,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1381,
+  "output_tokens_details": {
+   "thinking_tokens": 716
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11449,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1381,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11449,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11449
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9aed5221f3"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup` desde el worktree. Linkea al clone principal el `.venv`, los `.env`, `node_modules`, `web/node_modules` y `.mcp.json`. Sin eso, `make test` falla con \"Venv no encontrado\".\n\nComo tu branch toca `web/package.json` y suma una dependencia de Python, hacé esto:\n\n```bash\nmake worktree-setup   # linkea lo que no viaja en git\nnpm ci                # en el worktree, antes de make test-web\nmake test\nmake test-web\n```\n\n- **No corras `make install` en el worktree.** Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega y te avisa.\n- **La dependencia de Python va en el clone principal.** Instalala ahí, o borrá el link del `.venv` y armate un venv propio en el worktree. El `.venv` compartido no la tiene hasta que lo hagas.\n- **`npm ci` va en el worktree.** Los `node_modules` linkeados son del clone principal, y no reflejan tu `web/package.json`.\n\nPara un subconjunto de tests: `make test ARGS=\"tests/test_rls.py -k policy\"`. Los paths son relativos a `tuqui_core/`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5092,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 421,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5092,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 421,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5092,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5092
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

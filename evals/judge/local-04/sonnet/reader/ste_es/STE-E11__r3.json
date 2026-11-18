@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está seteado hoy en staging y en prod, y dónde lo reviso (Railway, variables del servicio)? Si no está en prod, ¿la migración queda pendiente sin avisar o el deploy falla?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde y quién setea MIGRATIONS_ALLOW_DESTRUCTIVE en los servicios de staging y prod (Railway, variables del servicio, etc.), y cómo verifico que está en 1 antes de mergear? Si no lo está, ¿la migración queda pendiente sin avisar o el deploy falla?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice dónde está seteado MIGRATIONS_ALLOW_DESTRUCTIVE en prod. ¿Está en 1 en prod? ¿Dónde lo configuro o lo verifico, y qué pasa si está en 0: la migración queda pendiente sin aplicarse y el código nuevo falla?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿MIGRATIONS_ALLOW_DESTRUCTIVE=1 está seteado hoy en staging y en prod, y dónde lo reviso (Railway, variables del servicio)? Si no está en prod, ¿la migración queda pendiente sin avisar o el deploy falla?",
+ "followup_answer": "**Staging:** sí, el flag está en 1 hoy. El material dice que un PR env \"hereda el flag de staging\", y que así un preview aplicó `0180_chat_ga`. Es lo que el material implica, no una lectura directa de las variables.\n\n**Prod:** el material no dice si el flag está seteado. Revisalo vos.\n\n**Dónde mirar:** el material no lo indica. Lo habitual es Railway, en las variables del servicio de cada environment (staging y prod). Confirmalo con quien administra el proyecto.\n\n**Si falta en prod:** el deploy no falla. El runner saltea la migración **sin registrarla** en `_migrations`, así que queda pendiente. Cada deploy posterior la vuelve a evaluar y la saltea hasta que el flag valga 1.\n\n**Aviso:** el material no dice si el runner loguea algo al saltearla. No asumas que avisa. Después del deploy, buscá el nombre de tu archivo en `_migrations` para confirmar que se aplicó:\n\n```sql\nSELECT * FROM _migrations WHERE name LIKE '%tu_migracion%';\n```\n\nEl nombre exacto de la columna puede variar. Ajustá la consulta al esquema real de la tabla.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6353,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 734,
+  "output_tokens_details": {
+   "thinking_tokens": 312
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6353,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 734,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6353,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6353
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4f8f573a57"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración se crea con `supabase migration new <nombre>` y queda en `supabase/migrations/NNNN_descripcion.sql`.",
+  "La tabla tiene que tener la columna `workspace_id uuid NOT NULL`, `ENABLE ROW LEVEL SECURITY` y una policy que use `current_setting('app.current_workspace_id')::uuid` (en el ejemplo, `workspace_id = current_setting('app.current_workspace_id')::uuid`). Si la tabla no lleva `workspace_id`, hay que discutirlo antes con el equipo, porque es la excepción.",
+  "Porque el preview del PR corre tus migraciones contra la base de staging (usa el mismo `DATABASE_ADMIN_URL` que el runner, no es una copia), así que la migración se aplica en staging apenas abrís el PR. Además, si renombrás el archivo se vuelve a aplicar, porque el tracking es por nombre. Por eso la migración tiene que poder ejecutarse más de una vez sin romper (IF NOT EXISTS en tabla e índices, bloque DO $$ en la policy). El texto remite a docs/infra-ci-cd.md para las consecuencias completas, pero no las detalla."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "84237b8886",
+  "control": "cb1718959b"
+ }
+}

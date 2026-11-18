@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Antes de decidir si toco el backend: ¿me podés confirmar dónde se consume hoy la descripción de los conectores fuera de la SPA (prompts del LLM, mails, listado de tools MCP)? Y si la migración 0201_platform_connectors_description_i18n.sql ya existe en supabase/migrations/, ¿ya trae la columna description_i18n o tengo que crearla?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que no verificaste qué consume hoy la descripción del conector. ¿Me das el comando concreto (grep/rg) para buscar dónde se lee `description` de los conectores fuera de la SPA (prompts, mails, MCP), y confirmás si la migración 0201_platform_connectors_description_i18n.sql ya existe en supabase/migrations/?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Antes de decidir si toco el backend: ¿me podés confirmar dónde se consume hoy la descripción de los conectores fuera de la SPA (prompts del LLM, mails, listado de tools MCP)? Y si la migración 0201_platform_connectors_description_i18n.sql ya existe en supabase/migrations/, ¿ya trae la columna description_i18n o tengo que crearla?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas, porque el repo no está en esta máquina. El directorio de trabajo (`/tmp/ste-es-eval-n3__26rg`) está vacío: no hay `supabase/migrations/` ni código de `tuqui_core`. Con eso no tengo cómo saber qué lee hoy la descripción de los conectores, ni qué trae la migración `0201`.\n\n**Migración `0201_platform_connectors_description_i18n.sql`**\n- No verificado si existe ni qué contiene. El nombre sugiere que agrega `description_i18n` a `platform_connectors`, pero es una suposición mía a partir del nombre que cita el material.\n- Para cerrarlo, corré esto en el repo:\n  ```\n  ls supabase/migrations | grep -E '0201|connectors'\n  grep -n \"description_i18n\" supabase/migrations/*.sql\n  ```\n  Si aparece un `ADD COLUMN description_i18n JSONB` sobre `platform_connectors`, la columna ya está y no hace falta crearla. Si el archivo no existe, o agrega otra cosa, hay que escribir la migración.\n\n**Quién consume la descripción fuera de la SPA**\n- Tampoco lo puedo confirmar desde acá. Para el backend, buscá estos puntos:\n  ```\n  grep -rn \"platform_connectors\" --include=*.py .\n  grep -rn \"connector.*description\\|\\.description\" --include=*.py tuqui_core | grep -i connector\n  ```\n- Revisá en el resultado tres cosas:\n  - Si la descripción entra a un prompt del LLM, por ejemplo en el armado del catálogo de herramientas o conectores.\n  - Si se usa en una plantilla de mail.\n  - Si se expone en el listado de tools de la superficie MCP saliente.\n- Si ninguno la lee, alcanza con el cliente. En ese caso hacés la migración (si falta), el serializer que devuelve el mapa, `localizedField` en el front y el editor con los dos inputs.\n- Si alguno la lee, también hay que resolverla en el backend. Usá la misma cadena `lang → en → legacy`, con `lang` tomado de `resolve_response_language(workspace_id, user_id)`.\n\nSi me das acceso al repo, con la ruta o abriendo la sesión ahí, hago esas búsquedas y te devuelvo los archivos y líneas concretos.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12278,
+  "cache_read_input_tokens": 46287,
+  "output_tokens": 1228,
+  "output_tokens_details": {
+   "thinking_tokens": 92
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12278,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 835,
+    "cache_read_input_tokens": 28998,
+    "cache_creation_input_tokens": 569,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 569
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a56600ae09"
+ }
+}

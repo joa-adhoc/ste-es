@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Skill.** Un `odoo_create` con defaults es un wrapper 1→1, y eso no califica como tool nativa por ningún eje.\n\nChequeá los ejes en este orden:\n\n- **(a) No componible:** falla. `odoo_create` con esos valores ya lo resuelve.\n- **(d) Eficiencia:** falla por el umbral duro. Una sola call genérica no califica, aunque ahorre tokens de esquema.\n- **(b2) Whitelist más fina:** solo vale si el gate `create` genérico es más permisivo que tu tool. Por ejemplo, si `odoo_create` deja crear en muchos modelos y tu tool solo en uno. Como el gate de `odoo_create` ya es `create`, probablemente no ganás nada.\n- **(b1) Approval propio:** vale solo en chat. Lo consume `tuqui_core/chat/permissions.py`.\n- **(c) Procedimiento crítico:** solo si saltearse el paso tiene costo de compliance real. Poner defaults no lo es.\n\n**Con el MCP saliente:** (b1) y (c) dejan de valer, porque el router ignora `requires_approval` y no hay un turno donde forzar pasos. Ahí solo justifican una tool (a), (b2) o (d). Para tu caso el veredicto es el mismo y queda más firme. Si tu único argumento era un approval propio, la tool no aporta nada en MCP. Es el caso de `odoo_schedule_activity`, que ya estaba en `MCP_EXCLUDED_TOOLS`.\n\nReconsiderá solo si aparece algo de esto:\n\n- El modelo exige una whitelist más fina que `create` genérico (b2).\n- El flujo pasa a ser ≥3 calls o un loop no acotado (d).\n- Un skip del LLM tiene costo real de compliance (c, solo en chat).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5523,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 997,
+  "output_tokens_details": {
+   "thinking_tokens": 354
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5523,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 997,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5523,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5523
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,71 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa con el usuario cuando solo algunas habilidades no contestan: hay reintento o re-introspección, o tiene que desconectar y reconectar? Y en ese caso parcial, ¿el redirect lleva también `connected={server_id}` además de `connect_warning`?",
+   "note": "La respuesta arranca con un título y una tabla de configuración, no con una respuesta directa. Cubre bien el flujo, pero deja abiertos justo los dos puntos del caso parcial que yo pregunté."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el código del callback si el redirect del caso parcial también incluye `connected=` y qué pasa después con las habilidades que fallaron (hay reintento o el usuario tiene que reconectar)?",
+   "reason": "La respuesta arranca con un título y una tabla en vez de una oración que resuma el flujo, y deja sin resolver justo la parte de qué pasa con las habilidades rotas después del intercambio."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se recupera el usuario cuando el callback lo deja conectado pero algunas habilidades no contestan: hay reintento automático, hay que reconectar o hay otra acción? Y en ese caso parcial, ¿el redirect incluye también `connected=` además de `connect_warning=`?",
+   "reason": "La respuesta empieza con el título y una sección de configuración, no con una síntesis del flujo. Además deja sin resolver la parte operativa de la pregunta (qué hacer con las habilidades que fallan) y admite que no sabe si el redirect parcial lleva `connected=`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa con el usuario cuando solo algunas habilidades no contestan: hay reintento o re-introspección, o tiene que desconectar y reconectar? Y en ese caso parcial, ¿el redirect lleva también `connected={server_id}` además de `connect_warning`?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas. El directorio de trabajo (`/tmp/ste-es-eval-4ahipg16`) está vacío. Busqué `connect_warning`, `mcp-oauth` y `refresh_if_expired` y no apareció ningún archivo. Todo lo que sigue sale del texto que pasaste, no del código.\n\n**1. ¿Hay reintento, re-introspección o hay que reconectar?**\n\nEl material no lo dice. Solo describe la prueba de humo que corre una vez en el callback, justo después del canje de tokens. Describe dos efectos:\n- El usuario queda conectado.\n- El redirect lleva `connect_warning=<habilidades>`.\n\nEl texto no menciona ningún reintento ni una segunda introspección, ni en el callback ni en un job aparte. Tampoco menciona un botón de reintentar en la card.\n\nLo que sí se puede decir con base en el texto:\n- El paso 8 (`refresh_if_expired`) solo renueva el token. No vuelve a introspectar habilidades.\n- El usuario conserva un token válido. Las habilidades que sí contestaron siguen usables, y por eso se eligió no desconectarlo.\n\nQue haya que desconectar y reconectar es una inferencia mía: sería la única vía que el material deja abierta para volver a correr la prueba de humo. No está documentado. Si las habilidades rotas se recuperan solas, por ejemplo porque se introspectan de nuevo al construir los toolsets, eso depende del código.\n\n**2. ¿El redirect parcial lleva también `connected={server_id}`?**\n\nEl material tampoco lo dice. Solo da el parámetro `connected=` para el redirect del paso 7, y `connect_warning=` y `connect_error=` para la prueba de humo. No dice si se combinan.\n\nMi suposición es que sí lleva ambos. El usuario queda conectado y el landing del paso 7 se calcula igual. Es una suposición y no un hecho. También es posible que el front derive el estado \"conectado\" de otro lado y `connect_warning` reemplace a `connected`.\n\n**Cómo cerrarlo**\n\nSi me pasás el repo o los archivos del callback, lo verifico directamente. Busco el handler de `GET /api/mcp-oauth/callback`, cómo arma la query del redirect cuando hay fallos parciales, y si algún otro código vuelve a introspectar las habilidades.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6498,
+  "cache_read_input_tokens": 40722,
+  "output_tokens": 1101,
+  "output_tokens_details": {
+   "thinking_tokens": 96
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6498,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 832,
+    "cache_read_input_tokens": 23442,
+    "cache_creation_input_tokens": 336,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 336
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1d0a8068e1"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E28",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Revisé el PR #1840 (\"feat: búsqueda de partners por CUIT\", de lav, hacia staging) y encontré un problema que bloquea el merge. Todavía no publiqué nada, ni en GitHub ni en la tarea.\n\n**Bloqueante**\n- `tuqui_core/odoo/partners.py:88` arma el SQL con un f-string: `f\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"`. El `cuit` viene del usuario, así que es una inyección SQL. Hay que pasarlo como parámetro de la consulta, no interpolarlo en el string.\n\n**Detalles menores**\n- `test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\n**Límites de la revisión**\n- Leí completos `partners.py` y `test_partners.py`.\n- Los checks de CI están todos en verde, pero no corrí los tests en local.\n- Que CI esté verde no descarta la inyección, porque los tests actuales no la ejercitan.\n\nMi propuesta es pedir cambios en el PR con el hallazgo de la inyección como motivo y dejar los dos detalles como sugerencias. ¿Lo publico así o querés ajustar algo antes?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3377,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 448,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3377,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 448,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3377,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3377
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

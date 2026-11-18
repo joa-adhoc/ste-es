@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La versión solo-data que crea un refresh queda sin publicar (y entonces quien tiene el link sigue viendo los datos viejos), o el refresh la publica automáticamente? La respuesta no lo aclara y es justo lo que necesito saber para el caso de los datos refrescados."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La versión solo-data que crea un refresh queda publicada automáticamente o queda como cambio sin publicar? Es decir: ¿quien tiene el link ve los datos refrescados de inmediato o hay que correr publish(version)?",
+   "note": "La primera oración responde bien lo de editar y lo del refresh, pero el material admite que no verifica si el refresh publica solo, y eso es justo lo que define qué ve quien tiene el link tras un refresh."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuando solo se refrescan los datos, la versión solo-data queda publicada automáticamente (y por lo tanto el que tiene el link ve los datos nuevos) o hay que correr publish a mano?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿La versión solo-data que crea un refresh queda sin publicar (y entonces quien tiene el link sigue viendo los datos viejos), o el refresh la publica automáticamente? La respuesta no lo aclara y es justo lo que necesito saber para el caso de los datos refrescados.",
+ "followup_answer": "El material no lo dice, así que no puedo confirmarlo.\n\nLo que sí hay es una inferencia. El material solo describe un camino para crear versiones sobre un artifact existente: `save` con `artifact_id`. Ese camino crea la v(n+1), mueve `current_version_id` y no toca `published_version_id`. El texto tampoco menciona ninguna excepción para versiones solo-data. Si el refresh pasa por ese `save`, la versión solo-data queda sin publicar. Quien tiene el link seguiría viendo los datos viejos hasta que alguien corra `publish`. Pero el material no dice que el refresh use ese `save`.\n\nSi se publica esa versión solo-data, `_effective_version` resuelve `content` hacia atrás. El link mostraría el diseño publicado anterior con los datos nuevos.\n\nNo verificado. Para cerrarlo, tenés dos opciones:\n- Leer en `service.py` la función que implementa el refresh. Fijate si llama a `publish` o si mueve `published_version_id`.\n- Hacer un refresh sobre un artifact ya compartido y mirar si el result trae `unpublished_changes: true`. Si lo trae, el refresh no publica.\n\nSi me pasás el código del servicio, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11636,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 787,
+  "output_tokens_details": {
+   "thinking_tokens": 351
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11636,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 787,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11636,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11636
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "60a6a6d135"
+ }
+}

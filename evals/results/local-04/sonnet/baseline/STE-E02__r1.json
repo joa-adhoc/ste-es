@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Depende de quién consume la descripción. Si sólo la pinta la SPA, alcanza con el cliente. Si además entra a un prompt, a un mail o sale por MCP, hay que tocar también el backend.\n\nCon los conectores hay que mirar bien el segundo caso. Su descripción suele llegar a un prompt del agente o a la superficie MCP, y ahí no hay cliente que resuelva el idioma.\n\n## Pasos de punta a punta\n\n1. **Decidí quién consume el campo.** Revisá si la descripción se usa en algún prompt, mail o salida MCP, o sólo en la SPA. Eso define si el paso 5 aplica.\n\n2. **Migración.**\n   ```sql\n   ALTER TABLE <tabla_conectores> ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` (la legacy) como está. Ojo: el material menciona `0201_platform_connectors_description_i18n.sql`, que parece ser justo esto para `platform_connectors`. Antes de crear una migración nueva, fijate si esa ya cubre tu tabla. Si necesitás portar datos de una columna `description_en`, mirá `0206_features_i18n.sql`.\n\n3. **API.** Devolvé `description_i18n` entero, junto con `description`. No filtres por idioma en el serializer. Usá lo que ya existe en `tuqui_core/i18n.py` y no lo reimplementes:\n   - `normalize_i18n_keys` al escribir: baja las claves a dos letras minúsculas y descarta las vacías.\n   - `decode_i18n` al leer: asyncpg puede devolver el JSONB como `str` o como dict según el pool, y hay que tolerar las dos formas.\n\n4. **Front.**\n   ```ts\n   localizedField(connector.description_i18n, connector.description, i18n.language)\n   ```\n   No escribas la cadena de fallback a mano.\n\n5. **Backend, sólo si aplica.** Resolvé con la misma cadena `lang → en → legacy`. Tomá `lang` de `resolve_response_language(workspace_id, user_id)` y no leas `Accept-Language`. Si el campo se consume en las dos puntas, usá la misma cadena en las dos, porque el material cita un bug de `agents` por no hacerlo.\n\n6. **Editor admin.** Poné dos inputs, ES y EN. Al guardar, mandá `description_i18n` sólo con las claves no vacías y espejá la legacy con `es || en`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n7. **Caché.** Si terminaste resolviendo en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resolvés sólo en el cliente, no hace falta.\n\n## Resumen\n\n- **Sólo SPA:** migración, API con el mapa entero, `localizedField` en el front y editor. El backend no cambia más allá del serializer y la escritura con `normalize_i18n_keys`.\n- **SPA más prompt, mail o MCP:** todo lo anterior, más resolución en el backend y `queryKey` con idioma si resolvés en el server.\n\nSi me decís dónde se usa hoy la descripción de los conectores, te digo cuál de los dos casos es. Con el código a mano también puedo ver si la migración 0201 ya cubre tu tabla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4120,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1443,
+  "output_tokens_details": {
+   "thinking_tokens": 287
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4120,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1443,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4120,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4120
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se crea con `supabase migration new <nombre>` y queda en `supabase/migrations/NNNN_descripcion.sql`. El nombre del archivo sigue el patrón NNNN_descripcion.sql; conviene elegirlo bien desde el principio porque renombrarlo hace que se reaplique.",
+  "Una columna `workspace_id uuid NOT NULL` (el NOT NULL es sugerencia de quien escribió el texto, no de la guía), `ENABLE ROW LEVEL SECURITY` sobre la tabla y una policy cuya condición es `workspace_id = current_setting('app.current_workspace_id')::uuid`, creada dentro de un bloque `DO $$ ... IF NOT EXISTS ...` porque `CREATE POLICY` no tiene `IF NOT EXISTS`. También se sugiere un índice sobre `workspace_id`, y hace falta un test de aislamiento en `tuqui_core/tests/test_rls.py` (obligatorio).",
+  "Porque el preview del PR corre las migraciones contra la base de staging real (mismo `DATABASE_ADMIN_URL` que el runner), así que la migración se aplica ahí apenas se abre el PR. Además, si se renombra el archivo se vuelve a aplicar, ya que el tracking es por nombre de archivo. Por eso la idempotencia es obligatoria."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "8ddf507530",
+  "control": "cb1718959b"
+ }
+}

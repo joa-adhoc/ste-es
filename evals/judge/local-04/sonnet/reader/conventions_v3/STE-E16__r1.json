@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No quedó claro si un refresh de datos sobre un artifact ya compartido se publica solo o requiere `publish` manual. ¿Podés confirmar cuál es el comportamiento real, para saber si quien tiene el link ve los datos nuevos o sigue viendo el snapshot anterior?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica automáticamente la nueva versión, o hay que correr `publish` para que el link compartido muestre los datos actualizados?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica automáticamente la nueva versión solo-data, o hay que correr `publish` para que quien tiene el link vea los datos nuevos?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "No quedó claro si un refresh de datos sobre un artifact ya compartido se publica solo o requiere `publish` manual. ¿Podés confirmar cuál es el comportamiento real, para saber si quien tiene el link ve los datos nuevos o sigue viendo el snapshot anterior?",
+ "followup_answer": "No puedo confirmarlo con el material que tengo. No dice si un refresh de datos se publica solo, y no tengo el código del servicio para verificarlo.\n\n**Lo que sí dice el material**\n- `save` con `artifact_id` mueve `current_version_id` y no mueve `published_version_id`. No distingue entre versión con `content` y versión solo-data.\n- La ruta por token sirve siempre `published_version`.\n\n**Lo esperable (no verificado)**\n- Si el refresh pasa por `save` con `artifact_id`, no publica solo. Quien tiene el link sigue viendo el snapshot anterior hasta que alguien corra `publish`.\n- El refresh queda en la fase 2 (dashboards regenerables). Puede tener un camino propio que publique automáticamente, y el material no lo descarta.\n\n**Cómo cerrarlo**\n1. Leé `save` en `service.py` y fijate si hay una rama que publique cuando la versión es solo-data.\n2. Si no querés leer código, probalo. Hacé un `save` con `artifact_id` y solo `data`. Después mirá si el result trae `unpublished_changes: true` y qué versión sirve la ruta por token.\n\nSi el result trae `unpublished_changes: true`, el refresh pide `publish` manual.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11493,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 697,
+  "output_tokens_details": {
+   "thinking_tokens": 258
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11493,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 697,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11493,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11493
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "886f5e2134"
+ }
+}

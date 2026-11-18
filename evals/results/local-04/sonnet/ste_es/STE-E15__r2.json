@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`connect_odoo` valida las credenciales contra Odoo, resuelve el vínculo del usuario y recién después escribe en la base.\n\n```\nPOST /workspaces/{slug}/odoo (owner/admin)\n        │\n        ▼\n┌──────────────────────┐   ┌───────────────────────────┐\n│ _authenticate_odoo   │──►│ _verify_odoo_admin_group  │\n│ devuelve admin_uid   │   │ base.group_system         │\n└──────────────────────┘   └─────────────┬─────────────┘\n                                         ▼\n┌──────────────────────┐   ┌───────────────────────────┐\n│ _resolve_link_mode   │◄──│ get_version               │\n│ auto / manual / none │   │ major >= MIN_SUPPORTED    │\n└──────────┬───────────┘   └───────────────────────────┘\n           ▼\n┌──────────────────────┐   ┌───────────────────────────┐\n│ UPDATE workspaces    │──►│ si cambió la URL: limpia  │\n│ 409 si database.uuid │   │ odoo_user_id/odoo_api_key │\n│ ya está en uso       │   │ de todos los members      │\n└──────────────────────┘   └─────────────┬─────────────┘\n                                         ▼\n                           ┌───────────────────────────┐\n                           │ UPDATE workspace_members  │\n                           │ + sync_user_api_key       │\n                           │ (solo auto / manual)      │\n                           └───────────────────────────┘\n```\n\nLos pasos 1 a 3 lanzan `ValueError` si el usuario no es admin de sistema en Odoo o si la versión no se detecta o es menor que `MIN_SUPPORTED`. En esos casos no se escribe nada.\n\n**Cómo elige el usuario de Odoo**\n\n- **`auto`:** es el modo por defecto cuando `current_user.email == odoo_login`. El `Member` queda con `odoo_user_id = admin_uid`.\n- **`manual`:** el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`. El servicio verifica que ese `res.users` exista y vincula el `Member` a ese id.\n- **`none`:** es el modo por defecto cuando los emails no coinciden. El `Member` queda sin `odoo_user_id`.\n\nEl vínculo es opcional porque `owner` es un rol administrativo de Tuqui. No necesita identidad en Odoo, y connect nunca cambia el rol.\n\n**Si cambia la URL**\n\n- Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner. La identidad puede apuntar a otra instancia.\n- Después se aplica el vínculo de `auto` o `manual` al usuario actual. Ese usuario queda revinculado y los demás members quedan sin vínculo.\n- La respuesta trae `members_invalidated` con la cantidad afectada (0 si la URL no cambió) y un `warning` para mostrar en la UI.\n\n**Resultado:** `WorkspaceConnectOdooResult` devuelve además `link_status` y `linked_odoo_user_id`. Si otro workspace ya tiene el mismo `database.uuid`, el `UPDATE workspaces` falla con 409 (índice parcial `workspaces_odoo_database_uuid_unique`, migración 0134).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5604,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1434,
+  "output_tokens_details": {
+   "thinking_tokens": 278
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5604,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1434,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5604,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5604
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

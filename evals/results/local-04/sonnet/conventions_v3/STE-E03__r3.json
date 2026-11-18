@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup` desde el worktree. Linkea al clone principal lo que no viaja en git: `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`. Sin eso, `make test` falla con \"Venv no encontrado\".\n\nComo tu branch suma una dependencia de Python y toca `web/package.json`, hay dos cuidados:\n\n**Python: no corras `make install` en el worktree.** El `.venv` es del clone principal. Instalar desde acá escribiría en ese venv y le repuntaría el editable install. El target se niega y te avisa. Tenés dos opciones:\n\n- Instalá la dependencia nueva en el clone principal.\n- Borrá el link de `tuqui_core/.venv` en el worktree y armate un venv propio.\n\nEl código que corre sigue siendo el del worktree, porque la raíz del worktree entra primero en `sys.path`.\n\n**Frontend: corré `npm ci` en el worktree** antes de `make test-web`. Los `node_modules` son del clone principal y no reflejan tu `web/package.json`.\n\nDespués podés correr:\n\n```bash\nmake worktree-setup\n# dependencia nueva: instalarla en el clone principal (o venv propio)\ncd web && npm ci && cd ..\n\nmake test                                     # unit (igual al paso de pytest del job `test` de CI)\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/ (no los benchmarks)\nmake lint                                     # ruff check + format check\n```\n\nUn detalle: `npm ci` en el worktree puede reemplazar el link a `web/node_modules`. Si lo hace sobre el link, podría tocar el `node_modules` del clone principal. El material no aclara qué pasa en ese caso, así que no está verificado. Antes de correrlo, mirá con `ls -l web/node_modules` si es un symlink. Si lo es, borrá el link (`rm web/node_modules`) y así `npm ci` crea un directorio propio.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10430,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 787,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10430,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 787,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10430,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10430
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

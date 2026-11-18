@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Con `npm ci` en el worktree, ¿se reemplaza el link de `node_modules` por una carpeta propia o escribe a través del link y modifica los `node_modules` del clone principal? Y para la dependencia de Python, ¿cuál es el comando exacto para armar un venv propio en el worktree sin romper el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para la dependencia de Python, ¿cuál es el comando exacto para armar un venv propio en el worktree (reemplazando el link de .venv) e instalar ahí la dependencia sin tocar el clone principal? Y para web/package.json, ¿`npm ci` pisa el link de node_modules o escribe a través de él en el clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente con `npm ci` sobre el link de `web/node_modules`: lo reemplaza por una carpeta propia o escribe a través del link en el clone principal? Y para la dependencia de Python, ¿cuál es el comando concreto para armar un venv propio en el worktree (borrar el link y qué correr después) sin tocar el del clone principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Con `npm ci` en el worktree, ¿se reemplaza el link de `node_modules` por una carpeta propia o escribe a través del link y modifica los `node_modules` del clone principal? Y para la dependencia de Python, ¿cuál es el comando exacto para armar un venv propio en el worktree sin romper el del clone principal?",
+ "followup_answer": "Ninguna de las dos cosas está en el material, así que no puedo darte el comando exacto sin inventarlo.\n\n**`npm ci` y el link:** no verificado. No sé si `npm ci` borra el link o escribe a través de él. Para no depender de eso, sacá el link vos antes. Sin barra final, `rm` borra solo el link y no el contenido del clone principal:\n\n```bash\nrm web/node_modules      # sin \"/\" al final\n(cd web && npm ci)\n```\n\nDespués comprobá que `web/node_modules` sea una carpeta real con `ls -ld web/node_modules`. Si da `l...`, sigue siendo un link.\n\n**Venv propio:** el paso de crear el venv es estándar:\n\n```bash\nrm tuqui_core/.venv      # sin \"/\" al final: borra solo el link\npython3 -m venv tuqui_core/.venv\n```\n\nLa línea que instala las dependencias no sale del material. Es la que hace el target `install` del `Makefile`, y `make install` se niega a correr en un worktree linkeado. Abrí ese target y corré sus comandos a mano contra `tuqui_core/.venv/bin/pip`. Hacelo así también para que el editable install apunte al worktree y no al clone principal.\n\n`make worktree-setup` puede volver a linkear lo que borraste. No lo corras de nuevo después de armar el venv propio.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11205,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1018,
+  "output_tokens_details": {
+   "thinking_tokens": 551
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11205,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1018,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11205,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11205
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "033506a25f"
+ }
+}

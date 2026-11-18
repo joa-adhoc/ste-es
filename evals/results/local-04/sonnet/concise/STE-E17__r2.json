@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool falla, el modelo recibe un string `[TOOL_ERROR class=X]: message` en vez de una excepción, y si repite lo mismo 3 veces recibe un FATAL que le impide seguir. Esto sale solo del material que pegaste, no leí el código.\n\n**Camino de la falla al modelo**\n\n1. La tool lanza una excepción. Puede ser un `ToolError` propio, por ejemplo `require_adapter` en `tools/base.py` cuando no hay Odoo conectado, o una excepción Python/httpx cualquiera.\n2. `_wrap_tool` en `agent.py` la captura. Si es `ToolError`, la usa tal cual. Si no, `classify_unknown(exc)` la mapea a un `ErrorClass`.\n3. Devuelve `exc.for_llm()` como resultado de la tool, en el formato `\"[TOOL_ERROR class=X]: message\"`. El modelo ve la clase y el mensaje, y puede decidir según eso.\n4. `ToolError` también trae `retry_after_seconds`, útil para `RATE_LIMIT`. El material no dice si `for_llm()` lo incluye en el texto.\n\n`CONNECTION` (el transporte a Odoo falla) y `ODOO_NOT_CONNECTED` (nadie conectó Odoo en este run) tienen textos distintos a propósito. Así a quien no conectó su Odoo no se le dice que la conexión está caída.\n\n**Corte del doom loop (`DoomLoopGuard`, THRESHOLD=3)**\n\n- Después de cada call, `record(tool_name, args, ok, error_class)` cuenta con la key `\"{tool_name}|{hash(args)}|{error_class}\"`. Solo cuenta la misma tool, con los mismos args y la misma clase de error.\n- Cuando un contador llega a 3 o más, `record` retorna `True`. Entonces `_wrap_tool` devuelve un error FATAL en vez de ejecutar o clasificar de nuevo, y los calls idénticos siguientes quedan bloqueados.\n- Un éxito limpia todos los contadores.\n\n**Dos cosas a verificar en el código**\n\n- El éxito limpia todo, no solo la key de esa tool. Si el modelo alterna una tool que falla con otra que anda, el contador nunca llega a 3.\n- Como `error_class` está en la key, si el mismo call falla con clases distintas (por ejemplo `TRANSIENT` y después `CONNECTION`), cada una cuenta aparte.\n- Dices que el guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` \"entre tools\", cada una con su aviso. Con la key por `tool_name` eso no sale solo, así que debe haber otra lógica que el material no muestra.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4200,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1213,
+  "output_tokens_details": {
+   "thinking_tokens": 252
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4200,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1213,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4200,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4200
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice cuándo el workspace queda `restricted` el día que vence. ¿Pasa siempre o solo si hay exceso sobre los límites de free? Y en ese caso, ¿qué queda bloqueado exactamente (MCP, chat) y qué sigue funcionando? Necesito confirmarlo en el código o con alguien que lo sepa."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No me quedó claro qué le pasa al workspace el día que vence cuando no hay suscripción: ¿pasa a `restricted` siempre o solo si hay exceso sobre los límites de free? Y si queda restringido, ¿qué pierden exactamente (MCP, chat) y quién lo puede revertir? Además, el aviso de 7 días antes: ¿sale a todos los mismos destinatarios que el de vencida?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta no aclara qué le pasa al workspace el día que vence en el caso común: ¿queda 'restricted' (MCP y chat bloqueados) o sigue funcionando en plan free? Además, ¿los avisos salen solo a 7 días y el día del vencimiento, o hay alguno intermedio? Y con suscripción viva, ¿es cierto que no sale ningún aviso, o solo no sale el de vencimiento?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El material no dice cuándo el workspace queda `restricted` el día que vence. ¿Pasa siempre o solo si hay exceso sobre los límites de free? Y en ese caso, ¿qué queda bloqueado exactamente (MCP, chat) y qué sigue funcionando? Necesito confirmarlo en el código o con alguien que lo sepa.",
+ "followup_answer": "No lo puedo confirmar: el directorio de trabajo está vacío y no tengo `scheduler/billing_cron.py` ni `billing/plan_summary.py`. El material tampoco lo dice. Todo lo que sigue es no verificado.\n\n**¿Siempre o solo con exceso?** El material dice que al vencer, sin suscripción viva, pasa `plan='free'`, \"se evalúa exceso\" y sale el mail. No dice que `account_status` pase a `restricted` en todos los casos. La tabla lista \"trial expiry\" entre quienes setean `restricted`, y la razón `trial_expired_with_excess` lleva \"with_excess\" en el nombre. Con eso, lo más probable es que `restricted` dependa del exceso, pero es una inferencia.\n\n**¿Qué queda bloqueado?** Con `restricted`, la tabla dice \"MCP bloqueado, chat bloqueado\". No dice qué sigue funcionando: ni login, ni acceso a datos, ni facturación, ni la gestión del plan. Tampoco dice si el bloqueo es por workspace o por miembro. `PlanLapsedBanner` avisa a quien perdió el asistente, pero el material no lo liga a `restricted`.\n\n**Para cerrarlo:**\n- Leé `_run_trial_expiry` en `scheduler/billing_cron.py`. Buscá dónde setea `account_status='restricted'` con `account_status_reason='trial_expired_with_excess'`: si está dentro de un `if` sobre el resultado de la evaluación de exceso, es solo con exceso.\n- Buscá dónde se lee `account_status` (los checks del MCP y del chat). Ahí se ve qué rutas bloquean y cuáles no.\n- Si no tenés el repo a mano, pasame la ruta o los dos archivos, o preguntale al dueño del módulo de billing.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12160,
+  "cache_read_input_tokens": 46371,
+  "output_tokens": 922,
+  "output_tokens_details": {
+   "thinking_tokens": 132
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12160,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 643,
+    "cache_read_input_tokens": 29073,
+    "cache_creation_input_tokens": 385,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 385
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3ce5e1254a"
+ }
+}

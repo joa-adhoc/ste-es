@@ -1,0 +1,44 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, ya no es así. Ahora corrés local solo lo que tocaste y dejás la suite completa para CI:\n\n```\nmake test ARGS=<lo que tocaste>\nmake lint\n```\n\n**Por qué cambió.** La guía anterior pedía la suite completa porque CI no te devolvía el resultado antes de lo que tardaba correrla local. Eso dejó de ser cierto: el job de `test` bajó de ~11 min a ~4 (bcrypt configurable en tests, PR #829, y runners arm64). Además, una corrida local completa te bloquea la máquina, y CI corre en paralelo con tu trabajo.\n\n**Casos donde igual conviene correrla entera:**\n\n- **Cambios transversales.** Si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, arrastrás ~76% de los archivos de test (medido sobre el grafo de imports). \"Lo que tocaste\" deja de ser un subconjunto útil.\n- **Agentes de IA.** Corren la suite completa una sola vez antes de entregar, no en cada iteración. No tienen el criterio del autor para elegir el subconjunto, y iterar contra CI genera pushes de ruido.\n\n**Si algo falla en CI y no sabés por qué**, reproducilo local antes del siguiente push. No pushees a ciegas esperando que CI adivine.\n\n**Nota sobre mi caso.** El material pide que un agente corra la suite completa una vez antes de entregar. Mi configuración de capa Usuario dice que las suites largas las valida CI, no la máquina local. Si el workspace es managed (1 CPU, 2 GiB), correrla puede tirar la sesión. Ante esa contradicción no decido yo: la guía del equipo y esa regla chocan, y conviene que lo resuelva una persona. Mientras tanto, corro solo lo barato y miro `gh pr checks`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10492,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 658,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10492,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 658,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10492,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10492
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

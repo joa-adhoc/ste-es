@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python no me quedó claro el paso concreto: ¿me pasás los comandos exactos para armar un venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv e instalar las dependencias con la nueva incluida) sin tocar el venv del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Qué comandos exactos uso para la dependencia de Python? Necesito los pasos para borrar el link de tuqui_core/.venv, crear un venv propio en el worktree e instalar ahí las dependencias más la nueva, sin tocar el venv del clone principal. ¿Y cuál de las dos opciones me recomendás si no quiero romper nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia de Python, ¿me podés pasar los comandos exactos para armar el venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv e instalar), dado que make install se niega? Y si la instalo en el clone principal, ¿eso no afecta a los otros worktrees que comparten ese venv?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "ejemplo",
+ "followup": "Para la dependencia de Python no me quedó claro el paso concreto: ¿me pasás los comandos exactos para armar un venv propio en el worktree (borrar el link de tuqui_core/.venv, crear el venv e instalar las dependencias con la nueva incluida) sin tocar el venv del clone principal?",
+ "followup_answer": "Borrá el symlink, creá un venv nuevo e instalá ahí. Los comandos exactos del install dependen de tu Makefile, que no tengo a la vista.\n\n```bash\ncd tuqui_core\nls -l .venv              # confirmá que es un symlink al clone principal\nrm .venv                 # sin barra final y sin -r: borra solo el link\npython3 -m venv .venv\n.venv/bin/pip install -U pip\n```\n\nDespués instalá con lo que use el proyecto. Fijate cuál es:\n\n```bash\ngrep -n -A6 '^install' ../Makefile   # mirá qué hace make install\n```\n\nSegún lo que veas:\n\n```bash\n.venv/bin/pip install -e \".[dev]\"       # si hay pyproject.toml\n.venv/bin/pip install -r requirements.txt -r requirements-dev.txt   # si hay requirements\n```\n\nVerificá que el venv sea el tuyo y que no tocaste el principal:\n\n```bash\n.venv/bin/python -c \"import sys; print(sys.prefix)\"   # debe apuntar al worktree\ncd .. && make test\n```\n\n- **No borres con barra final.** `rm -r .venv/` seguiría el link y borraría el venv del clone principal.\n- **No vuelvas a correr `make worktree-setup`.** Re-linkearía `.venv` al clone principal. Si lo corrés, repetí el borrado y la creación.\n- **El nombre del extra puede variar.** `[dev]` es una suposición. Usá el que figure en el target `install`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5140,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 997,
+  "output_tokens_details": {
+   "thinking_tokens": 476
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5140,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 997,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5140,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5140
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2268237db1"
+ }
+}

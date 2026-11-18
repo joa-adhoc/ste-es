@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja de ese alcance según `created_at`, en la misma transacción de base. Es FIFO por antigüedad de creación, no por uso, así que una memoria vieja muy usada igual es la primera en salir. El borrado es silencioso para el usuario, pero la respuesta de la tool le avisa al modelo.",
+  "En cada turno `_load_chat_setup` inyecta solo el header de cada memoria (título + resumen; si no hay resumen, el cuerpo hasta 250 caracteres, terminando en `... [read]` si lo supera), con su `id`, en las secciones `# Workspace memory (shared with team)` y `# User memory (personal)`. El cuerpo completo del resto llega a demanda: el modelo llama a `manage_memory(action='read', id=...)` para las memorias marcadas `[read]`.",
+  "Si el total de caracteres de los headers pasa de `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), entra el budget guard: `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N, así que lo que entra al prompt cambia según lo que se pregunta en ese turno. El texto no dice cuánto vale N, ni si los 12K son por alcance o entre ambos, ni qué pasa con las memorias que quedan afuera."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e64c3cfad2",
+  "control": "2fefeeffdf"
+ }
+}

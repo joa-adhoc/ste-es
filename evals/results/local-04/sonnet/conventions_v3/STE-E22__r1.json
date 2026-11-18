@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, no con ese comando solo: perdés trabajo que no está en ningún otro lado.\n\n- **Cambios sin commitear:** `limits.py` y `test_limits.py` están modificados. `reset --hard` los descarta y no hay forma de recuperarlos, porque no están en el reflog ni en el stash (vacío).\n- **3 commits sin pushear:** `a1b2c3d`, `d4e5f6a` y `0718293` existen solo en tu clon. Después del reset quedan únicamente en el reflog.\n- **Archivo sin seguimiento:** `0420_mcp_limits.sql` sobrevive al `reset --hard`. Si lo querés en la rama nueva, puede chocar con lo que traiga `staging`.\n\nPara empezar de cero sin perder nada, dejá una rama de respaldo y partí desde `origin/staging`:\n\n```bash\ngit fetch origin\ngit switch -c respaldo/limite-mcp          # guarda los 3 commits\ngit add -A && git commit -m \"wip: respaldo\"  # guarda cambios y el .sql\ngit switch feat/limite-mcp\ngit reset --hard origin/staging\n```\n\nSi no querés ensuciar esta rama, es más limpio crear una nueva:\n\n```bash\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nTené en cuenta que `feat/limite-mcp` ya existe en `origin`, con esos 3 commits locales encima. Si después de resetear pusheás con el mismo nombre, tenés que usar `--force-with-lease`, y eso reescribe la rama remota. Si alguien más la usa, mejor una rama con otro nombre.\n\nAntes de borrar el respaldo, confirmá que ya no necesitás nada de ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10014,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 904,
+  "output_tokens_details": {
+   "thinking_tokens": 305
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10014,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 904,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10014,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10014
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Orden: **1) write_models → 2) evaluator → 3) execute**. Si algún paso bloquea, no se sigue.\n\n**Evaluator (`evaluate_permission`)**\n1. `workspace_tool_approvals = deny` → DENY. Es un piso: nada lo levanta.\n2. `user_tool_approvals` (user, workspace, tool) → si hay fila, gana. Se saltea en canales sin identidad personal (`exposure`, `webhook`, `scheduled`).\n3. `workspace_tool_approvals` con `allow` / `ask`.\n4. Default: ASK si el recurso está en `approval` (`\"ask\"`/`\"always\"`), ALLOW si no. Para tools de conector sin declaración, heurística de verbos + annotations MCP.\n\n**Tu caso 1: admin \"ask\", miembro \"allow\"**\nEn chat normal gana el miembro: el paso 1 solo corta con `deny`, así que `ask` no es piso. El paso 2 encuentra la fila del usuario y devuelve ALLOW, sin llegar al `ask` del admin. Si el admin quiere que el miembro no pueda saltearse la confirmación, tiene que poner `deny`, no `ask`. (Eso bloquea del todo, no pregunta.)\n\nEsto solo vale si el paso 1 (`workspace_write_models`) ya permitió el tool sobre ese modelo. Si no, ni se evalúa.\n\n**Tu caso 2: agent por webhook**\nEl canal `webhook` no tiene identidad personal (`personal_identity_applies` es falso), aunque corra con la identidad prestada de un miembro. Se saltea el paso 2 y la preferencia \"allow\" de ese miembro no cuenta. Resuelve la grilla del workspace:\n- `deny` → DENY.\n- `ask` del admin → ASK.\n- `allow` → ALLOW.\n- Sin fila → el default por `approval` del recurso.\n\nUn detalle que el material no aclara: en un canal sin usuario presente, un ASK no tiene a quién preguntarle. No está en lo que pasaste cómo se resuelve (denegar, esperar, etc.). Habría que mirar `chat/client_facing_core.py` o el manejo del resultado ASK para confirmarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4520,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 777,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4520,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 777,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4520,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4520
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

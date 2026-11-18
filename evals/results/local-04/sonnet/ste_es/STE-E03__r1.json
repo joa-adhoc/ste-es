@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Corré `make worktree-setup` desde el worktree. Sin eso, `make test` falla con \"Venv no encontrado\".\n\n```bash\nmake worktree-setup   # linkea .venv, .env, node_modules, .mcp.json, etc. del clone principal\n```\n\nDespués, por cada cambio de tu branch:\n\n- **Dependencia de Python nueva:** no corras `make install` en el worktree. Escribiría en el venv del clone principal y le repuntaría el editable install (el target se niega y te avisa). Instalala en el clone principal, o borrá el link y armate un venv propio.\n- **Cambio en `web/package.json`:** corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal.\n\nCon eso corrés los tests:\n\n```bash\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake lint                                     # ruff check + format check\n```\n\nNo hace falta reinstalar el resto de las dependencias. El `.venv` del clone principal sirve a todos los worktrees, y el código que corre es el del worktree.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5090,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 639,
+  "output_tokens_details": {
+   "thinking_tokens": 201
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5090,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 639,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5090,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5090
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

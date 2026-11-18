@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando en un webhook o canal scheduled el resultado es ASK y no hay nadie que conteste: se bloquea, queda esperando o se deniega? Necesito eso confirmado en el código (permissions.py / client_facing_core.py) o en tool_usage_log para saber si mi agent por webhook va a correr o se va a trabar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el agent por webhook, ¿qué pasa exactamente cuando el resultado de evaluate_permission es ASK y no hay nadie para contestar: se bloquea, se deniega o queda esperando? Necesito saberlo para decidir qué dejar en allow o deny en la grilla del workspace."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando un agent por webhook o scheduled llega a ASK (por una fila 'ask' del workspace o por el default de recurso en approval)? ¿Queda bloqueado, esperando o denegado? Necesito el comportamiento confirmado en permissions.py / client_facing_core.py o en tool_usage_log, porque mi agent corre sin nadie que conteste."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente cuando en un webhook o canal scheduled el resultado es ASK y no hay nadie que conteste: se bloquea, queda esperando o se deniega? Necesito eso confirmado en el código (permissions.py / client_facing_core.py) o en tool_usage_log para saber si mi agent por webhook va a correr o se va a trabar.",
+ "followup_answer": "No pude confirmarlo. Ni `permissions.py` ni `client_facing_core.py` están en este directorio, que está vacío y no es un repo. Tampoco tengo acceso a `tool_usage_log`. No sé si un ASK sin nadie que conteste se bloquea, queda esperando o se deniega, y no voy a adivinar, porque de eso depende si tu agent corre o se traba.\n\nLo único que está confirmado es lo que dice el material. El evaluador devuelve ASK en un webhook cuando hay una fila `ask` del workspace, o cuando no hay fila y el recurso está en `approval`. El material no dice qué hace el llamador con ese ASK.\n\nPara cerrarlo tenés dos caminos:\n\n1. **Leer el código.** Buscá dónde se consume el resultado de `evaluate_permission`. Ese punto suele estar en `chat/client_facing_core.py` o en el ejecutor de tools. Fijate qué rama toma cuando el action es ASK y el canal no es interactivo. Puede ser un `await` de aprobación, un timeout o un mapeo a DENY. Si me das acceso al repo o pegás esas partes, lo leo y te lo confirmo con las líneas.\n2. **Probarlo.** Disparás un webhook con una tool en `ask` en la grilla del workspace. Después mirás en `tool_usage_log` el `permission_action` y si hubo `execute`. Si la corrida termina con la tool denegada, se deniega. Si queda colgada hasta un timeout, espera.\n\nMientras tanto, para que tu agent no dependa de esto, poné esa tool en `allow` o `deny` explícito en la grilla del workspace. Es la misma recomendación de antes, pero ahora es la salida segura porque el comportamiento del ASK está sin verificar.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12159,
+  "cache_read_input_tokens": 75572,
+  "output_tokens": 1000,
+  "output_tokens_details": {
+   "thinking_tokens": 59
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12159,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 623,
+    "cache_read_input_tokens": 29302,
+    "cache_creation_input_tokens": 146,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 146
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6b04238c2f"
+ }
+}

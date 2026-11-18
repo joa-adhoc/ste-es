@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Skill, casi seguro.** Un `odoo_create` con defaults es 1→1 sobre una call genérica: no cumple (a) (es componible), ni (d) (el umbral duro excluye wrappers 1→1, aunque ahorre tokens de esquema).\n\n**Criterio:** tool nativa solo si cumple al menos uno de estos ejes:\n- **(a)** No se logra con las tools genéricas.\n- **(b)** Tiene un gate o una identidad propia con menor blast radius que la genérica.\n- **(c)** Es un procedimiento crítico donde un skip del LLM cuesta de verdad.\n- **(d)** Colapsa ≥3 calls, un loop no acotado o pasos que el LLM saltearía. Nunca vale un wrapper 1→1.\n\nSi no cumple ninguno, va como skill. Los defaults los lleva la skill: dice qué modelo y qué valores pasar a `odoo_create`.\n\n**Dónde podría salvarse como tool:**\n- **(b2):** si la whitelist que necesitás es más fina que el `create` genérico. Por ejemplo, permitir crear solo en ese modelo, sin abrir `create` en general. Es el caso de `odoo_copy` y `odoo_message_post`. Pregunta clave: ¿el `create` genérico ya te alcanza en permisos, o necesitás un gate más angosto?\n- **(d):** solo si \"con algunos defaults\" esconde más pasos, como resolver ids, buscar el registro padre o crear varios registros. Si es un solo create, no.\n\n**Con MCP saliente:**\n- En el MCP saliente **(b1) y (c) no tienen palanca**: el router ignora `requires_approval` y no hay turno donde forzar pasos.\n- Ahí solo se justifica por **(a)**, **(b2)** o **(d)**.\n- Si tu único argumento era un approval propio, esa tool vale solo en chat. Es lo que le pasó a `odoo_schedule_activity`: se bajó a skill, y ya estaba en `MCP_EXCLUDED_TOOLS`.\n- Una skill no depende de la superficie. Funciona igual en chat y por MCP, porque el agente compone con `odoo_create`.\n\n**Mi recomendación:** arrancá con skill. Subila a tool solo si podés nombrar el eje (b2 o d) con un caso concreto. Si tu justificación es \"ahorra tokens\" o \"es más cómodo\", no califica.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11037,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 849,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11037,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 849,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11037,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11037
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

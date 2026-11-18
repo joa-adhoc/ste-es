@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Los defaults de esta tool son obligatorios (compliance duro) o solo una comodidad? Y, concretamente, ¿existe en mi caso una whitelist más fina que el odoo_create genérico (b2) para ese modelo en el workspace donde se va a exponer, o el gate es el mismo create por modelo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "No me queda claro si en mi caso aplica (b2): ¿cómo verifico concretamente si el odoo_create genérico está habilitado para ese modelo en el workspace y si los defaults son obligatorios o solo una comodidad? Con eso decido si va como skill o como tool nativa."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Tu respuesta usa (a), (b1), (b2), (c), (d) y 'router', 'tuqui_skill', 'MCP saliente' como si ya los conociera. ¿Me podés listar en una línea qué es cada eje y decirme, para mi caso concreto, si los defaults son obligatorios o solo conveniencia? Con eso sé si alcanza con skill o necesito el recorte de whitelist (b2)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "No me queda claro si en mi caso aplica (b2): ¿cómo verifico concretamente si el odoo_create genérico está habilitado para ese modelo en el workspace y si los defaults son obligatorios o solo una comodidad? Con eso decido si va como skill o como tool nativa.",
+ "followup_answer": "Antes de los pasos corrijo un ejemplo mío. Dije que (b2) podía valer si \"el `odoo_create` genérico no está habilitado para ese modelo\". Es al revés: una tool que crea donde el genérico está denegado **amplía** permisos, no los achica. (b2) pide que la tool exija un gate **menor** que el de la alternativa genérica. En `odoo_copy`, por ejemplo, el gate es `create` en vez de `execute`.\n\nComo tu tool es un `odoo_create` sobre un modelo, su equivalente genérico es `odoo_create`, que ya se gatea por `create` por modelo. Salvo que tu tool tenga un gate más fino que ese, (b2) no aplica.\n\n**1. ¿Qué gate tiene hoy `odoo_create` para ese modelo?**\n\nNo tengo acceso al código ni al workspace en esta sesión, así que no sé dónde vive esa configuración. Esto es lo que haría para averiguarlo:\n- Leer cómo resuelve el gate el router MCP y `tuqui_core/chat/permissions.py`. Buscá dónde se evalúa el permiso `create` por modelo y de dónde sale la whitelist (workspace, policy o código).\n- Probarlo en vivo en el workspace. Llamá `odoo_create` sobre ese modelo con un registro descartable, o con `dry_run` si existe, y mirá si responde o si lo rechaza la policy.\n- Comparar con lo que tu tool necesitaría. Si pide el mismo permiso `create` sobre el mismo modelo, no hay gate más fino y (b2) no vale. Si pide algo menor (por ejemplo, un campo o un subconjunto de valores que el genérico no puede restringir), vale.\n\n**2. ¿Los defaults son obligatorios o una comodidad?**\n\nHacé esta prueba. Imaginá que el LLM llama a `odoo_create` directo y omite o cambia los defaults:\n- Si el registro queda mal, pero se corrige o se nota, es una comodidad. Va como **skill**.\n- Si queda mal de forma silenciosa y con costo real (compliance, plata, datos que otros consumen), es obligatorio. Ahí ni la skill ni la tool lo garantizan en el MCP, porque (c) no tiene palanca ahí.\n- Los defaults obligatorios conviene ponerlos del lado de Odoo, con un `default_get` o una constraint. Así valen para cualquier camino, tool, skill o UI.\n\n**Cómo decidir:**\n\n| Resultado | Va como |\n|---|---|\n| Mismo gate `create` y defaults de comodidad | Skill |\n| Mismo gate y defaults obligatorios | Skill, más validación en Odoo |\n| Gate más fino y verificado | Tool nativa por (b2) |\n\nCon el criterio del material, mi apuesta es skill. Lo único que la cambiaría es que encuentres un gate más fino en el paso 1. Si lo encontrás, dejalo escrito en el PR: qué gate exige la tool y contra qué tool genérica es menor.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11555,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1700,
+  "output_tokens_details": {
+   "thinking_tokens": 635
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11555,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1700,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11555,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11555
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "481a449daa"
+ }
+}

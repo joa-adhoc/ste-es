@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Qué pasó\n\nLa policy correcta nunca se aplicó. Hay dos migraciones que crean `scheduled_runs_ws`:\n\n- `0398_scheduled_runs_draft.sql:12` la crea con `USING (true)`, o sea que deja pasar todas las filas de todos los workspaces.\n- `0412_scheduled_runs.sql:20` crea la versión buena (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero dentro de un `IF NOT EXISTS`. Como la del borrador ya existía con ese nombre, la 0412 se saltea la creación. Es lo que dice el warning del setup: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\nEl resultado es que la tabla tiene la policy abierta del borrador. Por eso el workspace B ve las 2 filas del A (`assert 2 == 0`). El test está bien: detectó un hueco real de aislamiento.\n\n## Qué hacer\n\n1. **No edites 0398 ni 0412.** Según AGENTS.md las migraciones ya aplicadas no se vuelven a correr, así que editarlas no cambia nada donde ya están aplicadas.\n2. **Escribí una migración nueva** (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que reemplace la policy:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n   Conviene confirmar que RLS esté habilitado (`ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY;`). Si querés, agregá también `WITH CHECK` para que valga en escrituras.\n3. Volvé a correr `pytest tuqui_core/tests/test_rls.py -q` y verificá que pasen los 7.\n\n## Algo más para revisar\n\nSi la 0398 llegó a algún entorno real (staging o producción), esa tabla estuvo expuesta entre workspaces desde entonces. Hay que revisar si se aplicó ahí y si hace falta evaluar el impacto. Eso lo decide quien corresponda, no es solo un arreglo de test.\n\nTodavía **no verifiqué nada**: el diagnóstico sale del log y del grep que pasaste. No tengo el repo acá. Si querés, te preparo la migración cuando me indiques dónde está el checkout.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9867,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 890,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9867,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 890,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9867,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9867
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

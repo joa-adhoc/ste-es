@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Qué pasa:** la DB local de tests es compartida entre worktrees. Tu compañero corrió su rama con migraciones (probablemente una destructiva: borra o renombra columnas) y el `conftest` las aplicó sobre la misma base. Tu código todavía lee columnas que esa migración sacó, y por eso tenés `UndefinedColumnError` en tests que no tocaste. No es un bug de tu rama. El lock (`flock`) solo evita que dos corridas se pisen al mismo tiempo. No aísla el esquema, así que la base queda con la unión de las migraciones de los dos worktrees.\n\n**Para arreglarlo ahora:** `make migrate-reset` en tu worktree. Arma la base desde cero en unos 3 segundos con el mismo runner que usan CI y deploy. No uses `npx supabase db reset`, porque aborta con los prefijos numéricos repetidos. Ojo: como la base sigue siendo compartida, esto también le cambia el esquema a tu compañero. Conviene avisarle, o hacer lo de abajo primero.\n\n**Para que no se repita:** darle a cada worktree su propia base.\n\n1. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local` (está gitignoreado).\n2. Poné ahí una base propia para este worktree (nombre distinto del compartido).\n3. Corré `make migrate-reset` para crearla.\n\nLos targets de test cargan `.env.test` y, encima, `.env.test.local`. El archivo no existe por defecto y se arma en cada worktree.\n\nCon la base aislada ya no hay pisón de esquema. Seguí usando el lock mientras compartan Redis, porque el cleanup borra filas globales y dos corridas en paralelo se rompen entre sí. Si querés soltar el lock, poné también un `REDIS_URL` con un índice de base propio, distinto del 15 (el compartido por defecto en `.env.test`) y del 0 (el del server de desarrollo). Después usá un `TEST_LOCK` distinto. Con solo la base o solo Redis aislado no alcanza, porque son dos recursos compartidos.\n\nNo ejecuté nada: la respuesta sale del material que pasaste. Que la causa sea la migración de tu compañero es la explicación más probable, pero no la verifiqué. Lo confirma una comparación entre el esquema de la base y las migraciones de tu rama.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10300,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 836,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10300,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 836,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10300,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10300
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

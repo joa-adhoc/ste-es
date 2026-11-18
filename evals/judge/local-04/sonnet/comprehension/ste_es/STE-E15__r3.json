@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema de Odoo, es decir, pertenecer al grupo `base.group_system` (se verifica con `has_group(uid, 'base.group_system')`). Si no lo es, `_verify_odoo_admin_group` lanza `ValueError` y se corta el flujo. Además, las credenciales deben validar correctamente en la autenticación.",
+  "Vincula en modo `auto` (el modo por defecto) cuando `current_user.email == odoo_login`, y asigna `Member.odoo_user_id = admin_uid`. Deja al member sin `odoo_user_id` en modo `none`, que es el modo por defecto cuando los emails no coinciden. También existe el modo `manual`, donde el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, y el backend verifica que ese `res.users` exista y vincula el Member a ese id.",
+  "Con `url_changed`, el servicio limpia `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque la identidad puede apuntar a otra instancia. La limpieza corre antes de la vinculación. Si el modo es `auto` o `manual`, el owner que conecta queda vinculado de nuevo y se lanza `sync_user_api_key` en segundo plano (`asyncio.create_task`). El resultado trae `members_invalidated` (0 si la URL no cambió)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e223c94f4f",
+  "control": "d70443294a"
+ }
+}

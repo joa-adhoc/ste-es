@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Resumen:** `connect_odoo` valida las credenciales contra Odoo, guarda la conexión en `workspaces` y, de forma opcional, vincula al Member de quien conecta con un `res.users`. El rol owner no cambia.\n\n## Recorrido paso a paso\n\n1. **Entrada:** `POST /workspaces/{slug}/odoo` exige auth de owner/admin. Llama a `connect_odoo(slug, payload, current_user_id)`.\n2. **Autenticación:** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`.\n3. **Verificación de admin:** `_verify_odoo_admin_group` comprueba `has_group(uid, 'base.group_system')`. Si el usuario no es admin de sistema en Odoo, lanza `ValueError`.\n4. **Versión:** `get_version(url)` obtiene `detected_version`. Si falla la detección o la major es menor que `MIN_SUPPORTED`, lanza `ValueError`.\n5. **Modo de vínculo:** `_resolve_link_mode(...)` decide `auto`, `manual` o `none` (ver abajo).\n6. **Persistencia:** `UPDATE workspaces` con `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace pasa a \"conectado\". Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) provoca un 409 Conflict.\n7. **Si cambió la URL:** se limpian `odoo_user_id` y `odoo_api_key` de todos los members (ver abajo).\n8. **Vinculación:** si el modo es `auto` o `manual`, se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para el `current_user_id`. Después se lanza `asyncio.create_task(sync_user_api_key(...))`, que no bloquea la respuesta.\n9. **Respuesta:** `WorkspaceConnectOdooResult` (extiende `WorkspaceRead`) con `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## Cómo decide a qué usuario de Odoo vincula\n\n| Modo | Cuándo | Efecto |\n|---|---|---|\n| `auto` | Es el default si `current_user.email == odoo_login` | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend envía `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y vincula el Member a ese id |\n| `none` | Es el default si los emails no coinciden | El Member queda sin `odoo_user_id` |\n\nEl owner no necesita identidad en Odoo, así que `none` es un resultado válido. Además, puede haber varios owners.\n\n## Si cambia la URL\n\nCuando `url_changed` es verdadero, se borran `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque esas identidades pueden apuntar a otra instancia. La cantidad de members afectados se devuelve en `members_invalidated` (es 0 si la URL no cambió), y `warning` lleva el mensaje para la UI.\n\nDespués de limpiar, la vinculación del paso 8 vuelve a aplicarse al usuario actual si el modo es `auto` o `manual`. Los demás members tendrán que volver a vincularse.\n\n**Aviso:** el material no aclara dos puntos. Uno es si el chequeo de `database.uuid` ocurre antes o después del `UPDATE`, es decir, si el 409 deja el workspace intacto. El otro es si el 409 se genera por el `UPDATE` (violación del índice) o por una comprobación previa. Para confirmarlo habría que mirar el código de `connect_odoo`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4668,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1394,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4668,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1394,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4668,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4668
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

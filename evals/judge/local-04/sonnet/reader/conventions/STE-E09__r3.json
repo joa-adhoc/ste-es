@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el refresh falla en el paso 8 (token vencido y no renovable)? Y en una conexión parcial, ¿hay reintento o alguna forma de volver a probar las habilidades que no contestaron, o el usuario tiene que desconectar y reconectar?",
+   "needs_followup_reason": "La respuesta arranca con un encabezado y una aclaración de que no contrastó con el código, no con la respuesta directa. Además deja explícitos huecos (fallo de refresh, reintento en conexión parcial) y un texto recortado."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta cubre el flujo feliz y la prueba de humo, pero deja abiertos dos puntos de lo que pregunté: ¿qué pasa si el refresh falla en el paso 8 y, en una conexión parcial, hay reintento o forma de volver a probar las habilidades que no contestaron? Además, quedó recortado el texto de `[...]` en la sección de `resource`: ¿me lo podés pasar completo?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que no contrastaste con el código y que quedaron huecos: ¿qué pasa si el refresh falla en el paso 8, hay reintento o forma de re-probar las habilidades que no contestaron en una conexión parcial, y qué decía el texto recortado de la sección de `resource`?",
+   "note": "La primera oración es solo un título y no responde; la respuesta cubre bien el flujo y la prueba de humo, pero deja sin cubrir justo la parte de fallos posteriores."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el refresh falla en el paso 8 (token vencido y no renovable)? Y en una conexión parcial, ¿hay reintento o alguna forma de volver a probar las habilidades que no contestaron, o el usuario tiene que desconectar y reconectar?",
+ "followup_answer": "El material no responde ninguna de las dos preguntas, y no tengo el código a mano para mirarlo. Lo que sigue separa lo que dice el texto de lo que sería suposición.\n\n## Si el refresh falla en el paso 8\n\n**Lo que dice el material:** solo que `refresh_if_expired` corre al construir los toolsets cuando quedan menos de 60 s de validez, y que manda `resource` si está guardado. No dice qué pasa si el provider rechaza el refresh, por ejemplo con `invalid_grant`, si el refresh token fue revocado o si no hay refresh token.\n\n**No verificado:**\n- Si el token se borra o queda guardado como vencido.\n- Si el server queda fuera de los toolsets de esa sesión o la construcción falla entera.\n- Si la card pasa a \"desconectado\" o muestra un banner.\n- Si hay reintento.\n\n**Una consecuencia que sí sale del material:** `prompt=consent` está para que un disconnect y reconnect no se quede sin refresh token. Eso sugiere que, sin refresh token, el camino de recuperación es volver a autorizar. Es una inferencia, no algo que el texto afirme.\n\n## Si hay reintento en la conexión parcial\n\n**Lo que dice el material:** el estado parcial queda así y el redirect lleva `connect_warning=<habilidades>`. No menciona reintento, un botón de \"volver a probar\" ni una re-introspección posterior. La prueba de humo se describe solo dentro del callback.\n\n**No verificado:**\n- Si el usuario tiene que desconectar y reconectar.\n- Si la card tiene alguna acción para re-probar.\n- Si las habilidades que no contestaron se vuelven a intentar cuando se construyen los toolsets.\n- Si el banner `connect_warning` persiste o solo se ve en esa visita, porque llega por query param.\n\n## Cómo cerrarlo\n\n- Buscar `refresh_if_expired` y mirar el manejo de errores del refresh.\n- Buscar dónde se lee `connect_warning` en el front, y si hay otro endpoint que introspecte habilidades fuera del callback.\n- Si me das acceso al repo, lo busco yo. Mientras tanto, no lo tomes como comportamiento confirmado.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12116,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 953,
+  "output_tokens_details": {
+   "thinking_tokens": 179
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12116,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 953,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 12116,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12116
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "802ab71683"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 3 decís que haga `npm ci` en el worktree, pero también que antes revise si `web/node_modules` es un link porque podría escribir sobre el del clone principal, y que si lo es lo borre. ¿Cuál es el orden exacto y seguro de comandos para web (borrar el link, luego `npm ci`)? Además, si armo un venv propio en Python, ¿cómo lo creo e instalo la dependencia nueva sin que `make test` falle con 'Venv no encontrado'?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Cuál es la opción recomendada para la dependencia de Python: instalarla en el clone principal o armar un venv propio en el worktree? Y para el venv propio, ¿cuáles son los comandos exactos (borrar el link, crear el venv, instalar tuqui_core editable y la dependencia nueva)? Además, ¿está confirmado si web/node_modules es un link y cómo hago para borrarlo antes de npm ci sin tocar el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el punto 3 decís que hay que revisar si web/node_modules es un link y borrarlo antes de npm ci, pero que eso no está verificado. ¿Cómo lo reviso y qué hago exactamente (comandos) para no pisar el node_modules del clone principal? Además, para la dependencia de Python, ¿cuál de las dos opciones recomiendan y cómo armo el venv propio paso a paso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "En el paso 3 decís que haga `npm ci` en el worktree, pero también que antes revise si `web/node_modules` es un link porque podría escribir sobre el del clone principal, y que si lo es lo borre. ¿Cuál es el orden exacto y seguro de comandos para web (borrar el link, luego `npm ci`)? Además, si armo un venv propio en Python, ¿cómo lo creo e instalo la dependencia nueva sin que `make test` falle con 'Venv no encontrado'?",
+ "followup_answer": "Del material sale la mitad. Lo que no está escrito lo marco como no verificado.\n\n## Web\n\nDesde la raíz del worktree:\n\n```bash\ntest -L web/node_modules && echo \"es link\" || echo \"NO es link\"\nrm web/node_modules        # sin barra final: borra solo el link, no el contenido del clone principal\ncd web && npm ci\n```\n\n- Con `rm web/node_modules` sin `/` al final, `rm` borra el link y no toca lo que hay detrás. Con `rm -r` o con la barra final podrías llevarte el `node_modules` del clone principal. Además `rm -r` está denegado por la configuración de `adhoc-way init`.\n- Si el `test -L` dice \"NO es link\", no borres nada y corré directo `npm ci`.\n- Corrí `npm ci` dentro de `web/`, que es donde está el `package.json` que cambiaste. El material solo dice \"en el worktree\", así que el directorio exacto es una deducción mía.\n- El `node_modules` de la raíz también está linkeado. No sé si `npm ci` en `web/` lo toca. Si tu branch no cambió el `package.json` de la raíz, no hace falta tocarlo.\n\n## Venv propio\n\nEl material solo dice que `make test` falla con \"Venv no encontrado\" cuando falta `tuqui_core/.venv`. Entonces el venv propio tiene que quedar en esa misma ruta. Esto es una deducción mía, no lo verifiqué:\n\n```bash\ntest -L tuqui_core/.venv && rm tuqui_core/.venv    # borra solo el link\npython3 -m venv tuqui_core/.venv                    # usá la misma versión de Python que el clone principal\n```\n\nDespués hay que instalar las dependencias, y ahí hay dos cosas que el material no dice:\n\n1. **Cómo se instala el proyecto.** Los comandos exactos están en el target `install` del Makefile, que no tengo. Leelo y replicá esos pasos a mano con el pip del venv nuevo (`tuqui_core/.venv/bin/pip ...`), más la dependencia nueva. No es lo mismo que correr `make install`.\n2. **Si `make install` sigue negándose.** Lo hace en un worktree linkeado. No sé si lo decide por el link del venv o por ser un worktree. Una vez borrado el link podría dejarte correrlo, pero eso hay que probarlo. Como el target escribe en el venv, hacerlo solo después de confirmar que `tuqui_core/.venv` ya es tu venv y no un link te evita pisar el del clone principal.\n\nPara chequear que quedó bien:\n\n```bash\ntest -L tuqui_core/.venv || echo \"venv propio\"\nmake test ARGS=\"tests/test_rls.py -k policy\"       # prueba barata antes del resto\n```\n\nNo vuelvas a correr `make worktree-setup` después de esto. No sé si re-linkearía encima de lo que armaste.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11093,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1513,
+  "output_tokens_details": {
+   "thinking_tokens": 512
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11093,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1513,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11093,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11093
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "173592a9a3"
+ }
+}

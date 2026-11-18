@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La policy de ejemplo usa current_setting('app.current_workspace_id'), pero me dijiste que los nombres y el índice son ejemplos tuyos y que el material solo fija la sentencia de RLS y la policy. ¿Esa es la policy exacta que exige el review, incluyendo la expresión del USING, o solo un ejemplo? ¿Y hace falta FORCE ROW LEVEL SECURITY o alguna policy para WITH CHECK, o alcanza con ENABLE? Además, ¿cuál es el formato real del nombre del archivo, NNNN o timestamp, y puedo probar la migración contra una base local en vez de abrir el PR y aplicarla en staging?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Como el preview aplica la migración directo en la base de staging apenas abro el PR, ¿cómo la valido antes de abrirlo, con una base local o de dev? Y si me equivoco y ya se aplicó en staging, ¿cómo la revierto? Además, ¿el predicado de la policy (current_setting('app.current_workspace_id')) es el estándar del repo o es solo un ejemplo tuyo?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La policy de ejemplo usa current_setting('app.current_workspace_id'), pero me dijiste que el material solo fija la sentencia de RLS y la policy: ¿cuál es exactamente la policy estándar que hay que usar en tuqui, y cómo se setea ese valor en la sesión? Además, ¿qué pasa con el preview si la migración rompe algo en staging, cómo se revierte, y puedo probarla en una base local antes de abrir el PR para no tocar staging?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La policy de ejemplo usa current_setting('app.current_workspace_id'), pero me dijiste que los nombres y el índice son ejemplos tuyos y que el material solo fija la sentencia de RLS y la policy. ¿Esa es la policy exacta que exige el review, incluyendo la expresión del USING, o solo un ejemplo? ¿Y hace falta FORCE ROW LEVEL SECURITY o alguna policy para WITH CHECK, o alcanza con ENABLE? Además, ¿cuál es el formato real del nombre del archivo, NNNN o timestamp, y puedo probar la migración contra una base local en vez de abrir el PR y aplicarla en staging?",
+ "followup_answer": "**Policy:** la expresión del `USING` es la exacta que fija el material: `workspace_id = current_setting('app.current_workspace_id')::uuid`. Lo que puse yo como ejemplo es el nombre de la policy (`mi_tabla_workspace_isolation`), el de la tabla y el filtro por `pg_policies` dentro del `DO`. El material pide el bloque `DO $$ BEGIN IF NOT EXISTS (...)`, pero no dice qué va en el `IF`.\n\n**FORCE y WITH CHECK:** el material no los menciona. Solo exige `ENABLE ROW LEVEL SECURITY` más la policy con `USING`. No verifiqué si el review pide algo más, así que confirmalo con quien revisa. Hay dos cosas de Postgres que conviene saber:\n- Una policy sin `WITH CHECK` usa el `USING` también para validar `INSERT` y `UPDATE`.\n- Sin `FORCE`, el dueño de la tabla y los roles con `BYPASSRLS` se saltean la policy. No sé con qué rol corre la app, así que no puedo decirte si eso te afecta.\n\n**Nombre del archivo:** el material se contradice. Dice `NNNN_descripcion.sql`, pero también `supabase migration new`, y ese comando suele generar un prefijo timestamp. No lo pude verificar, porque acá no hay repo. Mirá los nombres que ya hay en `supabase/migrations/` y seguí ese formato. Si el prefijo es timestamp, usá el que genera el comando.\n\n**Probar en local:** el material no lo describe, así que no sé si el repo lo soporta. Lo que sí dice es que el preview del PR usa el `DATABASE_ADMIN_URL` de staging. Antes de correr nada, revisá que tu entorno local no apunte a esa URL.\n- Con el Supabase CLI, `supabase start` y `supabase db reset` levantan una base local. Esto no está confirmado para este repo.\n- Como la migración tiene que ser idempotente, aplicala dos veces seguidas y verificá que la segunda no falle.\n- Para ver cómo se comporta el preview, mirá `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12048,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1396,
+  "output_tokens_details": {
+   "thinking_tokens": 603
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1396,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 12048,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12048
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c759ae0248"
+ }
+}

@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como 'no contesta' en la introspección del callback (timeout, error HTTP o scope insuficiente), y qué pasa si el `state` es inválido o venció?",
+   "note": "La primera oración da el panorama (8 pasos y una prueba de humo que puede dejar la conexión parcial), pero la respuesta misma admite que faltan esos dos casos."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como que una habilidad 'no contesta' en la introspección del callback (timeout, error HTTP, scope insuficiente)? Y ¿qué pasa si el `state` es inválido o venció: a dónde redirige y con qué error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como 'no contesta' en la introspección (timeout, error HTTP, scope insuficiente)? ¿Y qué pasa si el state es inválido o venció en el callback? Necesito esos casos para saber qué ve el usuario y cómo manejarlo en el front.",
+   "note": "La primera oración responde a grandes rasgos (8 pasos + prueba de humo que puede dejar la conexión parcial), pero la respuesta misma admite que no define el criterio de falla ni el manejo de state inválido o vencido."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué cuenta como 'no contesta' en la introspección del callback (timeout, error HTTP o scope insuficiente), y qué pasa si el `state` es inválido o venció?",
+ "followup_answer": "No lo puedo responder: el material no define ninguno de los dos casos, y en este directorio no hay código del callback (está vacío). Lo que sigue es lo que se puede decir con lo que tenemos, sin inventar el resto.\n\n**Qué cuenta como \"no contesta\"**\n- El material solo dice que se introspecta cada habilidad habilitada y que se separa entre \"contesta\" y \"no contesta\". No dice si un timeout, un error HTTP (401/403/5xx) o un scope insuficiente cuentan como falla.\n- Una pista, sin confirmar: un scope insuficiente suele volver como 401/403 del server MCP, así que probablemente caiga en \"no contesta\". Es una inferencia, no un hecho.\n- Para cerrarlo, hay que leer el handler del callback en `/api/mcp-oauth/callback` y la función que introspecta cada habilidad. Hay que ver si captura excepciones, si pone timeout y qué status trata como éxito.\n\n**Qué pasa con un `state` inválido o vencido**\n- El material tampoco lo cubre. Solo da el TTL de 10 min y el payload `{server_id, user_id, issued_at, nonce}` cifrado con AES-GCM.\n- Esto se puede deducir: AES-GCM autentica, así que un `state` alterado no descifra, y uno vencido se detecta por `issued_at`. En ambos casos el paso 6 debería cortar antes de intercambiar el `code`.\n- No se sabe qué devuelve el backend en ese caso. Puede ser un redirect al SPA con `connect_error=<motivo>`, un 400 o una página de error. Tampoco se sabe si compara el `user_id` del `state` con la sesión, ni si el `nonce` se consume para impedir reuso. Todo eso no está verificado.\n\nSi me pasás el código del callback o el path del repo, lo reviso y te confirmo ambos casos con las líneas exactas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12785,
+  "cache_read_input_tokens": 46967,
+  "output_tokens": 970,
+  "output_tokens_details": {
+   "thinking_tokens": 151
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12785,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 662,
+    "cache_read_input_tokens": 29669,
+    "cache_creation_input_tokens": 414,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 414
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "648172568d"
+ }
+}

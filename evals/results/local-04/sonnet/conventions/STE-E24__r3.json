@@ -1,0 +1,44 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Resumen:** el código y la columna nueva llegan a prod el jueves 19/11 a las 09:00 (hora argentina). El borrado de `members.lang` llega el martes 24/11 a las 09:00, siempre que el PR se separe como explico abajo.\n\nMergeaste el miércoles 18/11 a las 15:00 ART, que son las 18:00 UTC. El tren de ese día ya pasó, porque corre los martes y jueves a las 12 UTC. El próximo es el jueves 19/11 a las 12:00 UTC (09:00 ART).\n\n- **Jueves 19/11, 09:00 ART:** llegan a prod el código y el `ADD COLUMN members.locale`, porque las migraciones aditivas corren en el tren.\n- **Martes 24/11, 09:00 ART (12 UTC):** llega el `DROP COLUMN members.lang`. Una migración destructiva no puede ir en el mismo tren que el código que deja de usar la columna. Durante el deploy conviven la versión vieja y la nueva, y la vieja todavía lee `lang`.\n\n**Cuidado con el PR:** si el DROP está en el mismo PR que ya mergeaste, correría en el tren del jueves y rompería la regla expand/contract. Conviene sacarlo de ese PR y mandarlo en uno aparte. Ese segundo PR tiene que estar mergeado a staging, con CI verde, antes del martes 24 a las 12 UTC.\n\n**Retrasos posibles:**\n- Si el CI de staging está rojo en el momento del tren, ese tren se salta. Todo se corre al siguiente: el código y la columna nueva al martes 24, y el DROP al jueves 26.\n- Un release manual solo corresponde a un hotfix y necesita la aprobación de jjs. Este cambio no lo justifica.\n\nNo verifiqué si tu PR tiene el DROP en el mismo commit o migración. Lo supuse por cómo lo describís.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9625,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1194,
+  "output_tokens_details": {
+   "thinking_tokens": 519
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9625,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1194,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9625,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9625
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

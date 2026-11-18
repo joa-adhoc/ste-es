@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de prod (main) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Y, ya que no leíste docs/infra-ci-cd.md, ¿cómo lo verifico yo (dónde se ve la variable en Railway) antes de mergear?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de prod (rama main) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Y no me quedó claro si el `-- destructive: true` es lo que hace que el preview la saltee, porque la tabla dice que se saltea por la rama, no por esa marca. ¿Podés confirmar qué hace exactamente esa línea?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El environment de prod (rama main) ¿tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Si no lo tiene, la migración se saltea también en prod y la columna nunca se dropea. ¿Cómo lo verifico, o quién lo sabe?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El environment de prod (main) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 seteado? Y, ya que no leíste docs/infra-ci-cd.md, ¿cómo lo verifico yo (dónde se ve la variable en Railway) antes de mergear?",
+ "followup_answer": "No sé si el environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. El material no lo dice, y no tengo acceso a Railway desde acá. Lo único que se desprende del texto es que staging sí lo tiene, porque los PR envs lo heredan de ahí.\n\n**Cómo verlo en Railway**\n\nEsto es conocimiento general de Railway, no sale del material, así que confirmá los nombres en tu UI:\n\n1. Abrí el proyecto en el dashboard de Railway.\n2. Elegí el environment de prod en el selector de environments, arriba a la izquierda. Fijate que sea el que despliega `main`.\n3. Entrá al servicio que corre el migrate (el que ejecuta `python -m tuqui_core.db.migrate` al deployar).\n4. Abrí la pestaña **Variables** y buscá `MIGRATIONS_ALLOW_DESTRUCTIVE`. Tiene que valer exactamente `1`.\n\nPor CLI, con el proyecto linkeado:\n\n```bash\nrailway variables --environment <env-de-prod> --service <servicio>\n```\n\nSi la variable puede estar como variable compartida (shared variable) del proyecto o referenciada desde otro servicio, revisá también esas. Si la ves en el dashboard, no significa que el servicio que migra la reciba.\n\n**Qué hacer según lo que veas**\n\n- **Está en `1`:** el deploy de `main` tras el merge aplica tu migración.\n- **No está, o tiene otro valor:** el runner la saltea en prod sin registrarla y sin fallar. El deploy sale verde, la columna sigue ahí y el código nuevo puede no andar. Pedile al equipo de infra que la setee, o confirmá con ellos si hay otro mecanismo para prod. No lo asumas.\n\n**Qué no verifiqué**\n\n- Qué dice `docs/infra-ci-cd.md`. Acá no hay un checkout del repo, así que no lo leí.\n- Si el deploy a prod sale de `main` directo o pasa primero por `staging`. El runner acepta ambas ramas, pero el flujo real de promoción no está en el material.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11824,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1044,
+  "output_tokens_details": {
+   "thinking_tokens": 296
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11824,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1044,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11824,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11824
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9dbbf322b3"
+ }
+}

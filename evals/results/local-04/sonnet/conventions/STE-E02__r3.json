@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Alcanza con el cliente si solo la SPA muestra la descripción del conector.** Si además entra a un prompt del LLM, a un mail o sale por la superficie MCP, también tenés que resolverlo en el backend. Esto sale de la regla del material, no del código. No tengo el repo acá, así que no verifiqué qué consume hoy esa descripción. Revisalo antes de decidir.\n\nUna referencia del material, `0201_platform_connectors_description_i18n.sql`, parece ser justo esta migración. Si ya existe, la columna `description_i18n` ya está y te saltás el paso 1. Confirmalo en `supabase/migrations/`.\n\n## Pasos\n\n1. **Migración.** `ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;`. No toques la columna legacy `description`. Copiá el formato de `0117_agents_i18n.sql` o de `0201_...`.\n\n2. **API.**\n   - Devolvé el mapa entero `description_i18n` junto con `description`. No filtres por idioma en el serializer.\n   - Al escribir, usá `normalize_i18n_keys` de `tuqui_core/i18n.py`.\n   - Al leer, usá `decode_i18n` de ese mismo archivo, porque asyncpg puede devolver el JSONB como `str` o como dict.\n   - No reimplementes ninguna de las dos.\n\n3. **Front (lectura).** Usá `localizedField(row.description_i18n, row.description, i18n.language)` en cards y listados. No escribas el fallback a mano. La cadena es `idioma exacto → en → legacy`.\n\n4. **Editor del admin.**\n   - Poné dos inputs, ES y EN.\n   - Al guardar, mandá `description_i18n` solo con las claves no vacías.\n   - Espejá la legacy con `es || en`.\n   - La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n5. **Backend (solo si aplica).**\n   - Si el texto va a un prompt, un mail o MCP, resolvelo con la misma cadena `lang → en → legacy`.\n   - Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n   - Usá la misma cadena en cliente y backend. Es el bug que menciona el material para `agents`.\n\n6. **Caché.** Solo si resolvés en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resuelve el cliente, no hace falta.\n\nPara saber si el backend aplica, buscá dónde se lee `description` de los conectores fuera de la SPA, por ejemplo en armado de prompts, templates de mail o el listado de tools MCP. Si no aparece nada, quedate con los pasos 1 a 4 y 6 no aplica.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10393,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1242,
+  "output_tokens_details": {
+   "thinking_tokens": 267
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10393,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1242,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10393,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10393
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los 37 timeouts de `odoo_report` coinciden con una subida de memoria del worker que terminó en un OOM kill. Eso es una correlación de horarios; no encontré qué proceso causó la subida.\n\n```\n┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐\n│ 13:05        │──►│ 13:10-13:40  │──►│ 13:41:58     │──►│ 13:42:10     │\n│ memoria sube │   │ 37 timeouts  │   │ OOM kill     │   │ worker       │\n│ 0,9 GB → 2GB │   │ odoo_report  │   │ límite 2 GB  │   │ restarted    │\n└──────────────┘   └──────────────┘   └──────────────┘   └──────────────┘\n```\n\nFuentes: SQL de `tool_usage_log` (workspace `pldistribucion`, 18-nov), `railway logs worker` y `railway metrics worker`.\n\n- **Errores:** todos dicen \"timeout after 30s\". No hubo errores antes de las 13:10 ni después de las 13:40.\n- **Causa sin encontrar:** el log no tiene detalle por request, así que no sé qué subió la memoria.\n- **Sin verificar:** no revisé si el cliente volvió a pedir reportes después de las 13:42. No sé si quedó algún reporte sin entregar.\n\nPara cerrar esto, corré la misma consulta SQL con `created_at > '2026-11-18 13:42'`. Para la causa, hace falta logging por request en el worker.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4732,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 793,
+  "output_tokens_details": {
+   "thinking_tokens": 252
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4732,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 793,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4732,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4732
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

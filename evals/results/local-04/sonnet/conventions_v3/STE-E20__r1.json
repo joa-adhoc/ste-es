@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No está caído: el deploy nuevo no se promovió y el anterior sigue sirviendo.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en el paso `migrate`. Intentó este comando:\n\n```sql\nALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;\n```\n\nLa columna `accepted_version` de `members` tiene filas en `null`, así que Postgres rechazó el cambio (SQLSTATE 23502). La migración hizo rollback y el pipeline cortó antes de promover.\n\n**Causa de fondo:** la migración no respeta la regla de `docs/infra-ci-cd.md`. Esa regla pide dos pasos separados:\n\n1. Una migración que complete los valores (backfill).\n2. En un tren posterior, otra migración con el `SET NOT NULL`.\n\n**Cómo arreglarlo:**\n\n1. Sacá el `SET NOT NULL` de `0415` y dejá ahí solo el backfill de `accepted_version`.\n2. Mergeá y desplegá ese cambio.\n3. En un tren posterior, agregá la migración con el `SET NOT NULL`.\n\nAntes de elegir el valor del backfill, confirmá con quien definió la funcionalidad qué versión de términos corresponde a los miembros viejos. Yo no lo sé.\n\n**No verificado:** no vi el estado real de staging. Que \"el anterior sigue sirviendo\" sale solo del log. Para confirmarlo, probá el health check o la versión desplegada de staging.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10088,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 532,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10088,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 532,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10088,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10088
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

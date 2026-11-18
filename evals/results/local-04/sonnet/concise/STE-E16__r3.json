@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Quien tiene el link sigue viendo lo publicado, no lo que editaste.**\n\n- **Crear:** `save` sin `artifact_id` crea la v1 y la publica, así que el link funciona de inmediato.\n- **Editar uno ya compartido:** `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`, pero **no** `published_version_id`. La ruta por token siempre sirve `published_version`, así que quien tiene el link ve lo de antes. El result trae `unpublished_changes: true` y el viewer interno muestra un banner. Ese viewer navega por `current_version`, con selector de versiones.\n- **Publicar:** `publish(version?)` mueve el puntero publicado (por defecto, a la última). Para revertir, publicás una versión anterior.\n\n**Refresh de datos:** crea una versión solo-data (`content` nulo). El efectivo de una versión `n` se resuelve por separado hacia atrás: el último `content` no nulo ≤ n y el último `data` no nulo ≤ n (`service._effective_version`). Un refresh por sí solo no puede romper el diseño, porque el template se hereda de la versión anterior.\n\nDos cosas más sobre los datos:\n- Si guardás `data` sobre un artifact existente, se valida contra el `data_schema` almacenado (required keys y tipos). Si no encaja, se rechaza antes de escribir.\n- `content` y `data` tienen un tope de 1 MB cada uno.\n\nLo que el material no aclara es si un refresh solo-data también mueve `published_version_id`. Por la semántica de `save` lo esperable es que no, y que haya que publicarlo, pero conviene verificarlo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4252,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 588,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4252,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 588,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4252,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4252
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

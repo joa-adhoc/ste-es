@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El test falla porque la policy `scheduled_runs_ws` quedó con `USING (true)`, así que el workspace B ve todo. La migración `0398` la creó abierta. La `0412` intentó corregirla, pero su `IF NOT EXISTS` la salteó porque el nombre ya existía (ese es el warning del log).\n\nCreá una migración nueva con el siguiente número libre, por ejemplo `0413_fix_scheduled_runs_policy.sql`:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid)\n  WITH CHECK (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\n- **No edites `0398` ni `0412`:** ya están aplicadas y el tracking es por nombre de archivo, así que no se vuelven a correr.\n- **Revisá los entornos ya migrados:** staging y producción pueden tener la policy abierta desde `0398`. Corré `SELECT policyname, qual FROM pg_policies WHERE tablename = 'scheduled_runs';` y confirmá que ninguno sigue con `true`.\n- **Volvé a correr** `pytest tuqui_core/tests/test_rls.py -q` después de aplicar la migración.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5005,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 759,
+  "output_tokens_details": {
+   "thinking_tokens": 265
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5005,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 759,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5005,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5005
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

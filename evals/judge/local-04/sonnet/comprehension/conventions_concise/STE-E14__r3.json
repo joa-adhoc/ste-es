@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Primero se arma el contexto (Context Assembler, con 6 consultas en paralelo bajo el RLS del usuario). Después corren tres etapas en orden: 1) Planner (planner.py), que propone hipótesis; 2) Investigator (investigator.py), que investiga cada hipótesis con herramientas de solo lectura; 3) Synthesizer + guards (synthesizer.py, guards.py), que redacta los teasers y los filtra con ResponseGuard (regex), StringGrounding (rapidfuzz) y LLM Judge, en ese orden. El resultado son 0 a 2 teasers que se guardan (upsert) en la tabla insights.",
+  "Termina sin mostrar nada en dos casos: 1) cuando el Planner no propone hipótesis (silencio válido: no se investiga ni se sintetiza nada y queda el silence_reason); 2) cuando los guards rechazan todos los teasers (devuelve SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")). El texto aclara que no dice qué pasa si una hipótesis agota su presupuesto de tiempo o de tools sin hallazgos, ni si el Synthesizer puede devolver 0 teasers por decisión propia.",
+  "Si el juez LLM falla por infraestructura, el teaser pasa (no se rechaza)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ab465227d5",
+  "control": "2010a7802d"
+ }
+}

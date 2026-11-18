@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "1. Desde el worktree, corré `make worktree-setup`. Linkea el `.venv`, los `.env`, los `node_modules` y `.mcp.json` del clone principal. Sin eso, `make test` falla con \"Venv no encontrado\".\n\n2. **Dependencia de Python:** no corras `make install` en el worktree. Escribiría en el venv del clone principal, y el target se niega a correr ahí. Instalá la dependencia en el clone principal, o borrá el link de `.venv` y armá un venv propio en el worktree. Si la instalás en el clone principal, queda para todos los worktrees.\n\n3. **`web/package.json`:** corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` son del clone principal, así que sin esto el frontend se probaría con las dependencias viejas. No verifiqué si `npm ci` reemplaza el link o escribe a través de él en el clone principal. Si te importa no tocar el clone principal, mirá primero con `ls -l web/node_modules`.\n\n4. Corré los tests:\n```bash\nmake test        # unit\nmake test-rls    # aislamiento multi-tenant\nmake test-web    # frontend\nmake lint\n```\n\nPara un subconjunto: `make test ARGS=\"tests/test_rls.py -k policy\"`, con paths relativos a `tuqui_core/`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10602,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 778,
+  "output_tokens_details": {
+   "thinking_tokens": 320
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10602,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 778,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10602,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10602
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

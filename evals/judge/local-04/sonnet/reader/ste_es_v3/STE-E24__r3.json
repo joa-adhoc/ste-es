@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging, así que no entiendo el paso 'separalo en dos y mergeá el PR 1 hoy'. Si queda como está, ¿el DROP de `lang` sale solo el martes 24/11 o viaja con `locale` el jueves 19/11 y rompe prod? Y si hay que arreglarlo, ¿qué hago ahora con lo que ya está en staging: revierto el DROP o hago un PR nuevo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR entero a staging, con el ADD y el DROP juntos. Decís que lo separe en dos y que mergee el PR 1 hoy, pero eso ya no se puede. ¿El tren del jueves retiene solo el DROP y lo saca el martes, o tengo que revertir el DROP en staging antes del jueves a las 12 UTC para que no viaje junto con locale?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR entero a staging (con el ADD y el DROP juntos). ¿El DROP se frena solo hasta el martes 24/11, o el jueves 19/11 viaja todo junto? Si hay que separarlo, ¿cómo lo hago ahora, con un revert del DROP en staging antes del tren del jueves?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado a staging, así que no entiendo el paso 'separalo en dos y mergeá el PR 1 hoy'. Si queda como está, ¿el DROP de `lang` sale solo el martes 24/11 o viaja con `locale` el jueves 19/11 y rompe prod? Y si hay que arreglarlo, ¿qué hago ahora con lo que ya está en staging: revierto el DROP o hago un PR nuevo?",
+ "followup_answer": "Si queda como está, el DROP de `lang` viaja con `locale` el jueves 19/11 a las 12 UTC (09:00 ART). El tren copia `staging` entero a `main`, y el doc no describe ningún mecanismo que separe la migración destructiva. Mi respuesta anterior asumía que el PR no estaba mergeado, y eso era un error.\n\n**Qué hacer:** abrí un PR nuevo que saque el DROP, y mergealo a `staging` antes del jueves 12 UTC. No reviertas el PR completo, porque `locale` y el código que deja de usar `lang` tienen que salir el jueves.\n\n1. **Hoy o mañana antes de las 09:00 ART:** PR de \"revert parcial\" que borra solo la migración con `DROP COLUMN lang`. Con el CI de `staging` en verde, el tren del jueves lleva `locale` y el código nuevo.\n2. **Después de que corra el tren del jueves:** PR que vuelve a agregar el DROP. Entra al tren del martes 24/11 a las 12 UTC.\n\n```bash\ngit revert -n <sha-del-commit-del-DROP>   # si el DROP está en un commit aparte\n# si está mezclado en un solo commit, borrá a mano solo la migración del DROP\n```\n\n**Antes de revertir, revisá estos dos puntos:**\n\n- **Migración ya corrida en staging:** si la migración del DROP ya corrió en la base de `staging`, borrar el archivo no devuelve la columna. Tenés que recrear `lang` a mano en `staging`, o esa base queda distinta de prod.\n- **Código que todavía lee `lang`:** si el código mergeado todavía lee o escribe `lang`, el PR nuevo también tiene que cambiar eso. De lo contrario, el DROP del martes rompe prod.\n\n**Si el CI de `staging` está rojo el jueves a las 12 UTC:** el tren salta al martes 24/11. Sacar el DROP sigue siendo necesario, porque si no viaja junto con `locale` ese día. Un hotfix manual necesita la aprobación de jjs.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4930,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1558,
+  "output_tokens_details": {
+   "thinking_tokens": 830
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4930,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1558,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 4930,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4930
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "15b22f6563"
+ }
+}

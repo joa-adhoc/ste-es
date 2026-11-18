@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. (1) Decís que DoomLoopGuard corta las dos clases de conexión \"entre tools\", pero la key del contador incluye tool_name, así que no entiendo cómo se acumula entre tools distintas. ¿Hay un contador aparte para CONNECTION y ODOO_NOT_CONNECTED, o qué significa eso? (2) Al llegar a 3, el modelo recibe un string FATAL, pero ¿eso corta el run del agente o el modelo puede seguir llamando tools con otros args? ¿Qué lo frena en ese caso?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El diagrama muestra el guard decidiendo entre for_llm() y FATAL, pero el texto dice que el FATAL se dispara cuando el contador llega a 3. ¿Al tercer fallo el modelo ya recibe FATAL en lugar del [TOOL_ERROR], o recién al cuarto intento? Además, ¿qué pasa después del FATAL: se corta el run entero o el modelo puede seguir con otras tools?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El último punto no me cierra: decís que DoomLoopGuard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\", pero la key del contador incluye tool_name y el hash de args. ¿Eso significa que hay un contador aparte, sin tool_name ni args, para estas dos clases? Si es así, ¿con qué umbral y con qué texto de aviso corta cada una?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dos cosas no me cierran. (1) Decís que DoomLoopGuard corta las dos clases de conexión \"entre tools\", pero la key del contador incluye tool_name, así que no entiendo cómo se acumula entre tools distintas. ¿Hay un contador aparte para CONNECTION y ODOO_NOT_CONNECTED, o qué significa eso? (2) Al llegar a 3, el modelo recibe un string FATAL, pero ¿eso corta el run del agente o el modelo puede seguir llamando tools con otros args? ¿Qué lo frena en ese caso?",
+ "followup_answer": "**(1)** El material no lo explica, y con la key tal como figura no se acumula entre tools. Repetí la frase \"corta las dos entre tools\" del material sin verificarla. La key `\"{tool_name}|{hash(args)}|{error_class}\"` incluye `tool_name`, así que dos tools distintas con `CONNECTION` tienen contadores separados. Para que se acumule entre tools tendría que haber una de estas dos cosas:\n\n- Un contador aparte para `CONNECTION` y `ODOO_NOT_CONNECTED`, sin `tool_name` ni args en la key.\n- Una excepción en `record` para esas dos clases, que arme la key solo con `error_class`.\n\nEl material no menciona ninguna. Abrí `tuqui_core/chat/guards.py` y fijate cómo arma la key en `record` para esas dos clases. Si querés, lo busco yo, pero el código no está en este directorio.\n\n**(2)** El material tampoco lo dice. Solo establece que `_wrap_tool` devuelve el string FATAL \"e impide más calls idénticos\". Esa frase cubre solo los calls idénticos. Con otros args la key cambia y el contador arranca de cero, así que el guard no frena ese caso.\n\nTampoco hay evidencia de que el FATAL corte el run. Es el valor de retorno de la tool, y el modelo lo lee como cualquier resultado. Si algo más frena al modelo, tiene que estar fuera de lo que me pasaste. Por ejemplo, un límite de iteraciones del loop del agente o un chequeo del `ErrorClass.FATAL` en el runner. Revisá si el loop del agente trata `FATAL` de forma especial.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6537,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 797,
+  "output_tokens_details": {
+   "thinking_tokens": 216
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6537,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 797,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6537,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6537
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "885f237727"
+ }
+}

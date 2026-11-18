@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Salen dos avisos de prueba: uno a 7 días del fin y otro el día que vence, ambos a las 12:00 UTC (9 h en Argentina).\n\n**Cuándo**\n- El cron `_run_trial_expiry` corre a diario a las 12:00 UTC.\n- Los hitos vienen de `billing_trial_warning_days_list`. El default es `{7, 0}`: la semana antes y el día del vencimiento, mientras todavía funciona.\n- La marca de lo enviado es un par: `trial_warning_for` (fecha de fin avisada) y `trial_warning_days` (hito más chico ya enviado). Si extienden la prueba, la fecha cambia y los avisos se repiten.\n\n**A quién**\n- Owners y admins siempre, aunque estén en `billing_tier = 'none'`.\n- Todo miembro con asiento (`billing_tier <> 'none'`), porque el asistente deja de responder para todo el equipo.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Qué pasa el día que vence**\n- Sin suscripción viva: el workspace pasa a `plan='free'`, se evalúa el exceso y sale el mail de prueba vencida.\n- Si hay exceso, `account_status` pasa a `restricted` (motivo `trial_expired_with_excess`). Con eso se bloquean el MCP y el chat.\n- Sin exceso, el material no dice que cambie `account_status`.\n\n**¿Cambia algo con suscripción?**\nSí. Con suscripción viva, el vencimiento solo limpia los flags de trial y no manda ningún mail. El owner no ve ningún cambio, y el cobro se anuncia con su propio recibo.\n\nLos avisos de la semana previa salen igual con suscripción, salvo que el material no aclara si el cron los omite cuando ya hay una viva. Verificalo en `_run_trial_expiry`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4894,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 671,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4894,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 671,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4894,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4894
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

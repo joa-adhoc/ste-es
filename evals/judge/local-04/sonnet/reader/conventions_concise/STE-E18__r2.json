@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo accede el modelo a una memoria que el filtro de rapidfuzz dejó afuera por el budget? ¿Existe una acción `list` o `search` en `manage_memory`, o solo `read` por id? Además, ¿cuántas memorias entran típicamente en el top-N cuando se supera el budget de 12K caracteres?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo accede el modelo a una memoria que el filtro de rapidfuzz dejó afuera por el budget? ¿Existe una acción `list` o `search` en `manage_memory`, o solo `read` por `id`?",
+   "reason": "La respuesta explica el ciclo completo, pero admite que falta cómo se recuperan las memorias filtradas cuando hay muchas, que era parte de la pregunta."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué acciones soporta `manage_memory` además de `read` (por ejemplo `list` o `search`)? ¿Y cuánto vale N en el top-N cuando se pasa el budget de 12K caracteres? Necesito saber si el modelo puede llegar a una memoria que el filtro dejó afuera."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cómo accede el modelo a una memoria que el filtro de rapidfuzz dejó afuera por el budget? ¿Existe una acción `list` o `search` en `manage_memory`, o solo `read` por id? Además, ¿cuántas memorias entran típicamente en el top-N cuando se supera el budget de 12K caracteres?",
+ "followup_answer": "El material no lo responde, así que no puedo confirmarlo. Solo documenta `manage_memory(action='read', id=...)`, y no menciona `list` ni `search`. Tampoco dice cuántas memorias entran en el top-N.\n\n**Acceso a una memoria que quedó afuera**\n- Con solo `read` por id, el modelo necesita conocer el id, y el id solo aparece en los headers inyectados. Una memoria filtrada no se puede leer salvo que el modelo la tenga en contexto por otra vía, por ejemplo una conversación previa.\n- Si existe `list` o `search`, tiene que figurar en el schema de la tool `manage_memory`. No verificado. Se cierra mirando el enum de `action` en su definición.\n\n**Cuántas entran en el top-N**\nNo está definido en el material. Solo puedo hacer una estimación a partir de los números que sí da:\n- Una línea de header ronda los 330 caracteres como máximo. Son título, hasta 250 caracteres de body, el marcador `[read]` y un id UUID de unos 36 caracteres. Con 12K de presupuesto entran unas 35 memorias de ese tamaño.\n- Si los headers son cortos, de unos 120 caracteres, entran las 100 posibles (50 por alcance) y el guard casi no se activa.\n- Esto supone un summary corto. Si el summary puede ser largo, el máximo por línea sube y entran menos.\n- Tampoco está claro si el presupuesto es combinado o por alcance, ni si N es fijo o se llena hasta agotar los 12K.\n\nPara cerrarlo hay que leer `_MEMORY_BUDGET_CHARS` y la función de filtrado en `tuqui_core/chat/agent.py`, y el schema de `manage_memory`. No tengo ese código en este directorio. Si me indicás dónde está, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11417,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 980,
+  "output_tokens_details": {
+   "thinking_tokens": 338
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11417,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 980,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11417,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11417
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "dc7724d342"
+ }
+}

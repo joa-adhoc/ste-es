@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No está caído: staging sigue sirviendo la versión anterior. El deploy nuevo no se promovió.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;`. La columna `accepted_version` tiene filas en null, y Postgres no permite `NOT NULL` así (SQLSTATE 23502). La migración hizo rollback y el paso de deploy se cortó.\n\n**Por qué:** según `docs/infra-ci-cd.md`, pasar una columna existente a `NOT NULL` pide dos migraciones en trenes distintos:\n\n1. Una migración que haga backfill de los valores.\n2. En un tren posterior, otra con el `SET NOT NULL`.\n\nLa 0415 puso las dos cosas juntas, o hizo solo el `SET NOT NULL` sin backfill. No puedo confirmar cuál de las dos, porque no vi el archivo.\n\n**Cómo arreglarlo:**\n- Sacá el `SET NOT NULL` de la 0415 y dejá solo el backfill de `accepted_version`.\n- Mandá el `SET NOT NULL` en una migración nueva, en un tren posterior.\n\nPara ver cuántas filas están en null, podés correr `SELECT count(*) FROM members WHERE accepted_version IS NULL;`. No lo corrí: no verificado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10088,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 492,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10088,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 492,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10088,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10088
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

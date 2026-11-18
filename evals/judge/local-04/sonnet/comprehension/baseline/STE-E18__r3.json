@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más antigua según created_at, en la misma transacción de DB (FIFO puro: no importa la utilidad ni el uso reciente, solo cuándo se creó). La expulsión es silenciosa para el usuario, pero el modelo se entera por un mensaje en la respuesta de la herramienta.",
+  "En cada turno se inyectan los headers de las memorias (title + summary, o si no hay summary, los primeros 250 caracteres del body; si el body supera 250c y no hay summary, el header termina en '... [read]'), con su id, en el bloque 'Workspace memory' y 'User memory' del prompt, después del bloque CURRENT USER y antes del bloque de proyecto. El resto (el body completo) llega bajo demanda: el modelo llama a manage_memory(action='read', id=...) para leer el contenido de una memoria marcada [read].",
+  "Si la suma de los headers excede _MEMORY_BUDGET_CHARS (12K caracteres, ≈3K tokens), se activa el budget guard: rapidfuzz puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes. Así el conjunto de memorias visibles cambia de turno a turno; las no seleccionadas siguen existiendo pero el modelo no las ve en ese turno. El texto no dice si el guard aplica a ambos scopes en conjunto o por separado, ni cómo se decide N."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "568287ad77",
+  "control": "2fefeeffdf"
+ }
+}

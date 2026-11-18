@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta me manda a docs/infra-ci-cd.md para entender las consecuencias de que el preview del PR escriba en la base de staging, pero no lo tenés a mano. ¿Me podés pasar ese contenido (o decirme qué hay que hacer concretamente para que mi migración no rompa staging al abrir el PR), y confirmarme la convención exacta del nombre/numeración del archivo de migración?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me pasás la sección \"Un PR preview escribe en la base de staging\" de docs/infra-ci-cd.md? Necesito saber qué consecuencias concretas tiene aplicar la migración en staging al abrir el PR (por ejemplo, qué pasa si falla o si hay que corregirla después). Además, el nombre del archivo no me cierra: ¿`supabase migration new` genera un timestamp o el formato es NNNN_descripcion.sql como dice la respuesta?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que las consecuencias completas de que el preview del PR escriba en la base de staging están en docs/infra-ci-cd.md y que no lo tenés a mano. ¿Me pasás esa sección (o me decís qué pasa si la migración falla o se aplica dos veces en staging) para saber si necesito algo más en la migración, como un rollback o un down?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "La respuesta me manda a docs/infra-ci-cd.md para entender las consecuencias de que el preview del PR escriba en la base de staging, pero no lo tenés a mano. ¿Me podés pasar ese contenido (o decirme qué hay que hacer concretamente para que mi migración no rompa staging al abrir el PR), y confirmarme la convención exacta del nombre/numeración del archivo de migración?",
+ "followup_answer": "No pude buscar el archivo: el comando de búsqueda pidió aprobación y no se ejecutó. Además, el directorio de trabajo no es un repo de tuqui. No tengo `docs/infra-ci-cd.md` y no te puedo pasar su contenido. Si te lo inventara, te sacaría de apuro y después el PR rebotaría igual.\n\n**Qué sé del preview (sale de lo que pegaste)**\n- El preview del PR corre las migraciones contra la base de staging. Es la misma base, no una copia.\n- La migración se aplica ahí al abrir el PR.\n- Si renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n\n**Qué hacer para no romper staging**\n\nTodo esto deriva de esos tres hechos. Lo que dice exactamente el doc sobre las consecuencias es \"no verificado\".\n1. Probá la migración en local antes de abrir el PR. Correla dos veces seguidas contra una base de desarrollo y confirmá que la segunda no falla.\n2. No hagas nada destructivo ni difícil de revertir: `DROP`, `ALTER` que cambie tipos o `DELETE` de datos. Lo que aplique el preview queda en staging aunque cierres el PR.\n3. Dejá el nombre del archivo definitivo antes de abrir el PR, así no se reaplica.\n4. Si después necesitás cambiar algo, no edites una migración que ya corrió en staging. Lo seguro es una migración nueva, también idempotente. Esto es inferencia mía, no lo confirmé.\n5. Leé la sección \"Un PR preview escribe en la base de staging\" de [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging) en el repo de tuqui. Ahí están las consecuencias completas, y puede haber pasos de limpieza que yo no conozco.\n\n**Convención del nombre**\n\nLo único que tengo es `NNNN_descripcion.sql` en `supabase/migrations/`, y que lo genera `supabase migration new <nombre>`. No puedo confirmarte el formato exacto de `NNNN`: si es secuencial de 4 dígitos o un timestamp. El CLI de Supabase suele generar timestamps, y eso no coincide con un `NNNN` secuencial. Mirá los últimos archivos de `supabase/migrations/` en el repo y copiá el patrón. Si dudás, preguntalo en el canal del equipo antes de abrir el PR.\n\nSi me pasás el contenido de esa sección del doc o el listado de `supabase/migrations/`, ajusto la respuesta con eso.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11977,
+  "cache_read_input_tokens": 46204,
+  "output_tokens": 1273,
+  "output_tokens_details": {
+   "thinking_tokens": 153
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11977,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 982,
+    "cache_read_input_tokens": 28915,
+    "cache_creation_input_tokens": 351,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 351
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a67428fd26"
+ }
+}

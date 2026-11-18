@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Verificá en billing_cron.py tres cosas: (1) si el aviso de 7 días sale cuando faltan exactamente 7 días o cuando faltan 7 o menos; (2) si al vencer el workspace pasa a 'restricted' siempre o solo cuando hay exceso (trial_expired_with_excess); (3) si los avisos previos de por vencer también se omiten cuando ya hay una suscripción viva. Con eso puedo decirle al usuario qué le llega y qué le pasa al workspace."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Verificá en billing_cron.py tres cosas: (1) si el aviso del hito 7 sale cuando faltan exactamente 7 días o cuando faltan 7 o menos; (2) si el workspace pasa a 'restricted' siempre al vencer la prueba o solo cuando hay exceso; (3) si con suscripción viva se omiten también los avisos previos de 'por vencer'. Con eso, decime qué avisos salen exactamente, a quién y cuándo, y en qué estado queda el workspace."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuándo sale exactamente el aviso de 7 días (a los 7 justos o a 7 o menos)? ¿Se omiten los avisos previos si ya hay suscripción viva? ¿Y el workspace pasa a 'restricted' siempre al vencer o solo cuando hay exceso? Confirmalo en billing_cron.py."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Verificá en billing_cron.py tres cosas: (1) si el aviso de 7 días sale cuando faltan exactamente 7 días o cuando faltan 7 o menos; (2) si al vencer el workspace pasa a 'restricted' siempre o solo cuando hay exceso (trial_expired_with_excess); (3) si los avisos previos de por vencer también se omiten cuando ya hay una suscripción viva. Con eso puedo decirle al usuario qué le llega y qué le pasa al workspace.",
+ "followup_answer": "No pude verificar ninguna de las tres cosas: `billing_cron.py` no está en este entorno. El directorio de trabajo (`/tmp/ste-es-eval-xvca35l8`) está vacío y no es un repo. Tampoco puedo buscar fuera de él.\n\nMi respuesta anterior sigue igual. Cada punto queda como \"no verificado\", con lo que habría que mirar en el código:\n\n1. **Hito de 7 días, ¿exactamente 7 o 7 o menos?** Mirá en `_run_trial_expiry` cómo se compara el tiempo que falta con cada hito de `billing_trial_warning_days_list`.\n   - Si la comparación es `==`, el aviso sale solo cuando faltan exactamente 7 días.\n   - Si es `<=`, sale cuando faltan 7 o menos.\n   - Si es `<=`, hace falta además la condición que usa `trial_warning_days` (\"el hito más chico ya enviado\") para no repetir el aviso.\n   - Con `<=`, una prueba que vence \"la semana que viene\" recibiría el aviso en la próxima corrida de las 12:00 UTC.\n\n2. **Al vencer, ¿`restricted` siempre o solo con exceso?** Mirá la rama sin suscripción viva, la que setea `plan='free'`.\n   - Buscá si `account_status='restricted'` se asigna dentro del `if` de exceso o fuera de él.\n   - Hay que fijarse si `account_status_reason` toma `trial_expired_with_excess` solo en esa rama.\n   - El material dice \"se evalúa exceso\". Eso sugiere que `restricted` es condicional, pero no lo confirma.\n   - Si es condicional, un workspace sin exceso quedaría `active` en el plan `free`.\n\n3. **¿Los avisos previos se omiten con suscripción viva?** Mirá si el chequeo de suscripción viva está antes del envío de los hitos, o solo en la rama de vencimiento.\n   - El material solo dice que al vencer \"no se manda nada\" con suscripción viva.\n   - Si el chequeo está solo en la rama de vencimiento, los avisos de 7 y de 0 días llegarían igual aunque haya suscripción.\n\nSi me pasás el archivo o su ruta (o corrés `grep -n \"trial_warning\\|restricted\\|subscription\" billing/../scheduler/billing_cron.py` y pegás la salida), lo reviso y te respondo con certeza.\n\nMientras tanto, esto es lo que se puede decirle al usuario sin riesgo:\n- Owners y admins reciben los avisos de prueba, tengan o no asiento. También los recibe todo miembro con asiento.\n- El cron corre diario a las 12:00 UTC.\n- Si ya tiene suscripción viva, al vencer no llega ningún mail y no cambia nada visible. El cobro se anuncia con su propio recibo.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 12354,
+  "cache_read_input_tokens": 104791,
+  "output_tokens": 1528,
+  "output_tokens_details": {
+   "thinking_tokens": 140
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12354,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1000,
+    "cache_read_input_tokens": 29376,
+    "cache_creation_input_tokens": 267,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 267
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1177ae4a3b"
+ }
+}

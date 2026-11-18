@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "En el paso 2 me decís que mire en el ejemplo la variable que corresponde, pero no sé cuál es. ¿Me das la línea exacta de `.env.test.local` con un valor de muestra para el nombre de la base propia del worktree? Lo necesito antes de correr `make migrate-reset`, porque si me equivoco vacío la base compartida."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el paso 2, ¿qué variable exacta del .env.test.local tengo que cambiar y qué valor le pongo para tener una base propia? Y si la base propia no existe todavía, ¿hay que crearla antes de correr make migrate-reset o el comando la crea?",
+   "note": "La primera oración explica la causa (base compartida con migración destructiva), pero el paso clave queda sin precisar: 'mirá en el ejemplo la variable que corresponde' no nombra la variable ni da un valor, y el reset es destructivo si me equivoco."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el paso 2, ¿cuál es exactamente la variable de .env.test.local que tengo que cambiar y qué valor concreto le pongo (por ejemplo, el nombre de la base para mi worktree)? Y además, ¿cómo verifico que ya no apunto a la base compartida antes de correr make migrate-reset, para no romperle el worktree a mi compañero?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el paso 2, ¿qué variable exacta del .env.test.local tengo que cambiar y qué valor le pongo para tener una base propia? Y si la base propia no existe todavía, ¿hay que crearla antes de correr make migrate-reset o el comando la crea?",
+ "followup_answer": "El material no nombra la variable de la base, así que no puedo darte el nombre exacto sin inventarlo. Abrí `tuqui_core/.env.test.local.example`: ese archivo trae la variable que `.env.test` define para la base, y vos la sobrescribís. El único nombre que el material confirma es `REDIS_URL`, y ese es del Redis.\n\n```\ngrep -n -i -E \"database|db|redis\" tuqui_core/.env.test tuqui_core/.env.test.local.example\n```\n\nComo valor, poné una URL con el mismo formato que la de `.env.test`, pero con un nombre de base distinto por worktree (por ejemplo, el nombre del branch).\n\nTampoco sé si `make migrate-reset` crea la base. El material solo dice que `scripts/reset_database.py` \"vacía\" y después le pasa la posta a `scripts/apply_migrations.py`. Eso sugiere que espera una base existente. Para saberlo, leé `scripts/reset_database.py`. Si no la crea, hacelo antes del reset:\n\n```\ncreatedb <nombre_de_tu_base>\n```\n\nEse `createdb` es una suposición mía sobre cómo se crea la base. Ajustalo si el Postgres local corre en Docker o con otro usuario.\n\nAntes de correr el reset, confirmá que la URL apunta a tu base nueva. Si todavía apunta a la compartida, la vacía.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6414,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 675,
+  "output_tokens_details": {
+   "thinking_tokens": 194
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6414,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 675,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6414,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6414
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3745d416da"
+ }
+}

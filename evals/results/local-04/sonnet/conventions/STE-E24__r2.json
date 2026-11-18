@@ -1,0 +1,44 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Resumen:** la columna nueva y el código llegan a prod el jueves 19/11 a las 09:00 ART. El borrado de `members.lang` no llega ese día, y como está en el mismo PR hay que separarlo.\n\n- **Tu merge:** miércoles 15:00 ART = 18:00 UTC. El tren del miércoles no existe (solo martes y jueves a las 12 UTC), así que el siguiente es el jueves.\n- **Jueves 19/11, 12 UTC (09:00 ART):** salen el `ADD COLUMN members.locale` y el código que deja de usar `lang`, siempre que el CI de staging esté verde. Si está rojo, el tren salta al martes 24/11.\n- **Martes 24/11, 12 UTC (09:00 ART):** es lo más temprano en que puede correr el `DROP COLUMN members.lang`. Es una migración destructiva y debe ir en el tren siguiente al del código (expand/contract). Durante el deploy conviven la versión vieja y la nueva, y la vieja todavía lee `lang`.\n\n**Qué hacer con el PR:** si el PR trae la columna nueva y el borrado juntos, el borrado correría en el tren del jueves, junto con el código. Conviene dividirlo:\n\n1. Dejar en este PR solo el `ADD locale` y el cambio de código.\n2. Abrir un segundo PR con el `DROP lang`, mergeado a staging después de que el primero llegue a prod.\n\nSi el CI de staging se pone rojo en alguno de los dos trenes, cada paso se corre al tren siguiente. No uses un release manual para saltearlo: es solo para hotfix y necesita aprobación de jjs.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9627,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1059,
+  "output_tokens_details": {
+   "thinking_tokens": 475
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9627,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1059,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9627,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9627
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

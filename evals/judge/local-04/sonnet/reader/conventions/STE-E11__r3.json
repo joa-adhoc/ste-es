@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en el environment de prod (y en staging)? ¿Dónde lo reviso, y qué pasa si falta: la migración se saltea sin avisar o el deploy falla?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en el environment de prod (y en staging)? ¿Dónde lo veo o quién lo confirma? Sin eso no sé si mi migración se va a aplicar o se va a saltear sin avisar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Dónde está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 y cómo confirmo que está activo en el environment de prod (y en staging) antes de mergear?",
+   "note": "La primera oración responde qué poner en el archivo (-- destructive: true). Pero la respuesta admite que no verificó si el flag está en prod, y si falta la migración se saltea sin avisar, así que no puedo quedarme tranquilo sin ese dato."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en el environment de prod (y en staging)? ¿Dónde lo reviso, y qué pasa si falta: la migración se saltea sin avisar o el deploy falla?",
+ "followup_answer": "**Staging:** según el material, sí lo tiene. Dice que un PR env **hereda** el flag de staging, y que así un preview aplicó `0180_chat_ga` contra la base compartida. Es una inferencia del texto, no una lectura de la config.\n\n**Prod:** no verificado. El material no dice dónde se setea el flag ni con qué valor tiene `main`. Tampoco tengo acceso a Railway ni al repo desde acá (no es un repo git), así que no pude mirarlo.\n\n**Dónde revisarlo:** en las variables de cada servicio y environment de Railway (staging y prod), buscando `MIGRATIONS_ALLOW_DESTRUCTIVE`. El material no nombra ese lugar. Es donde viven las variables de deploy, y de ahí sale también `RAILWAY_GIT_BRANCH`.\n\n**Qué pasa si falta:** el deploy no falla. El material dice que, si no se cumplen las dos condiciones (flag en 1 y rama `staging` o `main`), el runner **saltea la migración sin registrarla** en `_migrations`. No describe ningún error ni código de salida distinto para ese caso.\n\nCorrijo mi respuesta anterior: dije que se salteaba \"sin avisar\", y eso no lo sé. El material no dice si el runner deja un log al saltearla. Eso se ve en `tuqui_core/db/migrate.py`, o en los logs del deploy de prod.\n\n**Consecuencias, por inferencia (no verificadas):**\n- Como la migración queda sin registrar, se vuelve a evaluar en cada deploy. En cuanto se setee el flag, el próximo deploy la aplica.\n- Mientras tanto la columna sigue existiendo en prod. Tu código nuevo tiene que funcionar con la columna presente, que es lo que ya pasa en el preview.\n\n**Antes de mergear:**\n1. Mirá las variables de prod en Railway.\n2. Después del deploy de `main`, chequeá que la migración aparezca en `_migrations`.\n\nSi querés, pasame el contenido de `migrate.py` y te confirmo qué loguea al saltearla.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11405,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1316,
+  "output_tokens_details": {
+   "thinking_tokens": 581
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11405,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1316,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11405,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11405
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "35f5c64154"
+ }
+}

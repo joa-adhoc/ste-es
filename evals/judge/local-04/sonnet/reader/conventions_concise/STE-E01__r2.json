@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La ruta del test de RLS quedó ambigua: la regla dice `tests/test_rls.py` y el paso a paso dice `tuqui_core/tests/test_rls.py`. ¿Cuál es la ruta correcta en el repo? Además, sobre el nombre de la migración: ¿el formato es `NNNN_descripcion.sql` o el timestamp que genera `supabase migration new`, y cómo elijo el número para no pisar otra migración?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es la ruta correcta del test de RLS (tests/test_rls.py o tuqui_core/tests/test_rls.py), y qué dice exactamente docs/infra-ci-cd.md sobre el preview del PR y la base de staging, ya que no tengo el repo para leerlo? Además, ¿tenés un ejemplo de migración existente con RLS en el repo para copiar el formato y el nombre NNNN?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La ruta del test de RLS quedó ambigua: la regla dice `tests/test_rls.py` y el paso a paso dice `tuqui_core/tests/test_rls.py`. ¿Cuál es la ruta correcta en el repo? Además, sobre el nombre de la migración: ¿el formato es `NNNN_descripcion.sql` o el timestamp que genera `supabase migration new`, y cómo elijo el número para no pisar otra migración?",
+ "followup_answer": "Ninguna de las dos respuestas está confirmada: el material se contradice en ambos puntos y no tengo el repo para desempatar.\n\n**Ruta del test:** usá `tuqui_core/tests/test_rls.py`. Es la ruta completa que da el paso a paso. Lo más probable es que `tests/test_rls.py` en la regla sea la misma ruta relativa al paquete `tuqui_core`, pero eso es una inferencia. Para confirmarlo, corré `find . -name test_rls.py` en el repo. Si el archivo existe en un solo lugar, ahí va tu test.\n\n**Nombre de la migración:** el material dice `NNNN_descripcion.sql` y también `supabase migration new`. Según lo que sé del Supabase CLI, ese comando genera un timestamp (`YYYYMMDDHHMMSS_nombre.sql`), no un número secuencial. No lo verifiqué en este repo. Mirá cómo se llaman las migraciones que ya hay en `supabase/migrations/` y seguí esa convención.\n\n- **Si son timestamps:** usá `supabase migration new <nombre>` y listo. No hay forma práctica de pisar a otra migración. Cuidá que el timestamp sea posterior a la última migración ya aplicada.\n- **Si son secuenciales (`0042_...`):** hacé `git fetch`, tomá el número más alto en `origin/<base>` y sumale uno. Revisá también los PRs abiertos que toquen `supabase/migrations/`, porque dos PRs pueden elegir el mismo número. Si el CLI te genera un timestamp igual, renombralo a mano antes del primer push.\n\nElegí el nombre definitivo antes de abrir el PR. El tracking es por nombre de archivo y el preview corre contra staging, así que renombrar después hace que la migración se aplique de nuevo en staging.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12083,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1164,
+  "output_tokens_details": {
+   "thinking_tokens": 521
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12083,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1164,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 12083,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12083
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5aa2bdd695"
+ }
+}

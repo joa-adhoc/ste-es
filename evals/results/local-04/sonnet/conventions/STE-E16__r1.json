@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Así funcionan las versiones, según el material.\n\n**Si editás un artifact que ya compartiste**\n\n- Cada `save` con `artifact_id` crea una versión nueva (v(n+1)) y mueve `current_version_id`.\n- No mueve `published_version_id`. Quien tiene el link sigue viendo la versión publicada, porque la ruta por token sirve siempre `published_version`.\n- El resultado del `save` trae `unpublished_changes: true`, y el viewer interno muestra un banner que avisa que hay cambios sin publicar.\n- Para que el link muestre lo nuevo, hay que publicar con `publish(version?)`. Sin argumento publica la última.\n- Para volver atrás, se publica una versión anterior. Eso es el revert.\n- El viewer interno es distinto: navega por `current_version`, con selector de versión.\n\nEl `save` sin `artifact_id` es el caso especial. Crea la v1 y la publica, para que el flujo crear→compartir no arranque en un 404.\n\n**Si solo se refrescan los datos**\n\n- `content` es el template (la página completa) y `data` es el snapshot JSON, opcional.\n- Un refresh de datos crea una versión solo-data, con `content` en NULL.\n- La versión efectiva `n` resuelve `content` y `data` por separado, hacia atrás. Toma el último `content` no nulo ≤ n y el último `data` no nulo ≤ n (`service._effective_version`). Por eso un refresh mantiene el diseño: la versión solo-data hereda el template anterior.\n- El `save` con `data` sobre un artifact existente se valida contra el `data_schema` almacenado: keys requeridas y tipos de las properties. Si el shape no es compatible, se rechaza antes de escribir.\n- Los límites son 1 MB para `content` y 1 MB para `data` serializada. Si se pasan, falla con error explícito.\n\n**Duda que el material no cierra**\n\nUn refresh solo-data sigue siendo un `save` con `artifact_id`. Por la regla de publicación, eso implica que tampoco movería `published_version_id`, y el link seguiría mostrando los datos viejos hasta publicar. El material no lo dice de forma explícita. No lo verifiqué contra el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10046,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 768,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10046,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 768,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10046,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10046
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

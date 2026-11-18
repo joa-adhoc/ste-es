@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. (1) Decís que `resource` viaja en los \"pasos 3, 6 y 8 del material (authorize, intercambio y refresh)\", pero en tu lista el 8 es el redirect al SPA y el refresh no es un paso numerado. ¿Cuáles son los puntos exactos donde se manda `resource`? (2) Si la introspección falla por algo transitorio (timeout, 5xx del provider) en todas las habilidades, ¿se borra el token igual y el usuario tiene que reconectar? ¿Y qué pasa si el server no tiene ninguna habilidad habilitada: cuenta como \"ninguna contesta\"?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En la sección de `resource` (RFC 8707) decís que viaja en los \"pasos 3, 6 y 8 del material (authorize, intercambio y refresh)\". Pero en tu flujo numerado el 3 es el callback, el 6 es guardar tokens y el 8 es el redirect al SPA, y el refresh no tiene número. ¿Me confirmás en qué pasos viaja realmente `resource`? ¿Es en el authorize (paso 3 de la lista de texto), en el intercambio code→tokens y en el `refresh_if_expired`? Además, ¿qué cuenta como que una habilidad \"no contesta\" en la prueba de humo: timeout, error HTTP o respuesta vacía?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Decís que `resource` (RFC 8707) viaja en los pasos 3, 6 y 8 \"del material\" y lo describís como authorize, intercambio y refresh. Pero en tu lista el 8 es el redirect al SPA y el refresh no es un paso numerado. ¿En qué pasos viaja realmente `resource`: authorize (3), intercambio code→token (6) y el refresh de `refresh_if_expired`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "Dos cosas no me cierran. (1) Decís que `resource` viaja en los \"pasos 3, 6 y 8 del material (authorize, intercambio y refresh)\", pero en tu lista el 8 es el redirect al SPA y el refresh no es un paso numerado. ¿Cuáles son los puntos exactos donde se manda `resource`? (2) Si la introspección falla por algo transitorio (timeout, 5xx del provider) en todas las habilidades, ¿se borra el token igual y el usuario tiene que reconectar? ¿Y qué pasa si el server no tiene ninguna habilidad habilitada: cuenta como \"ninguna contesta\"?",
+ "followup_answer": "**(1) Error mío: renumeré los pasos.** En el material el paso 7 es el redirect al SPA y el paso 8 es el refresh proactivo (`refresh_if_expired`). Mi lista tenía el redirect como 8 y el refresh sin número. `resource` se manda en estos tres puntos:\n\n- **Paso 3, `/start`:** va en la `authorize_url`.\n- **Paso 6, callback:** va en el intercambio `code → tokens` contra `token_url`.\n- **Paso 8, refresh:** va en `refresh_if_expired`, al construir los toolsets.\n\nEl redirect al SPA (paso 7) no lleva `resource`. En los tres puntos vale la misma condición: solo se manda si `OAuthPerUserConfig.resource` está guardado.\n\n**(2) El material no responde ninguna de las dos preguntas.**\n\n- **Falla transitoria en todas las habilidades:** el material no distingue la causa del fallo. Solo dice \"ninguna contesta → se borra el token y el redirect lleva `connect_error=<motivo>`\". Si un timeout o un 5xx cuenta como \"no contesta\", se borra el token y el usuario reconecta. No lo puedo confirmar sin el código del callback. El `<motivo>` sugiere que el código conoce la causa, pero no dice si la usa para decidir el borrado.\n- **Server sin habilidades habilitadas:** el material tampoco lo cubre. Con cero habilidades, \"ninguna contesta\" es verdad vacía y probablemente borra el token. También puede ser que el código lo trate como caso aparte. No lo asumas.\n\nPara cerrar ambas, fijate en el handler de `GET /api/mcp-oauth/callback`, en el bloque de la prueba de humo. Buscá si hay un reintento, si se clasifican los errores y qué pasa con la lista vacía. El repo no está en este directorio. Si me pasás la ruta, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6541,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1032,
+  "output_tokens_details": {
+   "thinking_tokens": 362
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6541,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1032,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6541,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6541
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3eb70fdc2d"
+ }
+}

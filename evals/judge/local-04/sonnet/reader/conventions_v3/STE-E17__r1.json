@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué ve exactamente el modelo cuando salta el FATAL del DoomLoopGuard (texto), y el corte ocurre antes de ejecutar la tool o después de que corre? Además, como un éxito limpia todos los contadores, ¿un modelo que alterna una llamada que funciona con una que falla puede evadir el corte indefinidamente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dos cosas quedaron sin confirmar: ¿qué texto exacto devuelve el FATAL cuando el DoomLoopGuard corta y se bloquea antes de ejecutar la tool o después de que corre? Y en guards.py, ¿un éxito intercalado limpia todos los contadores, de modo que un modelo que alterna una llamada buena con una que falla nunca llegue a 3?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué ve exactamente el modelo cuando salta el FATAL del DoomLoopGuard, y el corte ocurre antes de ejecutar la tool o después? Además, ¿un éxito intermedio que limpia todos los contadores deja que el modelo alterne una llamada que funciona con otra que falla sin que nunca se corte?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué ve exactamente el modelo cuando salta el FATAL del DoomLoopGuard (texto), y el corte ocurre antes de ejecutar la tool o después de que corre? Además, como un éxito limpia todos los contadores, ¿un modelo que alterna una llamada que funciona con una que falla puede evadir el corte indefinidamente?",
+ "followup_answer": "Las dos primeras preguntas no tienen respuesta verificada. El directorio de trabajo está vacío y no hay repo con `tuqui_core/chat/guards.py` ni `agent.py`. El material tampoco dice nada sobre ellas.\n\n## 1. Texto del FATAL\n**No verificado.** El material dice solo que `_wrap_tool` \"devuelve FATAL\". Lo más probable es que pase por `ToolError(FATAL, ...).for_llm()` y llegue como `[TOOL_ERROR class=FATAL]: <mensaje>`. Pero el mensaje exacto no lo sé, y no lo voy a inventar. Para cerrarlo, buscá en `agent.py` el `if guard.record(...)` dentro de `_wrap_tool`:\n\n```\ngrep -n \"DoomLoopGuard\\|\\.record(\\|FATAL\" tuqui_core/chat/agent.py tuqui_core/chat/guards.py\n```\n\n## 2. Antes o después de ejecutar la tool\n**No verificado.** El material dice que `record(...)` recibe `ok` y `error_class`. Para llamarlo hay que tener ya el resultado de la tool, así que `record` corre después de la ejecución.\n\nSi es así, la tercera llamada idéntica sí se ejecuta. Lo que se corta es lo que sigue a la tercera falla. Para confirmar que no hay un chequeo previo, mirá si `guards.py` expone otro método, por ejemplo `is_blocked`, que `_wrap_tool` llame antes de ejecutar.\n\n## 3. Alternar éxito y falla\n**Sí, con lo descrito el modelo podría evadir el corte indefinidamente.** El material dice que un éxito \"limpia todos los contadores\", y no aclara si limpia solo los de esa tool o los de todas. Hay dos casos:\n\n- **Si limpia todos los contadores, de cualquier tool:** el patrón `falla(A), falla(A), éxito(B), falla(A), falla(A), éxito(B), …` nunca llega a 3. El guard no lo corta, y el modelo puede hacer eso sin darse cuenta.\n- **Si limpia solo los de la misma tool y los mismos args:** el patrón anterior sí se corta, porque el éxito de B no toca el contador de A.\n\nEl material tampoco dice cuál de los dos casos es. La prueba es un test chico contra `DoomLoopGuard`:\n\n```python\ng = DoomLoopGuard()\nfor _ in range(10):\n    g.record(\"a\", {\"x\": 1}, ok=False, error_class=\"NOT_FOUND\")\n    g.record(\"a\", {\"x\": 1}, ok=False, error_class=\"NOT_FOUND\")\n    g.record(\"b\", {}, ok=True, error_class=None)\n# ¿Alguna llamada devolvió True?\n```\n\nSi nunca devuelve `True`, el desvío existe y conviene limpiar solo la clave de la misma tool, o usar una ventana deslizante. Si pasás el contenido de `guards.py` y del `_wrap_tool`, te confirmo las tres cosas.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12446,
+  "cache_read_input_tokens": 76073,
+  "output_tokens": 1441,
+  "output_tokens_details": {
+   "thinking_tokens": 93
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12446,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1061,
+    "cache_read_input_tokens": 29566,
+    "cache_creation_input_tokens": 169,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 169
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "575114c4a4"
+ }
+}

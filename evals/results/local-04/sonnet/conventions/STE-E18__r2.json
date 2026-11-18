@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n**1. Guardado.** El modelo la guarda con `manage_memory`. El material no describe la acción de escritura, solo la de lectura (`action='read'`). Tampoco dice cómo se decide el scope ni cuándo se guarda: no verificado.\n\nHay dos alcances: usuario (personal) y workspace (compartido con el equipo).\n\n**2. Tope y desalojo.**\n- El tope es de 50 memorias por alcance: por usuario en el de usuario, por workspace en el de workspace.\n- Al agregar la 51ª se borra la más vieja por `created_at`, en la misma transacción de base.\n- El desalojo es silencioso para la persona. Al modelo se le avisa en la respuesta de la tool.\n- Es FIFO puro: cuenta la antigüedad, no la relevancia ni el uso. Una memoria vieja pero útil se pierde igual.\n\n**3. Entrada al prompt (carga progresiva).** En cada turno, `_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta solo el encabezado de cada memoria. Va después del bloque `CURRENT USER` y antes del bloque de proyecto, en dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`.\n\nEl encabezado es `título + (resumen si existe; si no, el cuerpo hasta 250 caracteres)`. Si el cuerpo pasa de 250 y no hay resumen, termina en `... [read]`. Cada línea lleva el `id`.\n\n**4. Cuerpo bajo demanda.** Si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama `manage_memory(action='read', id=...)`.\n\n**5. Qué pasa cuando hay muchas.**\n- Con el tope, el costo por turno queda acotado a unos 3K tokens, para 50 memorias del tamaño máximo.\n- Hay además una guarda de presupuesto: si el total de caracteres de los encabezados supera `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), `rapidfuzz` puntúa los encabezados contra el mensaje actual de la persona y se queda con los N mejores.\n- Esa selección es por turno. Las memorias que quedan afuera no se borran, solo no aparecen en ese prompt.\n\n**Puntos a tener en cuenta**\n- Los dos alcances suman hasta 100 memorias (50 + 50), y el presupuesto de 12K se mide sobre el total de encabezados. El material no aclara si el filtro por `rapidfuzz` se aplica por alcance o en conjunto.\n- Una memoria que quedó fuera de un turno por la guarda no puede leerse con `read`, porque el modelo no ve su `id`.\n- Con el tope de 50 y el máximo de unos 250 caracteres por encabezado, un alcance llega a unos 12.5K caracteres. Eso ya roza el presupuesto, así que la guarda probablemente se active seguido cuando los alcances están llenos. Es una inferencia mía, no algo que diga el material.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9920,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1212,
+  "output_tokens_details": {
+   "thinking_tokens": 127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9920,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1212,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9920,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9920
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

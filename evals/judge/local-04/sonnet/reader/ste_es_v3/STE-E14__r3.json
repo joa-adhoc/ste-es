@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando falla o se agota el tiempo en el Planner o el Investigator (timeout del watchdog, herramientas sin resultado), y cuando el Synthesizer devuelve 0 teasers por sí mismo? ¿Se guarda algo en la tabla insights o simplemente no se muestra nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Planner falla, si el Investigator se queda sin tiempo o sin herramientas, o si el Synthesizer devuelve 0 teasers por sí mismo? ¿En esos casos también termina sin mostrar nada, o hay reintento o error visible para el usuario?",
+   "note": "La respuesta cubre bien el flujo y dos casos de silencio, pero admite que faltan los casos de fallo del Planner, timeout del Investigator y 0 teasers del Synthesizer."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator se queda sin tiempo o sin herramientas, cuando el Synthesizer devuelve 0 teasers por sí mismo, o cuando falla el Planner? ¿Se corta todo el pipeline sin mostrar nada o se sigue con las hipótesis que sí terminaron?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando falla o se agota el tiempo en el Planner o el Investigator (timeout del watchdog, herramientas sin resultado), y cuando el Synthesizer devuelve 0 teasers por sí mismo? ¿Se guarda algo en la tabla insights o simplemente no se muestra nada?",
+ "followup_answer": "No puedo responderte eso con el material que tengo, y el directorio de trabajo está vacío. No hay `planner.py`, `investigator.py` ni `synthesizer.py` para leer.\n\n**Lo que el material dice sobre guardado**\n- El diagrama termina en \"0-2 Teasers → upsert insights table\".\n- Con todos los teasers rechazados, el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. El material no dice si ese `debug_note` se persiste o solo se loguea.\n- Con 0 hipótesis, el Planner devuelve `silence_reason`. El material tampoco dice si se guarda.\n\n**Lo que el material no dice**\n- Qué pasa si el Planner lanza una excepción o devuelve un JSON inválido.\n- Qué hace el watchdog al vencer. Solo aparece en la fórmula `(watchdog_sec - 30) / n_hypotheses`.\n- Qué pasa si una hipótesis agota `max_iterations` o `max_tool_calls`. Tampoco se sabe si una hipótesis fallida descarta solo esa hipótesis o todo el run.\n- Qué pasa si las herramientas no devuelven resultados.\n- Si el Synthesizer puede devolver `teasers=[]` por decisión propia, sin que lo rechacen los guards.\n- Si un run sin teasers escribe alguna fila en `insights`. Lo único que el material afirma es que los teasers se guardan con upsert.\n\n**Qué buscar en el código**\n1. En el orquestador que llama a las 3 etapas, buscá los `try/except` y el `asyncio.wait_for` o `timeout` del watchdog.\n2. Revisá si el upsert a `insights` corre con la lista vacía o se saltea.\n3. Revisá si `silence_reason` y `debug_note` se escriben en algún lado, por ejemplo una tabla de runs o logs.\n4. En `investigator.py`, mirá cómo se manejan `UsageLimitExceeded` o equivalentes de Pydantic AI y qué devuelve la hipótesis en ese caso.\n\nSi me pasás los archivos o el path del repo, lo verifico y te respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7117,
+  "cache_read_input_tokens": 41257,
+  "output_tokens": 1140,
+  "output_tokens_details": {
+   "thinking_tokens": 169
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7117,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 769,
+    "cache_read_input_tokens": 23968,
+    "cache_creation_input_tokens": 438,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 438
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c0ac8da6b7"
+ }
+}

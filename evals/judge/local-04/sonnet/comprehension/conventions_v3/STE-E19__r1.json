@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no dice el nombre exacto del test que falló, solo que sugiere correr `pytest tuqui_core/tests/test_rls.py -q` para confirmar. Lo que muestra: una fuga real entre workspaces en la tabla, porque la política `scheduled_runs_ws` tiene `USING (true)` y el workspace B ve todo. El texto aclara que no es un test frágil: falla con razón.",
+  "Porque la 0398 ya había creado una política llamada `scheduled_runs_ws` con `USING (true)`, y la 0412 protege su creación con `IF NOT EXISTS` por nombre. Como el nombre ya existía, la migración saltó la creación sin error (log: `policy \"scheduled_runs_ws\" already exists, skipped`).",
+  "No. Según `AGENTS.md` (citado en el texto), las migraciones ya aplicadas no se vuelven a correr, así que no hay que editar la 0398 ni la 0412. Hay que crear una migración nueva (supuesta 0413) que haga DROP POLICY IF EXISTS y CREATE POLICY con el filtro `workspace_id = current_setting('app.current_workspace_id')::uuid`, además de verificar que RLS esté habilitado y revisar los entornos desplegados."
+ ],
+ "grades": [
+  "not_stated",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e09099687a",
+  "control": "8368a6d09b"
+ }
+}

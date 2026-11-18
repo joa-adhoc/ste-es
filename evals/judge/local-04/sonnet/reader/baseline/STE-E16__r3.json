@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando solo se refrescan los datos, ¿la versión solo-data nueva se publica sola (y el link la ve de inmediato) o hay que llamar a publish igual? ¿Y qué pasa con el link si el refresh falla la validación contra data_schema?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica automáticamente la versión nueva o hay que llamar a publish? Es decir, ¿el que tiene el link ve los datos refrescados sin que yo haga nada más?",
+   "note": "La respuesta empieza con 'Según el material, funciona así:' y no responde directo; además deja sin resolver el punto clave de la tercera pregunta (qué ve el del link tras un refresh de datos), que quedó como inferencia."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Un refresh de datos publica automáticamente la versión nueva, o hay que llamar a publish para que el link la vea?",
+   "reason": "La primera oración solo dice 'funciona así', sin responder. El contenido responde bien la edición y el refresh de contenido, pero deja sin confirmar lo que más importa en el caso de solo datos: si quien tiene el link ve los datos nuevos sin intervención. Eso la respuesta lo marca como inferencia."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando solo se refrescan los datos, ¿la versión solo-data nueva se publica sola (y el link la ve de inmediato) o hay que llamar a publish igual? ¿Y qué pasa con el link si el refresh falla la validación contra data_schema?",
+ "followup_answer": "**¿Se publica sola la versión solo-data?** El material no lo dice de forma explícita. Lo más probable es que no se publique sola y haya que llamar a `publish`, pero eso lo deduzco yo.\n\n- El material describe el refresh de datos como una versión solo-data dentro de la fase 2. No describe ninguna ruta de publicación aparte para ese caso.\n- La validación contra `data_schema` está documentada como parte de `save` sobre un artifact existente.\n- Un `save` con `artifact_id` mueve `current_version_id` y **no** `published_version_id`.\n- Si el refresh pasa por ese `save`, el link sigue mostrando la versión publicada. Verías `unpublished_changes: true` y tendrías que llamar a `publish`.\n\nHay un punto que el texto no cierra. Los dashboards regenerables podrían usar un camino distinto que sí publique automáticamente. Para confirmarlo habría que mirar el código del refresh (por ejemplo `service.py`) o preguntarle a quien diseñó la fase 2.\n\n**¿Qué pasa con el link si el refresh falla la validación?** Aquí el material es claro: el shape incompatible se rechaza **antes de escribir**.\n\n- No se crea ninguna versión.\n- Ningún puntero se mueve, ni `current_version_id` ni `published_version_id`.\n- El link sigue mostrando exactamente lo mismo que antes.\n\nEsto no depende de la duda anterior, porque sin escritura no cambia nada. El material no especifica la forma del error que recibe quien llama.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4837,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 799,
+  "output_tokens_details": {
+   "thinking_tokens": 262
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4837,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 799,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 4837,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4837
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c6a5637f0e"
+ }
+}

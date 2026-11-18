@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa ejes (a), (b1), (b2), (c), (d) sin definirlos y asume que sé qué es 'tuqui_skill' y la whitelist. ¿Podés darme la lista de criterios con una línea cada uno y decirme, para mi caso concreto (odoo_create con defaults sobre un modelo), cuál sería el chequeo más rápido para decidir entre tool nativa y skill?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás los ejes (a), (b1), (b2), (c), (d) sin definirlos al principio. ¿Me podés pasar la lista completa de criterios con una línea cada uno, y confirmar si la tool nativa es la que aprueba o no en el caso del MCP saliente cuando solo cumple (b2) o (d)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La respuesta usa ejes (a), (b1), (b2), (c), (d) sin definirlos y asume que sé qué es 'tuqui_skill' y la whitelist. ¿Podés darme la lista de criterios con una línea cada uno y decirme, para mi caso concreto (odoo_create con defaults sobre un modelo), cuál sería el chequeo más rápido para decidir entre tool nativa y skill?",
+ "followup_answer": "**Chequeo rápido:** ¿resolver los defaults te cuesta ≥3 llamadas, o un loop, o un permiso más fino que `create`? Si no, es skill.\n\n**Criterios.** Una tool nativa solo se justifica si cumple al menos uno. Si no cumple ninguno, va como skill.\n\n- **(a) No componible:** no se logra con las tools genéricas (`odoo_create`, `odoo_write`, `odoo_search_read`, etc.) ni con otra tool existente.\n- **(b) Gate o identidad propia con menor blast radius** que la tool genérica equivalente. Se parte en dos:\n  - **(b1)** Approval o identidad de policy propia. Solo vale en chat, porque el router MCP ignora `requires_approval`.\n  - **(b2)** Whitelist más fina que la del `execute` o `create` genérico. Vale en chat y en MCP. La whitelist es la lista de modelos y operaciones que cada tool tiene permitidos. Ejemplo: `odoo_copy` pasa por el gate `create` en vez de `execute`.\n- **(c) Procedimiento crítico:** un salto del LLM tiene costo real (compliance dura). Solo vale en chat.\n- **(d) Eficiencia o determinismo:** colapsa en 1 call lo que en tools genéricas cuesta ≥3 llamadas, un loop no acotado, o pasos que el LLM saltearía. Nunca vale un wrapper 1→1, aunque ahorre tokens.\n\n**Qué es `tuqui_skill`:** la tool del MCP `tuqui-adhoc` que sirve las skills (`action='list'` y `action='get'`). Una skill no es una tool: es un procedimiento en texto que el agente carga y ejecuta con las tools genéricas. Por eso también llega a quien consuma el MCP saliente.\n\n**Tu caso.** Hacé estas preguntas en orden y parás en la primera que dé \"sí\":\n\n1. ¿Los defaults se resuelven con lookups (stage, usuario, compañía por xmlid) que sumen ≥3 calls o un loop? → (d), tool nativa.\n2. ¿El modelo necesita un gate más fino que el `create` genérico (por ejemplo, un modelo que `odoo_create` no deja tocar)? → (b2), tool nativa.\n3. ¿La tool pide approval, o saltarse un default tiene costo de compliance? → (b1) o (c). Solo vale en chat. Si además la exponés por el MCP saliente, esa justificación se cae, así que no alcanza sola.\n4. Si ninguna dio \"sí\": es `odoo_create` con valores constantes, un wrapper 1→1. Va como skill.\n\nNo verifiqué contra el código la whitelist de `odoo_create` ni qué defaults tiene tu tool. Los puntos 1 y 2 dependen de eso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11878,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 995,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11878,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 995,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11878,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11878
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "362729a0f5"
+ }
+}

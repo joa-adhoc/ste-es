@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Una memoria se guarda con la tool, entra al prompt como un header corto en cada turno, y el cuerpo completo se lee solo si el modelo lo pide.\n\n## Ciclo de vida\n\n1. **Guardado.** El modelo crea la memoria en uno de dos scopes: usuario (personal) o workspace (compartida con el equipo). Cada una lleva título, cuerpo, un resumen opcional y `created_at`.\n2. **Tope.** Hay 50 memorias por scope: por usuario en el scope de usuario, por workspace en el de workspace. Al agregar la 51ª, se borra la más vieja por `created_at` en la misma transacción de base. Es FIFO: no importa cuánto se usó la memoria.\n3. **Aviso de desalojo.** La tool le avisa al modelo en su respuesta que borró una. Que sea \"silenciosa\" vale para la persona, no para el modelo.\n4. **Inyección en cada turno.** `_load_chat_setup` (`tuqui_core/chat/agent.py`) arma los headers después del bloque `CURRENT USER` y antes del bloque de proyecto. Primero va `# Workspace memory`, después `# User memory`.\n5. **Forma del header.** Lleva el título más el resumen. Sin resumen, usa los primeros 250 caracteres del cuerpo. Si el cuerpo es más largo y no hay resumen, el header termina en `... [read]`.\n6. **Lectura bajo demanda.** Si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama `manage_memory(action='read', id=...)`.\n\n## Qué pasa cuando hay muchas\n\nLos headers acotan el costo por turno a unos 3K tokens, aun con 50 memorias de tamaño máximo. Si el total de caracteres de headers supera `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario. Se conservan solo los N con mejor puntaje, así que cada turno ve un subconjunto distinto según lo que se pregunte.\n\n## Puntos que el material no cierra\n\n- **Cuenta del presupuesto.** 50 headers de 250 caracteres ya suman 12.5K, y los títulos y ids se suman aparte. Con memorias máximas el guard de 12K se activa casi seguro, así que \"~3K tokens\" es un techo aproximado.\n- **Alcance del presupuesto.** No dice si los 12K son por scope o para ambos juntos. Con dos scopes puede haber hasta 100 memorias.\n- **Valor de N.** No dice cuánto vale N en el filtro por similitud.\n- **Estado del filtro.** No dice qué pasa con una memoria que quedó fuera del filtro. Entiendo que sigue guardada y cuenta para el tope de 50, pero no se ve ese turno. Es inferencia, no está en el material.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10404,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1258,
+  "output_tokens_details": {
+   "thinking_tokens": 241
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10404,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1258,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10404,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10404
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

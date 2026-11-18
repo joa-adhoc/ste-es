@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Tu migración tiene que cumplir esto:\n\n**Archivo**\n- Crearlo con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n\n**Contenido (todo idempotente)**\n- `CREATE TABLE IF NOT EXISTS` con la columna `workspace_id` (uuid).\n- `CREATE INDEX IF NOT EXISTS` para los índices.\n- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`, que ya es idempotente.\n- La policy, dentro de un bloque `DO` que chequea si existe, porque `CREATE POLICY` no tiene `IF NOT EXISTS`.\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  workspace_id uuid NOT NULL\n  -- resto de columnas\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nLos nombres, los tipos y el índice sobre `workspace_id` son ejemplos míos. El material solo fija la sentencia de RLS y la policy.\n\n**Fuera de la migración**\n- Test de aislamiento en `tuqui_core/tests/test_rls.py`.\n- Modelo Pydantic de la tabla.\n- No filtres por `workspace_id` solo en el application layer. RLS es la defensa principal.\n\n**Cuidado con el preview**\n- El preview de tu PR corre las migraciones contra la base de staging. No es una copia, es la misma base.\n- La migración se aplica ahí apenas abrís el PR.\n- Si después renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre. Dejá el nombre definitivo desde el primer push.\n- Detalle de las consecuencias: [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging).\n\nSi la tabla no lleva `workspace_id`, hablalo antes con el equipo. Es la excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 28111,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 1483,
+  "output_tokens_details": {
+   "thinking_tokens": 514
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 28111,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1483,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 28111,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 28111
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

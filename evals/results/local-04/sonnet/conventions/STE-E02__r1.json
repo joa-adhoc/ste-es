@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Depende de quién consume la descripción. El material no dice cuál es el caso de los conectores, así que no lo puedo afirmar.\n\n## Decisión previa\n\n- **Solo la SPA la pinta** (cards, listados): alcanza con el cliente. La API manda el mapa entero y no toca el backend más allá de serializarlo.\n- **Además entra a un prompt LLM, a un mail o sale por la superficie MCP**: hay que tocar el backend también. En ese caso resuelven los dos lados, con la misma cadena `idioma exacto → en → legacy`.\n\nPara saberlo, buscá dónde se lee la descripción del conector fuera de la SPA. Si el modelo o un destinatario la reciben, es backend.\n\nAdemás, `0201_platform_connectors_description_i18n.sql` figura como referencia en el material. Puede que la columna de `platform_connectors` ya exista. Revisá eso antes de crear otra migración.\n\n## Paso a paso\n\n1. **Migración**: `ALTER TABLE <tabla_conectores> ADD COLUMN description_i18n JSONB;`. No toques la columna legacy `description`. Si hay que portar datos de una `description_en`, mirá `0206_features_i18n.sql`.\n2. **API**: devolvé `description_i18n` entero junto con `description`, sin filtrar por idioma en el serializer.\n   - Al escribir, usá `normalize_i18n_keys` de `tuqui_core/i18n.py`.\n   - Al leer, usá `decode_i18n`, porque asyncpg puede devolver el JSONB como `str` o como dict.\n   - No los re-implementes.\n3. **Front**: `localizedField(row.description_i18n, row.description, i18n.language)`. No escribas el fallback a mano.\n4. **Editor del admin**: dos inputs (ES / EN). Al guardar, mandá `description_i18n` solo con las claves no vacías y espejá la legacy con `es || en`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n5. **Backend, solo si aplica**: resolvé con `lang → en → legacy`, tomando `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n6. **Caché**: si terminás resolviendo en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resuelve solo el cliente, no hace falta.\n\nNo verifiqué nada de esto contra el código, porque no tengo el repo acá. Si me lo pasás, busco quién consume la descripción de los conectores y te digo cuál de los dos casos es.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10387,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1176,
+  "output_tokens_details": {
+   "thinking_tokens": 274
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10387,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1176,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10387,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10387
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

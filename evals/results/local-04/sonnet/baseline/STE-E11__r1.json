@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Depende de dónde se ejecute el runner. Con una migración que dropea una columna, el recorrido es este:\n\n## Qué poner en el archivo\n\nAgregá cerca del inicio del archivo:\n\n```sql\n-- destructive: true\n```\n\nSin esa línea, el runner la trata como aditiva. Se aplicaría desde el PR environment contra la base compartida de staging y rompería el código anterior que sigue corriendo ahí, para todos.\n\n## Recorrido\n\n| Etapa | ¿Se aplica? | Por qué |\n|---|---|---|\n| **CI** (`scripts/apply_migrations.py`, sobre postgres de servicio, container e2e, base de pytest) | **Sí** | Son bases efímeras que nadie más comparte. Tienen `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest. |\n| **`make migrate` (local)** | **No** | No activa el opt-in, porque apunta a la base de desarrollo, que se comparte entre worktrees. Si la necesitás ahí, hay que activarla explícitamente. |\n| **PR environment de Railway** | **No** | El runner (`python -m tuqui_core.db.migrate`) la saltea **sin registrarla** en `_migrations`. El PR env hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero el gate también exige que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Tu rama de PR no lo es. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado y tampoco se aplica. |\n| **Deploy de `staging`** tras el merge | **Sí** | Se cumplen las dos condiciones: el flag y la rama. Se aplica y se registra. |\n| **Deploy de `main` / prod** | **Sí** | Mismo criterio, con flag y rama `main`. |\n\nComo el skip no se registra, el deploy real posterior al merge la ve como pendiente y la aplica.\n\n## Consecuencias\n\n- **Código de tu PR contra la base del preview.** Como la columna sigue existiendo en el preview, el código nuevo no se prueba contra el esquema final. Eso lo cubre CI.\n- **Migraciones aditivas del mismo PR.** Si tu PR trae otras migraciones sin marker, esas sí se aplican a la base de staging desde el preview. Eso tiene consecuencias al mergear y al renombrar un archivo. Están en `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\".\n- **Orden del código.** Al aplicarse el drop en el deploy de staging, el código viejo deja de poder correr. Conviene que el código del PR ya no use la columna, o que el drop vaya en un PR posterior a otro que deje de usarla.\n\nEs el mismo mecanismo que evita repetir el caso de `0180_chat_ga`, donde un preview aplicó una migración destructiva contra la base compartida.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3916,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1058,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3916,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1058,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3916,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3916
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

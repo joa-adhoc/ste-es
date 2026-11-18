@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso de conexión parcial (algunas habilidades no contestan), ¿qué cuenta exactamente como 'no contestar' (timeout, error HTTP, respuesta vacía) y el redirect mantiene también el parámetro connected= junto con connect_warning=? Necesito confirmarlo en el código para saber cómo debe reaccionar el front."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso de conexión parcial, ¿el redirect mantiene `connected={server_id}` junto con `connect_warning`, y qué cuenta exactamente como que una habilidad 'no contesta' (timeout, error HTTP, respuesta vacía)? ¿Y cómo se ve en el front el estado de esas habilidades que fallaron: el usuario puede reintentar solo esas o tiene que desconectar y reconectar?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el caso de conexión parcial (algunas habilidades no contestan), ¿qué cuenta exactamente como 'no contestar' (timeout, error HTTP, respuesta vacía) y el redirect mantiene también el parámetro connected= junto con connect_warning=? Además, ¿cuál es el umbral de timeout de la prueba de humo y el usuario puede reintentar o reintrospectar las habilidades fallidas sin desconectar y reconectar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el caso de conexión parcial (algunas habilidades no contestan), ¿qué cuenta exactamente como 'no contestar' (timeout, error HTTP, respuesta vacía) y el redirect mantiene también el parámetro connected= junto con connect_warning=? Necesito confirmarlo en el código para saber cómo debe reaccionar el front.",
+ "followup_answer": "No puedo confirmarlo en código: el directorio de trabajo (`/tmp/ste-es-eval-32g7salw`) está vacío y no es un repo git. Busqué `connect_warning` y `connect_error` y no hay nada que leer. Tampoco tengo acceso al repo del backend ni al del front.\n\n**Lo que dice el material**\n- Si **ninguna** habilidad contesta, se borra el token y el redirect lleva `connect_error=<motivo>`.\n- Si **alguna** contesta, el usuario queda conectado y el redirect lleva `connect_warning=<habilidades>`.\n- El material no define qué cuenta como \"no contestar\". No menciona timeout, error HTTP ni respuesta vacía, y tampoco dice si hay un umbral de tiempo.\n- El material no dice si `connected=` sigue en el redirect parcial. Solo lo menciona en el paso 7, el redirect normal.\n\n**Dónde mirar en el código**\n1. **Handler de `GET /api/mcp-oauth/callback`**, en el bloque que corre después de guardar los tokens. Buscá `connect_warning`, `connect_error` y el `asyncio.gather` o equivalente que introspecta las habilidades.\n2. **Qué cuenta como falla.** Revisá si el gather usa `return_exceptions=True` y qué hace con cada resultado. Fijate si una lista de tools vacía se trata como éxito o como falla, y si hay un `timeout` explícito (por ejemplo `asyncio.wait_for`). Si no lo hay, el timeout lo define el cliente MCP o HTTP.\n3. **Armado de la URL de redirect.** Fijate si `connected` se agrega siempre y `connect_warning` se suma encima, o si son ramas excluyentes. Los tests del callback deberían mostrar la URL esperada en el caso parcial.\n\n**Para el front**\nHasta confirmarlo, conviene que no dependa de que `connected` esté presente cuando hay `connect_warning`. Puede tratar `connect_warning` como estado conectado con aviso y mostrar el banner parcial. Cuando `connect_error` y `connected` aparezcan juntos, debería ganar `connect_error`, porque en ese caso el token ya se borró.\n\nSi me pasás la ruta del repo o lo copiás al directorio de trabajo, lo confirmo y te digo las líneas exactas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6543,
+  "cache_read_input_tokens": 40813,
+  "output_tokens": 1049,
+  "output_tokens_details": {
+   "thinking_tokens": 63
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6543,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 826,
+    "cache_read_input_tokens": 23533,
+    "cache_creation_input_tokens": 290,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 290
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a5df7d8357"
+ }
+}

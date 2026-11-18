@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me quedan dos huecos que afectan cuándo no se muestra nada: ¿qué pasa si el investigador agota el tiempo o los topes sin findings, y puede el synthesizer devolver 0 teasers por sí mismo? ¿Y el bundle del Context Assembler es efectivamente la entrada del Planner?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el investigador agota el tiempo o los topes sin devolver findings, y puede el synthesizer devolver 0 teasers por sí mismo? Necesito saber si esos casos también terminan en silencio o si fallan con error.",
+   "note": "La primera oración resume la estructura general pero no responde del todo; el detalle sobre los casos de silencio queda incompleto por lo que la propia respuesta admite no haber verificado."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes sin devolver findings, o si el Synthesizer devuelve 0 teasers por sí mismo? ¿Eso termina en silencio, en error o en reintento, y el bundle del Context Assembler es efectivamente la entrada del Planner?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Me quedan dos huecos que afectan cuándo no se muestra nada: ¿qué pasa si el investigador agota el tiempo o los topes sin findings, y puede el synthesizer devolver 0 teasers por sí mismo? ¿Y el bundle del Context Assembler es efectivamente la entrada del Planner?",
+ "followup_answer": "No lo puedo responder: el directorio de trabajo está vacío y el código (`planner.py`, `investigator.py`, `synthesizer.py`, `context_assembler.py`) no está en esta sesión. El material que me pasaste tampoco lo dice. Para los tres puntos solo puedo decir qué habría que mirar.\n\n**1. Investigador sin findings por tiempo o topes**\n- No verificado. El material define los topes (`REGISTER_CAPS`) y el presupuesto de tiempo, pero no dice qué pasa al agotarlos.\n- Para cerrarlo, en `investigator.py` hay que ver tres cosas. Primero, qué hace al llegar a `max_iterations`, `max_tool_calls` o al timeout: si levanta una excepción, devuelve findings parciales o devuelve vacío. Segundo, si `asyncio.gather` o el semáforo descartan la hipótesis fallida o cortan todo. Tercero, qué recibe el synthesizer cuando una hipótesis no tiene findings.\n\n**2. ¿El synthesizer puede devolver 0 teasers por sí mismo?**\n- No verificado. El único camino a 0 teasers que muestra el material es el de los guards (`synth_all_rejected`).\n- Hay que revisar el prompt y el schema del synthesizer: si permite una lista vacía o exige al menos un teaser, y qué `debug_note` deja en ese caso. Con un schema que acepta `teasers: []` y salida estructurada, es posible, pero el material no lo confirma.\n\n**3. ¿El bundle es la entrada del Planner?**\n- No verificado. Es lo esperable, porque el bundle es el único producto del assembler y el Planner es la primera etapa. Pero el material no muestra esa conexión.\n- Hay que ver cómo arma el prompt `planner.py`: si inserta el bundle en `INSIGHTS_PLANNER_PROMPT` o si el Planner consulta por su cuenta.\n\nSi me das acceso al repo, o pegás esos tres archivos, lo verifico y te respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13131,
+  "cache_read_input_tokens": 77347,
+  "output_tokens": 1082,
+  "output_tokens_details": {
+   "thinking_tokens": 100
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13131,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 719,
+    "cache_read_input_tokens": 30220,
+    "cache_creation_input_tokens": 209,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 209
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "510c11099f"
+ }
+}

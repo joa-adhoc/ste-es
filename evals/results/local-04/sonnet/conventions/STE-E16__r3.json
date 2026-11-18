@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Versiones**\n\nCada `save` sobre un artifact existente crea una versión nueva (v(n+1)) y mueve `current_version_id`. Hay dos punteros distintos:\n\n- `current_version_id`: la última versión guardada. La usa el viewer interno, que tiene un selector para navegar entre versiones.\n- `published_version_id`: la que se muestra por el link compartido.\n\n**Si editás un artifact que ya compartiste**\n\nLa persona que tiene el link sigue viendo lo que estaba publicado. La ruta por token sirve siempre `published_version`, así que tu edición no le cambia nada hasta que publiques.\n\n- El resultado del `save` trae `unpublished_changes: true`.\n- El viewer interno muestra un banner con el mismo aviso.\n- Para que el link muestre la versión nueva, usá `publish(version?)`. Sin argumento publica la última.\n- Para volver atrás (revert), publicá una versión anterior.\n\nUn caso aparte: el primer `save`, sin `artifact_id`, crea la v1 y la publica, así que crear y compartir no arranca en 404.\n\n**Cuando solo se refrescan los datos**\n\nUn artifact tiene dos partes que se versionan por separado:\n\n- `content`: el template, o sea la página completa.\n- `data`: un snapshot JSON opcional, que el front inyecta en `<script id=\"tuqui-data\">` y el template lee.\n\nUn refresh de datos crea una versión solo-data, con `content` en `NULL`. Para resolver qué se muestra en la versión `n`, se busca hacia atrás cada parte por su cuenta: el último `content` no nulo ≤ n y el último `data` no nulo ≤ n (`service._effective_version`). Por eso el refresh no puede romper el diseño: el template sigue siendo el último que guardaste y solo cambian los datos.\n\nDos controles protegen ese caso:\n\n- Si el `save` trae `data`, se valida contra el `data_schema` guardado (required keys y tipos de properties). Si el shape no es compatible, se rechaza antes de escribir.\n- Hay topes: `content` ≤ 1 MB y `data` serializada ≤ 1 MB. Si se pasan, falla con error explícito.\n\n**No verificado:** el material no dice si un refresh de datos también mueve `published_version_id`. Por la regla general de `save` con `artifact_id` diría que no, y que también necesita `publish`, pero habría que confirmarlo en `service.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10050,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 844,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10050,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 844,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10050,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10050
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

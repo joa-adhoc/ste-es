@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la DB local de tests es compartida entre worktrees: si la rama de tu compañero trae una migración destructiva (borra o renombra una columna) y sus tests corrieron las migraciones contra esa base, tu código, que todavía lee esa columna, rompe con `UndefinedColumnError`. La base queda con la unión de las migraciones de ambos worktrees.",
+  "No lo evita. El texto dice que el lock de `flock` solo evita corridas simultáneas, pero no aísla el esquema. (El texto no menciona un lock de pytest específicamente, solo el de `flock` y un `TEST_LOCK`.)",
+  "Arreglo inmediato: correr `make migrate-reset` en tu worktree, que arma la base desde cero en ~3 s con `scripts/reset_database.py` y `scripts/apply_migrations.py` (no usar `npx supabase db reset`, porque aborta con prefijos numéricos repetidos; avisale antes a tu compañero porque le pisás la base si está corriendo tests). Para que no vuelva a pasar: darle a tu worktree su propia base, copiando `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, poniendo una `DATABASE_URL` con nombre de base propio (revisando el nombre exacto de la variable en `.env.test`) y corriendo `make migrate-reset`. Para correr en paralelo sin el lock, además hace falta un `REDIS_URL` propio con otro índice de base y un `TEST_LOCK` distinto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "73d23874a9",
+  "control": "d71584ce60"
+ }
+}

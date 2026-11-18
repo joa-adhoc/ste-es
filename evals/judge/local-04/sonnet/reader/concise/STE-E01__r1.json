@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dice que cree la migración con `supabase migration new`, pero también que el nombre sea `NNNN_descripcion.sql`. Ese comando genera un nombre con timestamp, no con número secuencial. ¿Cuál es el nombre que acepta el review, y cómo saco el número NNNN? Además, ¿`app.current_workspace_id` es el setting que ya usan las otras policies, o lo tengo que copiar de una migración existente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es la política exacta de RLS que usa tuqui hoy (current_setting('app.current_workspace_id') es lo real o lo inventaste), y qué columnas/modelo Pydantic y convención de nombre NNNN tengo que seguir? Mostrame una migración existente de otra tabla por workspace para copiar el patrón.",
+   "type_note": "La respuesta mezcla material del repo con cosas inferidas (policy, índice, NOT NULL, modelo Pydantic sin detalle) y no confirma la forma real de la policy ni dónde va el modelo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que creo el archivo con `supabase migration new`, pero también que el formato es `NNNN_descripcion.sql`. Ese comando genera un nombre con timestamp, no un número correlativo. ¿Cuál es el nombre que espera el review y cómo elijo el número NNNN?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "Dice que cree la migración con `supabase migration new`, pero también que el nombre sea `NNNN_descripcion.sql`. Ese comando genera un nombre con timestamp, no con número secuencial. ¿Cuál es el nombre que acepta el review, y cómo saco el número NNNN? Además, ¿`app.current_workspace_id` es el setting que ya usan las otras policies, o lo tengo que copiar de una migración existente?",
+ "followup_answer": "Ninguna de las dos se puede confirmar con lo que tengo. El directorio de trabajo está vacío (no hay `supabase/migrations/` ni código de tuqui), y el material no lo aclara.\n\n**Nombre del archivo.** El material dice `NNNN_descripcion.sql` y también `supabase migration new <nombre>`, y eso se contradice: el CLI de Supabase genera un nombre con timestamp (`YYYYMMDDHHMMSS_nombre.sql`), no un número secuencial. Mi respuesta anterior repitió las dos instrucciones sin marcar el conflicto. No sé cuál acepta el review. Para resolverlo:\n- Mirá `ls supabase/migrations/` en el repo. Si los archivos recientes tienen prefijo secuencial (`0042_...`), NNNN es el último número más uno, y habría que renombrar lo que genere el CLI.\n- Si tienen timestamp, el CLI alcanza y el `NNNN` del doc está desactualizado.\n- Si hay dudas, preguntale a quien mantiene el doc.\n- Una vez abierto el PR, renombrar el archivo hace que la migración se vuelva a aplicar en staging, porque el tracking es por nombre. Conviene definir el nombre antes de abrirlo.\n\n**`app.current_workspace_id`.** Es lo que el material especifica para la policy, pero no puedo confirmar que las migraciones existentes lo usen tal cual. Hacé `grep -rn \"current_setting\" supabase/migrations/` y copiá el patrón de una tabla ya mergeada. Fijate también si esas policies usan `current_setting('app.current_workspace_id', true)`, el segundo argumento evita el error cuando el setting no está definido, o si agregan `WITH CHECK` o `FOR ALL`. El material no dice nada de eso, y mi ejemplo anterior era una policy mínima sin `WITH CHECK`.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6080,
+  "cache_read_input_tokens": 40283,
+  "output_tokens": 938,
+  "output_tokens_details": {
+   "thinking_tokens": 110
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6080,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 669,
+    "cache_read_input_tokens": 22994,
+    "cache_creation_input_tokens": 375,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 375
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "dc259fbbb2"
+ }
+}

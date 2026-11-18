@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Estos son los pasos y todo lo que tiene que llevar la migración, según el material que pasaste.\n\n## Pasos\n\n1. **Crear la migración** en `supabase/migrations/` con nombre `NNNN_descripcion.sql`. Podés usar `supabase migration new <nombre>`.\n2. **Escribirla idempotente.** Tiene que poder correr varias veces sin error.\n3. **Agregar RLS**, porque la tabla lleva `workspace_id`.\n4. **Agregar el test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n5. **Crear el modelo Pydantic** correspondiente.\n\n## Qué tiene que tener la migración\n\n**Tabla**\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  workspace_id uuid NOT NULL,\n  -- resto de columnas\n);\n```\nLas columnas `id` y `NOT NULL` son un ejemplo mío. El material solo exige que exista `workspace_id`.\n\n**Índices**\n```sql\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id ON mi_tabla (workspace_id);\n```\nSiempre con `IF NOT EXISTS`. El índice sobre `workspace_id` es una sugerencia mía, no un requisito del material.\n\n**RLS**\n```sql\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n```\nEste comando ya es idempotente, no necesita guarda.\n\n**Policy**, con guarda de existencia porque `CREATE POLICY` no tiene `IF NOT EXISTS`:\n```sql\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\nLa condición de la policy es la que pide el material. El nombre de la policy lo elegí yo.\n\n## Por qué la idempotencia importa de verdad\n\nEl preview de tu PR corre las migraciones **contra la base de staging**. No es una copia, es la misma base que usa el runner. Esto tiene dos consecuencias:\n\n- Tu migración **se aplica en staging apenas abrís el PR**.\n- Si **renombrás el archivo**, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n\nSi la migración no es idempotente, el segundo run puede romper staging. Antes de abrir el PR, revisá las consecuencias completas en `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\".\n\n## Otras reglas\n\n- **Test en `tests/test_rls.py`:** tiene que verificar que un workspace no ve las filas de otro. El material no detalla cómo, así que fijate cómo están armados los tests existentes.\n- **No filtres por `workspace_id` solo en la aplicación.** RLS es la defensa principal.\n- **Si la tabla no tuviera `workspace_id`**, hay que discutirlo antes. Es la excepción.\n\nNo tengo acceso al repo, así que no pude mirar migraciones ni tests existentes. Si querés, pasame un ejemplo y te armo la migración y el test con el estilo del proyecto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3890,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1254,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3890,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1254,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3890,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3890
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

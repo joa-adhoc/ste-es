@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Hacelo skill, salvo que necesites una whitelist más fina que la de `create` genérico (eje b2).**\n\nUn `odoo_create` con defaults es un wrapper 1→1. Eso lo descarta en estos ejes:\n- **(a)**: se logra componiendo `odoo_create` con los valores por defecto.\n- **(d)**: el umbral duro excluye los wrappers 1→1, aunque ahorren tokens de esquema.\n- **(c)**: solo aplica si hay compliance dura y un skip del LLM tiene costo real.\n\nChequeá estos dos puntos antes de decidir:\n- **(b1)**: si el diferencial es un approval o una identidad de policy propia, vale solo en chat. Con eso solo, no justifica una tool.\n- **(b2)**: si la tool necesita que el workspace habilite solo ese modelo, sin abrir `create` sobre el modelo entero, sí califica. Es el caso de `odoo_copy`, que usa gate `create` en vez de `execute`.\n\n**Con MCP saliente:** el criterio se endurece. `requires_approval` lo consume solo el chat y el router MCP lo ignora. Ahí (b1) y (c) no tienen palanca, así que la tool se justifica solo por (a), (b2) o (d).\n\nEs el mismo caso que `odoo_schedule_activity`. Su único diferencial era (b1), por eso se pasó a system skill y ya estaba en `MCP_EXCLUDED_TOOLS`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5525,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 730,
+  "output_tokens_details": {
+   "thinking_tokens": 214
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5525,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 730,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5525,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5525
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

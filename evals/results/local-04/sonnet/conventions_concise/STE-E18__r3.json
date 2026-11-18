@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Ciclo de vida de una memoria en el chat:\n\n1. **Guardado:** el modelo la crea con `manage_memory`, en alcance de usuario (personal) o de workspace (compartida con el equipo).\n2. **Tope y desalojo:** hay un máximo de 50 memorias por alcance. Al agregar la 51.ª se borra la más vieja por `created_at`, en la misma transacción de base de datos. El desalojo es silencioso, pero la respuesta de la tool le avisa al modelo.\n3. **Carga progresiva, en dos niveles:**\n   - **Encabezado (cada turno):** `title` más el `summary`, si lo hay. Si no, los primeros 250 caracteres del cuerpo. Si el cuerpo supera los 250 y no hay `summary`, el encabezado termina en `... [read]`.\n   - **Cuerpo (a demanda):** si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`.\n4. **Entrada al prompt:** en `_load_chat_setup` (`tuqui_core/chat/agent.py`), después del bloque `CURRENT USER` y antes del bloque de proyecto. Primero va \"Workspace memory (shared with team)\" y después \"User memory (personal)\". Cada línea lleva `[scope / clave]`, el encabezado y el `id`.\n5. **Cuando hay muchas:** el costo por turno queda acotado a unos 3K tokens, que es el caso de 50 memorias de tamaño máximo. Si los encabezados superan `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), `rapidfuzz` puntúa cada encabezado contra el mensaje actual del usuario y se queda con los top-N más relevantes. Las demás no entran al prompt en ese turno.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10572,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 646,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10572,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 646,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10572,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10572
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Recorrido de `connect_odoo`\n\nMe baso solo en el material que pegaste (no he revisado el código).\n\n## Paso a paso\n\n1. **Entrada.** `POST /workspaces/{slug}/odoo`, exige auth owner/admin. El endpoint llama a `workspaces.service.connect_odoo(slug, payload, current_user_id)`.\n\n2. **Autenticación contra Odoo.** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`, el uid de la credencial que se está conectando.\n\n3. **Verificación de admin.** `_verify_odoo_admin_group` llama a `res.users.has_group(uid, 'base.group_system')`. Si esa credencial no es administradora de sistema, lanza `ValueError`.\n\n4. **Detección de versión.** `JsonRpcTransport.get_version(url)` devuelve `detected_version` (p. ej. \"18\"). Si falla la detección o la versión mayor es menor que `MIN_SUPPORTED`, lanza `ValueError`.\n\n5. **Resolución del vínculo.** `_resolve_link_mode(...)` decide cómo se vincula el Member del usuario actual (ver abajo).\n\n6. **Persistencia en `workspaces`.** `UPDATE workspaces SET odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version`. El workspace pasa a \"conectado\" y el rol `owner` no cambia. Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) provoca un **409 Conflict**.\n\n7. **Si cambió la URL**, se limpian `odoo_user_id` y `odoo_api_key` de todos los members (ver abajo).\n\n8. **Vínculo del Member.** Si el modo es `auto` o `manual`, se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para `(workspace_id, current_user_id)`, y se lanza `asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))`. Esta tarea corre en segundo plano, así que la respuesta no espera a que termine.\n\n9. **Respuesta.** `WorkspaceConnectOdooResult` (extiende `WorkspaceRead`) con `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## Cómo decide a qué usuario de Odoo vincula\n\n`_resolve_link_mode` elige entre tres modos:\n\n| Modo | Cuándo | Resultado |\n|---|---|---|\n| `auto` | Es el default cuando `current_user.email == odoo_login` | `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend envía `link_current_user_to_odoo='manual'` más `link_odoo_user_id` | Verifica que ese `res.users` exista y vincula el Member a ese id |\n| `none` | Es el default cuando los emails no coinciden | El Member queda sin `odoo_user_id` |\n\nDos puntos importantes:\n- La vinculación es **opcional**. El owner es un rol administrativo de Tuqui y no necesita identidad en Odoo, así que `none` es un resultado válido.\n- La credencial del workspace (`odoo_uid`, `odoo_login`, `odoo_api_key`) es independiente del vínculo del Member. El `admin_uid` solo se usa como vínculo en modo `auto`.\n\n## Qué pasa si cambia la URL\n\nCuando `url_changed` es verdadero, se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. La razón es que esas identidades pueden apuntar a otra instancia de Odoo y dejarían de ser válidas.\n\nConsecuencias:\n- `members_invalidated` en la respuesta indica cuántos members se vieron afectados (es 0 si la URL no cambió). El campo `warning` lleva el mensaje para la UI.\n- Después de la limpieza se aplica el vínculo del paso 8. El Member del usuario actual se vuelve a vincular si el modo es `auto` o `manual`, y vuelve a sincronizar su API key. Los demás members quedan sin vínculo hasta que se revinculen.\n\n## Cosas que el material no aclara\n\n- **El orden exacto entre la limpieza y el vínculo.** El diagrama pone la limpieza antes del vínculo, y mi lectura del punto anterior depende de eso. Conviene confirmarlo en el código.\n- **Si la limpieza y el vínculo ocurren en la misma transacción.** Al ser `sync_user_api_key` una tarea asíncrona, un fallo ahí no revertiría lo ya guardado.\n- **Qué ve el usuario si `sync_user_api_key` falla**, ya que se lanza sin esperar su resultado.\n- **Dónde se valida el 409.** No se indica si la comprobación es previa o si salta al ejecutar el `UPDATE` contra el índice único.\n\nSi quieres, puedo revisar el código real para confirmar estos puntos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4191,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1811,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4191,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1811,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4191,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4191
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

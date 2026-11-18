@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Qué pasa con el header de una memoria que no entra en el presupuesto de 12K caracteres? Dijiste que 'solo entran los top-N más relevantes', pero ¿cuánto vale N, o se van sumando headers por relevancia hasta llenar el presupuesto? Y si el modelo no ve esa memoria ese turno, ¿cómo sabe que existe para poder leerla con read(id)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El presupuesto de 12K caracteres (_MEMORY_BUDGET_CHARS), ¿es por scope o compartido entre workspace y user? Con dos scopes de hasta 50 memorias cada uno podría haber 100 headers. Además, ¿cómo se define el top-N cuando rapidfuzz los puntúa, y los headers de workspace tienen prioridad sobre los de user?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Qué pasa con el header de una memoria que no entra en el presupuesto de 12K caracteres? Dijiste que 'solo entran los top-N más relevantes', pero ¿cuánto vale N, o se van sumando headers por relevancia hasta llenar el presupuesto? Y si el modelo no ve esa memoria ese turno, ¿cómo sabe que existe para poder leerla con read(id)?",
+ "followup_answer": "El material no define N. Dice solo \"keeps top-N\" y no explica cómo se calcula.\n\n- **Valor de N:** no hay un número fijo documentado. Lo más probable es que se sumen headers por score de `rapidfuzz` hasta llenar los 12K caracteres. Es una inferencia mía, no un dato del material.\n- **Cómo sabe el modelo que existe:** el material no lo cubre. No describe ningún aviso del tipo \"hay N memorias más\" en el prompt. Tampoco documenta una acción `list` en `manage_memory`.\n- **Consecuencia probable:** si ningún aviso ni `list` existe en el código, la memoria omitida es invisible ese turno. El modelo solo podría leerla si ya conoce su `id`.\n\nPara confirmarlo, fijate en `_load_chat_setup` (`tuqui_core/chat/agent.py`) y en la función que aplica `_MEMORY_BUDGET_CHARS`. Buscá tres cosas:\n\n- Si el corte es por cantidad fija o por acumulado de caracteres.\n- Si agrega una línea tipo \"+N memorias omitidas\".\n- Qué acciones acepta `manage_memory`.\n\nSi me pasás ese código, te lo respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5487,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 699,
+  "output_tokens_details": {
+   "thinking_tokens": 266
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5487,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 699,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5487,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5487
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9ecf0aa72e"
+ }
+}

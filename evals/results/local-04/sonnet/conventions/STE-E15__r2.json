@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Recorrido de `connect_odoo`\n\nEsto sale solo del material que pegaste. No lo contrasté con el código.\n\n## Paso a paso\n\n1. **Entrada.** `POST /workspaces/{slug}/odoo` exige auth de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n2. **Autenticación contra Odoo.** `_authenticate_odoo` usa `JsonRpcTransport.authenticate` con url, db, login y API key, y devuelve el `admin_uid`.\n3. **Chequeo de admin.** `_verify_odoo_admin_group` verifica `base.group_system` con `res.users.has_group`. Si el usuario no es admin de sistema en Odoo, hay `ValueError`.\n4. **Versión.** `get_version(url)` detecta la versión mayor. Si falla o es menor que `MIN_SUPPORTED`, hay `ValueError`.\n5. **Resolución del vínculo.** `_resolve_link_mode` decide si el Member de quien conecta queda vinculado a un `res.users` (ver la sección siguiente).\n6. **Persistencia.** Un `UPDATE workspaces` guarda `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. Las credenciales son del workspace y el rol `owner` no se toca. Si otro workspace ya tiene el mismo `database.uuid`, el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134) devuelve 409.\n7. **Si cambió la URL**, se limpian los members (ver la sección \"Si cambia la URL\").\n8. **Si el modo es `auto` o `manual`**, se hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para el `current_user_id`. Después se lanza `asyncio.create_task(sync_user_api_key(...))`.\n9. **Respuesta.** `WorkspaceConnectOdooResult` extiende `WorkspaceRead` con:\n   - `members_invalidated`\n   - `warning`\n   - `link_status`\n   - `linked_odoo_user_id`\n\n## A qué usuario de Odoo vincula\n\nLa vinculación es opcional, porque el owner es un rol administrativo de Tuqui y no necesita identidad en Odoo. Hay tres modos:\n\n| Modo | Cuándo | Qué hace |\n|---|---|---|\n| `auto` | Por defecto si `current_user.email == odoo_login` | Vincula `Member.odoo_user_id = admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y vincula a ese id |\n| `none` | Por defecto si los emails no coinciden | Deja el Member sin `odoo_user_id` |\n\n## Si cambia la URL\n\n- Se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. La razón es que esas identidades pueden apuntar a otra instancia.\n- `members_invalidated` informa cuántos members se limpiaron. Es 0 si la URL no cambió.\n- `warning` trae el mensaje que muestra la UI.\n- Según el orden del diagrama, la limpieza va antes del vínculo. Por eso quien conecta se revincula enseguida si el modo es `auto` o `manual`, y el resto de los members tiene que volver a vincularse.\n\n## Preguntas abiertas (no se desprenden del material)\n\n- No dice si el frontend puede forzar `none` o `auto` de forma explícita, o si solo hay default más override a `manual`.\n- No dice de dónde sale el `database.uuid` para el chequeo del 409, ni en qué paso se obtiene.\n- No dice si el `UPDATE` de workspaces, la limpieza de members y el vínculo van en una sola transacción.\n- `sync_user_api_key` corre como tarea en segundo plano. Si falla, la respuesta ya salió con `link_status` de éxito.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10464,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1861,
+  "output_tokens_details": {
+   "thinking_tokens": 440
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10464,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1861,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10464,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10464
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

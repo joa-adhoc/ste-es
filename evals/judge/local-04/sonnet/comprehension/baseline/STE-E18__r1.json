@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más antigua del scope según `created_at`, dentro de la misma transacción de DB (FIFO). La expulsión es silenciosa para el usuario, pero el modelo recibe un aviso en la respuesta de la herramienta.",
+  "En cada turno se inyecta el header de cada memoria: título + resumen (si existe) o, si no, los primeros 250 caracteres del body; si el body supera 250 caracteres y no hay resumen, el header termina en `... [read]`. Cada línea incluye el `id`. El resto (el body completo) llega bajo demanda: el modelo llama a `manage_memory(action='read', id=...)` para las memorias marcadas `[read]`.",
+  "Si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), se usa rapidfuzz para puntuar cada header contra el mensaje actual del usuario y solo se conservan las top-N más relevantes. Por eso el conjunto de memorias visibles cambia de un turno a otro, y una memoria relevante con poco solapamiento léxico con el mensaje puede quedar fuera."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "0c6463f0c6",
+  "control": "2fefeeffdf"
+ }
+}

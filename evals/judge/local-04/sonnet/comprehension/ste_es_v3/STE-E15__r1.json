@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema en Odoo, es decir, pertenecer al grupo `base.group_system` (se verifica con `res.users.has_group(uid, 'base.group_system')`). Si no lo es, se lanza `ValueError`. Además, las credenciales deben autenticar correctamente y la versión mayor de Odoo debe detectarse y ser al menos `MIN_SUPPORTED`.",
+  "Vincula automático (modo `auto`) cuando `current_user.email == odoo_login`, que es el default en ese caso; el Member queda con `odoo_user_id = admin_uid` (el uid de las credenciales, sin buscar por email en Odoo). Deja al member sin `odoo_user_id` (modo `none`) cuando los emails no coinciden, que es el default en ese caso. También puede haber vínculo `manual` si el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, verificando que ese `res.users` exista.",
+  "Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque una identidad puede apuntar a otra instancia. La limpieza va antes del vínculo: si el modo es `auto` o `manual`, el current user queda re-vinculado enseguida; en modo `none`, el owner y los demás members quedan sin identidad Odoo hasta que se re-vinculen. La respuesta trae `members_invalidated` con la cantidad afectada y `warning` con el mensaje para la UI (sin cambio de URL, `members_invalidated` vale 0)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "1acd1d4f26",
+  "control": "d70443294a"
+ }
+}

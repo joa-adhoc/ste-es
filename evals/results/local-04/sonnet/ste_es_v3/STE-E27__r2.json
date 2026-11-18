@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los reportes de `odoo_report` fallaron por timeout mientras el worker se quedaba sin memoria. La relación es una correlación fuerte, no una causa demostrada.\n\n**Confirmado**\n- Hubo 37 errores \"timeout after 30s\" de `odoo_report` en `pldistribucion` el 18-nov, entre 13:10 y 13:40 UTC. Antes y después hubo 0.\n- La memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41.\n- A las 13:41:58 el worker murió con \"Killed: out of memory (container limit 2 GB)\". Reinició a las 13:42:10.\n\n**Inferencia**\n- Los errores empiezan unos 5 minutos después de que arranca el crecimiento de memoria y terminan con el reinicio. Eso apunta a que el worker degradado causó los timeouts.\n\n**No sabemos**\n- Qué proceso o request hizo subir la memoria. El log no tiene detalle por request.\n- Si el cliente volvió a pedir los reportes después de las 13:42. No lo verifiqué, así que no sé si quedaron pedidos sin atender.\n\n**Próximos pasos**\n- Revisá si hubo reportes pedidos y no entregados desde las 13:42, o consultá el log de `odoo_report` después de esa hora.\n- Agregá logging por request (reporte, tamaño, memoria) para ver quién consume la memoria la próxima vez.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4032,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 667,
+  "output_tokens_details": {
+   "thinking_tokens": 164
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4032,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 667,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4032,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4032
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

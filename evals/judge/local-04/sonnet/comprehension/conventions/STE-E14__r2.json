@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Antes de las etapas hay una entrada, el Context Assembler, que corre 6 consultas en paralelo y arma el bundle en markdown que recibe el Planner. Luego vienen tres etapas en este orden: 1) Planner (`planner.py`), que devuelve de 0 a N hipótesis; 2) Investigator (`investigator.py`), que investiga las hipótesis y entrega `InvestigationFindings`; 3) Synthesizer + guardas (`synthesizer.py`, `guards.py`), que convierte los hallazgos en teasers y los pasa por tres guardas en orden: ResponseGuard (regex), StringGrounding (rapidfuzz) y LLM Judge. La salida es de 0 a 2 teasers guardados con upsert en la tabla `insights`.",
+  "Termina sin mostrar nada en dos casos: 1) el Planner no propone hipótesis (silencio válido; no se genera ningún teaser y queda el `silence_reason`); 2) las guardas rechazan todos los teasers, y el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.",
+  "Si el Judge falla por un problema de infraestructura, el teaser pasa. Esto reduce los casos de silencio, pero deja salir teasers que la tercera guarda no llegó a revisar."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "629d20b3be",
+  "control": "2010a7802d"
+ }
+}

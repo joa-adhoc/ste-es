@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Pasos, en orden:\n\n1. **`make worktree-setup`** desde el worktree. Linkea el `.venv`, `.env`, `node_modules`, `.mcp.json`, etc. del clone principal; sin eso `make test` falla con \"Venv no encontrado\".\n\n2. **Dependencia de Python nueva:** **no corras `make install`** en el worktree. Se niega, porque escribiría en el venv del clone principal y le repuntaría el editable install. Instalala en el clone principal, o borrá el link del `.venv` y armate un venv propio en el worktree.\n\n3. **`web/package.json` modificado:** corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal y no reflejan tus cambios.\n\n   Ojo: si `web/node_modules` sigue siendo un symlink, `npm ci` puede escribir en el clone principal. El material no lo aclara, así que borrá el link antes (`rm web/node_modules`) para tener uno propio.\n\n4. **Tests:**\n   ```bash\n   make test          # unit\n   make test-rls      # aislamiento multi-tenant\n   make test-web      # frontend (vitest)\n   make test-evals    # unit tests de evals/\n   make lint          # ruff\n   ```\n   Para un subconjunto: `make test ARGS=\"tests/test_rls.py -k policy\"` (paths relativos a `tuqui_core/`).\n\nNo hace falta reinstalar el resto de las dependencias: el código que corre es el del worktree aunque el venv sea compartido.\n\nSi instalás la dependencia nueva en el clone principal, el venv compartido queda modificado para los demás worktrees. Con un venv propio no pasa eso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4150,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 587,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4150,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 587,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4150,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4150
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

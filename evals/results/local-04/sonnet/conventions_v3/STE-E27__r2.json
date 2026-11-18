@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los reportes `odoo_report` de `pldistribucion` fallaron por timeout durante unos 30 minutos, y el worker se reinició por falta de memoria. La causa de fondo no la encontré.\n\n**Lo que está verificado**\n- **Errores:** hubo 37 con \"timeout after 30s\" entre 13:10 y 13:40 UTC del 18-nov. Antes y después hubo 0 (`tool_usage_log`).\n- **Memoria:** el worker pasó de 0,9 GB a 2 GB entre 13:05 y 13:41 (`railway metrics`).\n- **Reinicio:** a las 13:41:58 el log dice \"Killed: out of memory (container limit 2 GB)\", y a las 13:42:10 el worker se reinició.\n\nLos tres datos coinciden en tiempo. La ventana de errores y la subida de memoria arrancan casi juntas, y los errores terminan con el reinicio.\n\n**Lo que no sé**\n- **Qué proceso consumió la memoria:** el log no tiene detalle por request. Es una inferencia, no un hecho, que la subida de memoria causó los timeouts, o que ambos tienen una causa común.\n- **Si el cliente volvió a pedir reportes después de las 13:42:** no lo verifiqué. Que no haya errores después no prueba que se haya recuperado, porque puede que nadie haya vuelto a pedirlos.\n\n**Para cerrarlo**\n1. Consultar `tool_usage_log` para ver si hubo llamadas a `odoo_report` con éxito después de las 13:42.\n2. Mirar qué reportes o requests se hicieron entre 13:05 y 13:40 (tamaño, parámetros, quién los pidió) para encontrar el candidato a la fuga.\n3. Si se repite, agregar logging por request o métricas de memoria por proceso. Con 2 GB de límite, un solo reporte grande puede alcanzar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10075,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 734,
+  "output_tokens_details": {
+   "thinking_tokens": 73
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10075,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 734,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10075,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10075
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

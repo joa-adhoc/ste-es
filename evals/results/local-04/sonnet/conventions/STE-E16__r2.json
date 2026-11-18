@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué ve el que tiene el link**\n\nLo que está *publicado*, no lo último que editaste. La ruta por token sirve siempre `published_version`.\n\n- Si hacés `save` sobre un artifact existente, se crea la versión n+1 y se mueve `current_version_id`, pero **no** `published_version_id`. El link que ya circuló sigue mostrando la versión anterior.\n- El result del `save` trae `unpublished_changes: true`, y el viewer muestra un banner avisando que hay cambios sin publicar.\n- Para que el link muestre lo nuevo, hacés `publish(version?)`. Sin argumento publica la última.\n- Para volver atrás, publicás una versión anterior (revert = publicar otra versión).\n- Excepción: el primer `save` (sin `artifact_id`) crea la v1 y la publica, así el flujo crear→compartir no arranca en 404.\n\nEl viewer interno es distinto: navega por `current_version`, con selector, así que vos ves lo último aunque no esté publicado.\n\n**Qué pasa cuando solo se refrescan los datos**\n\nUn artifact tiene dos partes: `content` (el template, la página completa) y `data` (un snapshot JSON opcional que el front inyecta como `<script type=\"application/json\" id=\"tuqui-data\">`).\n\n- Un refresh de datos crea una versión solo-data, con `content` en null.\n- Al resolver la versión efectiva `n`, `content` y `data` se buscan hacia atrás por separado: el último `content` no nulo ≤ n y el último `data` no nulo ≤ n. Por eso un refresh **no puede romper el diseño**: sigue usando el último template.\n- Si el artifact ya existía y el `save` trae `data`, se valida contra el `data_schema` almacenado (keys requeridas y tipos de las properties). Si el shape no es compatible, se rechaza antes de escribir.\n- Límites: `content` ≤ 1 MB y `data` serializada ≤ 1 MB; si se pasan, falla de forma explícita.\n\nUn refresh de datos sigue las mismas reglas de publicación: crea una versión nueva y, si no la publicás, el link sigue mostrando lo publicado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10050,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 751,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10050,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 751,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10050,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10050
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

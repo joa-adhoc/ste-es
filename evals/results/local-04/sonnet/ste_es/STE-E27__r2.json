@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los reportes fallaron porque el worker se quedó sin memoria y Railway lo mató por OOM a las 13:41:58. La relación es temporal: no se probó que la memoria haya causado los timeouts.\n\n```\n┌───────────────┐   ┌─────────────────┐   ┌──────────────┐   ┌───────────────┐\n│ 13:05         │──►│ 13:10–13:40     │──►│ 13:41:58     │──►│ 13:42:10      │\n│ memoria sube  │   │ 37 errores      │   │ OOM kill     │   │ worker        │\n│ desde 0,9 GB  │   │ timeout 30s     │   │ límite 2 GB  │   │ restarted     │\n└───────────────┘   └─────────────────┘   └──────────────┘   └───────────────┘\n```\n\nLos datos salen de `tool_usage_log` (workspace `pldistribucion`, tool `odoo_report`, 18-nov), `railway logs worker` y `railway metrics worker`. Antes de las 13:10 y después de las 13:40 no hay errores.\n\nQuedan dos puntos abiertos:\n- **Causa de la memoria:** no sé qué proceso la hizo subir. El log no tiene detalle por request.\n- **Reintentos del cliente:** no verifiqué si pidió los reportes de nuevo después de las 13:42.\n\nPara el primer punto, revisá si el worker puede loguear memoria por request o por tarea.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4731,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 798,
+  "output_tokens_details": {
+   "thinking_tokens": 301
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4731,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 798,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4731,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4731
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

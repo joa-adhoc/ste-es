@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración `0415_terms_acceptance.sql` corrió `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL` y falló porque `members.accepted_version` tiene filas en null (SQLSTATE 23502). Postgres hizo rollback y el paso `migrate` cortó el deploy.",
+  "No. Staging no está caído: sigue sirviendo el deploy anterior, porque el deploy nuevo no se promovió.",
+  "Según `docs/infra-ci-cd.md`: dividir `0415` en dos migraciones, reemplazando el `SET NOT NULL` por un backfill de `accepted_version` en este tren, y dejar el `SET NOT NULL` para un tren posterior, cuando ya no queden filas en null. Antes de decidir el valor del backfill, revisar qué filas están en null con `SELECT count(*) FROM members WHERE accepted_version IS NULL;`."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "54d6b59e20",
+  "control": "a20a96ac5b"
+ }
+}

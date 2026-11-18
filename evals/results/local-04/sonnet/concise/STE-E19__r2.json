@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué pasó:** la migración 0398 (borrador) ya creó la policy `scheduled_runs_ws` con `USING (true)`, o sea, sin filtro: cualquier workspace ve todo. Cuando 0412 intentó crear la versión correcta (`workspace_id = current_setting(...)`), el guard `IF NOT EXISTS` detectó el nombre y la saltó (el warning \"already exists, skipped\"). Resultado: queda la policy abierta y B ve las filas de A.\n\n**Qué hacer:**\n1. **No edites 0398 ni 0412**: ya están aplicadas y el tracking es por nombre de archivo, así que no se re-ejecutan.\n2. **Crea una migración nueva** (p. ej. `0413_fix_scheduled_runs_rls.sql`) que reemplace la policy:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n   Conviene agregar también `WITH CHECK` con la misma condición, para que tampoco se puedan insertar filas en otro workspace, y confirmar que la tabla tenga `ENABLE ROW LEVEL SECURITY` (y `FORCE` si el rol de la app es el dueño).\n3. Vuelve a correr `test_rls.py`; debería pasar el test.\n\n**Importante:** si 0398 ya se aplicó en staging o producción, esa tabla estuvo expuesta entre workspaces. Revisa si hay datos reales ahí y si corresponde evaluar un acceso indebido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4067,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 601,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4067,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 601,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4067,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4067
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

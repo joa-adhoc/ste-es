@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El paso 4 dice que el provider redirige a /callback?code&state y el paso 5 que el front hace GET /callback al backend: ¿el callback que recibe el provider es una ruta del SPA o del backend? Y en el caso parcial, ¿cómo queda reflejado qué habilidades fallaron y cómo se reintenta (hay botón de reconectar o reintento automático)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 7 decís que el callback introspecta las habilidades, pero el diagrama solo muestra 'guarda + prueba'. ¿La introspección ocurre antes o después de guardar el token (porque si no contesta ninguna lo borrás)? ¿Y qué pasa con las habilidades que no contestaron en el caso parcial: quedan deshabilitadas, se reintentan, o el user las ve fallar recién al usarlas?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa con las habilidades que no contestaron en el caso de respuesta parcial? ¿Quedan deshabilitadas, se reintenta la introspección más tarde, o el user las ve fallar recién al usarlas? ¿Y qué significa exactamente \"no contestar\" (timeout, error del server, auth rechazada) y cuál es el timeout?",
+   "type_note": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "El paso 4 dice que el provider redirige a /callback?code&state y el paso 5 que el front hace GET /callback al backend: ¿el callback que recibe el provider es una ruta del SPA o del backend? Y en el caso parcial, ¿cómo queda reflejado qué habilidades fallaron y cómo se reintenta (hay botón de reconectar o reintento automático)?",
+ "followup_answer": "**El callback es una ruta del backend.** `GET /api/mcp-oauth/callback` es la URL a la que el provider redirige el navegador. El SPA no hace ese GET. Mi diagrama anterior lo mostraba mal: los pasos 4 y 5 son un solo salto. El navegador sigue el redirect del provider y llega directo al backend. El backend responde con otro redirect, esta vez al SPA (`/w/{slug}/settings/connectors?connected=...`).\n\n**Qué habilidades fallaron:** el material solo dice que el redirect lleva `connect_warning=<habilidades>` y que la card muestra el banner de conexión parcial. Ese parámetro es lo único documentado. No dice si el backend guarda la lista, ni si el banner la sigue mostrando después de recargar la página.\n\n**Cómo se reintenta:** el material no define ningún botón de reconectar ni reintento automático para el caso parcial. Lo único que describe es que el user queda conectado con las habilidades que sí contestaron. Para saber si existe un reintento, fijate en el código del front de la card (el manejo de `connect_warning`) y en el callback del backend.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7085,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 836,
+  "output_tokens_details": {
+   "thinking_tokens": 440
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7085,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 836,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 7085,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7085
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "39d6c0f6dd"
+ }
+}

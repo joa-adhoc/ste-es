@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no dice el nombre exacto del test que falló. Solo indica que falla porque la policy abierta deja pasar todas las filas entre workspaces: el workspace B lee las 2 filas del A. (Menciona el archivo `tuqui_core/tests/test_rls.py`, con 7 tests, como el que hay que correr después del arreglo.)",
+  "Porque la 0412 usa un `IF NOT EXISTS` por nombre y la policy `scheduled_runs_ws` ya existía, creada por la 0398 (borrador con `USING (true)`). La migración vio esa policy, salteó el `CREATE` (warning `policy \"scheduled_runs_ws\" already exists, skipped`) y quedó activa la policy abierta.",
+  "No. El texto dice que no se editen ni la 0398 ni la 0412, porque según AGENTS.md las migraciones aplicadas no se reejecutan. Hay que crear una migración nueva (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que haga DROP de la policy y la recree con aislamiento por `workspace_id`, aplicarla en todos los entornos donde corrió la 0398, y revisar otras policies con el mismo patrón y que la tabla tenga `ENABLE ROW LEVEL SECURITY`."
+ ],
+ "grades": [
+  "not_stated",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "514c22c97b",
+  "control": "8368a6d09b"
+ }
+}

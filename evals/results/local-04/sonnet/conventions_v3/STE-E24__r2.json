@@ -1,0 +1,44 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Todo llega a prod el martes 24 de noviembre, a las 12 UTC (09:00 hora argentina)**, si el CI de staging está verde en los dos trenes.\n\n- **Jueves 19/11, 12 UTC (09:00 ART):** llega el código y la migración aditiva (`members.locale`). Tu merge del miércoles a las 15 ART (18 UTC) entra antes de ese tren.\n- **Martes 24/11, 12 UTC (09:00 ART):** llega el `DROP COLUMN members.lang`. La migración destructiva no puede ir en el mismo tren que el código que deja de usar `lang`.\n\nHay un problema con el PR tal como está. Mezcla el add y el drop, y el drop tendría que ir en el tren siguiente. Dividilo así:\n\n1. PR actual: solo agrega `locale` y migra el código a usarla. Mergealo hoy.\n2. PR nuevo: borra `lang`. Mergealo a staging después del tren del jueves y antes del martes 12 UTC.\n\nSi el CI de staging está rojo en un tren, ese tren se salta y todo se corre al siguiente. Por ejemplo, si falla el jueves, el código sale el martes 24 y el drop el jueves 26. Un release manual solo se usa para hotfix y necesita la aprobación de jjs, así que no sirve para adelantar esto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10109,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 997,
+  "output_tokens_details": {
+   "thinking_tokens": 524
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10109,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 997,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10109,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10109
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

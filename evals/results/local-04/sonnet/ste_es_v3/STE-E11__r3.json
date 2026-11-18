@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La migración que dropea una columna no se aplica en el PR env, ni en CI/local compartido, hasta que mergeás a `staging` o `main`. En el archivo tenés que poner `-- destructive: true` cerca del inicio.\n\n```sql\n-- destructive: true\nALTER TABLE chats DROP COLUMN legacy_field;\n```\n\n**Qué pasa en cada etapa:**\n\n```\n┌──────────────┐   ┌───────────────┐   ┌────────────────┐   ┌──────────────┐\n│ PR abierto   │──►│ PR env        │──►│ Merge a        │──►│ Deploy real  │\n│              │   │ (Railway)     │   │ staging/main   │   │              │\n└──────────────┘   └───────────────┘   └────────────────┘   └──────────────┘\n                    saltea, no                               aplica y\n                    registra                                 registra\n```\n\n- **PR env de Railway:** el runner (`tuqui_core/db/migrate.py`) saltea la migración **sin registrarla** en `_migrations`. El PR env comparte la base con staging, que sigue corriendo el código viejo. Si se aplicara, rompería ese código para todos.\n- **Deploy de `staging` o `main`:** el runner la aplica, pero solo si se cumplen las dos condiciones. Tiene que estar `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y** `RAILWAY_GIT_BRANCH` tiene que ser `staging` o `main`. Como nunca se registró, este deploy la toma.\n- **Por qué dos condiciones:** el PR env hereda el flag de staging. Así un preview aplicó `0180_chat_ga` contra la base compartida. Por eso el gate mira también la rama. Si hay marcadores de Railway sin rama estampada, el gate falla cerrado y saltea.\n- **CI y tests (`scripts/apply_migrations.py`):** se aplica en las bases efímeras, porque nadie más las comparte. Esas bases activan el opt-in con `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow o `allow_destructive=True` en el conftest.\n- **`make migrate` (local):** no la aplica. Apunta a la base de desarrollo, que se comparte entre worktrees.\n\n**Sin el marker:** el runner trata la migración como aditiva. Se aplica desde el preview a la base de staging y rompe el código anterior.\n\nPara las migraciones aditivas y los efectos de renombrar un archivo, mirá `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4630,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 909,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4630,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 909,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4630,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4630
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Lo que sigue sale del material que pegaste. No tenía el código a mano, así que no verifiqué nada contra `agent.py` ni `guards.py`.\n\n## Camino de la falla al modelo\n\n1. Una tool lanza una excepción. Si es del flujo conocido, ya es un `ToolError`. Por ejemplo, `require_adapter` en `tools/base.py` levanta `ODOO_NOT_CONNECTED` cuando nadie conectó Odoo para el run.\n2. `_wrap_tool` en `agent.py` la captura. Si es un `ToolError`, lo usa tal cual. Si es cualquier otra excepción (Python o httpx), la clasifica con `classify_unknown(exc)`, que devuelve un `ErrorClass`.\n3. Devuelve `exc.for_llm()` como resultado de la tool, con la forma `\"[TOOL_ERROR class=X]: message\"`. Antes se devolvía un string genérico.\n4. El modelo lee ese texto como resultado de la tool. La clase le dice qué tipo de falla fue, entre `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. Así puede decidir si reintentar, cambiar los argumentos o avisarle a la persona.\n\n`CONNECTION` y `ODOO_NOT_CONNECTED` tienen textos distintos a propósito. El primero es un Odoo caído (falla el transporte). El segundo es que no hay credenciales. A quien no conectó su Odoo no se le dice que la conexión está caída.\n\n## Corte del bucle de reintentos\n\n`DoomLoopGuard` (en `guards.py`, `THRESHOLD=3`) cuenta fallas idénticas:\n\n- `record(tool_name, args, ok, error_class)` arma la clave `\"{tool_name}|{hash(args)}|{error_class}\"` y suma uno al contador de esa clave.\n- Un éxito, de cualquier tool, limpia todos los contadores.\n- Cuando el contador llega a 3 o más, `record` devuelve `True`. Entonces `_wrap_tool` deja de devolver el error original y devuelve un `FATAL`, y no deja pasar más llamadas idénticas.\n- La clave incluye la tool, los argumentos y la clase de error. Cambiar los argumentos o fallar de otra forma arranca un contador nuevo. Lo que se corta es repetir exactamente lo mismo.\n- Corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, y cada una con su aviso.\n\n## Preguntas abiertas\n\n- El material no dice si la tercera falla ya devuelve `FATAL` o recién la cuarta llamada. Por la regla \"counter ≥ THRESHOLD\" sería la tercera, pero habría que confirmarlo en `_wrap_tool`.\n- Tampoco dice el texto exacto del `FATAL` ni si `retry_after_seconds` llega al modelo o se usa en otro lado.\n- El limpiado total con un éxito significa que una tool que sí funciona entre dos fallas reinicia el conteo de todas. Un modelo que alterna una llamada buena con una mala repetida no llegaría nunca al umbral. Conviene verlo en el código o con un test.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9998,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1513,
+  "output_tokens_details": {
+   "thinking_tokens": 313
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9998,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1513,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9998,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9998
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

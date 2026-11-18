@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando una hipótesis agota sus topes de iteraciones, herramientas o tiempo, o cuando falla el Planner o el Context Assembler? ¿Eso termina sin mostrar nada o se muestra algo parcial? ¿Y dónde se aplica el límite de 2 teasers?",
+   "note": "La primera oración presenta el pipeline pero no responde directamente la pregunta."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si una hipótesis agota sus topes de iteraciones, de herramientas o de tiempo, o si el Investigator no encuentra nada? ¿Corre igual el Synthesizer y termina vacío? Y si falla una consulta del Context Assembler o el Planner, ¿el pipeline aborta sin mostrar nada o sigue? ¿Dónde se aplica el límite de 2 teasers?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando una hipótesis agota sus topes de iteraciones, herramientas o tiempo, o cuando el Investigator no encuentra nada: corre igual el Synthesizer o termina sin mostrar nada? ¿Y qué pasa si falla una consulta del Context Assembler o el Planner? Además, ¿dónde se aplica el límite de 2 teasers?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando una hipótesis agota sus topes de iteraciones, herramientas o tiempo, o cuando falla el Planner o el Context Assembler? ¿Eso termina sin mostrar nada o se muestra algo parcial? ¿Y dónde se aplica el límite de 2 teasers?",
+ "followup_answer": "Las tres preguntas siguen sin respuesta. El directorio de trabajo está vacío y el material no trae el código, así que no puedo confirmar nada de esto. Abajo va lo que el material sí permite afirmar.\n\n## Topes de iteraciones, herramientas o tiempo\n\n- **Lo que dice el material:** el Investigator tiene topes por registro (`max_iterations`, `max_tool_calls`) y un presupuesto de tiempo de `(watchdog_sec - 30) / n_hipótesis` por hipótesis.\n- **Lo que no dice:** qué pasa al llegar a un tope. No sé si la hipótesis se descarta, si devuelve los hallazgos parciales o si se marca como fallida.\n- **Tampoco dice** si el Synthesizer recibe esos hallazgos parciales o si corre cuando no hay ninguno.\n- **Por qué no lo deduzco:** cualquiera de las tres opciones es compatible con el material. Si lo afirmara, estaría inventando.\n\n## Fallas del Planner o del Context Assembler\n\n- **Lo que dice el material:** solo trata el silencio del Planner (cero hipótesis, `silence_reason`) como resultado válido. Eso es un resultado normal del Planner, no una falla.\n- **Lo que no dice:** qué pasa con una excepción, un timeout o una respuesta con JSON inválido. Tampoco cubre una consulta fallida o vacía de las 6 del Context Assembler. No sé si eso corta el pipeline, si sigue con un contexto incompleto o si reintenta.\n- **Única excepción documentada:** si el juez del guard 3 falla por infraestructura, el teaser pasa. Esa regla es solo para el juez y no se puede extender a otras etapas.\n\n## Límite de 2 teasers\n\n- **Lo que dice el material:** el diagrama muestra \"0-2 Teasers\", y `SynthesizerOutput` devuelve 0 a 2.\n- **Lo que no dice:** dónde se aplica el límite. Puede estar en el prompt del Synthesizer, en un corte después de los guards o en el esquema de salida. El material no lo aclara.\n- **Si es solo prompt:** el modelo podría devolver más de 2 y nada lo cortaría.\n\n## Qué mirar en el código\n\n- **`investigator.py`:** qué pasa cuando se alcanza un tope de `REGISTER_CAPS` y cuando vence el tiempo por hipótesis. Hay que ver si devuelve algo, lanza una excepción o descarta la hipótesis.\n- **`synthesizer.py`:** si corre sin hallazgos, y dónde se limita a 2 (prompt, schema o un slice después de los guards).\n- **El orquestador que llama a las etapas:** si tiene un `try/except` global y el `watchdog_sec`. Ahí se decide qué ocurre ante una falla.\n\nSi me pasás esos archivos, o los apunto desde el repo, te lo confirmo con las líneas exactas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12812,
+  "cache_read_input_tokens": 47024,
+  "output_tokens": 1335,
+  "output_tokens_details": {
+   "thinking_tokens": 173
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12812,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1036,
+    "cache_read_input_tokens": 29735,
+    "cache_creation_input_tokens": 366,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 366
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cf368c1836"
+ }
+}

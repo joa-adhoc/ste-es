@@ -1,0 +1,44 @@
+{
+ "case": "STE-E21",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, borrar el commit no alcanza. Según `docs/seguridad.md`, un secreto que llegó a un remoto se da por filtrado y se rota igual. GitHub guarda los commits del PR y el preview de Railway ya construyó la imagen con ese commit, así que la key sigue expuesta aunque reescribas la historia.\n\nHacelo en este orden:\n\n1. **Rotá la key de OpenAI.**\n   - Creá una nueva en el panel de OpenAI.\n   - Cargala en Admin › Integraciones, tanto en staging como en prod.\n   - Recién después revocá la vieja.\n   - No la pongas en variables de entorno de Railway.\n2. **Limpiá la rama.**\n   - Usá `git rebase -i` para sacar la key del commit, o el commit entero si solo traía eso.\n   - Subí con `git push --force-with-lease`. El `--force` pelado está bloqueado.\n   - Esto no reemplaza la rotación. Solo evita que la key siga a la vista en la rama.\n3. **Avisá en la tarea abierta del proyecto 1526 (Administración Tuqui).** Decí con qué key se rotó y cuándo.\n\nLa rotación es lo urgente, así que no esperes a limpiar la rama. Mientras la key vieja siga activa, cualquiera que haya visto el commit puede usarla.\n\nAcá no hay un repo git (el directorio de trabajo no lo es), así que no puedo hacer el rebase por vos. Si querés, te guío con los comandos cuando estés parado en tu clon.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9649,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 759,
+  "output_tokens_details": {
+   "thinking_tokens": 226
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 759,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9649,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9649
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

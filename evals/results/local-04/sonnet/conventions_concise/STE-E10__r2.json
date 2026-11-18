@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Orden de decisión**\n\n1. `workspace_write_models`: si el admin no permite la operación sobre ese modelo, la tool corta antes del gate. No llega a ninguna de las reglas siguientes.\n2. `evaluate_permission`, en este orden:\n   1. `workspace_tool_approvals` con `deny` da DENY. Es un piso y nada lo levanta.\n   2. `user_tool_approvals` de `(user, workspace, tool)`: si hay fila, esa acción gana. Se saltea en canales sin identidad personal (`exposure`, `webhook`, `scheduled`).\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Por defecto: ASK si el recurso tiene `approval` (`ask` o `always`), ALLOW si no. En tools de conector sin declaración, se usan la heurística de verbos y las annotations MCP.\n3. Si el resultado es ALLOW, o ASK y el usuario aprobó, se ejecuta la tool. Queda auditada en `tool_usage_log.permission_action`.\n\n**Caso 1: admin en `ask`, miembro en `allow`**\n\nEn el chat, el miembro ejecuta sin preguntar. El `ask` del admin no es `deny`, así que no actúa como piso. Después, la fila personal del paso 2.2 gana antes de que se mire la grilla del workspace (2.3). Si el admin quiere que nadie pueda saltearlo, tiene que poner `deny`. `ask` es solo una preferencia del workspace.\n\nEsto vale solo si `workspace_write_models` permite la operación. Si no la permite, no se ejecuta aunque el miembro tenga `allow`.\n\n**Caso 2: agent por webhook**\n\nEl paso 2.2 se saltea entero. La preferencia `allow` del miembro cuyo usuario presta la identidad no cuenta. Decide la grilla del workspace:\n\n- `deny` da DENY.\n- `allow` da ALLOW.\n- `ask` da ASK.\n- Sin fila, se aplica el valor por defecto del recurso.\n\n**Qué no verificado:** el material no dice qué pasa con un ASK en `webhook` o `scheduled`, donde no hay nadie para responder. Puede quedar bloqueado, esperando o auto-denegado. Hay que mirar `chat/client_facing_core.py` o `ChannelProfile` para saberlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10970,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1173,
+  "output_tokens_details": {
+   "thinking_tokens": 346
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10970,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1173,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10970,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10970
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

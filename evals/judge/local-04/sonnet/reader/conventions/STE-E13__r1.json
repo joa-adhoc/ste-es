@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando hay suscripción viva, ¿igual salen los avisos de 7 días y del día de vencimiento? Y si el workspace tiene menos de 7 días de prueba cuando arranca el circuito, ¿sale el aviso de 7 días en la próxima corrida o se saltea? ¿Podés confirmarlo leyendo billing_cron.py?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Con suscripción viva, ¿salen igual los avisos de la semana y del día del vencimiento? ¿Y qué pasa exactamente si el workspace vence sin exceso sobre los límites del plan gratuito: queda en free sin restricción, o se restringe igual? ¿Podés confirmarlo leyendo billing_cron.py?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace ya tiene una suscripción viva, ¿salen igual los avisos de la semana y del día del vencimiento? Y si faltan menos de 7 días cuando arranca el circuito, ¿el hito de 7 días sale igual en la próxima corrida o se saltea? Confirmalo leyendo billing_cron.py.",
+   "answer_note": "La primera oración solo describe el cron y no responde qué avisos salen, a quién ni qué pasa al vencer; además quedan sin verificar los dos puntos que más importan para este caso (suscripción viva y vencimiento a menos de 7 días)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando hay suscripción viva, ¿igual salen los avisos de 7 días y del día de vencimiento? Y si el workspace tiene menos de 7 días de prueba cuando arranca el circuito, ¿sale el aviso de 7 días en la próxima corrida o se saltea? ¿Podés confirmarlo leyendo billing_cron.py?",
+ "followup_answer": "No pude confirmarlo: el directorio de trabajo (`/tmp/ste-es-eval-kfzhr4xp`) está vacío y no tiene `billing_cron.py`. No es un repo y tampoco hay copia de `scheduler/billing_cron.py`. Intenté buscarlo en todo el sistema, pero ese comando requiere aprobación y no lo corrí. Tampoco tengo acceso a un clon del repo que lo tenga. Lo que sigue sale solo del material.\n\n**1. Avisos de 7 días y del día de vencimiento con suscripción viva: no verificado.**\n- El material solo dice que **al vencer** no se manda nada con suscripción viva. Eso describe el momento del vencimiento, no los hitos previos.\n- Los hitos salen de `billing_trial_warning_days_list`, y el material no menciona ningún filtro por suscripción.\n- Una lectura posible es que sí salen, porque el material no los excluye. Pero no puedo afirmarlo.\n- Lo que cerraría la duda: ver si `_run_trial_expiry` filtra por suscripción viva antes de enviar los hitos.\n\n**2. Prueba con menos de 7 días al arrancar el circuito: no verificado.**\n- El material solo dice que la marca de lo enviado es el par `trial_warning_for` + `trial_warning_days`, donde `trial_warning_days` guarda \"el hito más chico ya enviado\".\n- Por esa descripción, una prueba sin marca previa y con 5 días restantes podría disparar el hito de 7 en la próxima corrida. O podría saltearlo, si la condición es \"días restantes == hito\" y no \"días restantes <= hito\".\n- Esto depende de la comparación exacta en el código, y el material no la muestra.\n- Lo que cerraría la duda: ver cómo compara `_run_trial_expiry` los días restantes con cada hito (igualdad o `<=`) y cómo usa `trial_warning_days`.\n\nSi me pasás la ruta del repo, o el contenido de `_run_trial_expiry`, lo leo y te confirmo las dos cosas. Si me autorizás el `find /`, lo busco yo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12095,
+  "cache_read_input_tokens": 75359,
+  "output_tokens": 1140,
+  "output_tokens_details": {
+   "thinking_tokens": 63
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12095,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 745,
+    "cache_read_input_tokens": 29206,
+    "cache_creation_input_tokens": 178,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 178
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "20c60ddfe9"
+ }
+}

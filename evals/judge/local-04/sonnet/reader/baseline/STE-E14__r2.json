@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente si el Investigator agota sus topes de iteraciones/llamadas o su presupuesto de tiempo (o si el watchdog corta), y qué pasa si el Synthesizer devuelve cero teasers antes de los guards? ¿Eso termina en silencio, en error o en un reintento?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota sus topes de iteraciones/tool calls o su presupuesto de tiempo (watchdog), o si el Synthesizer devuelve cero teasers antes de los guards? ¿Eso termina en silencio, en error o en algún fallback?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota sus topes de iteraciones/llamadas o su presupuesto de tiempo, y qué pasa si el Synthesizer devuelve cero teasers por sí mismo antes de los guards? ¿En esos casos también termina sin mostrar nada?",
+   "note": "La primera oración es solo un encabezado y no responde la pregunta; además la respuesta admite lagunas justo en los casos de 'termina sin mostrar nada'."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente si el Investigator agota sus topes de iteraciones/llamadas o su presupuesto de tiempo (o si el watchdog corta), y qué pasa si el Synthesizer devuelve cero teasers antes de los guards? ¿Eso termina en silencio, en error o en un reintento?",
+ "followup_answer": "El material no responde ninguna de las dos preguntas, así que no puedo decirte si termina en silencio, error o reintento sin inventar.\n\n**Lo que sí dice el material**\n- Hay un presupuesto de tiempo por hipótesis: `(watchdog_sec - 30) / n_hipótesis`. Los 30 segundos restados parecen un margen para la etapa 3, pero eso es una inferencia mía.\n- Hay topes de `max_iterations` y `max_tool_calls` por registro.\n- Los únicos finales vacíos documentados son estos dos:\n  - El Planner devuelve hipótesis vacías, que es un silencio válido.\n  - Los guards rechazan todo, y el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n- La única política de fallo explícita es la del Judge: si falla por infraestructura, el teaser pasa (fail-open).\n- No se menciona ningún reintento en ninguna etapa.\n\n**Lo que no dice**\n- Si al agotar los topes el Investigator devuelve hallazgos parciales, devuelve hallazgos vacíos o lanza una excepción.\n- Si el corte por presupuesto de tiempo o por watchdog cancela solo esa hipótesis o todo el run.\n- Si una hipótesis fallida o cortada se descarta y se sigue con las demás, o si el error se propaga.\n- Qué hace el Synthesizer con hallazgos vacíos o sin sustento. `SynthesizerOutput` con `teasers=[]` y `debug_note` es una forma válida de resultado, así que un cero antes de los guards probablemente sea silencio con otro `debug_note`. Es una suposición mía.\n\n**Qué mirar en el código para confirmarlo**\n1. En `investigator.py`: si hay `try/except` o `asyncio.wait_for`/`TimeoutError` alrededor de cada hipótesis. Fijate también si `asyncio.gather` usa `return_exceptions=True` y qué se devuelve cuando se alcanza `UsageLimits` (el tope de Pydantic AI).\n2. En el orquestador que llama a las 3 etapas: cómo maneja excepciones y dónde se aplica el watchdog global.\n3. En `synthesizer.py`: qué `debug_note` se setea cuando el LLM devuelve una lista vacía, y si la salida vacía se persiste o se omite.\n4. Si hay retry en la capa del cliente LLM o de la tarea programada, aunque no esté en el pipeline.\n\nSi me pasás esos archivos o el acceso al repo, te lo confirmo con el código. En este directorio no hay código para revisar.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5801,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 1333,
+  "output_tokens_details": {
+   "thinking_tokens": 407
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5801,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1333,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 5801,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5801
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3b41844512"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cuando una tool falla, `_wrap_tool` (`agent.py`) convierte la excepción en un string `[TOOL_ERROR class=X]: message` que el modelo recibe como resultado de la tool. Si el modelo repite el mismo error 3 veces, `DoomLoopGuard` corta con un error FATAL.\n\n**Camino de la falla al modelo**\n\n1. La tool lanza una excepción. Hay dos orígenes típicos:\n   - `require_adapter` (`tools/base.py`) lanza `ToolError` con `ODOO_NOT_CONNECTED` si nadie conectó Odoo en este run.\n   - Una falla de transporte hacia Odoo termina como `CONNECTION`.\n2. `_wrap_tool` captura la excepción:\n   - Si ya es `ToolError`, la usa tal cual.\n   - Si no, `classify_unknown(exc)` mapea la excepción de Python o httpx a un `ErrorClass` y arma un `ToolError`.\n3. `_wrap_tool` devuelve `exc.for_llm()`, que da `\"[TOOL_ERROR class=X]: message\"`. Antes se devolvía un string genérico.\n4. Ese string vuelve al modelo como resultado de la tool.\n\n`ErrorClass` tiene 9 valores: `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. `ToolError` también lleva `retry_after_seconds`.\n\n`CONNECTION` y `ODOO_NOT_CONNECTED` tienen textos distintos a propósito. A quien no conectó su Odoo no se le dice que la conexión está caída.\n\n**Corte de reintentos (`DoomLoopGuard`, `THRESHOLD=3`)**\n\n- `record(tool_name, args, ok, error_class)` incrementa un contador con key `\"{tool_name}|{hash(args)}|{error_class}\"`. Es decir, cuenta la misma tool con los mismos args y la misma clase de error.\n- Si el counter llega a 3 o más, `record` devuelve `True`. Entonces `_wrap_tool` devuelve FATAL en lugar del error normal e impide más llamadas idénticas.\n- Un éxito, de cualquier tool, limpia todos los contadores.\n- El guard también corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, cada una con su propio aviso.\n\nEl material no dice cómo se corta entre tools con una key que incluye `tool_name` y el hash de args. Tampoco trae el texto exacto del FATAL ni el punto en que `_wrap_tool` llama a `record`. Para eso habría que leer `guards.py` y `agent.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4200,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1463,
+  "output_tokens_details": {
+   "thinking_tokens": 458
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4200,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1463,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4200,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4200
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

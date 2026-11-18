@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema en Odoo: `_verify_odoo_admin_group` llama a `res.users.has_group(uid, 'base.group_system')` y, si no pertenece a ese grupo, lanza `ValueError`. Además la versión de Odoo debe detectarse y su major no puede ser menor que `MIN_SUPPORTED`.",
+  "Vincula automático (`auto`) cuando `current_user.email == odoo_login`: ahí `Member.odoo_user_id = admin_uid`, el uid con el que se autenticó. Deja al member sin usuario de Odoo (`none`) cuando los emails no coinciden; no es un error, porque el owner es un rol administrativo de Tuqui y no necesita identidad en Odoo. También existe el modo `manual`, donde el frontend manda `link_odoo_user_id` y se vincula a ese id si el `res.users` existe.",
+  "Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque esos ids pueden apuntar a otra instancia. `members_invalidated` informa cuántos se limpiaron (0 si la URL no cambió) y `warning` trae el mensaje para la UI. Después se recrea el vínculo del usuario actual según el modo y se resincroniza su API key; los demás members quedan sin vínculo hasta que se revinculen."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d09dc78fb6",
+  "control": "d70443294a"
+ }
+}

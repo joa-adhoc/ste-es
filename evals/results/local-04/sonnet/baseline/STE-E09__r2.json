@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Flujo completo: conector MCP con OAuth por usuario\n\n## 0. Alta (admin)\nEl admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Si el discovery encontró la protected-resource metadata, también queda guardado el `resource` (RFC 8707) en `OAuthPerUserConfig.resource`.\n\n## 1. Inicio (front → backend)\n- El usuario abre `/connectors` y clickea **Connect**.\n- El front llama a `GET /api/mcp-oauth/{server_id}/start`.\n- El backend arma la `authorize_url` con:\n  - **`state`** firmado con AES-GCM, TTL de 10 min, con payload `{server_id, user_id, issued_at, nonce}`, más `code_verifier` (PKCE) y `scope_profile` (platform connectors) si corresponde.\n  - **`access_type=offline` + `prompt=consent`**: Google solo emite refresh token con ambos. El primero lo pide; el segundo fuerza re-emisión en cada authorize, así un disconnect+reconnect no se queda sin refresh token. Otros providers ignoran params desconocidos (RFC 6749 §3.1).\n  - **`resource`** (RFC 8707), solo si está guardado.\n\n## 2. Autorización (front → provider)\nEl front redirige al provider, donde el usuario se autentica y da consentimiento.\n\n## 3. Callback (provider → backend)\nEl provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. El backend:\n1. **Valida el state**: firma, TTL y que corresponda al usuario/server.\n2. **Intercambia `code` → tokens** en `token_url` (con `code_verifier` si hubo PKCE, y `resource` si está guardado).\n3. **Guarda los tokens encriptados** en `user_mcp_oauth_tokens`.\n\n## 4. Prueba de humo\nCon los tokens ya guardados, el callback introspecta **todas** las habilidades habilitadas en paralelo. El resultado define el redirect (paso 5).\n\n## 5. Redirect al SPA\n- Cuenta normal: `/w/{slug}/settings/connectors?connected={server_id}`\n- Cuenta de servicio: `/w/{slug}/settings/members/{member_id}?connected=...`. El landing sale del dueño del token, no de un `return_to` aparte.\n\nA eso se suman los parámetros de la prueba de humo (ver abajo).\n\n## 6. Uso posterior: refresh proactivo\nAl construir los toolsets se ejecuta `refresh_if_expired`: si quedan < 60 s de validez, se renueva el token (enviando `resource` si está guardado).\n\n---\n\n## Qué pasa si después del intercambio algunas habilidades no contestan\n\n| Resultado de la introspección | Qué hace el backend | Qué ve el usuario |\n|---|---|---|\n| **Ninguna contesta** | El token no sirve para nada: **se borra** | Redirect con `connect_error=<motivo>` → la card muestra el banner de error |\n| **Alguna contesta** | El usuario **queda conectado** | Redirect con `connect_warning=<habilidades>` → banner de conexión parcial |\n| **Todas contestan** | Conectado | `connected=...` sin banners |\n\n**Por qué conexión parcial en vez de desconectar:** desconectar al usuario por una habilidad rota sería peor que dejarlo en un estado parcial en el que sí puede usar las demás.\n\n## Detalle sobre `resource` (RFC 8707)\nViaja en tres puntos: authorize (paso 1), intercambio de code (paso 3) y refresh (paso 6). Se manda **solo si está guardado**. Los conectores creados antes de que existiera el campo siguen funcionando sin indicator, y enviar uno adivinado es peor que no enviarlo: un AS que valida el `resource` rechaza cualquier valor que no reconozca.\n\n## Nota\nEl material no especifica el detalle de qué cuenta como \"contesta\" (timeout, error HTTP, etc.) ni cómo se calcula el `<motivo>`. Eso habría que verificarlo en el código del callback.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4125,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1470,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4125,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1470,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4125,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4125
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

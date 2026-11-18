@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El worker se quedó sin memoria y lo mataron. Eso es consistente con los timeouts de `odoo_report`, pero no probé que sea la causa, y no sé qué consumió la memoria.\n\n**Verificado**\n- Hubo 37 errores \"timeout after 30s\" en `odoo_report` (workspace pldistribucion) entre las 13:10 y las 13:40 UTC. Antes y después hubo 0.\n- La memoria del worker subió de 0,9 GB a 2 GB entre las 13:05 y las 13:41.\n- A las 13:41:58 el worker murió por \"out of memory (container limit 2 GB)\". A las 13:42:10 reinició.\n\n**No verificado**\n- **Qué proceso hizo subir la memoria.** El log no tiene detalle por request. Para cerrarlo hace falta loguear memoria y parámetros por request, o revisar qué reportes pidió el cliente en esa ventana.\n- **Si el cliente volvió a pedir reportes después de las 13:42.** Los 0 errores posteriores pueden significar que se arregló o que nadie pidió nada. Se cierra buscando en `tool_usage_log` llamadas a `odoo_report` después de las 13:42, con resultado ok.\n\nNo lo daría por resuelto: sin saber qué consumió la memoria, puede repetirse.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10241,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 704,
+  "output_tokens_details": {
+   "thinking_tokens": 247
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10241,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 704,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10241,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10241
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

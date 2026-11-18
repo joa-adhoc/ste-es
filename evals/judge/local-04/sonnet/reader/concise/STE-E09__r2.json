@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como que una habilidad 'no contesta' en la introspección (timeout, error de auth, error 5xx), y en el caso de conexión parcial, las habilidades que fallaron se reintentan o re-chequean después, o el usuario tiene que reconectar? Además, ¿qué pasa si el refresh falla más adelante?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando el callback introspecta las habilidades, ¿qué cuenta como que una no contesta (timeout, error de auth, error 5xx, lista vacía)? Y después de una conexión parcial, ¿las habilidades que fallaron se reintentan solas o el usuario tiene que reconectar?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué cuenta como que una habilidad 'no contesta' en la introspección (timeout, error de auth, error de protocolo)? ¿Se reintentan o se re-chequean las que fallaron después de una conexión parcial, y qué pasa si más adelante falla el refresh del token?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué cuenta como que una habilidad 'no contesta' en la introspección (timeout, error de auth, error 5xx), y en el caso de conexión parcial, las habilidades que fallaron se reintentan o re-chequean después, o el usuario tiene que reconectar? Además, ¿qué pasa si el refresh falla más adelante?",
+ "followup_answer": "El material no responde ninguna de las tres preguntas, así que lo que sigue es lo que sí dice y lo que habría que mirar en el código.\n\n**Qué cuenta como \"no contesta\"**\n- No lo define. Solo dice que el callback introspecta todas las habilidades habilitadas en paralelo.\n- Que el redirect lleve `connect_error=<motivo>` sugiere que se captura un motivo por falla. No dice qué categorías hay (timeout, 401/403, 5xx, respuesta inválida) ni si se tratan distinto.\n- Tampoco dice si hay timeout por habilidad ni reintentos dentro del callback.\n\n**Reintento o re-chequeo tras una conexión parcial**\n- No hay nada al respecto. El material solo dice que el usuario queda conectado y que `connect_warning=<habilidades>` muestra el banner de conexión parcial.\n- No dice si las habilidades fallidas se re-chequean después, si el banner persiste más allá de ese redirect, ni si el usuario tiene que reconectar.\n- El token se conserva, así que reconectar no es necesario para usar las habilidades que sí contestaron.\n\n**Si el refresh falla más adelante**\n- No se cubre. Solo se sabe que `refresh_if_expired` corre al construir los toolsets cuando quedan menos de 60s de validez, y que manda `resource` si está guardado.\n- No dice si una falla borra el token, marca la conexión como rota, hace que el toolset se construya sin ese server, o si hay que reconectar.\n\nPara cerrar esto hay que leer tres cosas: el handler de `/api/mcp-oauth/callback` (la lógica de introspección y cómo arma `connect_error` y `connect_warning`), `refresh_if_expired`, y el código que construye los toolsets. Si me pasás esos archivos o el repo, lo reviso.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6288,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 971,
+  "output_tokens_details": {
+   "thinking_tokens": 332
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6288,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 971,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6288,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6288
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0f4c09ea35"
+ }
+}

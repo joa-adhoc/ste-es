@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, así perdés trabajo. `reset --hard` descarta para siempre las modificaciones sin commitear de `limits.py` y `test_limits.py`. Los 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`) solo quedarían en el reflog. `0420_mcp_limits.sql` es untracked: el reset no lo toca y quedaría suelto en tu árbol \"de cero\".\n\nSi igual querés empezar de cero, guardá todo antes en una rama de respaldo:\n\n```bash\ngit fetch origin\ngit switch -c backup/limite-mcp          # conserva los 3 commits\ngit add -A && git commit -m \"wip: respaldo antes de reset\"\ngit switch feat/limite-mcp\ngit reset --hard origin/staging\n```\n\nCon eso la rama queda en `origin/staging` y todo lo anterior sigue en `backup/limite-mcp`.\n\nComo `feat/limite-mcp` ya trackea `origin/feat/limite-mcp`, el próximo push va a requerir `--force-with-lease`. Es válido, pero solo si nadie revisó el PR todavía. Si tu objetivo es solo una rama limpia, `git switch -c <nueva> origin/staging` evita el reset y el force push.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10182,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1052,
+  "output_tokens_details": {
+   "thinking_tokens": 616
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10182,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1052,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10182,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10182
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice si prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1. ¿Dónde veo cómo está seteado el flag en el environment de prod, y qué pasa con la migración al llegar a prod si no lo tiene?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice si prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 puesto. ¿Cómo verifico eso, y si no está, qué hago para que la migración se aplique en prod después del merge?",
+   "note": "La primera oración responde qué poner en el archivo, pero queda abierto el punto clave: si la migración llega efectivamente a prod."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1 configurado? Necesito saberlo para entender si la migración con la marca se aplica en prod o hay que activar el flag antes del deploy, y cómo lo verifico."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El material no dice si prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1. ¿Dónde veo cómo está seteado el flag en el environment de prod, y qué pasa con la migración al llegar a prod si no lo tiene?",
+ "followup_answer": "El material no dice dónde se setea el flag en prod, y yo no lo verifiqué. Este directorio no es un repo, así que no pude buscarlo.\n\nDónde mirar (no verificado, es lo que corresponde según cómo se describe el flag):\n- Las variables del servicio en el environment de prod, en el dashboard de Railway.\n- `docs/infra-ci-cd.md`, que es el doc que enlaza el material para el deploy.\n- `grep -r MIGRATIONS_ALLOW_DESTRUCTIVE` en el repo, por si se declara en algún workflow o config.\n\nSi prod no tiene el flag, el runner saltea la migración en cada deploy y no la registra en `_migrations`. La columna sigue en la base y el código sigue funcionando, así que no hay rotura. El runner la reintenta en cada deploy hasta que alguien active el flag, o hasta que la apliquen a mano, y recién ahí queda registrada. El material no dice si el runner avisa en los logs cuando saltea, así que no cuentes con eso.\n\nSi te importa que la columna se dropee en prod, confirmá el flag antes de mergear.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11548,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 854,
+  "output_tokens_details": {
+   "thinking_tokens": 462
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11548,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 854,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11548,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11548
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "84181a7029"
+ }
+}

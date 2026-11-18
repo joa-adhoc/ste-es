@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes sin hallazgos útiles, y qué pasa si falla el Planner o el Synthesizer? ¿El pipeline termina en silencio, reintenta o marca error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes sin hallazgos útiles, y qué pasa si falla el Planner o el Synthesizer? ¿Termina en silencio, se reintenta o se registra un error? Además, ¿qué ocurre cuando el Judge tiene una falla de infraestructura y deja pasar el teaser: es el comportamiento buscado?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes sin hallazgos útiles, y qué pasa si falla el Planner o el Synthesizer? ¿El run termina en silencio, se reintenta o queda marcado como error?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota el tiempo o los topes sin hallazgos útiles, y qué pasa si falla el Planner o el Synthesizer? ¿El pipeline termina en silencio, reintenta o marca error?",
+ "followup_answer": "El material no responde ninguna de las tres cosas: no dice si el pipeline termina en silencio, reintenta o marca error en esos casos. Cualquier respuesta mía sería inventada.\n\n**Lo que sí dice**\n- Planner con 0 hipótesis: silencio válido, con `silence_reason`.\n- Synthesizer con todos los teasers rechazados: `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. Es un resultado vacío, no un error.\n- Judge con falla de infraestructura: el teaser pasa.\n\n**Lo que no dice**\n- **Investigator sin tiempo o sin topes:** solo define los topes (`REGISTER_CAPS`) y el presupuesto por hipótesis. No dice si al agotarlos se descarta la hipótesis, se devuelven hallazgos parciales o se corta con error. Tampoco aclara qué hace el `watchdog_sec`, de donde sale el presupuesto, cuando vence.\n- **Falla del Planner o del Synthesizer:** no hay nada sobre excepciones, reintentos ni estado de error. Tampoco dice qué pasa con la tabla `insights` en esos casos.\n\nPara cerrarlo, habría que mirar `investigator.py` y `synthesizer.py`, y sobre todo el código que orquesta las etapas y aplica el watchdog. Ahí se ven los `try/except`, los reintentos y qué se escribe en `insights`. Hasta entonces, queda como no verificado.\n\nSi me pasás esos archivos, te lo respondo con lo que hace el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12407,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 774,
+  "output_tokens_details": {
+   "thinking_tokens": 220
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12407,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 774,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 12407,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12407
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1e52f1ceed"
+ }
+}

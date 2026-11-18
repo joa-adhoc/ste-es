@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 3 decís que `npm ci` borra y reinstala el link de `web/node_modules`, pero después sugerís que podría tocar los `node_modules` del clone principal. ¿Cuál de las dos pasa? ¿Hace falta hacer `rm web/node_modules` antes de `npm ci` sí o sí, o es solo una precaución tuya? Y para la dependencia de Python: ¿qué conviene hacer, instalarla en el clone principal o armar un venv propio en el worktree (y cómo se hace con `make`)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 3 no me queda claro qué hago con web/node_modules: ¿npm ci sobre el link toca los node_modules del clone principal o no? ¿Tengo que borrar el link (rm web/node_modules) antes de correr npm ci, sí o sí? Y para la dependencia nueva de Python, ¿cuál es el camino recomendado: instalarla en el clone principal o armar un venv propio en el worktree? ¿Con qué comandos exactos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el punto 3 decís que `npm ci` sobre el link a `web/node_modules` borra y reinstala, y después que quitar el link es una precaución tuya no documentada. ¿Cuál es el orden seguro: hago `rm web/node_modules` y luego `npm ci` directamente, o primero tengo que verificar si toca el del clone principal? Y en el punto 2, si armo un venv propio, ¿qué comando exacto uso para instalar las dependencias (incluida la nueva) sin afectar el del clone principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "En el paso 3 decís que `npm ci` borra y reinstala el link de `web/node_modules`, pero después sugerís que podría tocar los `node_modules` del clone principal. ¿Cuál de las dos pasa? ¿Hace falta hacer `rm web/node_modules` antes de `npm ci` sí o sí, o es solo una precaución tuya? Y para la dependencia de Python: ¿qué conviene hacer, instalarla en el clone principal o armar un venv propio en el worktree (y cómo se hace con `make`)?",
+ "followup_answer": "Las dos frases eran incompatibles y la primera la afirmé sin base. El material no dice qué hace `npm ci` sobre un `web/node_modules` que es un link. Solo dice \"corré `npm ci` en el worktree\". No tengo el repo a mano para probarlo.\n\n**`rm web/node_modules` antes de `npm ci`**\n- No sé si es obligatorio, y es una precaución mía. Que `npm ci` borre el contenido del clone principal a través del link o solo reemplace el link es justo lo que no puedo confirmar.\n- Es barato y seguro hacerlo igual. Si borrás el link sin barra final ni `-r` (`rm web/node_modules`), solo se va el link y no lo que hay detrás. Después `npm ci` instala un `node_modules` propio en el worktree.\n- Si preferís verificarlo, corré `ls -ld web/node_modules` para ver si es un link. Luego hacelo en un worktree descartable y revisá si cambia algo en el `node_modules` del clone principal.\n\n**Dependencia de Python**\n- **Camino documentado:** instalarla en el clone principal. Es lo más simple, pero el venv es compartido. Todos los worktrees van a ver la dependencia nueva, aunque sus branches no la declaren.\n- **Venv propio:** conviene si no querés tocar el venv compartido, por ejemplo si la dependencia puede romper otras branches. El material lo menciona (\"borrá el link y armate un venv propio\"), pero no da un target de `make` para hacerlo.\n- `make install` se niega en un worktree linkeado. No asumas que funciona después de borrar el link. Mirá el `Makefile`, que dirá qué chequea y qué instala.\n- Sin target, se haría a mano. Suponiendo que el link está en `tuqui_core/.venv`:\n  ```bash\n  rm tuqui_core/.venv          # solo el link\n  python -m venv tuqui_core/.venv\n  # instalá lo mismo que hace `make install` (revisá el Makefile) + tu dependencia nueva\n  ```\n  Ese procedimiento es mío, no del material. Confirmalo contra el `Makefile`. Tampoco sé si volver a correr `make worktree-setup` recrearía el link.\n\nMi recomendación: si la dependencia es inocua para las otras branches, instalala en el clone principal. Si no, armá el venv propio a mano y revisá antes qué instala `make install`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4715,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 1570,
+  "output_tokens_details": {
+   "thinking_tokens": 731
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4715,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1570,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 4715,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4715
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fef78073a7"
+ }
+}

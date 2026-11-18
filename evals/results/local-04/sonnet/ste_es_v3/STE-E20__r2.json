@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Staging no está caído: el deploy nuevo no se promovió y la versión anterior sigue sirviendo.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;`. La columna `accepted_version` tiene filas con `null`, así que Postgres rechazó el cambio (SQLSTATE 23502). La migración hizo rollback completo.\n\n**Causa de fondo:** la migración mete el `SET NOT NULL` sin un backfill previo. Según `docs/infra-ci-cd.md`, eso va en dos trenes: primero una migración que completa los valores, y después otra con el `SET NOT NULL`.\n\n**Cómo arreglarlo:**\n1. Dividí `0415` en dos migraciones: una con el backfill y otra con el `SET NOT NULL`.\n2. Deployá primero la del backfill.\n3. Deployá la del `SET NOT NULL` en un tren posterior.\n\nPara ver cuántas filas están en null, corré esto en staging:\n\n```sql\nSELECT count(*) FROM members WHERE accepted_version IS NULL;\n```\n\nAntes de elegir el valor del backfill, confirmá qué versión de términos corresponde a los miembros viejos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4053,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 450,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4053,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 450,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4053,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4053
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

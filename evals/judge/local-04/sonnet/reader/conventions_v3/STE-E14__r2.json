@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si una hipótesis falla o vence el tiempo en el investigator, y qué pasa si el synthesizer devuelve 0 teasers por sí mismo o si el watchdog corta todo el pipeline? ¿Esos casos también terminan sin mostrar nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el investigator falla o se le vence el tiempo en una hipótesis, o si el watchdog global corta el pipeline? ¿Y puede el synthesizer devolver 0 teasers por sí mismo sin pasar por los guards? Necesito saber si esos casos también terminan sin mostrar nada.",
+   "followup_note": "La respuesta cubre bien las etapas y los casos de silencio del planner y los guards, pero admite no haber verificado los casos de falla/timeout del investigator, el watchdog y el synthesizer, que son parte directa de la pregunta 'en qué casos termina sin mostrar nada'."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si una hipótesis falla o vence su tiempo en el investigator, puede el synthesizer devolver 0 teasers por sí mismo, y el watchdog corta todo el pipeline o solo esa hipótesis?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si una hipótesis falla o vence el tiempo en el investigator, y qué pasa si el synthesizer devuelve 0 teasers por sí mismo o si el watchdog corta todo el pipeline? ¿Esos casos también terminan sin mostrar nada?",
+ "followup_answer": "Con el material que tengo, no puedo responder ninguno de los tres casos. Busqué `investigator.py` y `synthesizer.py` en esta máquina, pero la búsqueda quedó pendiente de aprobación. No hay código para leer, así que no está verificado.\n\n**Lo que el material permite decir**\n\n- **Synthesizer con 0 teasers por sí mismo:** el material solo documenta un caso de 0 teasers, el de los guards que rechazan todo (`debug_note=\"synth_all_rejected: ...\"`). El esquema habla de \"0-2 teasers\", así que es razonable suponer que el LLM puede devolver una lista vacía. Eso es una inferencia mía, no un dato del material. Si pasara, el resultado sería el mismo: nada que mostrar.\n- **Hipótesis que falla o vence el tiempo:** el material solo da el presupuesto por hipótesis, `(watchdog_sec - 30) / n_hypotheses`. No dice qué ocurre al agotarlo. No sé si la hipótesis se descarta, si devuelve hallazgos parciales o si hace fallar todo el stage.\n- **Watchdog que corta todo el pipeline:** no hay información. Tampoco sé si existe una salida de error separada del silencio válido (`silence_reason`). Tampoco sé si en ese caso se escribe algo en `insights`.\n\n**Lo que habría que leer para cerrarlo**\n\n- En `investigator.py`: el manejo de excepciones y timeouts por hipótesis dentro del `Semaphore(3)`. Hay que ver si usa `gather` con `return_exceptions` y qué se hace con las hipótesis fallidas.\n- En `synthesizer.py`: qué pasa cuando no hay hallazgos que sinteticen.\n- Donde se arma el pipeline: dónde se aplica `watchdog_sec` y qué devuelve al vencer.\n\nSi me pasás esos archivos, o me autorizás a buscarlos con `find`, te lo confirmo con el código.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 13095,
+  "cache_read_input_tokens": 47335,
+  "output_tokens": 975,
+  "output_tokens_details": {
+   "thinking_tokens": 155
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13095,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 693,
+    "cache_read_input_tokens": 30046,
+    "cache_creation_input_tokens": 338,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 338
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "91193bc2d0"
+ }
+}
