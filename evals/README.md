@@ -1,13 +1,30 @@
 # ste-es eval
 
-Evidence for the published skill: does it give a direct answer the dev does not have to follow up on, without losing facts or spending more tokens? It compares two arms, each a frozen file in `arms/` added with `--append-system-prompt`:
+Evidence for the published skill: does it give a direct answer the dev does not have to follow up on, without losing facts or spending more tokens? Each arm is a frozen file in `arms/` added with `--append-system-prompt`, plus optional Claude Code settings in `arms/<arm>.settings.json`:
 
 | Arm | Added text |
 |---|---|
 | `baseline` | none: plain Claude Code |
-| `ste_es` | the published skill: the body of `SKILL.md` and the glossary |
+| `ste_es` | the skill published until local-03: rules, scope and glossary |
+| `ste_es_v3` | the candidate: rules only, rule 0 with the cases that must arrive whole, rule 5 as examples, no diagram for conditional answers, no glossary |
+| `concise` | no text: Claude Code's built-in `Concise` output style (`--settings`) |
+| `conventions` | adhoc-way's `templates/conventions.md` as it is (commit `29a520c`) |
+| `conventions_v3` | the same file with rules 0 to 6 of `ste_es_v3` as a section, the way they would land in adhoc-way |
+| `conventions_concise` | adhoc-way's `conventions.md` as it is, plus the `Concise` output style: the cheap option in Claude Code |
 
 Earlier versions and arms are in the git history.
+
+## Cases
+
+29 cases in `cases.yml`, in five groups that `measure.py` also reports apart, so a loss in one kind of case does not hide in the average:
+
+| Group | Cases | What it checks |
+|---|---|---|
+| `flow` | 9 | answers with 3 or more related steps or parts: where a diagram may help |
+| `precision` | 4 | an error, a failing test, a leaked secret and a destructive command: what rule 0 must keep whole |
+| `conditional` | 3 | the answer depends on conditions: no diagram, and no condition lost |
+| `report` | 4 | the agent tells what it did, from a session log |
+| `other` | 9 | facts, procedures, explanations, diagnoses and comparisons |
 
 ## Isolation
 
@@ -16,11 +33,15 @@ Earlier versions and arms are in the git history.
 ## Run
 
 ```bash
-python3 run.py --run-id local-03 --models sonnet --runs 3
-python3 judge.py --run-id local-03 --judge-model sonnet
-python3 reader.py --run-id local-03 --reader-model sonnet
-python3 comprehension.py --run-id local-03 --model sonnet
-python3 measure.py --run-id local-03
+python3 run.py --run-id local-04 --models sonnet --runs 3 --arms baseline ste_es ste_es_v3 concise conventions conventions_v3 conventions_concise
+python3 judge.py --run-id local-04 --judge-model sonnet
+python3 judge.py --run-id local-04 --judge-model sonnet --reference ste_es --arms ste_es_v3
+python3 judge.py --run-id local-04 --judge-model sonnet --reference conventions --arms conventions_v3
+python3 judge.py --run-id local-04 --judge-model sonnet --reference concise --arms ste_es_v3
+python3 judge.py --run-id local-04 --judge-model sonnet --reference conventions_concise --arms conventions_v3
+python3 reader.py --run-id local-04 --reader-model sonnet
+python3 comprehension.py --run-id local-04 --model sonnet
+python3 measure.py --run-id local-04
 ```
 
 Runs resume, and each verdict is reused only if the model, the settings and the judged text are the same.
@@ -40,4 +61,4 @@ Arm texts, cases and prompts are in Spanish, because the answers are.
 
 ## Limits
 
-One model (Sonnet). The judge, the reader and the generator are all Claude. The cases were written by the people who wrote the rules.
+One model (Sonnet). The judge, the reader and the generator are all Claude: a reader from another family is still pending. The cases were written by the people who wrote the rules.
