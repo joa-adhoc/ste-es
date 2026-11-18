@@ -77,6 +77,10 @@ Plans use the Adhoc look: [`themes/adhoc.css`](themes/adhoc.css) holds the brand
 | Voseo | 85% | 86% | 100% | 100% |
 | Blind preference against plain | — | 65 to 22 | 60 to 27 | 54 to 33 |
 
-This version beats the previous one 47 to 40, and wins back the flow cases (18 to 9) that the previous one lost against plain Claude Code. Against the built-in `Concise` style it ties (44 to 42): in Claude Code, `Concise` gives about the same with fewer tokens, and ste-es adds voseo, the answer first and fewer incorrect claims.
+This version beats the previous one 47 to 40, and wins back the flow cases (18 to 9) that the previous one lost against plain Claude Code. It pays for that with more incorrect claims (22 against 13), it loses the work reports to the previous one (3 to 9), and it drops an unasked caveat in 2 of 9 conditional answers.
+
+Against the built-in `Concise` style it ties (44 to 42): in Claude Code, `Concise` gives about the same with fewer tokens, and ste-es adds voseo, the answer first and fewer incorrect claims.
+
+On top of adhoc-way's `conventions.md`, the rules beat the conventions alone (56 to 31) but tie with the conventions plus `Concise` (44 to 42), which uses fewer tokens and loses less in the precision cases (the rules lose them 3 to 9). The rules also raise follow-ups against the conventions alone (0.54 to 0.61).
 
 Limits: one model only, and the judge and the reader are Claude too. Codex and opencode are not measured. Earlier versions and their results are in the git history.

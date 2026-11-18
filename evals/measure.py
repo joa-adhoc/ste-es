@@ -6,6 +6,7 @@
 import argparse
 import json
 import random
+import sys
 from collections import defaultdict
 from statistics import mean, median
 
@@ -23,7 +24,10 @@ def load_arm(run_id, model, arm, cases):
     rows = []
     for path in sorted((RESULTS / run_id / model / arm).glob("*.json")):
         ans = json.loads(path.read_text())
-        case = cases[ans["case"]]
+        case = cases.get(ans["case"])
+        if case is None:
+            print(f"skip {path}: case not in cases.yml", file=sys.stderr)
+            continue
         fid_path = JUDGE / run_id / model / "fidelity" / arm / path.name
         fid = json.loads(fid_path.read_text()) if fid_path.exists() else None
         rd_path = JUDGE / run_id / model / "reader" / arm / path.name
@@ -156,9 +160,12 @@ def pairwise(run_id, model, cases, reference=REFERENCE):
         arm = other_dir.name
         wins, by_group = [], defaultdict(list)
         for p in other_dir.glob("*.json"):
+            case = cases.get(p.stem.split("__")[0])
+            if case is None:
+                continue
             w = json.loads(p.read_text())["winner_arm"]
             wins.append(w)
-            by_group[group_of(cases[p.stem.split("__")[0]])].append(w)
+            by_group[group_of(case)].append(w)
         out[arm] = count_wins(wins, arm, reference)
         out[arm]["by_group"] = {g: count_wins(by_group[g], arm, reference) for g in GROUPS if g in by_group}
     return out
@@ -171,8 +178,13 @@ SUMMARY_COLS = ["n", "reader_coverage", "comprehension", "comprehension_not_stat
             "diagram_rate_structure", "diagram_rate_flat", "diagram_errors"]
 
 
+def ordered(arms):
+    """ARM_ORDER first, then any other arm found on disk, so a new arm is never left out of the report."""
+    return [a for a in ARM_ORDER if a in arms] + sorted(set(arms) - set(ARM_ORDER))
+
+
 def table(summary, cols=SUMMARY_COLS):
-    arms = [a for a in ARM_ORDER if a in summary]
+    arms = ordered(summary)
     lines = ["| metric | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
     for c in cols:
         lines.append(f"| {c} | " + " | ".join(str(summary[a][c]) for a in arms) + " |")
@@ -188,7 +200,7 @@ def main():
     md = []
     for model_dir in sorted(p for p in (RESULTS / args.run_id).iterdir() if p.is_dir()):
         model = model_dir.name
-        rows = {a: load_arm(args.run_id, model, a, cases) for a in ARM_ORDER if (model_dir / a).exists()}
+        rows = {a: load_arm(args.run_id, model, a, cases) for a in ordered([d.name for d in model_dir.iterdir() if d.is_dir()])}
         summary = {a: arm_summary(r) for a, r in rows.items()}
         deltas = {}
         if REFERENCE in rows:
