@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections import Counter
 
-from common import JUDGE, NO_TOOLS, RESULTS, arm_extra, arm_hash, arm_text, claude, is_cached, load_cases, parse_json_block, text_hash
+from common import JUDGE, NO_TOOLS, RESULTS, arm_hash, claude, is_cached, load_cases, parse_json_block, text_hash
 
 READER = """Sos un dev del equipo. Hiciste esta pregunta y recibiste esta respuesta. No tenés otro material.
 
@@ -85,7 +85,7 @@ def read_one(run_id, model, reader_model, case, ans_path, reads):
             verdict["followup"] = chosen["followup"]
             follow = claude(FOLLOWUP.format(prompt=case["prompt"], answer=ans["result"],
                                             followup=chosen["followup"]),
-                            append_system=arm_text(arm), model=model, extra=arm_extra(arm))
+                            arm=arm, model=model)
             verdict["followup_answer"] = follow.get("result", "")
             verdict["followup_usage"] = follow.get("usage", {})
     out_path.parent.mkdir(parents=True, exist_ok=True)
