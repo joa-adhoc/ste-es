@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción del conector entra también a algún prompt LLM, mail o salida por MCP, o solo se muestra en la SPA? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega la columna description_i18n a platform_connectors, o tengo que crear una nueva?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La primera oración dice que alcanza con el cliente, pero después el paso 2 pide tocar la API (serializer, normalize_i18n_keys/decode_i18n) y la migración es de base de datos. ¿Cuál es el alcance real en mi caso: la API/backend de lectura y escritura hay que modificarla sí o sí para que el cliente reciba description_i18n, y 'solo el cliente' se refiere a que no hay que tocar la lógica de consumo (LLM, mail, MCP)? Además, ¿ya existe la migración 0201 y cubre mi caso, o tengo que crear una nueva?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿La descripción del conector entra también a algún prompt LLM, mail o salida por MCP, o solo se muestra en la SPA? Además, ¿la migración 0201_platform_connectors_description_i18n.sql ya agrega la columna description_i18n a platform_connectors, o tengo que crear una nueva?",
+ "followup_answer": "Ninguna de las dos preguntas se puede confirmar desde acá. El directorio de trabajo (`/tmp/ste-es-eval-8198b6o7`) está vacío, así que no vi la migración ni el código del backend.\n\n**¿`0201` ya agrega la columna?**\nProbablemente sí, porque el nombre `0201_platform_connectors_description_i18n.sql` apunta a `platform_connectors.description_i18n`. El material solo la cita como referencia y no muestra su contenido. Abrila y buscá esta línea:\n\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\n\n- **Si está:** no crees otra migración. Revisá que la migración ya esté aplicada en tu entorno y seguí con la API y el front.\n- **Si falta:** creá una migración nueva con el número siguiente. No edites `0201` si ya corrió en algún entorno.\n\n**¿La descripción entra a un prompt LLM, mail o MCP?**\nEl material no lo dice. Para saberlo, buscá dónde el backend lee `description` de los conectores:\n\n```bash\ngrep -rn \"description\" --include=*.py . | grep -i connector\n```\n\nFijate si ese valor termina en un prompt, en una plantilla de mail o en una respuesta del servidor MCP.\n\n- **Si solo lo lee el serializer de la API:** alcanza con el cliente.\n- **Si entra a alguno de esos tres destinos:** resolvé también en el backend, con los pasos 5 y 6 de mi respuesta anterior.\n\nSi me pasás el repo o el contenido de `0201`, lo verifico.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6788,
+  "cache_read_input_tokens": 41073,
+  "output_tokens": 842,
+  "output_tokens_details": {
+   "thinking_tokens": 137
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6788,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 564,
+    "cache_read_input_tokens": 23784,
+    "cache_creation_input_tokens": 293,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 293
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a4771aa374"
+ }
+}

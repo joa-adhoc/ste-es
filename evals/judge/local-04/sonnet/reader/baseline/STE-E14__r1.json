@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el investigator no logra resultados para una hipótesis (agota iteraciones, herramientas o tiempo) o si el synthesizer devuelve cero teasers antes de los guards: se descarta la hipótesis, pasa con findings parciales o el pipeline termina sin mostrar nada?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el investigator no produce findings o una hipótesis agota su tope de iteraciones, herramientas o tiempo: se descarta o pasa con findings parciales? ¿Y qué pasa si el synthesizer devuelve cero teasers antes de los guards? Necesito saber si esos casos también terminan en silencio.",
+   "followup_note": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el investigator agota el tope de iteraciones, herramientas o tiempo en una hipótesis: se descarta o pasa con findings parciales al synthesizer? ¿Y qué pasa si el synthesizer devuelve cero teasers antes de los guards: se registra igual un debug_note y no se muestra nada?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el investigator no logra resultados para una hipótesis (agota iteraciones, herramientas o tiempo) o si el synthesizer devuelve cero teasers antes de los guards: se descarta la hipótesis, pasa con findings parciales o el pipeline termina sin mostrar nada?",
+ "followup_answer": "El material que me pasaron no lo define, así que no puedo darte una respuesta confirmada. Lo que sí dice es esto:\n\n- **Investigator:** solo describe los topes (`max_iterations`, `max_tool_calls`) y el presupuesto de tiempo por hipótesis, `(watchdog_sec - 30) / n_hipótesis`. No dice qué pasa al agotarlos. No aclara si la hipótesis se descarta, si pasa con findings parciales o si se registra un error.\n- **Synthesizer con cero teasers antes de los guards:** el material solo documenta `synth_all_rejected`, que es el caso en que los guards rechazan todo. No dice qué pasa si el LLM devuelve una lista vacía de entrada. Es razonable suponer que el resultado es el mismo (`teasers=[]`, sin nada para mostrar), pero es una inferencia mía y el material no lo confirma.\n- **Pipeline completo:** lo único explícito es que la salida final es de 0 a 2 teasers. Entonces \"terminar sin mostrar nada\" es un resultado válido, pero el material no dice si el pipeline corta antes cuando una hipótesis falla.\n\nPara saber el comportamiento real hay que mirar el código. Estos son los puntos a revisar:\n\n1. En `investigator.py`: cómo se manejan los límites del agente (`UsageLimitExceeded` o equivalente de Pydantic AI) y el timeout. Mirá si hay un `try/except` o `asyncio.wait_for` por hipótesis, y qué devuelve en ese caso (`None`, findings parciales o una excepción).\n2. En el orquestador que une las etapas: si filtra hipótesis sin findings antes de llamar al synthesizer, y si hace un early return cuando no queda ninguna.\n3. En `synthesizer.py`: si hay un chequeo explícito de lista vacía antes de correr los guards, y qué `debug_note` pone.\n\nSi querés, puedo buscarlo yo en el repo, pero el directorio de trabajo actual no es un repo git y no vi el código del pipeline. Pasame la ruta o los archivos y lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5929,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 743,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5929,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 743,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 5929,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5929
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d8be26967b"
+ }
+}

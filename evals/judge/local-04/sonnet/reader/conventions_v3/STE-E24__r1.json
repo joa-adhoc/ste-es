@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR a staging con el ADD COLUMN y el DROP COLUMN juntos. Con eso, ¿qué pasa en el tren del jueves 19/11 a las 12 UTC: se lleva también el DROP de `lang`? Si es así, ¿tengo que revertir y partir el PR antes de esa hora? ¿Cómo lo hago?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Ya mergeé el PR a staging con el ADD y el DROP juntos. Tu respuesta supone que lo parto, pero eso ya no se puede. ¿Qué pasa si el tren del jueves 19/11 lo lleva tal cual: el DROP de `lang` sale junto con el código? Si es así, ¿qué hago ahora: un revert del DROP en staging antes de las 12 UTC del jueves y lo reabro como PR aparte? ¿Y hay que copiar los datos de `lang` a `locale`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "Ya mergeé el PR a staging con el ADD COLUMN y el DROP COLUMN juntos. Con eso, ¿qué pasa en el tren del jueves 19/11 a las 12 UTC: se lleva también el DROP de `lang`? Si es así, ¿tengo que revertir y partir el PR antes de esa hora? ¿Cómo lo hago?",
+ "followup_answer": "Probablemente sí: el tren del jueves 19/11 a las 12 UTC (09:00 hora argentina) se lleva también el `DROP`. Revertilo antes de esa hora.\n\nEn mi respuesta anterior di por hecho que el tren arrastra el `DROP`. El extracto dice que una migración destructiva \"va en el tren siguiente\", pero no dice si el tren lo aplaza solo o si es una convención que cumple quien arma el PR. No verificado. Si es convención, el jueves corren juntos el `DROP COLUMN lang` y el código nuevo. Durante el deploy la versión vieja todavía lee `lang` y puede fallar. Como el riesgo es alto y revertir es barato, asumí lo peor.\n\n**Cómo partirlo**\n\nNo reescribas `staging`: es una rama compartida. Hacelo con un PR nuevo contra `staging`. Esto es genérico, porque acá no hay repo para correrlo:\n\n```bash\ngit fetch origin\ngit switch -c fix/members-locale-sin-drop origin/staging\n# Sacá el DROP COLUMN de `lang` de la migración.\n# Si el archivo solo tiene el DROP, borralo. Si tiene ADD y DROP, dejá solo el ADD.\npre-commit run --files <archivos>\ngit commit -am \"[FIX] members: quitar DROP COLUMN lang del tren actual\"\ngit push -u origin HEAD\ngh pr create --base staging\n```\n\nEn el body del PR poné la razón: el `DROP` no puede ir en el mismo tren que el código que deja de usar `lang`, por expand/contract.\n\n**Antes de las 12 UTC del jueves**\n\n- Mergeá este PR a staging con el CI verde. Si el CI de staging queda rojo a las 12 UTC, el tren salta al martes 24/11 y `locale` también se demora.\n- Fijate si staging corre las migraciones al mergear. Si ya corrió el `DROP` ahí, `lang` ya no existe en staging y sacar el archivo no la restaura. En ese caso avisá antes de seguir, porque habría que recrearla a mano en staging.\n\n**Después**\n\nAbrí el PR con el `DROP COLUMN lang` y mergealo a staging cuando `locale` ya esté en prod, es decir después del jueves 19/11. Sale en el tren del martes 24/11 a las 12 UTC. Antes de eso confirmá si hay que copiar los datos de `lang` a `locale`. El extracto no lo dice, y esa copia tiene que ir antes del `DROP`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11155,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1898,
+  "output_tokens_details": {
+   "thinking_tokens": 1019
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11155,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1898,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11155,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11155
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d1f3ff5b10"
+ }
+}

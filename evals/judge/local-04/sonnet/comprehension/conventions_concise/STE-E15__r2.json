@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema en Odoo, es decir, pertenecer al grupo `base.group_system` (se verifica con `res.users.has_group(uid, 'base.group_system')`). Si no lo es, lanza `ValueError`. Además, la versión mayor de Odoo debe detectarse y no ser menor que `MIN_SUPPORTED`.",
+  "Vincula automático (modo `auto`) por defecto cuando `current_user.email == odoo_login`; en ese caso `Member.odoo_user_id = admin_uid`. Deja al member sin usuario de Odoo (modo `none`) por defecto cuando los emails no coinciden, y no toca `odoo_user_id` del Member. También existe el modo `manual`, cuando el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`.",
+  "Se limpian `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque esas identidades pueden apuntar a otra instancia. `members_invalidated` informa cuántos se limpiaron y `warning` trae el mensaje para la UI. Primero se limpia y después se vincula, así que si el modo es `auto` o `manual` el owner que conecta queda re-vinculado en el mismo request; los demás members tienen que volver a vincularse. Cómo se detecta el cambio de URL no lo dice (el texto solo supone que compara contra el `odoo_url` guardado)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d08c74464a",
+  "control": "d70443294a"
+ }
+}

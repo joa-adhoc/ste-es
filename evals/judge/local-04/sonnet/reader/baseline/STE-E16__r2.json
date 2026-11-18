@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando solo se refrescan los datos (versión solo-data), ¿se publica automáticamente o hay que llamar a publish? ¿Quien tiene el link ve los datos nuevos o sigue viendo la versión publicada anterior?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando solo se refrescan los datos (versión solo-data), ¿esa versión se publica automáticamente y el que tiene el link ve los datos nuevos, o tengo que llamar a publish igual?",
+   "note": "La respuesta empieza con 'Según el material, funciona así:' y no responde de entrada. Explica bien versiones y qué ve quien tiene el link (sigue viendo lo publicado hasta llamar a publish), pero deja sin resolver la tercera parte de la pregunta: si el refresh de datos llega al link compartido. Dice que no lo sabe y que hay que confirmarlo en el código, así que me falta ese dato para quedarme tranquilo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando se refrescan solo los datos y se crea la versión solo-data, ¿el link compartido muestra los datos nuevos automáticamente o hay que llamar a publish? ¿Y el refresh mueve published_version_id o solo current_version_id?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando solo se refrescan los datos (versión solo-data), ¿se publica automáticamente o hay que llamar a publish? ¿Quien tiene el link ve los datos nuevos o sigue viendo la versión publicada anterior?",
+ "followup_answer": "No puedo confirmarlo con certeza. El directorio de trabajo está vacío y no hay código que revisar. Solo tengo el material, y el material no habla de publicación para una versión solo-data. Lo que sigue es inferencia.\n\n**¿Se publica sola o hay que llamar a `publish`?**\nLo más probable es que haga falta `publish`. Las reglas que da el material son:\n- Solo el `save` sin `artifact_id` publica automáticamente, porque crea la v1.\n- Cualquier `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`, pero no `published_version_id`.\n\nUn refresh de datos crea \"una versión solo-data\" sobre un artifact que ya existe. Si usa el mismo camino de `save` con `artifact_id`, no publicaría sola. Pero el material no dice si el refresh pasa por ese `save` o por otro camino con otra regla. Ese es el punto a confirmar.\n\n**¿Qué ve quien tiene el link?**\nSi el refresh no publica, sigue viendo la versión publicada anterior, con el diseño y los datos de esa versión. La ruta por token sirve siempre `published_version`. Los datos nuevos solo se ven en el visor interno, que navega por `current_version`, y probablemente con el banner de `unpublished_changes`.\n\nUna consecuencia: al publicar la versión solo-data, el link mostraría los datos nuevos con el template heredado, porque `content` y `data` se resuelven hacia atrás por separado.\n\n**Qué mirar en el código**\n- Si el refresh llama a `save` o a una función propia.\n- Si esa función toca `published_version_id`. Por ejemplo, podría tener un flag como `auto_publish` para dashboards regenerables.\n- Si devuelve `unpublished_changes: true` en el caso solo-data.\n\nSi quieres, dime dónde está el repo y lo reviso.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5254,
+  "cache_read_input_tokens": 39520,
+  "output_tokens": 883,
+  "output_tokens_details": {
+   "thinking_tokens": 99
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5254,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 656,
+    "cache_read_input_tokens": 22240,
+    "cache_creation_input_tokens": 294,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 294
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c23a5eacab"
+ }
+}

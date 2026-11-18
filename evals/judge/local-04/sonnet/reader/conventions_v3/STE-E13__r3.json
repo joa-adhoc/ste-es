@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El día que vence sin suscripción, ¿el workspace queda en `restricted` (MCP y chat bloqueados, asistente sin responder para todo el equipo) siempre, o solo cuando hay exceso sobre los límites de free (`trial_expired_with_excess`)? Y si no hay exceso, ¿queda operativo en plan free? Decime también en qué estado está hoy este workspace: ¿el aviso de 7 días ya salió?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta se contradice: dice que son dos avisos (7 días y el día que vence) pero también que el aviso de 'vencida' sale a owners y admins. ¿A quién va exactamente cada mail (por vencer vs. vencida), y el workspace queda en restricted o solo en free el día que vence? Aclarame qué está verificado y qué es suposición, porque no puedo saber si el mío (vence la semana que viene) ya recibió el aviso de 7 días ni qué le va a pasar ese día."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta se contradice sobre a quién le llegan los avisos y qué pasa al vencer: ¿los avisos de prueba van a owners/admins y a miembros con asiento, o solo a algunos? Y el día que vence sin suscripción, ¿el workspace queda en 'restricted' con el asistente bloqueado para todo el equipo, o solo pasa a 'free' y se bloquea únicamente si hay exceso sobre los límites? Decime qué pasa en cada caso y si el aviso de 7 días ya salió para un vencimiento dentro de una semana."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "La respuesta se contradice: dice que son dos avisos (7 días y el día que vence) pero también que el aviso de 'vencida' sale a owners y admins. ¿A quién va exactamente cada mail (por vencer vs. vencida), y el workspace queda en restricted o solo en free el día que vence? Aclarame qué está verificado y qué es suposición, porque no puedo saber si el mío (vence la semana que viene) ya recibió el aviso de 7 días ni qué le va a pasar ese día.",
+ "followup_answer": "Tenés razón: \"dos avisos\" era incompleto. Son dos hitos del cron y un mail aparte de prueba vencida.\n\n**A quién va cada mail**\n\nEl material no distingue destinatarios entre \"por vencer\" y \"vencida\". Dice que los avisos de prueba, los dos, van a:\n- owners y admins, siempre, aunque estén en `billing_tier = 'none'`;\n- todo miembro con asiento (`billing_tier <> 'none'`).\n\nPago fallido, gracia vencida, recibo y cancelación son otros circuitos y no aplican a este caso.\n\n**Qué mails salen, según el material**\n- **Hito de 7 días:** mail de \"por vencer\". Está verificado como hito por defecto.\n- **Hito de 0 días:** mail de \"por vencer\", el día que vence, mientras todavía funciona. También verificado.\n- **Mail de vencida:** sale al vencer, solo si no hay suscripción viva. El material no dice si sale en la misma corrida que el hito de 0 ni si es otro mail, así que no verificado.\n\n**¿`restricted` o solo `free`?**\n- **Verificado:** sin suscripción viva el workspace pasa a `plan='free'`, se evalúa exceso y sale el mail.\n- **Verificado:** la tabla de `account_status` lista \"trial expiry\" entre quienes setean `restricted`, con la razón `trial_expired_with_excess`. En `restricted` el MCP y el chat quedan bloqueados.\n- **Suposición:** que `restricted` se aplique solo si hay exceso sobre los límites de free. Lo deduzco del nombre de la razón y de \"se evalúa exceso\", pero el material no lo dice.\n- **Suposición:** qué cuenta como exceso. No figura en el material, solo se nombra `free_member_limit_exceeded` para otro caso.\n\nHay una lectura posible, no confirmada. Sin exceso quedaría en `active` y `free`. Con exceso quedaría en `restricted`. Para saber en cuál cae el tuyo, compará sus miembros y uso con los límites de free.\n\n**Si ya recibió el aviso de 7 días**\n\nNo puedo saberlo con lo que tengo. La marca es el par `trial_warning_for` y `trial_warning_days` en el workspace:\n- Si `trial_warning_for` es la fecha de fin actual y `trial_warning_days` es 7 o menos, el aviso de 7 días ya salió.\n- Si está vacío o apunta a otra fecha, todavía no salió.\n\nTambién conviene confirmar el valor de `billing_trial_warning_days_list` en `platform_config`, porque `{7, 0}` es el valor por defecto y puede estar cambiado. Hoy es 2026-11-18. Si la prueba vence dentro de 7 días o menos, el cron de las 12:00 UTC lo manda en su próxima corrida, si no salió antes.\n\n**Con suscripción viva**\n\nVerificado: se limpian los flags de trial y no se manda ningún aviso de vencimiento. Cobro y recibo van por su propio circuito, y el recibo va solo a los owners.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11997,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1844,
+  "output_tokens_details": {
+   "thinking_tokens": 772
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11997,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1844,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11997,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11997
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4f3592ea35"
+ }
+}

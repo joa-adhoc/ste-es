@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Orden de decisión\n\n**Capa 1 – `workspace_write_models`** (admin, binario por modelo). Si no permite la operación sobre ese modelo, el tool corta ahí y nunca llega al gate de runtime.\n\n**Capa 2 – `evaluate_permission`**, en este orden (el primero que resuelve gana):\n\n1. **`workspace_tool_approvals` = `deny`** → DENY. Es un piso: ninguna preferencia personal lo levanta.\n2. **`user_tool_approvals`** para `(user, workspace, tool)` → si hay fila, esa acción gana. **Se saltea entero** en canales sin identidad personal (`exposure`, `webhook`, `scheduled`).\n3. **`workspace_tool_approvals`** con `allow` o `ask`.\n4. **Default por ausencia de fila**:\n   - recurso con `approval` (`\"ask\"` o `\"always\"`) → ASK\n   - sin `approval` → ALLOW\n   - tools de conector sin declaración en el REGISTRY → heurística de verbos + annotations MCP\n\n**Capa 3 – `tool.execute()`**, auditado en `tool_usage_log` con `permission_action`. Se llega acá con ALLOW, o con ASK que el usuario aceptó.\n\n## Tus dos casos\n\n**Admin puso \"ask\", el miembro puso \"allow\" (chat normal):** gana el miembro, así que se ejecuta sin preguntar. El paso 1 solo bloquea si el admin puso `deny`. Con `ask` el admin no pone un piso, sino un valor que está en el paso 3, y el paso 2 llega antes. Es decir, `ask` del admin funciona como default del workspace, que cada miembro puede relajar para sí mismo. Si el admin quiere que nadie pueda saltearlo, tiene que usar `deny`. Eso sí, el material no dice si hay un mecanismo para forzar `ask`. Si lo necesitás, habría que revisar el código.\n\n**Agent por webhook:** el paso 2 no corre. El turno usa la identidad prestada de un miembro (`client_facing_core.py`), pero la preferencia de esa persona no se considera política del canal (`personal_identity_applies` es falso). La decisión queda así:\n- `deny` del workspace → DENY\n- `allow` o `ask` del workspace → eso\n- sin fila → default por recurso\n\nCon \"ask\" del admin, el webhook queda en ASK. Ahí hay una duda que el material no resuelve: en un canal sin humano en línea, no está claro quién responde el ask. Puede quedar bloqueado, caer en denegación o tener otro manejo. Eso depende de cómo implemente el canal el \"asked-granted\", y habría que mirarlo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4045,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 944,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4045,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 944,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4045,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4045
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

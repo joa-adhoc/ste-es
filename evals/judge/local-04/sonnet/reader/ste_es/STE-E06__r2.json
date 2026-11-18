@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Me falta el paso concreto de aislar la base: ¿me podés dar un ejemplo de cómo queda el `.env.test.local` completo, con la URL de la base propia (nombre y formato) y el `REDIS_URL` con un índice distinto, para no adivinar qué variables tocar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés mostrar cómo queda concretamente el `.env.test.local` para mi worktree? Con valores de ejemplo para la URL de la base, `REDIS_URL` (con un índice distinto de 0 y 15) y `TEST_LOCK`. Y si tengo que crear la base antes, ¿con qué comando, o la crea `make migrate-reset` sola?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Me falta el paso concreto de aislar la base: ¿me podés dar un ejemplo de cómo queda el `.env.test.local` completo, con la URL de la base propia (nombre y formato) y el `REDIS_URL` con un índice distinto, para no adivinar qué variables tocar?",
+ "followup_answer": "El material solo nombra `REDIS_URL`. No dice cómo se llama la variable de la base ni qué formato de URL usa, así que no puedo darte esa línea exacta sin inventarla.\n\n**Primero**, copiá la plantilla y mirá qué variables trae:\n\n```bash\ncp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\ncat tuqui_core/.env.test.local\n```\n\nAhí está el nombre real de la variable de la base. También vas a ver el formato de URL que usa tu `.env.test`.\n\n**Después**, editá solo dos cosas:\n\n```bash\n# Base propia: copiá la URL de .env.test y cambiá solo el nombre de la base.\n# Nombre ilustrativo, elegí el que quieras: uno distinto por worktree.\n<VARIABLE_DE_LA_BASE>=<misma URL de .env.test, con nombre de base p. ej. tuqui_test_mi_worktree>\n\n# Redis propio: mismo servidor, otro índice de base.\n# No uses 15 (default compartido de .env.test) ni 0 (servidor de desarrollo).\nREDIS_URL=redis://localhost:6379/3\n```\n\nEl host y el puerto de `REDIS_URL` son ilustrativos. Copiá los de tu `.env.test` y cambiá solo el número final.\n\n**Por último**, armá la base nueva:\n\n```bash\nmake migrate-reset\n```\n\nFijate que `migrate-reset` solo toca bases locales. Si usás un índice de Redis distinto en cada worktree, ya podés soltar el lock con un `TEST_LOCK` propio.\n\nSi me pegás el contenido de `.env.test.local.example`, te armo el archivo completo con las líneas reales.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6273,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 740,
+  "output_tokens_details": {
+   "thinking_tokens": 141
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6273,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 740,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6273,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6273
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "248f67f80f"
+ }
+}

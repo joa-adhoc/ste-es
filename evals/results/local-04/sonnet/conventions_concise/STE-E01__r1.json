@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Para que no rebote, la migración tiene que cumplir esto:\n\n**Contenido de la migración** (`supabase migration new <nombre>` genera `supabase/migrations/NNNN_descripcion.sql`):\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- ...\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_xxx ON mi_tabla (...);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nLos nombres de columnas, índice y policy son de ejemplo. Lo que exige la regla es lo siguiente:\n\n- **Idempotente:** tiene que poder correr varias veces sin error. Usá `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` y la policy dentro del bloque `DO $$ ... IF NOT EXISTS`. `ENABLE ROW LEVEL SECURITY` ya es idempotente.\n- **RLS:** `ENABLE ROW LEVEL SECURITY` más la policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`. No alcanza con filtrar por `workspace_id` en el código de la aplicación: RLS es la defensa principal.\n\n**Además de la migración:**\n1. Un test de aislamiento en `tuqui_core/tests/test_rls.py`. El material cita también `tests/test_rls.py`, así que confirmá la ruta en el repo.\n2. El modelo Pydantic correspondiente.\n\n**Antes de abrir el PR:** el preview aplica las migraciones contra la base de staging real, no contra una copia. Por eso la migración tiene que estar bien desde el primer push. Si después renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre. Evitá renombrar. Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\nSi la tabla no llevara `workspace_id`, hay que discutirlo antes de escribirla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 28109,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 1437,
+  "output_tokens_details": {
+   "thinking_tokens": 476
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 28109,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1437,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 28109,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 28109
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

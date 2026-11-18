@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No está caído: el deploy nuevo no se promovió y la versión anterior sigue sirviendo.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` intentó hacer `SET NOT NULL` sobre `members.accepted_version`, pero hay filas con esa columna en null (error 23502). La migración se revirtió entera y el deploy se frenó en el paso `migrate`.\n\n**Causa:** la migración junta el backfill y el `SET NOT NULL` en el mismo paso, o directamente no hace backfill. Según `docs/infra-ci-cd.md`, eso falla si hay filas viejas en null.\n\n**Arreglo:** partir en dos migraciones, según la convención del doc:\n1. Una migración que completa los valores (backfill) de `accepted_version`.\n2. En un tren posterior, otra con el `ALTER COLUMN ... SET NOT NULL`.\n\nNo verifiqué cuántas filas están en null ni cuál es el valor de backfill correcto. Eso lo tiene que decidir quien conoce el modelo de términos. Tampoco tengo acceso al repo ni a staging desde acá, así que \"la anterior sigue sirviendo\" es lo que dice el log, no algo que haya comprobado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10258,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 430,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10258,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 430,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10258,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10258
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

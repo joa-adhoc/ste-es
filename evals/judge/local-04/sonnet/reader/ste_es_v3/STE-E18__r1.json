@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Cuando el guard de presupuesto filtra con rapidfuzz, ¿cuántas memorias quedan en el top-N (es un número fijo o depende del presupuesto de 12K caracteres)? Y si una memoria queda afuera por el filtro y tiene `[read]`, ¿el modelo ni se entera de que existe, o hay alguna señal en el prompt de que hay memorias omitidas?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Cuando el guard de presupuesto se activa, ¿cuántas memorias (top-N) se quedan y cómo sabe el modelo que hay otras que no entraron en ese turno? ¿Hay algún aviso en el prompt o puede ignorar que existen?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuántas memorias entran por turno cuando se activa el guard (cuál es el top-N exacto)? Y si el modelo no ve las que quedaron afuera del filtro, ¿cómo se entera de que existen para poder leerlas con manage_memory(action='read')?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Cuando el guard de presupuesto se activa, ¿cuántas memorias (top-N) se quedan y cómo sabe el modelo que hay otras que no entraron en ese turno? ¿Hay algún aviso en el prompt o puede ignorar que existen?",
+ "followup_answer": "El material no define el N ni dice que el prompt avise de las memorias omitidas. Solo dice que rapidfuzz puntúa los headers contra el mensaje actual y \"keeps top-N\".\n\n**Qué no sabemos con el material actual**\n- El valor de N, o si N es fijo o se calcula para entrar en 12K caracteres.\n- Si el prompt agrega una línea del tipo \"hay X memorias más no mostradas\".\n- Si `manage_memory` tiene una acción `list` o `search` para descubrir las omitidas.\n\n**Qué se deduce**\n- El ejemplo del prompt no muestra ningún aviso de omisión. Si existe, no está documentado.\n- Sin aviso, el modelo no puede saber que hay memorias fuera. Solo ve las que entraron.\n- Una memoria omitida no es recuperable por `read`, porque el modelo necesita su `id`, que solo aparece en el header.\n\n**Cómo confirmarlo**\nBuscá en `tuqui_core/chat/agent.py` la función que usa `_MEMORY_BUDGET_CHARS`:\n\n```\ngrep -n \"_MEMORY_BUDGET_CHARS\\|rapidfuzz\" tuqui_core/chat/agent.py\n```\n\nAhí vas a ver el N, el criterio de corte y si se agrega algún marcador de omisión. Ese repo no está en mi directorio de trabajo, así que no puedo verificarlo yo.\n\n**Si no hay aviso, es un riesgo de diseño.** El modelo puede ignorar memorias relevantes cuando el mensaje del usuario no se parece a su header. Una solución simple es agregar al final de la sección una línea como `(+N memorias no mostradas; usá manage_memory(action='list'))`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5495,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 680,
+  "output_tokens_details": {
+   "thinking_tokens": 77
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5495,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 680,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5495,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5495
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c154de07f6"
+ }
+}

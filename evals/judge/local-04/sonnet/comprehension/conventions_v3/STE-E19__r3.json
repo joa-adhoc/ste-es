@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no nombra el test por su nombre, pero sugiere que es el de RLS (`pytest tuqui_core/tests/test_rls.py -q`, el comando para volver a correrlo). Muestra un fallo real de aislamiento: detecta que el workspace B ve las filas del workspace A porque la política `scheduled_runs_ws` quedó con `USING (true)`.",
+  "Porque la 0412 crea la política envuelta en `IF NOT EXISTS`, y la política `scheduled_runs_ws` ya existía desde la 0398 (borrador con `USING (true)`). La creación se saltó (warning: `policy \"scheduled_runs_ws\" already exists, skipped`) y la política abierta siguió vigente.",
+  "No. Según `AGENTS.md`, la 0398 y la 0412 ya están aplicadas y no se vuelven a correr, así que no hay que editarlas. Hace falta una migración nueva, por ejemplo `0413_fix_scheduled_runs_policy.sql`, que haga `DROP POLICY IF EXISTS` y vuelva a crear la política con `workspace_id = current_setting('app.current_workspace_id')::uuid`."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "f777913e66",
+  "control": "8368a6d09b"
+ }
+}

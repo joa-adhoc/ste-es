@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Hiciste dos cosas mal, y las dos están explicadas en el material.\n\n**1. `pytest` pelado en la raíz**\n\nLa config de la suite (`asyncio_mode`, loop scopes, markers, `testpaths`) vive en `tuqui_core/pyproject.toml`. Desde la raíz pytest no la ve. Entonces:\n- pierde el modo asyncio,\n- colecta también `evals/tests`,\n- devuelve miles de fallas que no son del código (según el material, 2302 failed / 2111 passed).\n\nEl `conftest.py` de la raíz corta esa invocación con un mensaje. Por eso viste un error raro y no un resultado engañoso.\n\n**2. `make test ARGS=-k a or b`**\n\nSin comillas, el shell parte la expresión en varias palabras. Pytest recibe `or` como si fuera un path y falla con `file or directory not found: or`.\n\n**Forma correcta**\n\nCorré siempre desde la raíz, por `make`:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nLas comillas simples externas protegen el valor de `ARGS` frente al shell. Las dobles internas mantienen `a or b` como un solo argumento para `-k`.\n\nOtros comandos útiles:\n\n```bash\nmake test                                     # unit (igual que CI)\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/\nmake lint                                     # ruff check + format check\n```\n\n**Si querés pytest crudo**\n\nHacé `cd tuqui_core` primero. Si algún test lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile.\n\nOjo: `pytest tuqui_core/tests/test_x.py` desde la raíz sí funciona, porque el rootdir se resuelve en `tuqui_core`. Pero se saltea el lock que mencionan las notas, así que es mejor usar `make test`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3771,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 721,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3771,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 721,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3771,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3771
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

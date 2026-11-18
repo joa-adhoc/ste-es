@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, no lo hagas todavía: ese comando destruye tu trabajo sin posibilidad de recuperarlo fácilmente.\n\nTenés dos tipos de trabajo en riesgo:\n\n- **Cambios sin commitear:** `limits.py` y `test_limits.py` modificados. `git reset --hard` los descarta.\n- **Archivo sin trackear:** `0420_mcp_limits.sql`. El reset no lo borra, pero conviene guardarlo igual.\n- **3 commits sin pushear:** `a1b2c3d`, `d4e5f6a` y `0718293`. Quedan fuera de la rama, y solo los recuperás con `git reflog`.\n\nAdemás, estás en `feat/limite-mcp`. Ese reset deja tu rama apuntando a `origin/staging`, así que perdés todo lo de arriba de la rama.\n\nPara guardar todo antes de resetear, creá una rama de respaldo y un stash:\n\n```bash\ngit branch backup/limite-mcp\ngit stash push -u -m \"wip limite-mcp\"\ngit fetch origin\ngit reset --hard origin/staging\n```\n\n- `git branch backup/limite-mcp` conserva los 3 commits.\n- `git stash push -u` guarda los cambios y también el `.sql` sin trackear.\n- Recuperás el stash con `git stash pop` y los commits con `git log backup/limite-mcp`.\n\nSi querés una rama nueva desde staging sin tocar la actual, es más seguro esto:\n\n```bash\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nAntes de eso, hacé el stash o commiteá los cambios, porque si no se arrastran a la rama nueva.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3975,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 585,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3975,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 585,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3975,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3975
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

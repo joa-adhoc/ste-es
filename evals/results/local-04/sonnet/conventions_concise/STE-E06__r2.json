@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Es la base de tests compartida. Tu worktree y el de tu compañero usan la misma DB local, y su rama con migraciones (probablemente destructivas) la dejó con un esquema sin columnas que tu código todavía lee. De ahí el `UndefinedColumnError` en tests que no tocaste. El lock de `make test` solo evita corridas simultáneas, no aísla el esquema.\n\n**Arreglo inmediato:** corré `make migrate-reset` en tu worktree. Arma la base desde cero en ~3 segundos con el mismo runner que usa CI. No uses `npx supabase db reset`: aborta en los prefijos de migración repetidos. Solo toca bases locales.\n\n**Para que no vuelva a pasar:** dale a cada worktree su propia base.\n\n1. Copiá `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`. Está gitignoreado.\n2. Poné ahí una base propia para tu worktree. Los targets de test lo cargan encima de `.env.test`.\n3. Corré `make migrate-reset` para armarla.\n\nMientras la base sea compartida, tu compañero te la puede volver a romper cada vez que corra tests con sus migraciones. Con base propia eso se corta, pero seguís con una sola corrida de pytest a la vez por el lock.\n\nSi además querés soltar el lock, no alcanza con aislar la base: también necesitás un Redis propio. Poné un `REDIS_URL` con un índice distinto de 15 (el default compartido) y de 0 (el del server de desarrollo), y un `TEST_LOCK` distinto. Si aislás solo uno de los dos recursos, las corridas se siguen pisando.\n\nNo lo verifiqué: no tengo acceso a tu repo ni a tu DB desde acá. Cuando corras `make migrate-reset`, los tests deberían volver a pasar. Si siguen fallando con la base ya aislada, el problema es otro.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10956,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 673,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10956,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 673,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10956,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10956
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

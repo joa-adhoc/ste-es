@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el nombre exacto y el contenido completo de la policy RLS que pide la guía (¿solo USING o también WITH CHECK, y para qué comandos: SELECT/INSERT/UPDATE/DELETE)? Además, ¿cómo se setea app.current_workspace_id en las conexiones y qué pasa si no está seteado?",
+   "followup_note": "La respuesta admite que armó el bloque DO $$ por su cuenta porque la guía deja abierto el '(...)', así que no puedo confiar en que la policy coincida con lo que exige el review."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La policy usa current_setting('app.current_workspace_id')::uuid, pero ¿quién setea esa variable y cómo? ¿Ya lo hace el middleware/conexión de tuqui, o tengo que setearlo yo en mi código o en el test de RLS? Además, ¿tengo que agregar también FORCE ROW LEVEL SECURITY o policies por operación (WITH CHECK para INSERT/UPDATE), o alcanza con el USING?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cuál es el nombre exacto y el contenido completo de la policy RLS que pide la guía (¿solo USING o también WITH CHECK, y para qué comandos: SELECT/INSERT/UPDATE/DELETE)? Además, ¿cómo se setea app.current_workspace_id en las conexiones y qué pasa si no está seteado?",
+ "followup_answer": "La guía no responde casi nada de esto. Lo que sí dice es una sola cosa, y el resto lo tendrías que confirmar en el repo.\n\n## Lo que dice la guía\n\n- La policy es `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`.\n- Hay que habilitar RLS con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`.\n- Hace falta un test en `tests/test_rls.py`. En el paso a paso aparece como `tuqui_core/tests/test_rls.py`.\n\n## Lo que la guía no dice\n\n- **Nombre de la policy:** no hay convención. En mi respuesta anterior, `<nombre_policy>` era un placeholder mío.\n- **`WITH CHECK`:** no se menciona. La guía solo pide `USING`.\n- **Comandos (`FOR SELECT/INSERT/UPDATE/DELETE`):** no se especifican.\n- **Cómo se setea `app.current_workspace_id`:** no se describe. No sé si se hace con `SET LOCAL` por transacción, con `set_config` en un middleware o en el pool de conexiones.\n- **Qué pasa si no está seteado:** tampoco se describe.\n\n## Comportamiento estándar de Postgres\n\nEsto no sale de la guía. Lo digo por cómo funciona Postgres en general, y conviene que lo verifiques contra el código de tuqui.\n\n- **Sin `FOR`:** la policy aplica a todos los comandos (`ALL`).\n- **Sin `WITH CHECK`:** Postgres usa la expresión de `USING` también como `WITH CHECK` en INSERT y UPDATE. Con la policy tal como la pide la guía, un INSERT con otro `workspace_id` falla.\n- **Si el setting nunca se seteó en la sesión:** `current_setting('app.current_workspace_id')` sin `missing_ok` lanza un error. No devuelve cero filas.\n- **Si el setting quedó vacío:** el cast `::uuid` falla con un error de sintaxis.\n- **Bypass de RLS:** los superusers y los roles con `BYPASSRLS` ignoran la policy. El dueño de la tabla también la ignora, salvo que se use `FORCE ROW LEVEL SECURITY`. La guía no menciona `FORCE`.\n\n## Qué mirar antes de escribir la migración\n\n1. **Migraciones existentes:** buscá tablas con `workspace_id` en `supabase/migrations/` y copiá el nombre y la forma de sus policies. Eso es lo más cercano a una convención.\n2. **Dónde se hace el set:** buscá `app.current_workspace_id` o `set_config` en `tuqui_core`. Así ves cómo se setea y qué pasa si falta.\n3. **El test:** mirá `tuqui_core/tests/test_rls.py` para ver cómo prueban el aislamiento.\n\nSi me pasás acceso al repo, lo busco yo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5529,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 1401,
+  "output_tokens_details": {
+   "thinking_tokens": 366
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5529,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1401,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 5529,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5529
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4211551504"
+ }
+}

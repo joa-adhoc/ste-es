@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Desde el worktree:\n\n1. **`make worktree-setup`**: linkea `.venv`, `.env`, `node_modules`, `.mcp.json`, etc. del clone principal. Sin esto `make test` falla con \"Venv no encontrado\".\n\n2. **Dependencia de Python nueva**: no corras `make install` en el worktree (el target se niega). Instalala en el clone principal, o borrá el link de `tuqui_core/.venv` y armate un venv propio en el worktree. El `.venv` compartido sirve para el resto, y el código que corre es el del worktree.\n\n3. **`web/package.json` modificado**: corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal.\n\nDespués:\n\n```bash\nmake test        # unit\nmake test-web    # frontend\nmake lint\n```\n\nOjo: si instalás la dependencia nueva en el clone principal, queda disponible para los demás worktrees. Si tu branch no se mergea, esa dependencia queda ahí. Un venv propio evita ese efecto.\n\nAdemás, antes de `npm ci`: como `node_modules` es un symlink al clone principal, confirmá que `npm ci` no escriba a través del link. Si el material no lo aclara, borrá el symlink de `web/node_modules` primero para no pisar el del clone principal.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4150,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 455,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4150,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 455,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4150,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4150
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

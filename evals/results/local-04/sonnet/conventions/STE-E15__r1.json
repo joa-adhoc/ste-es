@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Recorrido de `connect_odoo`\n\nEsto sale solo del diagrama de la spec 0093. No leí el código, así que el orden fino y los detalles de cada paso quedan **no verificados**.\n\n## Paso a paso\n\nEl endpoint es `POST /workspaces/{slug}/odoo` y exige auth de owner o admin. Llama a `workspaces.service.connect_odoo(slug, payload, current_user_id)`, que hace esto:\n\n1. **Autentica contra Odoo** con `_authenticate_odoo(url, db, login, api_key)`. El transporte JSON-RPC devuelve un `admin_uid`.\n2. **Verifica que sea admin de sistema.** `_verify_odoo_admin_group` consulta `res.users.has_group(uid, 'base.group_system')`. Si no lo es, levanta `ValueError`.\n3. **Detecta la versión** con `get_version(url)`, por ejemplo \"18\". Si falla la detección o la versión mayor es menor que `MIN_SUPPORTED`, levanta `ValueError`.\n4. **Decide la vinculación** con `_resolve_link_mode` (ver la sección siguiente).\n5. **Guarda las credenciales en el workspace** con un `UPDATE workspaces` de `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`.\n   - El workspace pasa a estar \"conectado\".\n   - El rol owner no se toca.\n   - Si otro workspace ya tiene el mismo `database.uuid`, responde 409. Lo impone el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n6. **Limpia los members si cambió la URL** (ver la sección de cambio de URL).\n7. **Vincula al member actual**, solo si el modo es `auto` o `manual`:\n   - Hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para ese `user_id`.\n   - Dispara en segundo plano `sync_user_api_key(...)` con `asyncio.create_task`.\n8. **Devuelve `WorkspaceConnectOdooResult`**, que extiende `WorkspaceRead` y suma:\n   - `members_invalidated`\n   - `warning`\n   - `link_status`\n   - `linked_odoo_user_id`\n\n## A qué usuario de Odoo vincula al que conecta\n\nLa vinculación es opcional, porque el owner es un rol administrativo de Tuqui y no necesita identidad en Odoo. Hay tres modos:\n\n| Modo | Cuándo | Qué hace |\n|---|---|---|\n| `auto` | Es el valor por defecto si `current_user.email == odoo_login` | Bindea `Member.odoo_user_id = admin_uid`, es decir, el usuario con cuyas credenciales se conectó |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` más `link_odoo_user_id` | Verifica que ese `res.users` exista y bindea el member a ese id |\n| `none` | Es el valor por defecto si los emails no coinciden | Deja el member sin `odoo_user_id` |\n\n## Qué pasa si cambia la URL\n\n- Si `url_changed`, se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. La razón es que esas identidades pueden apuntar a otra instancia.\n- La cantidad de members afectados vuelve en `members_invalidated`, que vale 0 si la URL no cambió.\n- `warning` trae el mensaje para mostrar en la UI.\n- La limpieza va antes de la vinculación del paso 7. Por eso, si el modo es `auto` o `manual`, el member que conecta queda re-vinculado y el resto tiene que volver a vincularse.\n\n## Preguntas abiertas\n\n- ¿El 409 por `database.uuid` ocurre antes o después del `UPDATE`? El diagrama lo muestra bajo el `UPDATE`, que parece ser donde salta la violación del índice. Habría que confirmarlo en el código.\n- ¿Se hace todo en una sola transacción? Si `UPDATE workspaces` ya se commiteó y falla algo posterior, no sé cómo queda. Tampoco sé qué pasa si falla `sync_user_api_key`, que corre sin esperar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10464,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1686,
+  "output_tokens_details": {
+   "thinking_tokens": 172
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10464,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1686,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10464,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10464
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

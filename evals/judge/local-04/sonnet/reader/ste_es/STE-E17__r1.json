@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El diagrama muestra que el guard corta con FATAL al llegar a 3, pero ¿qué ve exactamente el modelo en ese caso (el texto del error FATAL) y qué pasa después: se aborta el run entero o el modelo puede seguir con otra tool? Además, ¿el DoomLoopGuard.record() corre antes de armar el for_llm() también cuando la excepción es ToolError, y las 3 repeticiones son consecutivas o acumuladas hasta que haya un éxito?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando DoomLoopGuard corta con FATAL: ese texto se le devuelve al modelo como resultado de la tool y el loop sigue, o se aborta el run/chat y el usuario ve un error? Y si se le devuelve al modelo, ¿cuál es el mensaje exacto y qué hace el agente después?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "El diagrama muestra que el guard corta con FATAL al llegar a 3, pero ¿qué ve exactamente el modelo en ese caso (el texto del error FATAL) y qué pasa después: se aborta el run entero o el modelo puede seguir con otra tool? Además, ¿el DoomLoopGuard.record() corre antes de armar el for_llm() también cuando la excepción es ToolError, y las 3 repeticiones son consecutivas o acumuladas hasta que haya un éxito?",
+ "followup_answer": "**El texto exacto del FATAL no está en el material.** Solo dice que `_wrap_tool` \"devuelve FATAL\" cuando `record()` retorna `True`. Probablemente use el formato `[TOOL_ERROR class=FATAL]: ...`, pero el mensaje no figura. Para verlo, leé `_wrap_tool` en `agent.py`.\n\n**El run no se aborta, según el material.** El guard \"impide más calls idénticos\", o sea que bloquea esa combinación de tool, args y clase de error. El material no menciona que se corte el run. El modelo recibe el FATAL como resultado de la tool y puede seguir con otra tool o con otros args. Si querés confirmarlo, buscá en `agent.py` si algo levanta una excepción o corta el loop tras el FATAL.\n\n**Orden de `record()` y `for_llm()`: no está especificado.** El diagrama de mi respuesta anterior mostraba `record()` antes de `for_llm()` para ambos casos. Eso fue una suposición mía. El material solo dice que `_wrap_tool` captura `ToolError` o clasifica con `classify_unknown`, y que retorna `exc.for_llm()`. No dice si `record()` corre también para `ToolError`, ni en qué punto.\n\n**Las repeticiones son acumuladas, no consecutivas.** El contador es por clave (`tool|hash(args)|clase`), y solo un éxito limpia todos los contadores. Dos consecuencias:\n\n- Una llamada intermedia con otra clave, aunque falle, no reinicia la cuenta.\n- Si el modelo llama A (falla), B (falla), A (falla), A (falla), A llega a 3 sin ser consecutiva.\n- Cualquier éxito de cualquier tool pone todo en cero. Si falla A, tiene éxito B y falla A de nuevo, A vuelve a contar desde 1.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6363,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1050,
+  "output_tokens_details": {
+   "thinking_tokens": 400
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6363,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1050,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6363,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6363
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cc0919071f"
+ }
+}

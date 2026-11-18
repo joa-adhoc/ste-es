@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Depende de quién consume la descripción.** Si sólo la pinta la SPA, alcanza con el cliente y el backend sólo expone el mapa. Si además entra a un prompt, a un mail o sale por MCP, hay que resolver también en el backend. No sé cuál es tu caso: fijate si la descripción del conector llega a algún prompt o a la superficie MCP. Si llega, hacé los dos lados.\n\nAdemás, la migración `0201_platform_connectors_description_i18n.sql` figura como referencia en el material y por el nombre parece ser justo este campo. Antes de crear nada, revisá si ya existe y está aplicada. No lo verifiqué.\n\n## Pasos de punta a punta\n\n1. **Migración.** Agregá la columna y dejá la legacy como está:\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Si tenés que portar datos de una columna `description_en`, mirá `0206_features_i18n.sql`.\n\n2. **API.** Devolvé `description_i18n` entero, junto con `description`. No filtres por idioma en el serializer. Usá los helpers de [`tuqui_core/i18n.py`](../../tuqui_core/i18n.py), sin reimplementarlos:\n   - `normalize_i18n_keys` al escribir.\n   - `decode_i18n` al leer, porque asyncpg puede devolver el JSONB como `str` o como dict.\n\n3. **Front (siempre).** Mostrá la descripción con:\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas la cadena de fallback a mano.\n\n4. **Editor de admin.** Poné dos inputs, ES y EN. Al guardar:\n   - Mandá `description_i18n` sólo con las claves no vacías.\n   - Espejá la legacy con `es || en`.\n   - La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n5. **Backend (sólo si aplica).** Resolvé con la misma cadena `lang → en → legacy`. Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n\n6. **Caché.** Si resolviste en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resolvés sólo en el cliente, no hace falta.\n\nLa cadena de fallback es la misma en los dos lados: idioma exacto → `en` → columna legacy. Si resolvés en los dos lados con cadenas distintas, el mismo texto sale distinto en la SPA y en el prompt. Ése es el bug que el material marca para `agents`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10873,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1192,
+  "output_tokens_details": {
+   "thinking_tokens": 261
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10873,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1192,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10873,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10873
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

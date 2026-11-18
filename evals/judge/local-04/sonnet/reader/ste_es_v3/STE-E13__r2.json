@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Con suscripción viva, ¿el cron `_run_trial_expiry` manda igual los avisos de 7 días y del día de vencimiento, o los omite? Y sin exceso, ¿qué pasa con `account_status` el día que vence?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El cron `_run_trial_expiry` omite los avisos de la semana previa cuando el workspace ya tiene una suscripción viva, o salen igual? Y si no hay exceso el día que vence, ¿cambia algo en `account_status` o el workspace queda activo en plan free?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El cron `_run_trial_expiry` omite los avisos de la semana previa cuando el workspace ya tiene una suscripción viva, o salen igual? Y si no hay exceso al vencer, ¿qué pasa con `account_status` (queda activo)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Con suscripción viva, ¿el cron `_run_trial_expiry` manda igual los avisos de 7 días y del día de vencimiento, o los omite? Y sin exceso, ¿qué pasa con `account_status` el día que vence?",
+ "followup_answer": "Ninguna de las dos respuestas está en el material, y el directorio de trabajo está vacío. No tengo `scheduler/billing_cron.py`, así que no puedo confirmarlas.\n\n**¿Los avisos de 7 días y de vencimiento salen con suscripción viva?**\nEl material no lo dice.\n- Dice que, al vencer con suscripción viva, no se manda nada.\n- También dice que los hitos salen de `billing_trial_warning_days_list` (default `{7, 0}`).\n- No dice si `_run_trial_expiry` filtra las suscripciones vivas antes de enviar esos avisos.\n\nMi respuesta anterior afirmó que los avisos \"salen igual\" con suscripción. Eso no estaba respaldado, así que ignorala. Lo que sí vale: el mail del día de vencimiento no sale con suscripción viva.\n\n**¿Qué pasa con `account_status` el día que vence, sin exceso?**\nEl material tampoco lo dice.\n- Con suscripción viva solo se limpian los flags de trial. No menciona `account_status`.\n- Sin suscripción viva pasa a `plan='free'` y se evalúa el exceso. Con exceso, `restricted` con motivo `trial_expired_with_excess` es la lectura natural de la tabla.\n- Sin exceso, lo más probable es que quede en `active`, porque es el default. Es una inferencia, no un dato.\n\nPara cerrar ambas, pasame `scheduler/billing_cron.py` o corré esto en tu repo:\n```\ngrep -n \"trial_warning\\|subscription\\|account_status\" scheduler/billing_cron.py\n```",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6094,
+  "cache_read_input_tokens": 40437,
+  "output_tokens": 781,
+  "output_tokens_details": {
+   "thinking_tokens": 99
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6094,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 561,
+    "cache_read_input_tokens": 23148,
+    "cache_creation_input_tokens": 235,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 235
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7463eb6f40"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Qué tenés que poner en el archivo\n\nUna línea `-- destructive: true` cerca del inicio. Sin ella, el runner trata la migración como aditiva y la aplica desde el preview del PR a la base de staging. Esa base la comparte el servicio de staging, que sigue corriendo el código anterior, así que ese código se rompe para todos.\n\n## Qué pasa en cada etapa\n\n| Etapa | ¿Se aplica? | Por qué |\n|---|---|---|\n| **PR env de Railway** (`tuqui_core.db.migrate`) | No | El preview hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero la rama del deploy no es `staging` ni `main`. El runner la saltea **sin registrarla** en `_migrations`. Si hay marcadores de Railway sin rama estampada, falla cerrado y tampoco la aplica. |\n| **CI** (`scripts/apply_migrations.py`) | Sí | Las bases efímeras (el postgres de servicio del workflow, el container e2e y la base de pytest) activan el flag, porque nadie más las comparte. Así CI ejercita el drop. |\n| **`make migrate` local** | No | No activa el flag, porque apunta a la base de desarrollo local, que se comparte entre worktrees. |\n| **Deploy post-merge** a `staging` o `main` | Sí | Se cumplen las dos condiciones: flag en 1 y rama `staging` o `main`. Ahí se aplica y queda registrada. |\n\nComo el preview no la registra, el deploy real posterior al merge la encuentra pendiente y la aplica.\n\n## Lo que no está confirmado\n\n- El material no dice si el deploy de `main` (prod) tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Sin ese flag, la migración se saltearía también en prod. Conviene verificarlo en las variables del servicio de prod antes de mergear.\n- Tampoco dice cómo aplicar la migración a mano en tu base local. Si necesitás probarla ahí, habría que activar el flag de otra forma. No lo sé con certeza.\n\nSi el PR también tiene migraciones aditivas, esas sí se aplican a la base de staging desde el preview. Eso tiene consecuencias al mergear y al renombrar archivos, y están en `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10187,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1503,
+  "output_tokens_details": {
+   "thinking_tokens": 655
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10187,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1503,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10187,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10187
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

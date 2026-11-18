@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La DB borra la memoria más vieja por `created_at` en la misma transacción en que se agrega la 51ª (el tope es 50 por scope). El borrado es silencioso para el usuario, y el modelo se entera por un mensaje en la respuesta del tool.",
+  "Cada turno entran al prompt los headers (no el contenido completo) de las memorias, en dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`, inyectadas por `_load_chat_setup` después del bloque `CURRENT USER` y antes del bloque de proyecto. El header es title + summary, o los primeros 250 caracteres del body si no hay summary (con `... [read]` al final si el body supera 250 caracteres y no hay summary). El resto del contenido se lee bajo demanda: el modelo llama `manage_memory(action='read', id=...)` para traer la memoria completa.",
+  "Si los headers suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres ≈ 3K tokens), entra el guard de presupuesto: puntúa cada header contra el mensaje actual del usuario con rapidfuzz y se queda con los top-N. Las memorias que quedan afuera no se borran, solo salen del prompt de ese turno."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "c154de07f6",
+  "control": "2fefeeffdf"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la base de tests local es compartida entre worktrees y la rama del compañero dejó un esquema sin las columnas que tu código todavía lee. Una de las ramas trae una migración destructiva (por ejemplo un DROP COLUMN) que el conftest aplicó sobre la DB compartida, y quedó con la unión de las migraciones de ambas ramas. Eso produce el UndefinedColumnError.",
+  "No. El lock (flock) solo evita corridas simultáneas; no aísla el esquema. Por eso la DB quedó con la unión de las migraciones de ambas ramas. El texto habla de flock y no dice nada específico sobre un 'lock de pytest'.",
+  "Inmediato: reconstruir la base desde cero con las migraciones de tu rama usando `make migrate-reset` (unos 3 segundos, solo toca bases locales; no usar `npx supabase db reset`). Para que no vuelva a pasar: darle a tu worktree su propia base copiando `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, apuntando la URL de la base a una propia (está gitignoreado) y corriendo `make migrate-reset`. El compañero debería hacer lo mismo, y conviene avisarle."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e6c754750e",
+  "control": "d71584ce60"
+ }
+}

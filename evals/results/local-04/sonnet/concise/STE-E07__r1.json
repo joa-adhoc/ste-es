@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Dos errores distintos:\n\n1. **`pytest` en la raíz:** la config (`asyncio_mode`, markers, `testpaths`) vive en `tuqui_core/pyproject.toml`. Desde la raíz pytest no la ve, pierde el modo asyncio y colecta `evals/tests`, así que las fallas no son del código.\n2. **`make test ARGS=-k a or b`:** sin comillas el shell parte la expresión en palabras y pytest toma `or` como un path.\n\n**Forma correcta, siempre desde la raíz:**\n\n```bash\nmake test                                   # toda la suite unit\nmake test ARGS='-k \"a or b\"'                # filtro con expresión\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\n```\n\nLas comillas externas protegen el `ARGS` para `make`, y las internas (`\"a or b\"`) mantienen la expresión como un solo argumento para pytest.\n\nSi preferís pytest crudo, hacé `cd tuqui_core` primero. Si algo lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4248,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 398,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4248,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 398,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4248,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4248
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

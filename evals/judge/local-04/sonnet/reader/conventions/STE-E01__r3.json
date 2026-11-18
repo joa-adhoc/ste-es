@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Me falta ver el test de aislamiento: ¿me pasás un ejemplo concreto de cómo se escribe en tuqui_core/tests/test_rls.py para una tabla nueva (setup de dos workspaces, qué se asserta)? Y confirmame si el nombre del archivo lo genera `supabase migration new` con timestamp o es NNNN_ a mano, porque no es lo mismo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La respuesta no verifica el repo: ¿podés confirmarme cómo se nombran las policies y cómo es el test de aislamiento en una tabla existente (por ejemplo, un link o pegado de test_rls.py y una migración vecina), y si el nombre de la migración sigue NNNN_ secuencial o timestamp de supabase, para no tener que adivinarlo y que el review no me lo rebote?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Me falta ver el test de aislamiento: ¿me pasás un ejemplo concreto de cómo se escribe en tuqui_core/tests/test_rls.py para una tabla nueva (setup de dos workspaces, qué se asserta)? Y confirmame si el nombre del archivo lo genera `supabase migration new` con timestamp o es NNNN_ a mano, porque no es lo mismo.",
+ "followup_answer": "## Nombre del archivo\n\n**No verificado.** El material dice `NNNN_descripcion.sql` y nombra `supabase migration new <nombre>` en el mismo paso, y eso no cierra. Mi respuesta anterior repitió esa frase y no debería haberla dado por cierta. Por lo que sé del CLI de Supabase, ese comando genera un nombre con timestamp (`YYYYMMDDHHMMSS_nombre.sql`), no un `NNNN_` secuencial. No tengo el repo acá, así que no sé cuál de las dos cosas rige en tuqui.\n\nSe resuelve en dos minutos:\n\n- Corré `ls supabase/migrations/` y mirá cómo se llaman las últimas.\n- Si son `NNNN_`, renombrá a mano lo que genere el CLI. Hacelo antes del primer push, porque el tracking es por nombre y renombrar después re-aplica la migración en staging.\n- Si son timestamp, dejá lo que genera el CLI.\n- Si no coinciden las dos cosas, preguntalo en el PR o al equipo. No inventes un formato mixto: el orden de aplicación depende del nombre.\n\n## Test de aislamiento\n\n**No vi `test_rls.py`.** Lo que sigue es un esqueleto mío. Los fixtures (`admin_conn`, `app_conn`) y el helper `set_workspace` son supuestos. Antes de usarlo, copiá la forma de un test existente del mismo archivo.\n\n```python\nimport uuid\nimport psycopg\nimport pytest\n\nWS_A = uuid.uuid4()\nWS_B = uuid.uuid4()\n\n\ndef set_workspace(conn, ws_id):\n    # is_local=true: el setting vive solo dentro de la transacción\n    conn.execute(\n        \"SELECT set_config('app.current_workspace_id', %s, true)\", (str(ws_id),)\n    )\n\n\n@pytest.fixture\ndef seeded(admin_conn):\n    # Se siembra como admin y se limpia al terminar\n    for ws in (WS_A, WS_B):\n        admin_conn.execute(\n            \"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (ws,)\n        )\n    yield\n    admin_conn.execute(\n        \"DELETE FROM mi_tabla WHERE workspace_id IN (%s, %s)\", (WS_A, WS_B)\n    )\n\n\ndef test_mi_tabla_solo_ve_su_workspace(app_conn, seeded):\n    set_workspace(app_conn, WS_A)\n    rows = app_conn.execute(\"SELECT workspace_id FROM mi_tabla\").fetchall()\n    assert {r[0] for r in rows} == {WS_A}\n\n\ndef test_mi_tabla_no_inserta_en_otro_workspace(app_conn, seeded):\n    set_workspace(app_conn, WS_A)\n    with pytest.raises(psycopg.errors.InsufficientPrivilege):\n        app_conn.execute(\n            \"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (WS_B,)\n        )\n\n\ndef test_mi_tabla_no_modifica_ni_borra_otro_workspace(app_conn, seeded):\n    set_workspace(app_conn, WS_A)\n    cur = app_conn.execute(\n        \"DELETE FROM mi_tabla WHERE workspace_id = %s\", (WS_B,)\n    )\n    assert cur.rowcount == 0\n```\n\nQué se asserta:\n\n- **Lectura:** con el workspace A activo, solo aparecen filas de A.\n- **Escritura:** insertar con el `workspace_id` de B falla. Con una policy sin `FOR` ni `WITH CHECK`, el `USING` también actúa como chequeo de escritura.\n- **UPDATE/DELETE:** sobre filas de B afectan 0 filas, sin error.\n\nTrampas a tener en cuenta:\n\n- **El rol de la conexión.** RLS no se aplica al superusuario ni al dueño de la tabla, salvo que uses `FORCE ROW LEVEL SECURITY`. Si `app_conn` conecta con un rol privilegiado, el test pasa en verde sin probar nada. Confirmá qué rol usa el fixture existente.\n- **Setting sin definir.** `current_setting('app.current_workspace_id')` sin `missing_ok` tira error si no está seteado. Eso no es un filtro vacío. Si el archivo ya cubre ese caso para otras tablas, copialo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11760,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 2323,
+  "output_tokens_details": {
+   "thinking_tokens": 773
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11760,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2323,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11760,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11760
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7cb0c0e044"
+ }
+}

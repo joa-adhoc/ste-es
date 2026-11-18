@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los reportes de Odoo fallaron por timeout durante unos 30 minutos, y lo más probable es que la causa sea que el worker se quedó sin memoria. Es una correlación temporal, no una causa demostrada.\n\n**Lo que se vio**\n- En `pldistribucion`, la herramienta `odoo_report` registró 37 errores \"timeout after 30s\" entre las 13:10 y las 13:40 UTC del 18-nov. No hubo errores antes ni después.\n- La memoria del worker subió de 0,9 GB a 2 GB entre las 13:05 y las 13:41.\n- A las 13:41:58 el worker fue matado por OOM (límite de 2 GB) y a las 13:42:10 se reinició.\n\nLos errores empiezan poco después de que la memoria empieza a subir y terminan con el reinicio, lo que encaja con un worker degradado hasta que murió.\n\n**Lo que no se sabe**\n- Qué proceso o request hizo subir la memoria: los logs no tienen detalle por request. Por eso no puedo decir si fue un reporte concreto, un volumen alto o una fuga.\n- Si el cliente volvió a pedir los reportes después de las 13:42. Que no haya errores después podría significar que funcionan, o simplemente que nadie los pidió.\n\n**Siguientes pasos posibles**\n- Revisar en `tool_usage_log` si hubo llamadas a `odoo_report` con éxito después de las 13:42.\n- Mirar qué reportes se pidieron entre las 13:00 y las 13:40, por ejemplo parámetros o rangos de fechas grandes.\n- Si el incidente se repite, activar logging por request o memoria por proceso para identificar al culpable.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3791,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 589,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3791,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 589,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3791,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3791
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

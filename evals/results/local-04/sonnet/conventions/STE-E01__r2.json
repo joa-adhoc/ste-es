@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Pasos para una tabla nueva con `workspace_id`\n\n1. **Crear la migración** con `supabase migration new <nombre>`. Queda en `supabase/migrations/` como `NNNN_descripcion.sql`.\n2. **Escribirla idempotente.** Tiene que poder correr varias veces sin error.\n3. **Agregar RLS**, porque la tabla lleva `workspace_id`.\n4. **Escribir el test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n5. **Crear el modelo Pydantic** correspondiente.\n\n## Qué tiene que tener la migración\n\n- `CREATE TABLE IF NOT EXISTS`, con la columna `workspace_id`.\n- `CREATE INDEX IF NOT EXISTS` para cada índice.\n- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`, que ya es idempotente.\n- La policy envuelta en un bloque que chequea si existe:\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  workspace_id uuid NOT NULL,\n  -- ...\n);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nEl nombre de la policy y las columnas de arriba son ejemplos míos. La condición `USING` sí es la que pide la regla.\n\n## Puntos que suelen hacer rebotar el PR\n\n- **Idempotencia de verdad.** El preview del PR corre las migraciones contra la base de staging, que es la misma base y no una copia. Tu migración se aplica ahí al abrir el PR.\n- **No renombrar el archivo.** El tracking es por nombre de archivo, así que si lo renombrás se vuelve a aplicar. Por eso tiene que ser idempotente. Las consecuencias completas están en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging), que no tengo a mano.\n- **No filtrar solo en la aplicación.** Filtrar por `workspace_id` únicamente en el application layer no alcanza. RLS es la defensa principal.\n- **Sin test, rebota.** El test en `test_rls.py` es obligatorio.\n- **Sin `workspace_id`.** Si la tabla no lo lleva, es una excepción y hay que discutirlo antes de abrir el PR.\n\nNo verifiqué nada contra el repo, porque no está en este directorio. Todo sale del material que pegaste.\n\nSi querés, te armo el esqueleto de la migración y del test cuando me pases el modelo de datos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10157,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1345,
+  "output_tokens_details": {
+   "thinking_tokens": 231
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10157,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1345,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10157,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10157
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

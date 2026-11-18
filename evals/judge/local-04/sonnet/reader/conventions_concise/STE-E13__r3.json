@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Falta lo central: ¿qué le pasa al workspace sin exceso el día que vence? Confirmame en el código si queda `active` en `plan='free'` o si pasa algo más. Además, ¿qué es 'exceso' exactamente (qué se cuenta y contra qué límite del plan free)? Y para el caso con suscripción: ¿seguro que no sale ningún aviso, o solo no sale el de vencimiento de prueba?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si el workspace vence la semana que viene y sale el aviso de 7 días antes, ¿ese mail ya salió o sale hoy? Y cuando vence sin exceso, ¿en qué estado queda el workspace (account_status)? La respuesta dice 'no verificado, lo esperable es active'. ¿Podés confirmarlo en el código?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice qué le pasa al workspace al vencer cuando no hay exceso: ¿queda en `active` con plan `free`, o se restringe igual? Además, ¿qué es 'exceso' concretamente (qué se mide y contra qué límite del plan free)? Y para el caso con suscripción, ¿confirmás en el código que no sale ningún aviso y que no se restringe, en vez de que sea solo lo esperable?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Falta lo central: ¿qué le pasa al workspace sin exceso el día que vence? Confirmame en el código si queda `active` en `plan='free'` o si pasa algo más. Además, ¿qué es 'exceso' exactamente (qué se cuenta y contra qué límite del plan free)? Y para el caso con suscripción: ¿seguro que no sale ningún aviso, o solo no sale el de vencimiento de prueba?",
+ "followup_answer": "No lo puedo confirmar en el código: el directorio de trabajo está vacío y no hay ningún repo con `billing/` ni `scheduler/billing_cron.py`. Solo tengo el material que pegaste, así que las tres respuestas quedan como \"no verificado\" donde el material calla.\n\n**1. Sin exceso, el día que vence: no verificado.**\n- El material dice solo que, sin suscripción viva, pasa a `plan='free'`, \"se evalúa exceso\" y sale el mail.\n- `restricted` figura en la tabla con `trial_expired_with_excess` como motivo, y eso apunta a que sin exceso no se restringe. Pero el material nunca dice que quede `active`, ni que se escriba el estado en ese caso.\n- Para cerrarlo, hay que leer `_run_trial_expiry` en `scheduler/billing_cron.py`: si la rama sin exceso toca `account_status` o lo deja como está.\n- Además, el mail de prueba vencida sale igual en ambos casos. El texto sale de `billing/plan_summary.py`, así que lo que dice depende del estado derivado.\n\n**2. Qué es \"exceso\": no verificado.**\n- El material no lo define. Lo único cercano es el motivo `free_member_limit_exceeded`, que sugiere un tope de miembros en free. De ahí no sale qué se cuenta (miembros, asientos con `billing_tier <> 'none'`, otra cosa) ni contra qué límite.\n- Hay que leer la función que evalúa el exceso en `billing/` y el límite del plan free en la configuración de planes.\n\n**3. Con suscripción viva: corrijo mi respuesta anterior.**\n- El material solo dice que \"no se manda nada\" en el vencimiento: se limpian los flags de trial y no sale mail.\n- No dice que no salga ningún aviso. Los avisos previos de 7 días y del día 0 dependen de `_run_trial_expiry` y de la marca `trial_warning_for` + `trial_warning_days`. Si esos hitos se saltean con suscripción viva, el material no lo indica.\n- Un workspace con suscripción viva igual puede recibir los avisos de pago fallido y de gracia vencida (a owners y admins), y los recibos (a owners). Esos son circuitos distintos al de la prueba.\n\nSi me pasás la ruta del repo, o lo clonás en el directorio de trabajo, lo verifico en el código.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12163,
+  "cache_read_input_tokens": 46443,
+  "output_tokens": 1044,
+  "output_tokens_details": {
+   "thinking_tokens": 62
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12163,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 834,
+    "cache_read_input_tokens": 29145,
+    "cache_creation_input_tokens": 316,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 316
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "eaba64bb14"
+ }
+}

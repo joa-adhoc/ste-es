@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se nombra el archivo de migración? El ejemplo muestra NNNN_descripcion.sql pero no dice cómo se asigna el número ni si `supabase migration new` ya lo genera. Además, ¿cómo es el test de aislamiento en test_rls.py (hay un fixture o patrón existente que pueda copiar) y dónde va el modelo Pydantic?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el formato exacto del nombre del archivo de migración (NNNN secuencial o timestamp) y cómo sé cuál es el próximo número? Además, ¿el modelo Pydantic va en un módulo/ruta específica y hay que registrarlo en algún lado? Y si la policy tiene que cubrir también WITH CHECK para INSERT/UPDATE, o alcanza con el USING del ejemplo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo se nombra el archivo de migración? El ejemplo muestra NNNN_descripcion.sql pero no dice cómo se asigna el número ni si `supabase migration new` ya lo genera. Además, ¿cómo es el test de aislamiento en test_rls.py (hay un fixture o patrón existente que pueda copiar) y dónde va el modelo Pydantic?",
+ "followup_answer": "El directorio está vacío, así que no puedo ver el repo de tuqui. Lo que sigue sale solo del material que me pasaste.\n\n**Nombre del archivo.** El material indica `supabase migration new <nombre>` para crear la migración. No dice cómo se asigna el número. Lo único que sabemos es que el archivo queda como `NNNN_descripcion.sql` en `supabase/migrations/`.\n\nPara confirmarlo, corré esto y mirá el nombre que genera:\n\n```bash\nsupabase migration new agregar_mi_tabla\nls supabase/migrations | tail -5\n```\n\nSi el número que genera no sigue el patrón de los archivos existentes, preguntale al equipo antes de renombrarlo a mano. Renombrar después de abrir el PR vuelve a aplicar la migración en staging, porque el tracking es por nombre de archivo.\n\n**Test en `test_rls.py`.** El material solo dice que el test va en `tuqui_core/tests/test_rls.py` y que tiene que probar el aislamiento entre workspaces. No menciona fixtures ni patrones existentes. Abrí el archivo y copiá el test de otra tabla con `workspace_id`. Ese es el patrón que el reviewer espera ver.\n\n**Modelo Pydantic.** El material dice que hay que crearlo, pero no indica el módulo ni la carpeta. Fijate dónde viven los modelos de las otras tablas y poné el tuyo al lado. Si no queda claro, preguntalo en el PR o al equipo.\n\nSi pegás acá `test_rls.py` o la carpeta de modelos, te armo el test y el modelo siguiendo ese patrón.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6460,
+  "cache_read_input_tokens": 40691,
+  "output_tokens": 852,
+  "output_tokens_details": {
+   "thinking_tokens": 113
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6460,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 572,
+    "cache_read_input_tokens": 23402,
+    "cache_creation_input_tokens": 347,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 347
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a8e1030885"
+ }
+}

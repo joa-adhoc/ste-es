@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La policy `scheduled_runs_ws` de la migración 0398 (borrador) quedó con `USING (true)`, y la 0412 no la reemplazó porque su `IF NOT EXISTS` la saltó. Por eso el workspace B ve las filas del A.\n\n```\n0398_scheduled_runs_draft.sql      0412_scheduled_runs.sql\nCREATE POLICY ... USING (true)     IF NOT EXISTS (policy) ──► ya existe, skip\n        │                                                          │\n        ▼                                                          ▼\npolicy abierta queda activa        la policy correcta nunca se crea\n```\n\nEl warning `policy \"scheduled_runs_ws\" already exists, skipped` del log de setup lo confirma.\n\n**Qué hacer:** no edites la 0398 ni la 0412. Según AGENTS.md, una migración aplicada no se vuelve a correr. Creá una migración nueva que reemplace la policy:\n\n```sql\n-- 0413_fix_scheduled_runs_rls.sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nDespués corré `pytest tuqui_core/tests/test_rls.py -q` y verificá que pasen los 7 tests.\n\nMientras no se aplique, la tabla está expuesta entre workspaces en cualquier entorno donde corrió la 0398. Revisá también que `scheduled_runs` tenga RLS habilitado (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`), porque el material no lo muestra.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5007,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 597,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5007,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 597,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5007,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5007
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

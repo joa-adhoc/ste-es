@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Gana el orden del evaluator: primero el piso `deny` del workspace, después la preferencia del miembro, después la grilla del workspace y por último el default. En tu primer caso, el `allow` del miembro le gana al `ask` del admin.\n\n```\n┌──────────────────────────────────────────────┐\n│ 1. workspace_write_models                    │\n│    ¿el modelo permite el tool?               │\n└──────────────────────────────────────────────┘\n        │ no ──► corta (el tool no llega al gate)\n        ▼ sí\n┌──────────────────────────────────────────────┐\n│ 2. workspace_tool_approvals == deny          │\n└──────────────────────────────────────────────┘\n        │ sí ──► DENY (piso, nada lo levanta)\n        ▼ no\n┌──────────────────────────────────────────────┐\n│ 3. user_tool_approvals (user, workspace,     │\n│    tool). Se saltea en exposure, webhook y   │\n│    scheduled.                                │\n└──────────────────────────────────────────────┘\n        │ hay fila ──► gana ese action\n        ▼ no hay fila\n┌──────────────────────────────────────────────┐\n│ 4. workspace_tool_approvals: allow / ask     │\n└──────────────────────────────────────────────┘\n        │ sin fila\n        ▼\n┌──────────────────────────────────────────────┐\n│ 5. Default: recurso en approval ──► ASK      │\n│             sin approval ──► ALLOW           │\n└──────────────────────────────────────────────┘\n        ▼\n   tool.execute() ──► tool_usage_log (permission_action)\n```\n\n**Admin en `ask`, miembro en `allow`:** el paso 3 encuentra la fila del miembro y gana `allow`. El admin solo puede imponer su política con `deny`. Si quiere que nadie la levante, tiene que poner `deny`.\n\n**Agent por webhook:** el paso 3 se saltea entero. El turno corre con la identidad prestada de un miembro (`chat/client_facing_core.py`), y esa preferencia personal no cuenta como política del canal (`ChannelProfile.personal_identity_applies`). Decide la grilla del workspace: `deny` bloquea, `allow` ejecuta y, si no hay fila, aplica el default.\n\nEl material no dice qué pasa cuando el webhook cae en `ask`, porque ahí no hay un usuario a quien preguntar. Revisalo en `permissions.py` o en el manejo de canales antes de asumir un comportamiento.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5458,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1137,
+  "output_tokens_details": {
+   "thinking_tokens": 271
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5458,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1137,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5458,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5458
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

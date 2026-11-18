@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Sin `make install`, ¿cómo la instalo en el venv del clone principal, o cómo armo un venv propio en el worktree después de borrar el link del `.venv`? Y con `web/node_modules` linkeado al clone principal, ¿`npm ci` en el worktree no borra o pisa los node_modules del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dices que `web/node_modules` está linkeado al clone principal, y después que corra `npm ci` en el worktree. ¿`npm ci` no borra y reescribe ese `node_modules` y me rompe el del clone principal? ¿Tengo que quitar el link antes, y desde qué directorio lo corro, la raíz o `web/`? Y para la dependencia de Python, si `make install` se niega en el worktree, ¿qué comandos exactos uso para armar un venv propio?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para armar un venv propio en el worktree, con la dependencia nueva y el editable install, ya que `make install` está bloqueado? Y otra duda: si `node_modules` quedó linkeado al clone principal, ¿`npm ci` en el worktree no lo borra o pisa? ¿Hay que quitar el link antes?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Sin `make install`, ¿cómo la instalo en el venv del clone principal, o cómo armo un venv propio en el worktree después de borrar el link del `.venv`? Y con `web/node_modules` linkeado al clone principal, ¿`npm ci` en el worktree no borra o pisa los node_modules del clone principal?",
+ "followup_answer": "Los comandos exactos de Python no están en el material, así que los de abajo son genéricos. Antes de correrlos, mirá qué hace el target `install` del `Makefile` (`grep -A8 '^install' Makefile`) y copiá esa instalación.\n\n**`npm ci`: sí, tené cuidado.** Borra `node_modules` antes de reinstalar. El material no dice qué pasa con un symlink, y no lo verifiqué. Para no arriesgar el clone principal, sacá primero el link, sin barra final:\n\n```bash\nrm web/node_modules          # borra solo el symlink, no el destino\ncd web && npm ci             # instala un node_modules propio en el worktree\n```\n\nCorré `npm ci` en `web/`, que es donde está el `package.json`. Mi respuesta anterior no lo aclaraba.\n\n**Python, opción A: instalar en el venv del clone principal.** Cambia el entorno de todos los worktrees.\n\n```bash\n/ruta/al/clone-principal/tuqui_core/.venv/bin/pip install <paquete>\n```\n\n**Python, opción B: venv propio en el worktree.** Aísla tu branch.\n\n```bash\nrm tuqui_core/.venv          # borra solo el symlink\npython3 -m venv tuqui_core/.venv\ntuqui_core/.venv/bin/pip install -e tuqui_core   # ajustalo a lo que haga `make install`\n```\n\nEn B, `make install` ya no se niega, porque el `.venv` deja de ser un link. Podés usarlo en vez del `pip install` manual.\n\nSi tu branch suma la dependencia en `pyproject.toml` o `requirements`, la opción B la instala desde ahí, sin elegir el paquete a mano.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5857,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1155,
+  "output_tokens_details": {
+   "thinking_tokens": 565
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5857,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1155,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5857,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5857
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6fcdc4f2cc"
+ }
+}

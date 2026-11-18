@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los reportes de Odoo fallaron por un reinicio del worker por falta de memoria (OOM), pero la causa de fondo no está identificada.\n\n**Lo establecido:**\n- El 18-nov entre 13:10 y 13:40 UTC hubo 37 errores \"timeout after 30s\" en `odoo_report` (workspace pldistribucion); no hubo errores antes ni después.\n- La memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41.\n- A las 13:41:58 el contenedor fue matado por OOM (límite 2 GB) y a las 13:42:10 el worker se reinició.\n\nLa correlación temporal es fuerte: la memoria creció durante la ventana de errores y los errores cesaron tras el reinicio. Es la hipótesis más plausible (el worker, saturado, no respondía en 30 s), pero no la probé directamente.\n\n**Lo que no sé:**\n- Qué proceso o request hizo subir la memoria: los logs no tienen detalle por request.\n- Si el cliente volvió a pedir reportes después de las 13:42. \"0 errores después\" puede significar que se recuperó, o simplemente que nadie pidió nada.\n\n**Siguientes pasos sugeridos:**\n1. Consultar `tool_usage_log` por llamadas a `odoo_report` después de las 13:42 para confirmar que funcionan.\n2. Revisar qué reportes se pidieron entre 13:05 y 13:41 (parámetros, rangos de fechas, tamaño) para buscar el candidato que consumió la memoria.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3793,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 543,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3793,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 543,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3793,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3793
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque todos los worktrees comparten la misma base de datos local (y el mismo Redis). Las migraciones de la rama del compañero se aplicaron sobre la base compartida; si alguna es destructiva (borra o renombra una columna), tu código, que todavía lee esa columna, falla con UndefinedColumnError en tests que no tocaste.",
+  "No. El flock que toman los targets (test, test-rls, etc.) solo evita que dos corridas se pisen al mismo tiempo, pero no aísla el esquema: si dos worktrees tienen migraciones distintas, la base queda con la unión de las dos. El texto no menciona un 'lock de pytest' en particular, solo ese flock y la variable TEST_LOCK.",
+  "Ahora: correr `make migrate-reset` desde tu worktree, que arma una base desde cero en unos 3 segundos con las migraciones de tu rama (no uses `npx supabase db reset`; avisale a tu compañero porque le vas a pisar la base compartida). Para que no se repita: copiar `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, apuntar ahí la URL de la base a una propia con nombre distinto por worktree, correr `make migrate-reset` para crearla y pedirle lo mismo a tu compañero. Para correr en paralelo además se necesita un REDIS_URL con índice propio (distinto de 15 y 0) y un TEST_LOCK distinto. El nombre de la variable de la base no lo dice; hay que mirar el archivo de ejemplo."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "3cf9666c0b",
+  "control": "d71584ce60"
+ }
+}

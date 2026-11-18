@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente con `npm ci` sobre `web/node_modules` cuando es un symlink al clone principal: ¿reemplaza el link o escribe a través de él? Y para la dependencia de Python, ¿hay un comando concreto para armar un venv propio en el worktree sin que `make install` se niegue?",
+   "followup_note": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para el cambio en web/package.json: ¿`npm ci` reemplaza el symlink de node_modules o escribe a través de él hasta el clone principal? Y ¿hay un comando concreto para instalar la dependencia de Python en el venv propio del worktree, sin tocar el del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente con `npm ci` cuando `web/node_modules` es un symlink al clone principal: reemplaza el link o escribe a través de él? Y para la dependencia de Python, ¿cuál es el comando concreto para instalarla sin romper el venv del clone principal (por ejemplo, armar un venv propio en el worktree)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa exactamente con `npm ci` sobre `web/node_modules` cuando es un symlink al clone principal: ¿reemplaza el link o escribe a través de él? Y para la dependencia de Python, ¿hay un comando concreto para armar un venv propio en el worktree sin que `make install` se niegue?",
+ "followup_answer": "No pude probarlo: el entorno no me dejó correr la prueba, así que **no está verificado**. Esto es lo que sé y lo que no.\n\n**`npm ci` sobre `web/node_modules` symlink**\n- La doc de npm dice que `npm ci` borra el `node_modules` existente antes de instalar.\n- No confirmé si borra el link o vacía el directorio al que apunta. Lo normal es que borre solo el link, pero no lo comprobé.\n- Si vacía el destino, pisaría los `node_modules` del clone principal.\n- Para no depender de eso, sacá el link vos antes. Un `rm` sobre un symlink borra solo el link:\n\n```bash\ncd web\nls -ld node_modules      # confirmá que es symlink (lrwxrwxrwx ... -> /ruta/al/clone/web/node_modules)\nrm node_modules          # sin barra final y sin -r: borra solo el link\nnpm ci\n```\n\n- Para verificarlo antes de tocar nada, hacé un `cp -a` del `node_modules` real a otra ruta. También podés probar `npm ci` en un directorio descartable con un symlink y un archivo marcador adentro.\n\n**Venv propio sin que `make install` se niegue**\n- El material no trae un comando para esto, así que no te doy uno inventado.\n- Lo que sí dice: borrá el link de `tuqui_core/.venv` y armate un venv propio. El `make install` se niega justamente porque ve el link.\n- Mirá qué hace el target `install` del `Makefile` y repetí esos pasos a mano, apuntando al venv nuevo. Con `uv`, sería algo así, **con la forma de instalar adivinada**:\n\n```bash\nrm tuqui_core/.venv                      # solo el link\npython -m venv tuqui_core/.venv\ntuqui_core/.venv/bin/pip install -e <lo que instale el Makefile>\n```\n\n- Si no querés un venv por worktree, instalá la dependencia en el clone principal, como indica el material. Esa instalación afecta a todos los worktrees que comparten el venv.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13055,
+  "cache_read_input_tokens": 75716,
+  "output_tokens": 1993,
+  "output_tokens_details": {
+   "thinking_tokens": 517
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13055,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 738,
+    "cache_read_input_tokens": 29662,
+    "cache_creation_input_tokens": 682,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 682
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "11a20f7058"
+ }
+}

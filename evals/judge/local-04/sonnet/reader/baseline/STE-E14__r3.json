@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota su presupuesto de tiempo o de iteraciones en una hipótesis (se descarta o se sintetiza con hallazgos parciales), y qué ocurre si el Planner o el Synthesizer fallan por error o devuelven JSON inválido? ¿Esos casos también terminan sin mostrar nada?",
+   "first_sentence_note": "La primera oración solo dice que hay un paso previo y tres etapas con upsert de 0 a 2 teasers; da un panorama pero no responde del todo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Planner, el Synthesizer o el Investigator fallan por error, JSON inválido o timeout/tope de iteraciones: se descarta esa hipótesis, se sintetiza con hallazgos parciales o se aborta el run sin mostrar nada? Y, ¿quién aplica el tope de 2 teasers?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el Investigator cuando una hipótesis agota su presupuesto de tiempo o de iteraciones (se descarta o se sintetiza con hallazgos parciales)? ¿Y qué pasa si el Planner o el Synthesizer fallan por error o devuelven JSON inválido: el run termina sin insights, se reintenta o se guarda algo? Esos son casos de 'termina sin mostrar nada' que la respuesta dejó abiertos."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando el Investigator agota su presupuesto de tiempo o de iteraciones en una hipótesis (se descarta o se sintetiza con hallazgos parciales), y qué ocurre si el Planner o el Synthesizer fallan por error o devuelven JSON inválido? ¿Esos casos también terminan sin mostrar nada?",
+ "followup_answer": "No puedo responder esto con certeza. El directorio de trabajo está vacío y no tengo `investigator.py`, `planner.py` ni `synthesizer.py`. El material que me pasaron tampoco describe ninguno de estos casos. No voy a inventar un comportamiento.\n\n## Lo que sí se puede decir\n\n**Resultado vacío de un Planner sano.** Si `hypotheses` viene vacío, es un silencio válido y no se genera ningún teaser. Eso sí está documentado.\n\n**Cuando el judge falla por infraestructura.** El teaser pasa. Esto tampoco es un caso de \"nada que mostrar\".\n\n## Lo que el material no define\n\n| Caso | Qué falta saber |\n|---|---|\n| El Investigator agota `max_iterations` o `max_tool_calls` | Si devuelve hallazgos parciales o los marca como incompletos, o si descarta la hipótesis. |\n| El Investigator agota el presupuesto de tiempo `(watchdog_sec - 30) / n` | Si se cancela la tarea y se descarta, o se rescata lo que haya. |\n| Falla o JSON inválido del Planner | Si hay reintento, si se trata como silencio (`hypotheses=[]`) o si se propaga la excepción. |\n| Falla o JSON inválido del Synthesizer | Lo mismo: reintento, `teasers=[]` con un `debug_note`, o excepción. |\n\n## Sobre si terminan sin mostrar nada\n\nSi el pipeline no mostrara nada ante un fallo, sería por una de dos vías:\n\n- **Degradación silenciosa:** se captura el error y se devuelve vacío. El usuario ve lo mismo que en un silencio válido.\n- **Excepción propagada:** falla el job y, según cómo se invoque, no se hace el upsert y no se muestra nada.\n\nNo sé cuál de las dos aplica. Hay una pista débil. El `debug_note=\"synth_all_rejected: ...\"` sugiere que el diseño distingue las causas del vacío, pero no confirma que lo haga con los errores.\n\n## Dónde mirarlo\n\n- En `investigator.py`: el manejo de `asyncio.TimeoutError` o `CancelledError` alrededor de cada hipótesis, y qué pasa cuando Pydantic AI llega a `UsageLimitExceeded` (o su equivalente). Importa si el `gather` usa `return_exceptions=True` y si los resultados fallidos se filtran.\n- En `planner.py` y `synthesizer.py`: los `try/except` alrededor de la llamada al LLM y del parseo a `PlannerOutput` o `SynthesizerOutput`, y si hay reintentos.\n- En el orquestador del pipeline: qué hace con una excepción y si siempre se llega al upsert.\n\nSi me pasás esos archivos, o los ubicás en este directorio, te lo respondo con el comportamiento real.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6539,
+  "cache_read_input_tokens": 40783,
+  "output_tokens": 1250,
+  "output_tokens_details": {
+   "thinking_tokens": 103
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6539,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1001,
+    "cache_read_input_tokens": 23503,
+    "cache_creation_input_tokens": 316,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 316
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2379e9b5e3"
+ }
+}

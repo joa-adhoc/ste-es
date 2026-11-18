@@ -1,0 +1,71 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No me queda claro si tengo que tocar el backend: ¿me podés confirmar si la descripción de los conectores llega a algún prompt LLM, mail o a la superficie MCP, o si hoy solo la pinta la SPA? Además, ¿existe ya la migración 0201_platform_connectors_description_i18n.sql o tengo que crearla?",
+   "reason": "La primera oración es condicional (\"depende de quién consume la descripción\") y no da una respuesta directa; además deja abierto si la migración ya existe y qué consume la descripción, por lo que no puedo actuar sin ese dato."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción del conector llega hoy a algún prompt LLM, mail o a la superficie MCP saliente, o solo se muestra en la SPA? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya existe en el repo o la tengo que crear?",
+   "note": "La primera oración es condicional (depende de quién consume la descripción) y no dice si hay que tocar el backend. Además, la respuesta me deja verificando por mi cuenta si la migración ya existe y si la descripción entra a prompts, mails o MCP."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción del conector entra hoy a algún prompt LLM, mail o sale por MCP? Además, ¿existe ya la migración 0201_platform_connectors_description_i18n.sql, y cuál es el número de migración que me toca usar?",
+   "note": "La primera oración depende de un dato que no tengo, así que no responde directo si debo tocar el backend."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "No me queda claro si tengo que tocar el backend: ¿me podés confirmar si la descripción de los conectores llega a algún prompt LLM, mail o a la superficie MCP, o si hoy solo la pinta la SPA? Además, ¿existe ya la migración 0201_platform_connectors_description_i18n.sql o tengo que crearla?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas: el directorio de trabajo (`/tmp/ste-es-eval-1izuko2w`) está vacío y no es un repo. No hay `supabase/migrations/`, ni `tuqui_core/`, ni código de la SPA. No busqué fuera de ese directorio.\n\n**Migración 0201:** no sé si existe. El material la cita como referencia, así que probablemente ya esté hecha. Corré esto en tu repo:\n\n```bash\nls supabase/migrations | grep -E '0201|platform_connectors'\ngrep -n 'description_i18n' supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n\nSi el archivo existe y agrega `description_i18n`, salteá el paso de migración. Si no existe, creala con el siguiente número libre:\n\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\n\n**¿Llega a un prompt, mail o MCP?** Tampoco lo sé. Buscá dónde se lee la descripción fuera de la SPA:\n\n```bash\ngrep -rn 'description' --include='*.py' . | grep -i connector\ngrep -rn -i 'connector' --include='*.py' . | grep -i -E 'prompt|mail|mcp'\n```\n\nSi algún resultado arma un prompt, un mail o una respuesta MCP con esa descripción, tocá el backend. Si todos los usos son serializers que devuelven la fila a la SPA, alcanza con el cliente.\n\nSi querés que lo verifique yo, pasame la ruta del repo o abrí la sesión en esa carpeta.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 6894,
+  "cache_read_input_tokens": 88272,
+  "output_tokens": 1262,
+  "output_tokens_details": {
+   "thinking_tokens": 61
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6894,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 567,
+    "cache_read_input_tokens": 24015,
+    "cache_creation_input_tokens": 168,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 168
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "627fce05ff"
+ }
+}

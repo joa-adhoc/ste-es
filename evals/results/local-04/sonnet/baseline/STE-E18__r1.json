@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Ciclo de vida de una memoria\n\n## 1. Guardado\nEl modelo llama a la herramienta `manage_memory` para crear una memoria. Cada una pertenece a un **scope**:\n- **user**: personal, una por usuario.\n- **workspace**: compartida con todo el equipo.\n\n## 2. Tope y expulsión (FIFO)\n- Máximo **50 memorias por scope**.\n- Al agregar la número 51, se borra la más antigua según `created_at`, dentro de la **misma transacción de DB**.\n- La expulsión es silenciosa para el usuario, pero el modelo recibe un aviso en la respuesta de la herramienta.\n\n## 3. Carga progresiva (dos niveles)\nInspirada en los Skills de Claude Code.\n\n1. **Header** (se inyecta en cada turno): `título + (resumen si existe, si no los primeros 250 caracteres del body)`. Si el body supera 250 caracteres y no hay resumen, el header termina en `... [read]`.\n2. **Body** (bajo demanda): si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n## 4. Entrada al prompt\nEn `_load_chat_setup` (`tuqui_core/chat/agent.py`), después del bloque `CURRENT USER` y antes del bloque de proyecto, se agregan dos secciones:\n\n```\n# Workspace memory (shared with team)\n- [customer:123 / preferred_payment] Acme — ... (id=abc-...)\n\n# User memory (personal)\n- [general] Sonnet preferred for long queries. (id=ghi-...)\n```\n\nCada línea incluye el `id`, que el modelo usa para leer el body completo.\n\n## 5. Cuando hay muchas\n- El tope de 50 por scope acota el costo: unos **~3K tokens por turno** en el peor caso (50 memorias de tamaño máximo).\n- **Guardia de presupuesto**: si el total de caracteres de los headers supera `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), se usa **rapidfuzz** para puntuar cada header contra el mensaje actual del usuario. Solo se conservan las **top-N** más relevantes.\n\n## Consecuencias a tener en cuenta\n- La FIFO se basa en antigüedad, no en uso ni importancia. Una memoria vieja pero útil se pierde igual.\n- Con la guardia activa, el conjunto de memorias visibles **cambia de un turno a otro** según el mensaje. Una memoria relevante pero con poco solapamiento léxico con el mensaje puede quedar fuera, porque rapidfuzz puntúa por similitud de texto, no semántica.\n- El resumen es lo que más conviene cuidar: si falta, el header se corta a 250 caracteres y exige un `read` extra.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3651,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 993,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3651,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 993,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3651,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3651
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

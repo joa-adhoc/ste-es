@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué poner en el archivo:** la línea `-- destructive: true` cerca del inicio de la migración que dropea la columna. Sin ese marker, el runner la trata como aditiva y la aplica en cualquier lado.\n\n**Recorrido, de PR a prod:**\n\n1. **PR env de Railway (preview).** La migración se **saltea y no se registra** en `_migrations`. Se aplica solo si se cumplen las dos condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y** que el deploy sea de la rama `staging` o `main` (`RAILWAY_GIT_BRANCH`). El preview hereda el flag de staging, pero su rama es la del PR, así que el gate la bloquea. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado, o sea que tampoco la aplica. Esto protege al servicio de staging, que comparte base con el preview y sigue corriendo el código anterior, el cual se rompería sin la columna.\n\n2. **CI (`scripts/apply_migrations.py`).** Se aplica, porque las bases efímeras (postgres de servicio del workflow, container del stack e2e, base de pytest) activan el opt-in con `MIGRATIONS_ALLOW_DESTRUCTIVE=1` o `allow_destructive=True`. Ahí no hay nadie más usando la base, así que tus tests corren con la columna ya dropeada.\n\n3. **Local (`make migrate`).** **No** se aplica, porque no activa el flag: la base de desarrollo la comparten los worktrees.\n\n4. **Merge a `staging` o `main`.** Es el deploy real. Se cumplen las dos condiciones, así que el runner la aplica y la registra en `_migrations`. Como en los pasos anteriores nunca se registró, no hay conflicto.\n\n**Lo que no cubre el marker:** las migraciones aditivas del mismo PR sí se aplican a la base de staging desde el preview, con consecuencias al mergear y al renombrar archivos. Eso está en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\". Si tu PR mezcla el drop con otras migraciones, conviene leer esa sección.\n\n**Una consecuencia práctica:** como el preview no aplica el drop, el código de tu PR se prueba ahí con la columna todavía presente. Si querés verificar el comportamiento sin la columna, tenés que hacerlo en CI o en una base efímera.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3914,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 863,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3914,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 863,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3914,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3914
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

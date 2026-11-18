@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Skill, casi seguro.** Un `odoo_create` con defaults es un wrapper 1→1, y el umbral duro del eje (d) lo descarta.\n\n**Criterio:** la tool nativa tiene que cumplir al menos un eje. Aplicados a tu caso:\n\n- **(a) No componible:** no cumple. `odoo_create` ya lo hace pasando los defaults en `values`.\n- **(b2) Whitelist más fina:** solo cumple si el gate pide menos permiso que `create` genérico. Un `create` sobre un modelo con defaults pide el mismo `create`, así que no aplica.\n- **(b1) Approval propio:** cumple solo en chat. Mirá el siguiente punto.\n- **(c) Procedimiento crítico:** cumple solo si saltear el paso tiene costo de compliance real. Un default no lo es.\n- **(d) Eficiencia:** no cumple. Es una sola call genérica, y el umbral duro excluye ese caso aunque ahorres tokens de esquema.\n\n**Cambia algo con el MCP saliente:** sí, pero te empuja más hacia skill. En MCP, (b1) y (c) no tienen palanca, porque `requires_approval` lo consume solo el chat. Ahí solo valen (a), (b2) o (d), y tu caso no cumple ninguno.\n\n**Cuándo sí sería tool nativa:**\n- Los defaults incluyen un gate más restrictivo que `create` genérico. Eso es (b2), vale en chat y MCP.\n- La creación dispara ≥3 calls dependientes: por ejemplo, crear, buscar un partner y postear un mensaje. Eso es (d).\n- El modelo necesita approval propio. Eso es (b1), pero solo en chat, así que en MCP quedaría sin gate.\n\n**Precedente:** es el caso de `odoo_schedule_activity`. Su único diferencial era (b1). Lo bajaron a system skill y ya estaba en `MCP_EXCLUDED_TOOLS`.\n\nSi me pasás el modelo y los defaults, te digo si cae en alguno de esos tres casos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4830,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 732,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4830,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 732,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4830,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4830
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

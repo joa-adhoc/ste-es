@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No, no lo hagás así: `git reset --hard origin/staging` descarta para siempre los cambios sin commitear en `limits.py` y `test_limits.py`. Los 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`) quedarían solo en el reflog. El archivo `0420_mcp_limits.sql` no se toca, porque es untracked, salvo que `staging` tenga un archivo con ese mismo path.\n\nPrimero guardá todo y después empezá de cero:\n\n```bash\ngit fetch origin\ngit branch backup/limite-mcp          # guarda los 3 commits\ngit stash push -u -m \"wip limite-mcp\" # guarda los cambios y el .sql\ngit reset --hard origin/staging\n```\n\nDespués podés recuperar lo que necesites:\n\n```bash\ngit stash pop                    # cambios sin commitear\ngit cherry-pick a1b2c3d          # un commit puntual\n```\n\nSi querés conservar `feat/limite-mcp` tal cual, creá una rama nueva en vez de resetear:\n\n```bash\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nLos commits ya están en `origin/feat/limite-mcp`? No: la rama está `ahead 3`, así que esos 3 commits existen solo en tu máquina. Por eso el `backup` importa.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3971,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 697,
+  "output_tokens_details": {
+   "thinking_tokens": 234
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3971,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 697,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3971,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3971
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

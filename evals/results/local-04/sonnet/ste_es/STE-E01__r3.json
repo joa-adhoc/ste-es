@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Para que no rebote, la migración tiene que ser idempotente, habilitar RLS y crear la policy. Además necesitás el test de aislamiento y el modelo Pydantic.\n\n**Pasos**\n\n1. Creá la migración con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n2. Escribila idempotente, con RLS y policy (plantilla abajo).\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n4. Creá el modelo Pydantic de la tabla.\n\n**Plantilla de migración**\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- resto de columnas\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\n**Qué mirar**\n\n- **Idempotencia:** usá `IF NOT EXISTS` en tablas, índices y policies. `ENABLE ROW LEVEL SECURITY` ya es idempotente por defecto.\n- **No es una formalidad:** el preview de tu PR corre la migración contra la base de staging, que es la misma base y no una copia. Se aplica al abrir el PR.\n- **Renombrar el archivo:** el tracking es por nombre de archivo, así que la migración se vuelve a aplicar. Por eso tiene que tolerar correr más de una vez. Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n- **RLS:** no alcanza con filtrar por `workspace_id` en el application layer. RLS es la defensa principal.\n- **Índice en `workspace_id`:** el material no lo exige. Es una sugerencia mía, así que sacalo si no lo necesitás.\n- **Nombres de la policy:** el nombre `mi_tabla_workspace_isolation` es un ejemplo. Elegí uno consistente con las otras tablas.\n\nSi la tabla no llevara `workspace_id`, discutilo antes con el equipo. Es la excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5303,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1195,
+  "output_tokens_details": {
+   "thinking_tokens": 199
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5303,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1195,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5303,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5303
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`**: si el admin no permite el modelo para esa operación, la tool corta ahí y nunca llega al gate.\n2. **`workspace_tool_approvals` en `deny`**: bloquea siempre. Es un piso, y ninguna preferencia personal lo levanta.\n3. **`user_tool_approvals`** de `(user, workspace, tool)`: si hay fila, esa acción gana. Se saltea entero en los canales `exposure`, `webhook` y `scheduled`.\n4. **`workspace_tool_approvals` en `allow` o `ask`.**\n5. **Default por ausencia de fila**: ASK si el recurso tiene `approval` (`\"ask\"` o `\"always\"`), ALLOW si no. En tools de conector sin declaración se usa la heurística de verbos y las annotations MCP.\n\nSi el resultado es ALLOW, o ASK y el usuario aprueba, se ejecuta `tool.execute()` y queda auditado en `tool_usage_log` con `permission_action`.\n\n## Tus dos casos\n\n**Admin en `ask`, miembro en `allow` (chat normal):** gana el miembro y la tool se ejecuta sin preguntar. El paso 2 solo mira `deny` en la grilla del workspace, así que el `ask` del admin recién se evalúa en el paso 4, después de la preferencia personal. Si el admin quiere que nadie lo pueda saltear, tiene que poner `deny`. `ask` es solo una recomendación que cada miembro puede subir a `allow`.\n\n**Agent por webhook:** la preferencia del miembro no cuenta. El turno corre con la identidad prestada de un miembro, pero `personal_identity_applies` es falso en ese canal. Se salta el paso 3 y manda la grilla del workspace. Con `ask` del admin el resultado es ASK, no ALLOW. Con `deny` sería DENY, y sin fila aplica el default del recurso.\n\n**No verificado:** el material no dice qué pasa con un ASK en un canal sin persona que apruebe, como un webhook o un scheduled. Puede quedar bloqueado, fallar o esperar. Para confirmarlo hay que leer cómo `chat/client_facing_core.py` maneja el resultado ASK, o disparar el webhook y mirar `permission_action` en `tool_usage_log`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10800,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1139,
+  "output_tokens_details": {
+   "thinking_tokens": 321
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10800,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1139,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10800,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10800
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

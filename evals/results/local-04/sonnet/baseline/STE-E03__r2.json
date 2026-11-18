@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Desde el worktree, en orden:\n\n1. **`make worktree-setup`**: linkea al clone principal lo que no viaja en git (`.venv`, `.env`, `node_modules`, `.mcp.json`, etc.). Sin esto, `make test` falla con \"Venv no encontrado\".\n\n2. **Dependencia de Python nueva**: **no corras `make install`** en el worktree. Escribiría en el venv compartido del clone principal y le repuntaría el editable install (el target se niega igual). Instalala en el clone principal, o, si preferís aislarte, borrá el link del `.venv` en el worktree y armá un venv propio.\n\n3. **Cambios en `web/package.json`**: los `node_modules` también son del clone principal, así que corré `npm ci` en el worktree antes de `make test-web`. Ojo: antes de eso, `web/node_modules` es un link al del clone principal, y `npm ci` lo borra y reinstala. Si ves que toca el del clone principal, quitá el link primero (`rm web/node_modules`) y luego corré `npm ci`.\n\n4. **Correr los tests**:\n   ```bash\n   make test                                     # unit\n   make test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\n   make test-rls                                 # aislamiento multi-tenant\n   make test-web                                 # frontend (vitest)\n   make test-evals                               # unit tests de evals/\n   make lint                                     # ruff check + format check\n   ```\n\nUna aclaración: el punto sobre `rm web/node_modules` antes de `npm ci` es una precaución mía, no algo que diga el material. La doc solo dice \"corré `npm ci` en el worktree\". Si `npm ci` sobre el link modifica los `node_modules` del clone principal, es justo el tipo de efecto que querés evitar, así que conviene verificarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3679,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 647,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3679,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 647,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3679,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3679
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No lo hagas todavía. Así como está, `git reset --hard origin/staging` te haría perder trabajo:\n\n- **Cambios sin commitear** en `limits.py` y `test_limits.py`: se descartan y no hay forma de recuperarlos, porque ni el reflog ni un stash los guardan.\n- **Los 3 commits sin pushear** (`a1b2c3d`, `d4e5f6a`, `0718293`): la rama dejaría de apuntar a ellos. Se pueden recuperar con `git reflog`, pero es incómodo.\n- **`0420_mcp_limits.sql`** (sin trackear): `reset --hard` no lo toca, así que queda ahí. Ojo si en `staging` ya existe una migración con ese número o ese nombre.\n\nAdemás, `reset --hard` mueve la rama `feat/limite-mcp`. Si quieres partir de `staging`, lo más limpio es una rama nueva, sin destruir nada:\n\n```bash\n# 1. Guardar todo (incluye el archivo sin trackear)\ngit stash push -u -m \"limite-mcp wip\"\n\n# 2. Dejar una copia de los 3 commits\ngit branch backup/limite-mcp\n\n# 3. Empezar de cero desde staging\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nCon eso, el trabajo viejo sigue en `backup/limite-mcp` y en el stash, y la rama nueva parte limpia.\n\nSi prefieres mantener el nombre `feat/limite-mcp`, haz solo los pasos 1 y 2 y después `git reset --hard origin/staging`. Ya tendrías el respaldo, así que el reset deja de ser peligroso. Como la rama remota tiene esos commits y tú quedarías distinto, tendrías que hacer `push --force-with-lease`. Eso solo es seguro si nadie más usa esa rama.\n\n¿Quieres que ejecute los pasos? Ahora mismo el directorio de trabajo no es un repositorio git, así que tendrías que indicarme la ruta del repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3259,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 878,
+  "output_tokens_details": {
+   "thinking_tokens": 161
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3259,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 878,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3259,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3259
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

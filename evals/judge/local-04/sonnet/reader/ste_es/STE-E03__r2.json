@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran. (1) Dijiste que `node_modules` es un link al clone principal, pero que igual corra `npm ci` en el worktree. ¿`make worktree-setup` deja un symlink que tengo que borrar antes, o `npm ci` lo reemplaza solo? Quiero estar seguro de que no pisa los `node_modules` del clone principal. (2) La dependencia Python nueva la agregué en el `pyproject` del worktree. ¿Cómo la instalo desde el clone principal con `make install`, si ahí el `pyproject` todavía no la tiene? ¿Tengo que hacer un `pip install <paquete>` a mano, o es mejor la alternativa del venv propio en el worktree?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que `make worktree-setup` linkea `node_modules` al clone principal y después que corra `npm ci` en el worktree. ¿`npm ci` borra y reinstala a través del symlink y me pisa los `node_modules` del clone principal? Si es así, ¿tengo que sacar el link de `web/node_modules` antes de correrlo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dijiste que `make worktree-setup` linkea `node_modules` al clone principal, pero después que corra `npm ci --prefix web` en el worktree para tener uno propio. ¿Eso no escribiría (o borraría) el `node_modules` del clone principal a través del symlink? ¿Tengo que borrar primero el link de `web/node_modules`, como con `.venv`, o `npm ci` ya lo reemplaza por un directorio propio sin tocar el principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Dos cosas no me cierran. (1) Dijiste que `node_modules` es un link al clone principal, pero que igual corra `npm ci` en el worktree. ¿`make worktree-setup` deja un symlink que tengo que borrar antes, o `npm ci` lo reemplaza solo? Quiero estar seguro de que no pisa los `node_modules` del clone principal. (2) La dependencia Python nueva la agregué en el `pyproject` del worktree. ¿Cómo la instalo desde el clone principal con `make install`, si ahí el `pyproject` todavía no la tiene? ¿Tengo que hacer un `pip install <paquete>` a mano, o es mejor la alternativa del venv propio en el worktree?",
+ "followup_answer": "**Recomendación:** armá el venv propio en el worktree. Tu `pyproject` con la dependencia nueva solo existe ahí. Corregí también lo que te dije antes: instalar en el clone principal no te sirve en este caso.\n\n**(1) `npm ci` y el symlink**\n\nEl material no dice qué hace `npm ci` con un symlink, así que no lo asumas. `npm ci` borra `node_modules` antes de instalar. Borrá el link vos primero, así no depende de eso:\n\n```bash\nls -ld web/node_modules      # confirmá que es un symlink (lrwxrwxrwx ... -> clone principal)\nrm web/node_modules          # sin barra final: borra solo el link\ncd web && npm ci\n```\n\n`rm` sin barra final borra el link y no toca el destino. No uses `rm -rf web/node_modules/`: con la barra, algunas shells siguen el link y vacían los `node_modules` del clone principal. Solo `web/node_modules` cambia. El `node_modules` de la raíz sigue linkeado.\n\n**(2) Dependencia Python**\n\nUn `make install` en el clone principal instalaría su `pyproject`, que todavía no tiene el paquete. Un `pip install <paquete>` a mano en ese venv sí funciona, pero tiene dos problemas:\n- Mete la dependencia en el venv que usan todos los worktrees.\n- Queda fuera de tu `pyproject`, así que podés tener tests verdes que no reflejan lo declarado.\n\nCon el venv propio no pasa nada de eso:\n\n```bash\nrm tuqui_core/.venv    # solo el link, sin barra final\nmake install           # ahora crea el venv desde el pyproject del worktree\n```\n\nAsumo que `make install` deja de negarse una vez que el link desaparece. El material dice que se niega en un worktree \"linkeado\", y ya no lo estarías. Si igual se niega, pegame el mensaje.\n\nLos demás links (`.env`, `.mcp.json`, etc.) quedan como están. Cuando mergees, el venv del clone principal se actualiza con su propio `make install`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6034,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1233,
+  "output_tokens_details": {
+   "thinking_tokens": 513
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6034,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1233,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6034,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6034
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6df2619c53"
+ }
+}

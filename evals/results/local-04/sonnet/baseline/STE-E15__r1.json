@@ -1,0 +1,44 @@
+{
+ "case": "STE-E15",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Recorrido de `connect_odoo`\n\nMe baso solo en el material que pegaste. No he mirado el código real, así que lo que sigue describe el diseño documentado y no he comprobado que coincida con la implementación.\n\n## Contexto del modelo\n\nLas credenciales de Odoo (`odoo_login`, `odoo_uid`, `odoo_api_key`) están en la tabla `workspaces`, no en el owner. El rol `owner` es administrativo de Tuqui, no necesita identidad en Odoo, y puede haber varios owners. Vincular al owner con un `res.users` es opcional.\n\n## Paso a paso\n\n1. **Entrada.** `POST /workspaces/{slug}/odoo`, que exige auth de owner/admin. Llama a `connect_odoo(slug, payload, current_user_id)`.\n2. **Autenticación.** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y devuelve `admin_uid`.\n3. **Verificación de admin.** `_verify_odoo_admin_group` comprueba `res.users.has_group(uid, 'base.group_system')`. Si la cuenta no es admin de sistema en Odoo, lanza `ValueError`.\n4. **Detección de versión.** `JsonRpcTransport.get_version(url)` devuelve por ejemplo `\"18\"`. Lanza `ValueError` si la detección falla o si la versión mayor es menor que `MIN_SUPPORTED`.\n5. **Resolución del vínculo.** `_resolve_link_mode(...)` decide cómo vincular al Member del usuario actual (ver abajo).\n6. **Persistencia en el workspace.** Hace `UPDATE workspaces` con `odoo_url, odoo_db, odoo_login, odoo_uid, odoo_api_key, odoo_version`. El workspace pasa a \"conectado\" y el rol owner no se toca.\n   - Si otro workspace ya tiene el mismo `database.uuid`, devuelve **409 Conflict**. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n7. **Limpieza si cambió la URL.** Ver la sección siguiente.\n8. **Vinculación del Member**, si el modo es `auto` o `manual`:\n   - Hace `UPDATE workspace_members SET odoo_user_id = linked_uid` para ese `workspace_id` y `user_id`.\n   - Lanza en segundo plano `asyncio.create_task(sync_user_api_key(ws_id, linked_member_id, linked_uid))`.\n9. **Respuesta.** Devuelve `WorkspaceConnectOdooResult`, que extiende `WorkspaceRead` con:\n   - `members_invalidated`\n   - `warning`\n   - `link_status`\n   - `linked_odoo_user_id`\n\n## Cómo decide a qué usuario de Odoo vincula\n\n`_resolve_link_mode` tiene tres modos:\n\n| Modo | Cuándo | Efecto |\n|---|---|---|\n| `auto` | Es el valor por defecto cuando `current_user.email == odoo_login`. | `Member.odoo_user_id = admin_uid`. |\n| `manual` | El frontend envía `link_current_user_to_odoo='manual'` y `link_odoo_user_id`. | Verifica que ese `res.users` exista y vincula el Member a ese id. |\n| `none` | Es el valor por defecto cuando los emails no coinciden. | El Member queda sin `odoo_user_id`. |\n\n- **`auto`** asume que quien conecta es el dueño de la cuenta Odoo cuyo login usó, y lo reconoce por coincidencia de email.\n- **`manual`** cubre el caso en que el owner conecta con una cuenta técnica o de otra persona pero quiere vincularse a su propio usuario de Odoo.\n- **`none`** es válido porque el owner no necesita identidad en Odoo.\n\nEl resultado se informa en `link_status` y `linked_odoo_user_id`.\n\n## Qué pasa si cambia la URL\n\nSi `url_changed` es verdadero, se limpian `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. El motivo es que esas identidades pueden apuntar a otra instancia de Odoo, donde ese id no significa lo mismo.\n\n- `members_invalidated` informa cuántos members se vieron afectados. Vale 0 si la URL no cambió.\n- `warning` lleva el mensaje que se muestra en la UI.\n- Después de esa limpieza se aplica la vinculación del paso 8. El owner que conecta queda re-vinculado si el modo es `auto` o `manual`. Los demás members tendrán que volver a vincularse.\n\n## Puntos que el material no aclara\n\n- **Orden de la limpieza.** El diagrama pone la limpieza de members antes de la vinculación del current user, y eso encaja con que el owner quede re-vinculado. Conviene confirmarlo en el código.\n- **Qué se compara para `url_changed`.** No dice si compara solo la URL o también `odoo_db`. Si cambia solo la base, la limpieza podría no dispararse aunque las identidades dejen de ser válidas.\n- **Atomicidad.** No se ve si el `UPDATE workspaces`, la limpieza y la vinculación van en una sola transacción. Solo `sync_user_api_key` es explícitamente asíncrono. Si falla en segundo plano, el vínculo existe pero sin API key sincronizada.\n- **Conflicto 409.** Solo se menciona en el `UPDATE`. No queda claro si la detección ocurre ahí, al violarse el índice, o antes con una consulta.\n\nSi quieres, puedo revisar el código real para confirmar estos puntos. Para eso necesito la ruta del repo, porque en este directorio no hay código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4186,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 2040,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4186,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2040,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4186,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4186
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N (cuántas memorias quedan tras el filtro de rapidfuzz), el filtro corre sobre los dos scopes juntos o por separado, y qué pasa con una memoria sin resumen cuyo cuerpo es corto, cuenta igual para el presupuesto de 12K caracteres?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N (cuántas memorias quedan tras el filtro de rapidfuzz) y el filtro corre sobre los dos scopes juntos o por separado? Además, ¿cómo se explica que 50 memorias lleguen a ~3K tokens si con 250 caracteres cada una ya son ~12.5K caracteres, y qué límite de largo tiene el resumen?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N (cuántas memorias quedan tras el filtro de rapidfuzz), y el filtro corre sobre los dos scopes (workspace y usuario) juntos o por separado?",
+   "reason": "La primera oración es solo un título y no responde nada. El cuerpo cubre bien el ciclo, pero deja sin cerrar justo el caso 'cuando hay muchas': falta N y el alcance del filtro, y la cuenta de ~3K tokens no cuadra con 50 memorias de 250 caracteres."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cuánto vale N (cuántas memorias quedan tras el filtro de rapidfuzz), el filtro corre sobre los dos scopes juntos o por separado, y qué pasa con una memoria sin resumen cuyo cuerpo es corto, cuenta igual para el presupuesto de 12K caracteres?",
+ "followup_answer": "**N:** el material no lo dice. Solo habla de \"top-N\" sin dar un valor. Tampoco aclara si N es fijo, si depende del presupuesto (se agregan memorias hasta llenar 12K) o si es un parámetro. No verificado. Lo cierra leer `_load_chat_setup` en `tuqui_core/chat/agent.py` y buscar dónde se usa `_MEMORY_BUDGET_CHARS`.\n\n**Scopes juntos o separados:** tampoco está dicho. El texto habla de \"total header chars\" y de un solo presupuesto, lo que sugiere un cálculo conjunto sobre workspace y usuario. Es una inferencia, no un dato. Si fuera por separado, el techo real sería de hasta 24K caracteres y no de 12K. Tampoco sabemos si el ranking de `rapidfuzz` mezcla ambos scopes o si cada uno se filtra aparte.\n\n**Memoria sin resumen y con cuerpo corto:** su encabezado es `título + cuerpo completo`, porque el cuerpo no llega a los 250 caracteres. No lleva la marca `[read]`, ya que no hay nada que recortar. Cuenta para el presupuesto como cualquier otra, porque el material mide \"total header chars\" sobre los encabezados inyectados.\n\nNo está claro si la cuenta incluye el prefijo `[scope / key]` y el `(id=...)` de cada línea. El ejemplo del material muestra que esos elementos forman parte de la línea inyectada. Si el código mide la línea entera, el costo real por memoria es mayor que título más cuerpo. Eso también hay que confirmarlo en el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11588,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 751,
+  "output_tokens_details": {
+   "thinking_tokens": 176
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11588,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 751,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11588,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11588
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1806a52e44"
+ }
+}

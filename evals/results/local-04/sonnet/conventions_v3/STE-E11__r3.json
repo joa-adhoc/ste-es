@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el runner trata tu migración como aditiva y la aplica desde el preview del PR contra la base de staging compartida, lo que rompe el código viejo de staging para todos.\n\n**Qué pasa en cada etapa**\n\n| Dónde | ¿Se aplica? | Por qué |\n|---|---|---|\n| PR environment de Railway | No. Se saltea y **no se registra** en `_migrations` | La rama del deploy no es `staging` ni `main`, aunque el preview herede `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging |\n| Deploy de `staging` tras el merge | Sí | Rama `staging` más `MIGRATIONS_ALLOW_DESTRUCTIVE=1` |\n| Deploy de `main` (prod) | Sí, si `MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado en ese environment | Rama `main` más el flag |\n| CI (`scripts/apply_migrations.py`) | Sí | Las bases efímeras activan el flag: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow o `allow_destructive=True` desde el conftest |\n| `make migrate` (base de desarrollo local) | No | No activa el flag, porque esa base se comparte entre worktrees |\n\nComo el preview no la registra, el deploy real posterior al merge la aplica.\n\n**Dos condiciones, no una.** El runner exige el flag **y** que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado y no aplica.\n\n**Qué tengo que confirmar**\n\n- El material no dice si el environment de prod tiene el flag seteado. Si no lo tiene, la migración se saltea también en `main`. Verificalo antes del merge.\n- Si tu migración, además de dropear la columna, trae partes aditivas en el mismo archivo, todo el archivo se saltea en los previews. Conviene separarlas en archivos distintos.\n- Las migraciones aditivas sí se aplican a la base de staging desde el preview. Eso importa si renombrás un archivo, y está en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\". No lo leí: no está en el material.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10669,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 839,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10669,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 839,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10669,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10669
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

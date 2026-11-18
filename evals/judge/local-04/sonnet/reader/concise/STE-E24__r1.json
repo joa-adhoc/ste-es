@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado con el ADD de `locale` y el DROP de `lang` juntos. ¿El tren del jueves 19 lo va a llevar tal cual, o el DROP lo bloquea y no sale nada hasta el martes 24? Y si hay que separarlo, ¿cómo lo hago ahora que ya está en staging?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con la columna nueva y el DROP juntos. Para que salga como decís (locale el jueves 19 y el DROP el martes 24), ¿tengo que hacer algo, como separar la migración o abrir otro PR? ¿O el tren del jueves 19 se bloquea o sale con el DROP incluido si no lo toco?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el ADD de `members.locale` y el DROP de `members.lang` juntos. ¿El DROP se retiene solo hasta el martes 24, o tengo que separarlo (revertir o sacar esa migración) antes del tren del jueves 19 para que no borre `lang` mientras el código en prod todavía la usa?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado con el ADD de `locale` y el DROP de `lang` juntos. ¿El tren del jueves 19 lo va a llevar tal cual, o el DROP lo bloquea y no sale nada hasta el martes 24? Y si hay que separarlo, ¿cómo lo hago ahora que ya está en staging?",
+ "followup_answer": "No lo sé con certeza. El doc fija la regla (el DROP no puede ir en el mismo tren que el código que deja de usar `lang`), pero no dice cómo se hace cumplir. El tren avanza `main` desde `staging` completo, no PR por PR. Lo más probable es que el jueves 19 lleve el ADD y el DROP juntos, sin bloquear nada. Ese es el riesgo: durante el deploy convive la versión vieja, que todavía lee `lang`.\n\nPara separarlo hay que actuar antes del jueves 12 UTC (09:00 ART):\n\n1. **PR nuevo a staging:** sácale el DROP a la migración (borra el archivo o la sentencia) y deja solo el ADD de `locale`. Como la migración todavía no corrió en prod, editarla no rompe nada allá.\n2. **Staging ya ejecutó el DROP:** su base quedó sin `lang`, así que se desvía de lo que va a tener prod. Si necesitas esa columna ahí, vuelve a crearla a mano o restaura staging según tu tooling.\n3. **El CI de staging tiene que estar verde** después de ese PR. Si está rojo, el tren salta al martes 24 y no sale nada, ni siquiera el ADD.\n4. **Cuando el tren del jueves haya salido,** abre un PR aparte con el DROP de `lang`. Sale el martes 24.\n\nSi no llegas a mergear el fix a tiempo, pídele a quien opere el tren que lo frene. Un release manual solo sirve para hotfix y necesita la aprobación de jjs.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4517,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1675,
+  "output_tokens_details": {
+   "thinking_tokens": 1127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4517,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1675,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 4517,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4517
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "027683b87e"
+ }
+}

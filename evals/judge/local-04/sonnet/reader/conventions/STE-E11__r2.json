@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de main (prod) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? ¿Y cómo aplico la migración a mano en mi base local para probarla?",
+   "note": "La primera oración dice qué poner en el archivo (-- destructive: true), pero la pregunta pedía también el recorrido hasta prod, y la respuesta admite que no sabe si prod aplica la migración, que es justo el punto final del flujo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de main (prod) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Y si no lo tiene, ¿cómo se aplica la migración destructiva en prod?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de main (prod) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Si no lo tiene, la migración se saltea en prod y no puedo mergear tranquilo. Además, ¿cómo la aplico a mano en mi base local para probarla?",
+   "reason": "La primera oración dice qué poner en el archivo (-- destructive: true), que responde parte de la pregunta, pero la respuesta admite que no se sabe si prod aplica la migración ni cómo probarla localmente, que es justo el final del recorrido por el que preguntaba."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿El deploy de main (prod) tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? ¿Y cómo aplico la migración a mano en mi base local para probarla?",
+ "followup_answer": "Ninguna de las dos está confirmada en el material, y acá no tengo el repo ni acceso a Railway para mirarlas.\n\n## ¿El deploy de `main` tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`?\n\n**No verificado.** El material dice que el gate acepta las ramas `staging` y `main`. Eso sugiere que se espera aplicar destructivas en prod, pero no dice qué valor tiene la variable en el servicio de prod.\n\nPara cerrarlo:\n- Mirá las variables del servicio de prod en Railway (proyecto, environment de prod, `MIGRATIONS_ALLOW_DESTRUCTIVE`).\n- O preguntale a quien administra el deploy.\n\nSi no está en 1, la migración se saltea en prod sin registrarse y la columna sigue ahí. Conviene saberlo antes de mergear.\n\n## ¿Cómo la aplico a mano en mi base local?\n\n**Tampoco está documentado para este caso.** Lo que dice el material:\n- `scripts/apply_migrations.py` es el runner de CI y de local, y tiene el mismo contrato destructivo.\n- El opt-in va por base: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest.\n- `make migrate` no lo activa, porque apunta a la base de desarrollo local, que se comparte entre worktrees.\n\nLo más probable es que funcione algo así, pero **no lo probé**:\n\n```bash\nMIGRATIONS_ALLOW_DESTRUCTIVE=1 python scripts/apply_migrations.py\n```\n\nAntes de correrlo:\n- Confirmá a qué base apunta (la URL de conexión que lee el script). Si es la de desarrollo compartida, dropear la columna rompe a los otros worktrees que corren código anterior.\n- Para probar sin ese riesgo, usá una base efímera, como hacen CI y pytest: un postgres descartable y el flag solo en esa corrida.\n- Leé `scripts/apply_migrations.py` para ver cómo toma la conexión y el flag. Eso lo cierra mejor que mi suposición.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11312,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1271,
+  "output_tokens_details": {
+   "thinking_tokens": 506
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11312,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1271,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11312,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11312
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8ead0959bc"
+ }
+}

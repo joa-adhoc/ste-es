@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés dar los comandos y valores concretos? Por ejemplo, cómo queda la URL de la base propia en `.env.test.local`, qué valores poner en `REDIS_URL` y `TEST_LOCK`, y cómo creo esa base nueva antes de correr `make migrate-reset`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés pasar un ejemplo concreto de cómo queda el `.env.test.local`? Con el nombre de la variable de la URL de la base, un valor de ejemplo para la base propia del worktree, el `REDIS_URL` con otro índice y el `TEST_LOCK`. Tampoco me queda claro si `make migrate-reset` crea esa base o si la tengo que crear antes a mano."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el paso 1 decís que apunte la URL a una base propia, pero ¿esa base ya existe o tengo que crearla yo? ¿Y qué variable exacta del .env.test.local cambio y con qué valor de ejemplo? Además, en el paso 3 el orden quedó confuso: ¿es 'paso 1 antes que 2', y cómo me aseguro de que migrate-reset use la nueva URL y no la compartida?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me podés dar los comandos y valores concretos? Por ejemplo, cómo queda la URL de la base propia en `.env.test.local`, qué valores poner en `REDIS_URL` y `TEST_LOCK`, y cómo creo esa base nueva antes de correr `make migrate-reset`.",
+ "followup_answer": "No puedo darte los valores exactos. El material no dice el formato de la URL, qué espera `TEST_LOCK` ni si `migrate-reset` crea la base o solo la vacía. Prefiero no inventarlos. Esto sí sale del material, y lo demás se lee en dos archivos del repo:\n\n```bash\ncd tuqui_core\ncp .env.test.local.example .env.test.local\ncat .env.test .env.test.local.example   # nombres de variable y host/puerto/usuario reales\ngrep -n TEST_LOCK ../Makefile            # formato esperado (¿ruta de archivo o nombre?)\n```\n\n**Base propia.** Copiá el nombre de la variable y la URL que usa `.env.test` y cambiá solo el nombre de la base, por ejemplo `tuqui_test_<tu-worktree>`. Dejá igual host, puerto, usuario y contraseña.\n\n**Redis.** Es la misma URL del servidor que usa `.env.test`, con otro índice al final. Por ejemplo, `.../3` si el servidor es `localhost:6379`. Los índices 0 y 15 están ocupados, y tu compañero tiene que usar uno distinto del tuyo.\n\n**`TEST_LOCK`.** Un valor único por worktree. Mirá en el `Makefile` si espera un nombre o una ruta antes de elegirlo. Solo lo cambiás si aislaste base y Redis.\n\n**Crear la base.** Esto no está verificado. Si `migrate-reset` no la crea, tendrás que hacerlo antes, con `createdb` o `psql -c 'CREATE DATABASE ...'` contra el mismo servidor. Probalo así: primero corré `make migrate-reset` con la URL nueva. Si dice que la base no existe, creala y repetilo.\n\nNo corras `make migrate-reset` antes de guardar `.env.test.local`. Si lo hacés, resetea la base compartida y le rompe la corrida a tu compañero.\n\nSi pegás el contenido de `.env.test.local.example` y la línea de `TEST_LOCK` del `Makefile`, te armo el archivo con los valores reales.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11597,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1339,
+  "output_tokens_details": {
+   "thinking_tokens": 604
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11597,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1339,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11597,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11597
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e468f9c66f"
+ }
+}

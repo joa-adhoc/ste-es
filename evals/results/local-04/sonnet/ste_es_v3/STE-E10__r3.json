@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El orden es: modelo, `deny` del admin, preferencia del usuario, grilla del workspace, default. El primero que resuelve gana.\n\n1. **`workspace_write_models`**: si el workspace no permite el tool sobre ese modelo, corta acá.\n2. **`workspace_tool_approvals` solo si dice `deny`** → DENY. Es un piso y ninguna preferencia personal lo levanta.\n3. **`user_tool_approvals`** para `(user_id, workspace_id, tool_name)`: si hay fila, esa `action` gana. Este paso se sasaltea en `exposure`, `webhook` y `scheduled`.\n4. **`workspace_tool_approvals`** con `allow` o `ask`.\n5. **Default por tool**: ASK si el recurso está en `approval` (`\"ask\"` o `\"always\"`), ALLOW si no. Los tools de conector sin declaración usan la heurística de verbos y las annotations MCP.\n\nSi pasa el gate, `tool.execute()` corre y queda en `tool_usage_log` con `permission_action`.\n\n## Tu caso 1: admin en \"ask\", miembro en \"allow\"\n\nGana el miembro: el tool se ejecuta sin preguntar. El `ask` del admin no es un piso, solo `deny` lo es. El paso 3 resuelve antes de que se mire el paso 4.\n\nPara que el admin lo fuerce, tiene que poner `deny`. Con `ask` solo fija el valor por defecto del workspace.\n\n## Tu caso 2: agent por webhook\n\nEl paso 3 se saltea entero. El turno corre con la identidad prestada de un miembro, y la preferencia de esa persona no cuenta como política del canal (`ChannelProfile.personal_identity_applies`). Se evalúa así:\n\n- `deny` del workspace → bloquea.\n- `allow` del workspace → ejecuta.\n- `ask` del workspace, o sin fila en un recurso con `approval` → ASK.\n\nEl `allow` personal del miembro no tiene efecto en ese canal.\n\nEl material no dice qué pasa con un ASK en un canal sin usuario presente. Fijate en el código si ese caso se trata como deny, se encola o falla. No lo puedo confirmar con lo que pasaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4761,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1034,
+  "output_tokens_details": {
+   "thinking_tokens": 263
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4761,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1034,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4761,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4761
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

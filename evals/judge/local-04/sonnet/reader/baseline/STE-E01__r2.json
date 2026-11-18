@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El test de aislamiento en tests/test_rls.py no está detallado y el modelo Pydantic tampoco. ¿Me pasás un ejemplo de una migración reciente con RLS y su test en test_rls.py (y el modelo Pydantic) para copiar el estilo del proyecto? Además, ¿cuál es el número NNNN que me toca y la policy debe cubrir también WITH CHECK para inserts/updates?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "La respuesta es larga y la primera oración no me dice nada concreto. ¿Me la podés resumir en una checklist corta de lo que tiene que tener la migración (tabla, RLS, policy, idempotencia, test) y lo único que me puede romper staging?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "El test de aislamiento en tests/test_rls.py no está detallado y el modelo Pydantic tampoco. ¿Me pasás un ejemplo de una migración reciente con RLS y su test en test_rls.py (y el modelo Pydantic) para copiar el estilo del proyecto? Además, ¿cuál es el número NNNN que me toca y la policy debe cubrir también WITH CHECK para inserts/updates?",
+ "followup_answer": "El directorio de trabajo está vacío y no hay repo de tuqui en este entorno. Por eso no puedo darte un ejemplo real del proyecto. Si te armara uno, sería inventado y no te serviría para copiar el estilo.\n\n**Ejemplo de migración reciente, test y modelo Pydantic:** abrí tres cosas en tu checkout:\n- `supabase/migrations/`: buscá con `grep -l \"ROW LEVEL SECURITY\" supabase/migrations/*.sql`. Elegí la más nueva.\n- `tuqui_core/tests/test_rls.py`: copiá el test de esa misma tabla.\n- El modelo Pydantic de esa tabla. El material no dice dónde viven los modelos, así que buscalo con `grep -rn \"workspace_id\" tuqui_core --include=*.py`.\n\nSi me pegás esos tres archivos, te armo los de tu tabla con el mismo estilo.\n\n**Número NNNN:** no puedo saberlo desde acá. Tiene que ser el siguiente al último de `supabase/migrations/`. `supabase migration new <nombre>` genera el nombre por vos, y es lo más seguro. Fijate también que otro PR abierto no haya tomado el mismo número, porque el tracking es por nombre de archivo y un choque en staging te va a doler.\n\n**WITH CHECK:** el material no lo menciona, así que no puedo darte una regla del proyecto. Esto es general de Postgres:\n- Si una policy tiene solo `USING` y no declara `FOR ...`, aplica a todos los comandos (`FOR ALL`).\n- Para `INSERT` y `UPDATE`, si no hay `WITH CHECK`, Postgres reutiliza la expresión de `USING` como `WITH CHECK`.\n- Con la policy que pide el material, un insert con otro `workspace_id` ya queda bloqueado. Agregar `WITH CHECK` explícito sería redundante, pero no es incorrecto.\n\nRevisá si las migraciones existentes lo ponen explícito y seguí esa convención. Si el reviewer lo exige, preguntalo en el PR o con quien mantiene el esquema.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6024,
+  "cache_read_input_tokens": 63193,
+  "output_tokens": 1114,
+  "output_tokens_details": {
+   "thinking_tokens": 62
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6024,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 747,
+    "cache_read_input_tokens": 23136,
+    "cache_creation_input_tokens": 168,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 168
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "baf5a6ce5e"
+ }
+}

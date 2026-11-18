@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Camino de una excepción\n\n1. La tool lanza una excepción.\n2. `_wrap_tool` (`agent.py`) la captura.\n   - Si ya es un `ToolError`, lo usa tal cual.\n   - Si no, `classify_unknown(exc)` mapea la excepción de Python o httpx a un `ErrorClass` y arma un `ToolError`.\n3. `_wrap_tool` devuelve `exc.for_llm()` como resultado de la tool. El modelo ve `\"[TOOL_ERROR class=X]: message\"`. Antes veía un string genérico.\n\n`ToolError` trae `error_class`, `message` y `retry_after_seconds`. Las clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`.\n\n`CONNECTION` y `ODOO_NOT_CONNECTED` tienen textos distintos.\n- `CONNECTION` es un Odoo caído: falla el transporte.\n- `ODOO_NOT_CONNECTED` es que nadie conectó Odoo para el run: no hay credenciales y `require_adapter` (`tools/base.py`) lo detecta.\n\n## Corte del reintento (`DoomLoopGuard`, `guards.py`)\n\n- Cada resultado pasa por `record(tool_name, args, ok, error_class)`.\n- Cada falla suma a un contador con key `\"{tool_name}|{hash(args)}|{error_class}\"`. Solo cuentan los reintentos idénticos: misma tool, mismos args y misma clase.\n- Un éxito limpia todos los contadores.\n- Cuando un contador llega a `THRESHOLD=3`, `record` devuelve `True`. Entonces `_wrap_tool` devuelve `FATAL` y no deja pasar más llamadas idénticas.\n- El guard también corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, cada una con su aviso.\n\n## No verificado\n\nEl material no dice estas cosas. Habría que leer `guards.py` y `agent.py` para confirmarlas:\n- El texto exacto del `FATAL` que ve el modelo.\n- Si la llamada bloqueada se chequea antes de ejecutar la tool o solo después de fallar.\n- Cómo se corta \"entre tools\" si la key incluye `tool_name`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10478,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1298,
+  "output_tokens_details": {
+   "thinking_tokens": 424
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10478,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1298,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10478,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10478
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

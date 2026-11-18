@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué poner en el archivo:** la línea `-- destructive: true` cerca del inicio. Sin ella, el runner la trata como aditiva y la aplica desde el preview del PR a la base de staging, que es compartida. Eso rompe el código anterior que sigue corriendo en el servicio de staging, para todos.\n\n**Qué pasa con la migración, paso a paso:**\n\n| Etapa | ¿Se aplica? | Por qué |\n|---|---|---|\n| PR environment de Railway | **No.** La saltea **sin registrarla** en `_migrations`. | Aunque el preview herede `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, el gate exige también que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Si hay marcadores de Railway pero no hay rama estampada, falla cerrado y tampoco la aplica. |\n| CI, e2e y pytest (`scripts/apply_migrations.py`) | **Sí**, en bases efímeras. | Esas bases la activan porque nadie más las comparte: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow, o `allow_destructive=True` desde el conftest. |\n| `make migrate` (local) | **No.** | Apunta a la base de desarrollo local, que se comparte entre worktrees, y no activa el flag. |\n| Deploy de `staging` después del merge | **Sí**, si el flag está en 1. Queda registrada en `_migrations`. | Como el preview no la registró, este deploy real la aplica. |\n| Deploy de `main` (prod) | **Sí**, si el flag está en 1 en ese environment. | Cumple las dos condiciones. |\n\nNo verificado: si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. El material dice que el flag se necesita, pero no dice dónde está seteado. Si falta, la migración se salteará en prod sin avisar, así que conviene confirmarlo antes de mergear.\n\n**Consecuencia para tu PR:** hasta el merge, el preview corre tu código nuevo contra una base que todavía tiene la columna. Si tu código ya no la usa, no hay problema. Si dependés de que no exista, no lo vas a poder probar en el preview.\n\n**Migraciones aditivas del mismo PR:** si tu PR trae otras sin marker, esas sí se aplican a la base de staging desde el preview. Eso tiene consecuencias al mergear y al renombrar archivos, y están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\".",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10185,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1445,
+  "output_tokens_details": {
+   "thinking_tokens": 530
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10185,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1445,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10185,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10185
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

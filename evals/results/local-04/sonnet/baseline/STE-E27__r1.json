@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Resumen:** los reportes fallaron por un timeout, y lo más probable es que la causa fuera un problema de memoria en el worker. La correlación es fuerte, pero no confirmé la causa raíz.\n\n**Lo que está establecido (por los datos):**\n- La herramienta `odoo_report` del workspace pldistribucion dio 37 errores \"timeout after 30s\" entre las 13:10 y las 13:40 UTC del 18-nov. No hubo errores antes ni después de esa ventana.\n- En ese mismo período, la memoria del worker subió de 0,9 GB a 2 GB (13:05–13:41).\n- A las 13:41:58 el worker fue eliminado por falta de memoria (\"Killed: out of memory\", límite de 2 GB) y se reinició a las 13:42:10. Los errores terminan justo ahí.\n\n**Interpretación (inferencia, no comprobada):** el worker fue quedándose sin memoria, se degradó y no respondió dentro de los 30 s. El reinicio lo limpió. La coincidencia temporal es muy buena, pero no tengo evidencia directa de que la memoria causara los timeouts. Tampoco sé si ambos tienen una causa común.\n\n**Lo que no se sabe:**\n- **Qué consumió la memoria.** El log no tiene detalle por request, así que no pude identificar el proceso o el reporte responsable. Es la pregunta abierta principal, y sin ella el incidente puede repetirse.\n- **Si el cliente volvió a pedir los reportes después de las 13:42.** No lo verifiqué. Que no haya errores después sugiere que se recuperó, pero también podría ser que nadie los pidió. No puedo afirmar que esté resuelto para el usuario.\n\n**Siguientes pasos sugeridos:**\n1. Revisar en `tool_usage_log` si hubo llamadas exitosas a `odoo_report` después de las 13:42, para confirmar la recuperación.\n2. Mirar qué reportes se pidieron entre las 13:05 y las 13:40 (parámetros, tamaño de rango de fechas) para buscar un candidato a consumir mucha memoria.\n3. Valorar agregar logging por request o métricas de memoria por tarea, y considerar subir el límite o paginar los reportes grandes.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3314,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 788,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3314,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 788,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3314,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3314
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

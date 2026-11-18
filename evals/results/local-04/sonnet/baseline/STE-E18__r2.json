@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n## 1. Guardado\nEl modelo llama a la herramienta `manage_memory` (acciones como crear y `read`). Cada memoria pertenece a un **scope**:\n- **user**: personal, una por usuario.\n- **workspace**: compartida con el equipo.\n\n## 2. Límite y expulsión (cap + FIFO)\n- Máximo **50 memorias por scope**.\n- Al agregar la 51ª, se borra la más antigua según `created_at`, **en la misma transacción de base de datos**.\n- La expulsión es silenciosa para el usuario, pero **el modelo sí se entera**: la respuesta de la herramienta incluye un mensaje que lo informa.\n- Es FIFO puro por fecha de creación. No importa cuánto se use una memoria ni su relevancia.\n\n## 3. Carga progresiva (dos niveles)\nInspirada en los Skills de Claude Code:\n\n1. **Header** (se inyecta en cada turno): `título + (resumen si existe, si no el cuerpo hasta 250 caracteres)`. Si el cuerpo supera 250 caracteres y no hay resumen, el header termina con `... [read]`.\n2. **Cuerpo** (bajo demanda): si el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\nEsto acota el costo por turno a ~3K tokens, incluso con 50 memorias de tamaño máximo.\n\n## 4. Inyección en el system prompt\nEn `tuqui_core/chat/agent.py`, dentro de `_load_chat_setup`, después del bloque `CURRENT USER` y antes del bloque de proyecto:\n\n```\n# Workspace memory (shared with team)\n- [customer:123 / preferred_payment] Acme — method: Wire transfer only. (id=abc-...)\n- [process:billing / default_due] Billing due end of month (not day 10). [read] (id=def-...)\n\n# User memory (personal)\n- [general] Sonnet preferred for long queries. (id=ghi-...)\n```\n\nCada línea lleva la clave/categoría, el texto del header y el `id` que el modelo necesita para leerla completa. La memoria del workspace va primero y la personal después.\n\n## 5. Qué pasa cuando hay muchas\nHay dos mecanismos de protección, en capas:\n\n| Situación | Mecanismo |\n|---|---|\n| Más de 50 en un scope | Expulsión FIFO de la más antigua |\n| Headers que suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres ≈ 3K tokens) | **Guard de presupuesto**: `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes |\n\nDos consecuencias a tener en cuenta:\n- El filtrado por presupuesto es **por turno**: una memoria que no entra hoy puede entrar en el siguiente turno si el mensaje del usuario le es más afín. No se borra, solo no se inyecta.\n- La expulsión FIFO sí es **permanente**. Una memoria importante pero antigua puede perderse aunque se use mucho.\n\n## Resumen del flujo\n`guardar → (si >50, expulsar la más antigua) → en cada turno armar headers → (si >12K chars, filtrar por relevancia con rapidfuzz) → inyectar en el system prompt → el modelo hace `read` si ve `[read]` y necesita el detalle`.\n\nEl material no detalla el criterio exacto del top-N (cuántas se conservan ni el umbral de score). Tampoco dice si el guard aplica a cada scope por separado o al total. Eso habría que verificarlo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3649,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1296,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1296,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3649,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3649
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el caso del webhook cuando el resultado es ASK y no hay ningún humano para aprobar? ¿Se bloquea, queda esperando o se trata como deny? Necesito el comportamiento real (o el punto exacto del código que lo decide), porque ese es justo mi caso del agent por webhook y la respuesta lo deja sin cerrar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el caso del webhook cuando el resultado es ASK y no hay un humano que apruebe? ¿Se bloquea, queda esperando o se trata como deny? Es justo mi caso 2 y la respuesta lo deja sin cerrar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para el agent por webhook, ¿qué pasa cuando el resultado es ASK y no hay nadie para aprobar? ¿Se bloquea, queda esperando o se trata como deny? Eso decide si el agent funciona o falla, y la respuesta no lo dice."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa en el caso del webhook cuando el resultado es ASK y no hay ningún humano para aprobar? ¿Se bloquea, queda esperando o se trata como deny? Necesito el comportamiento real (o el punto exacto del código que lo decide), porque ese es justo mi caso del agent por webhook y la respuesta lo deja sin cerrar.",
+ "followup_answer": "No lo puedo cerrar: el código de `tuqui_core` no está en este directorio (busqué `client_facing_core.py` y `permissions.py` y no hay nada), y el material que me pasaste no describe qué hace el runtime con un ASK sin humano. Cualquier respuesta mía sería una suposición.\n\nDónde está la decisión, en el código que no tengo:\n- **`chat/client_facing_core.py`**: es donde se arma el turno con identidad prestada. Ahí tiene que estar si el canal puede pedir aprobación o no.\n- **`ChannelProfile`**: ya tiene `personal_identity_applies`. Mirá si tiene otro campo parecido (algo como \"puede pedir aprobación\" o \"interactivo\").\n- **El call site de `evaluate_permission`**: es donde se consume el resultado. Buscá qué rama toma el `ASK` y si consulta el perfil del canal.\n\nPara probarlo sin leer código: dejá en \"ask\" una tool de escritura en la grilla del workspace, dispará el agent por webhook y mirá `tool_usage_log.permission_action` y si el turno termina, queda colgado o devuelve error.\n\nSi me das la ruta del repo de `tuqui_core`, lo leo y te marco el punto exacto.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12399,
+  "cache_read_input_tokens": 75937,
+  "output_tokens": 830,
+  "output_tokens_details": {
+   "thinking_tokens": 77
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12399,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 437,
+    "cache_read_input_tokens": 29505,
+    "cache_creation_input_tokens": 192,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 192
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a5d6bea00a"
+ }
+}

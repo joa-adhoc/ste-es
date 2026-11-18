@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Qué pasó\n\nHay una colisión de nombres de policy entre dos migraciones:\n\n- `0398_scheduled_runs_draft.sql:12` creó `scheduled_runs_ws` con `USING (true)`. Es decir, cualquier workspace ve todas las filas.\n- `0412_scheduled_runs.sql:20` intenta crear la policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero va envuelta en `IF NOT EXISTS`. Como el nombre ya existía por la 0398, la saltea. El warning del setup lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\nResultado: la policy que está activa es la del borrador, abierta a todos. Por eso el workspace B ve las 2 filas del A. El test está haciendo su trabajo: **esto es una fuga de datos entre workspaces real**, no un test frágil.\n\nEsto es lo que se deduce de los logs. No verifiqué la base real, así que no sé si pasa lo mismo en staging o producción.\n\n## Qué hacer\n\n1. **No edites la 0398 ni la 0412.** Según AGENTS.md, ya están aplicadas y el tracking es por nombre de archivo: editarlas no las vuelve a correr.\n2. **Creá una migración nueva** (la siguiente al número más alto) que reemplace la policy:\n   ```sql\n   DROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n   CREATE POLICY scheduled_runs_ws ON scheduled_runs\n     USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n   ```\n   Conviene agregar también `WITH CHECK` con la misma condición, para que tampoco se pueda insertar o actualizar filas de otro workspace. Confirmá que la tabla tenga `ENABLE ROW LEVEL SECURITY` (y `FORCE` si corresponde).\n3. **Revisá los entornos ya desplegados.** Si la 0398 llegó a staging o producción, la fuga existe ahí hoy. Consultá `pg_policies` en cada uno para ver qué `qual` tiene `scheduled_runs_ws`. Si estuvo expuesta en producción, avisá a quien corresponda, porque es un tema de seguridad.\n4. **Evitá que se repita.** El patrón `IF NOT EXISTS` por nombre de policy esconde este tipo de desvío. Para policies, es mejor `DROP POLICY IF EXISTS` seguido de `CREATE`.\n5. **Verificá.** Corré de nuevo `pytest tuqui_core/tests/test_rls.py -q`. Debería dar 7 passed. Eso lo corrés vos: yo no lo ejecuté.\n\nSi querés, puedo armar la migración nueva en cuanto me digas dónde está el repo, porque este directorio no es un repo git y no veo `supabase/migrations`. El PR debería explicar la razón: la policy abierta del borrador quedó activa porque la 0412 la salteó.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9867,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1072,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9867,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1072,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9867,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9867
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

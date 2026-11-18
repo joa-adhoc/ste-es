@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Qué pasó\n\nLa migración `0398_scheduled_runs_draft.sql` (un borrador) creó la policy `scheduled_runs_ws` con `USING (true)`, es decir, **sin ningún aislamiento**: cualquier workspace ve todas las filas.\n\nDespués, `0412_scheduled_runs.sql` intenta crear la policy correcta (`workspace_id = current_setting('app.current_workspace_id')::uuid`), pero lo hace envuelta en `IF NOT EXISTS` por nombre. Como la policy ya existía por el borrador, la migración la **saltó** (el warning en el log de setup: `policy \"scheduled_runs_ws\" already exists, skipped`) y quedó activa la versión permisiva. El test detectó exactamente eso: B ve 2 filas de A.\n\n## Qué hacer\n\n1. **No edites 0398 ni 0412.** Según AGENTS.md, ya están aplicadas y el tracking es por nombre de archivo, así que editarlas no las vuelve a correr.\n2. **Creá una migración nueva** (siguiente número libre, p. ej. `0413_fix_scheduled_runs_rls.sql`) que reemplace la policy:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n-- Opcional pero recomendable: que también aplique a INSERT/UPDATE\n-- WITH CHECK (workspace_id = current_setting('app.current_workspace_id')::uuid)\n```\n\n   Verificá además que la tabla tenga `ENABLE ROW LEVEL SECURITY` (y valorá `FORCE ROW LEVEL SECURITY` si el rol de la app es el dueño de la tabla), porque sin eso la policy no se aplica.\n3. Volvé a correr `pytest tuqui_core/tests/test_rls.py`.\n\n## Ojo con el alcance\n\n- **Esto no es solo un test rojo:** si 0398 ya se aplicó en entornos reales (staging/prod), hay una fuga de datos entre workspaces en `scheduled_runs` hasta que se aplique la nueva migración. Conviene priorizar el deploy y revisar si hubo accesos cruzados.\n- **Patrón a evitar:** el `IF NOT EXISTS` por nombre oculta este tipo de drift. Para policies, es más seguro `DROP POLICY IF EXISTS` + `CREATE POLICY`, así la migración deja el estado deseado sin importar el previo.\n- Si el warning de \"skipped\" no fuera fatal en CI, valdría la pena hacerlo fallar o al menos alertar.\n\nSi querés, te escribo el archivo de migración directamente; necesitaría saber la numeración actual en `supabase/migrations/`, que no tengo en el directorio de trabajo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3594,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1031,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3594,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1031,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3594,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3594
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

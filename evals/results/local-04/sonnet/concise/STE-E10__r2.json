@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Orden:** 1) `workspace_write_models` → 2) `evaluate_permission` → 3) `tool.execute()`.\n\n**Paso 1 – write models.** Si el admin no habilitó la operación sobre ese modelo, el tool corta ahí y nunca llega al gate.\n\n**Paso 2 – evaluator** (el primero que resuelve gana):\n1. `workspace_tool_approvals` = `deny` → **DENY**. Es un piso: nada personal lo levanta.\n2. `user_tool_approvals` del usuario en ese workspace: si hay fila, esa acción gana. **Se saltea en canales sin identidad personal** (`exposure`, `webhook`, `scheduled`).\n3. `workspace_tool_approvals` = `allow` / `ask`.\n4. Default: si el recurso tiene `approval` (`ask`/`always`) → **ASK**; si no → **ALLOW**. Para tools de conector sin declaración en el REGISTRY, heurística de verbos + annotations MCP.\n\n**Paso 3 –** si resultó allow (o ask concedido), se ejecuta y se audita en `tool_usage_log` con `permission_action`.\n\n**Tus casos**\n\n- **Admin puso \"ask\", miembro puso \"allow\" (chat normal):** gana el **allow del miembro**. Un `ask` del admin no es piso; solo el `deny` lo es. La preferencia personal (paso 2) se evalúa antes que el `ask` del workspace (paso 3). Si el admin quiere impedirlo, tiene que poner `deny`.\n- **Agent por webhook:** el canal no tiene identidad personal, así que se **ignora `user_tool_approvals`** aunque el miembro prestado tenga \"allow\". Rige solo la grilla del workspace: `deny` → bloquea, `ask` → **ASK**, `allow` → permite, y sin fila aplica el default por recurso. Ojo: el material no dice cómo se resuelve un ASK sin humano presente en webhook/scheduled; habría que mirar `client_facing_core.py` para saber si se deniega o queda pendiente.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4520,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 724,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4520,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 724,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4520,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4520
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

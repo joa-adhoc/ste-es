@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el corte de reintentos hay una contradicción: ¿el guard corta al llegar al contador 3 (o sea, la tercera llamada idéntica ya recibe FATAL) o permite tres intentos y corta el cuarto? Y el último punto dice que corta CONNECTION y ODOO_NOT_CONNECTED 'entre tools' con un aviso cada una: ¿eso significa que el contador se comparte entre tools distintas (sin tool_name/args en la key) y que el mensaje FATAL difiere según la clase? Además, ¿for_llm() incluye retry_after_seconds en el string?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "El último punto dice que el guard corta CONNECTION y ODOO_NOT_CONNECTED \"entre tools\", pero la key incluye tool_name y args, así que un reintento con otra tool o con otros args arrancaría un contador nuevo. ¿Hay una regla aparte para esas dos clases que cuente sin importar la tool y los args? Si la hay, ¿con qué umbral y qué aviso recibe el modelo en cada caso? Y de paso, ¿for_llm() incluye retry_after_seconds en el string, o el modelo nunca lo ve?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "En el corte de reintentos, ¿cuál es el comportamiento exacto en el tercer intento idéntico: el tercer call se ejecuta y recién su resultado se reemplaza por FATAL, o el guard bloquea la ejecución antes de correr la tool? Además, ¿qué significa que el guard 'corta CONNECTION y ODOO_NOT_CONNECTED entre tools'? ¿El contador se comparte entre tools distintas, aunque la key incluya tool_name y args? Y ¿el string de for_llm() incluye retry_after_seconds?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "En el corte de reintentos hay una contradicción: ¿el guard corta al llegar al contador 3 (o sea, la tercera llamada idéntica ya recibe FATAL) o permite tres intentos y corta el cuarto? Y el último punto dice que corta CONNECTION y ODOO_NOT_CONNECTED 'entre tools' con un aviso cada una: ¿eso significa que el contador se comparte entre tools distintas (sin tool_name/args en la key) y que el mensaje FATAL difiere según la clase? Además, ¿for_llm() incluye retry_after_seconds en el string?",
+ "followup_answer": "**1. ¿Tercera o cuarta llamada?** El material no lo resuelve, y mi \"al tercero\" anterior era una inferencia. Dice `counter ≥ THRESHOLD` con `THRESHOLD=3`. Si `record` incrementa antes de comparar, la tercera falla idéntica ya recibe FATAL, así que el modelo ve dos errores reales y un FATAL. Si compara antes de incrementar, corta la cuarta. Fijate en el orden de `counter += 1` y el `>=` dentro de `DoomLoopGuard.record`, en `guards.py`.\n\n**2. ¿Contador compartido entre tools?** Según la key, no. `\"{tool_name}|{hash(args)}|{error_class}\"` separa por tool, por args y por clase. Dos tools distintas, o la misma con otros args, no suman. Mi frase \"entre tools\" fue ambigua. El material tampoco aclara si el texto FATAL cambia según la clase. \"Cada una con su aviso\" sugiere que sí, pero no dice si ese aviso es el FATAL o el error original. Eso está en `guards.py` o en `_wrap_tool`.\n\n**3. ¿`for_llm()` incluye `retry_after_seconds`?** El material no lo dice. El formato documentado es `\"[TOOL_ERROR class=X]: message\"`, sin ese campo. Solo aparecería si quien construye el `ToolError` lo mete dentro de `message`. Revisá `ToolError.for_llm()` en `tool_errors.py`.\n\nSi me pasás `guards.py` y `tool_errors.py`, lo confirmo con el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5938,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1231,
+  "output_tokens_details": {
+   "thinking_tokens": 668
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5938,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1231,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5938,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5938
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b368411beb"
+ }
+}

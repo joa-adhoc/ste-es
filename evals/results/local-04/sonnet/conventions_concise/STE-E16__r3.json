@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cada `save` crea una versión nueva, y lo que ve quien tiene el link depende de cuál versión esté publicada.\n\n- **Primer `save`** (sin `artifact_id`): crea la v1 y la publica.\n- **Editar uno que ya compartiste**: crea la v(n+1) y mueve `current_version_id`, pero no `published_version_id`. El link por token sigue mostrando la versión publicada. El result trae `unpublished_changes: true` y el viewer interno muestra un banner. Ese viewer sí navega por la versión actual, con selector.\n- **Para que el link vea el cambio**: `publish(version?)`. Por defecto publica la última.\n- **Para volver atrás**: publicá una versión anterior.\n\n**Refresh de datos**\n- Crea una versión solo-data, con `content` en `NULL`.\n- Cada versión resuelve `content` y `data` por separado, hacia atrás: toma el último `content` no nulo ≤ n y el último `data` no nulo ≤ n. Por eso el refresh no puede romper el diseño.\n- Si el artifact ya existe, el `data` se valida contra el `data_schema` guardado. Un shape incompatible se rechaza antes de escribir.\n\nEl material no dice si el refresh publica solo. Si pasa por el mismo `save` con `artifact_id`, el link seguiría mostrando los datos de la versión publicada hasta que se publique la nueva. No lo verifiqué: habría que mirar el código del refresh en `service`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10698,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1016,
+  "output_tokens_details": {
+   "thinking_tokens": 504
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10698,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1016,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10698,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10698
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

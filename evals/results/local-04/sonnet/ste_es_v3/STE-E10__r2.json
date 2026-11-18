@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El orden es: primero `workspace_write_models`, después el `deny` del workspace, después la preferencia personal, después `ask`/`allow` del workspace y al final el default. La primera regla que aplica gana.\n\n1. `workspace_write_models`: si el admin no permite la operación sobre ese modelo, el tool corta acá.\n2. `workspace_tool_approvals` con `deny`: bloquea siempre. Es un piso y ninguna preferencia personal lo levanta.\n3. `user_tool_approvals`: si hay fila para `(user_id, workspace_id, tool_name)`, esa `action` gana. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n4. `workspace_tool_approvals` con `allow` o `ask`.\n5. Default: `ASK` si el recurso está en `approval` (`\"ask\"` o `\"always\"`). Si no, `ALLOW`.\n\n**Admin en `ask`, miembro en `allow`:** en un chat con identidad personal, gana el `allow` del miembro. El paso 3 va antes que el 4, y solo el `deny` del admin es piso. Si el admin quiere forzar el bloqueo, tiene que poner `deny`. Un `ask` del admin es solo un valor por defecto que el miembro puede pisar.\n\n**Agent por webhook:** el evaluador saltea el paso 3. El turno corre con la identidad prestada de un miembro, y `ChannelProfile.personal_identity_applies` es falso en ese canal. La preferencia de esa persona no cuenta. Decide la grilla del workspace:\n\n- `deny` en la grilla: bloquea.\n- `allow` o `ask` en la grilla: se aplica tal cual.\n- Sin fila: aplica el default del paso 5.\n\nEn el caso del miembro con `allow`, el webhook ignora ese `allow` y sigue el `ask` del admin. El material no dice cómo se resuelve un `ask` cuando no hay un humano en el canal. Verificalo en `tuqui_core/chat/permissions.py` y en `chat/client_facing_core.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4765,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1063,
+  "output_tokens_details": {
+   "thinking_tokens": 346
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4765,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1063,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4765,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4765
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

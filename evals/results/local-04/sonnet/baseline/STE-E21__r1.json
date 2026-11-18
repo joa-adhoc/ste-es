@@ -1,0 +1,44 @@
+{
+ "case": "STE-E21",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, borrar el commit no alcanza. Según `docs/seguridad.md`, un secreto que llegó a un remoto se da por filtrado. GitHub guarda los commits de un PR aunque reescribas la historia, y el preview de Railway ya construyó la imagen con ese commit. **La key hay que rotarla.**\n\n**1. Rotar la key de OpenAI (lo urgente).** El orden importa para no cortar el servicio:\n   1. Crear una key nueva en el panel de OpenAI.\n   2. Cargarla en Admin › Integraciones, tanto en staging como en prod. No va en variables de entorno de Railway.\n   3. Recién después, revocar la vieja.\n\n**2. Limpiar la rama.** Es buena práctica aunque no reemplaza la rotación:\n   - `git rebase -i` para sacar el commit (o editarlo y quitar la key).\n   - `git push --force-with-lease`. El `git push --force` sin lease está bloqueado.\n\n**3. Avisar.** Dejá un mensaje en la tarea abierta del proyecto 1526 (Administración Tuqui) con qué key rotaste y cuándo.\n\nMientras la key vieja no esté revocada, cualquiera que haya visto el commit puede usarla. Conviene hacer el paso 1 antes que la limpieza de la rama. También te sirve revisar el uso de la key vieja en el panel de OpenAI por si hubo actividad rara.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3380,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 494,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3380,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 494,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3380,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3380
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Depende de quién consume la descripción.** Si solo la pinta la SPA (cards, listados), alcanza con el cliente. Si además entra a un prompt, a un mail o sale por la superficie MCP, hay que resolver también en el backend, con la misma cadena de fallback.\n\nPara decidirlo, buscá dónde se lee la descripción del conector fuera del front. No lo verifiqué, porque no tengo el repo acá.\n\n## De punta a punta\n\n1. **Migración:** `ALTER TABLE <tabla> ADD COLUMN description_i18n JSONB;`. La columna legacy `description` queda como está. El material cita `supabase/migrations/0201_platform_connectors_description_i18n.sql` como referencia. Esa migración parece cubrir justo este caso, así que mirá si la columna ya existe antes de crear otra.\n\n2. **API:** devuelve el mapa entero `description_i18n` junto con `description`, sin filtrar por idioma en el serializer. No reimplementes los bordes, que ya están en `tuqui_core/i18n.py`:\n   - Al escribir, usá `normalize_i18n_keys`. Baja las claves a dos letras minúsculas y tira las vacías.\n   - Al leer, usá `decode_i18n`. asyncpg puede devolver el JSONB como `str` o como dict.\n\n3. **Front:** `localizedField(row.description_i18n, row.description, i18n.language)`. No escribas la cadena de fallback a mano.\n\n4. **Editor (panel de admin):** dos inputs, ES y EN. Al guardar, mandá `description_i18n` solo con las claves no vacías y espejá la legacy con `es || en`. Referencia: `AdminAgentEditorPage.tsx:95-115`.\n\n5. **Backend (solo si la descripción llega a un prompt, un mail o MCP):** resolvé con la cadena `idioma exacto → en → legacy`. Tomá el idioma de `resolve_response_language(workspace_id, user_id)` y no leas `Accept-Language`.\n\n6. **Caché:** si terminás resolviendo en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resuelve solo el cliente, no hace falta.\n\n## Cadena de fallback\n\nEn los dos lados es la misma: `idioma exacto → en → columna legacy`. Si resolvés en ambos lados con cadenas distintas, el texto sale en un idioma en la SPA y en otro en el prompt. El material lo marca como el bug que ya pasó con `agents`.\n\n¿Los conectores se muestran solo en la SPA o también llegan a un prompt o a MCP? Con eso te digo si el paso 5 aplica.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10389,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1178,
+  "output_tokens_details": {
+   "thinking_tokens": 253
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10389,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1178,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10389,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10389
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

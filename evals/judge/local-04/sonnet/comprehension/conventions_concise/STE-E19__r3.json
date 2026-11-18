@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto menciona `pytest tuqui_core/tests/test_rls.py` (el archivo de test de RLS), pero no nombra el test puntual que falló. Dice que el test acierta al fallar: muestra que la RLS de `scheduled_runs` es efectivamente abierta, o sea una fuga de datos entre workspaces, no un test roto.",
+  "Porque su guard `IF NOT EXISTS` la salteó: la policy `scheduled_runs_ws` ya existía desde la migración 0398 con `USING (true)`, y el nombre ya estaba tomado. El warning de setup lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.",
+  "No. El texto indica no editar la 0398 ni la 0412, porque según AGENTS.md el tracking es por nombre de archivo y editarlas no las vuelve a correr (y en entornos donde ya se aplicaron no cambia nada). Hay que crear una migración nueva (por ejemplo `0413_fix_scheduled_runs_policy.sql`) que haga DROP y CREATE de la policy, y revisar los entornos ya desplegados."
+ ],
+ "grades": [
+  "not_stated",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "af30f9ed0c",
+  "control": "8368a6d09b"
+ }
+}

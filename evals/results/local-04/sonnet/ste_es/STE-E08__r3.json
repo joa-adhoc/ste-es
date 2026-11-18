@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Skill, salvo que el wrapper cumpla (a), (b2) o (d).** Un `odoo_create` con defaults es un wrapper 1→1: no califica por (d), y es componible con `odoo_create`, así que (a) tampoco aplica.\n\n**Criterio:** la tool nativa necesita al menos un eje. Si no cumple ninguno, va como skill.\n\n- **(a)** No se logra con las tools genéricas. Un create con defaults sí se logra.\n- **(b2)** Whitelist más fina que `create` genérico. Aplica si la tool bloquea un modelo o campos que `odoo_create` dejaría pasar, como `odoo_copy` con su gate `create`.\n- **(d)** Solo si colapsa ≥3 calls o un loop no acotado. Un solo create no llega al umbral.\n- **(b1) y (c)** Valen solo en chat.\n\n**Qué cambia con el MCP saliente:** el router MCP ignora `requires_approval` y no tiene turno donde forzar pasos. Por eso (b1) y (c) pierden valor ahí. Si la tool se expone por MCP, solo la justifican (a), (b2) o (d).\n\nEs el caso de `odoo_schedule_activity`: su único diferencial era (b1), y por eso pasó a system skill.\n\n**Qué mirar en tu caso:**\n1. ¿Los defaults necesitan buscar o resolver otros registros (≥3 calls)? Eso sería (d).\n2. ¿La tool restringe el modelo o los campos, con un gate más fino que `create`? Eso sería (b2) y vale también en MCP.\n3. ¿Solo existe para ahorrar tokens de esquema o para que el LLM no olvide los defaults? Entonces es skill.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5523,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 603,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5523,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 603,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5523,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5523
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

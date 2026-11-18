@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja de ese scope según `created_at`, en la misma transacción de base. El desalojo es silencioso, pero la respuesta de la tool le avisa al modelo.",
+  "En cada turno entra el header de cada memoria: título más el resumen si existe; si no hay resumen, los primeros 250 caracteres del cuerpo, y si el cuerpo es más largo el header termina en `... [read]`. Se inyectan en `_load_chat_setup` como las secciones `# Workspace memory (shared with team)` y `# User memory (personal)`, con líneas `[clave] header (id=...)`. El cuerpo completo llega bajo demanda: si una memoria está marcada `[read]`, el modelo llama a `manage_memory(action='read', id=...)`.",
+  "Si el total de caracteres de los headers pasa `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), entra una guarda: rapidfuzz puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes. Las demás no entran en ese turno pero siguen guardadas. Cuál es N no lo dice."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e0cefc5f9a",
+  "control": "2fefeeffdf"
+ }
+}

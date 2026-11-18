@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Con eso, la migración se saltea en el preview del PR y se aplica recién en el deploy de `staging` o `main`.\n\n```sql\n-- destructive: true\nALTER TABLE chats DROP COLUMN legacy_flag;\n```\n\n**Dónde se aplica y dónde no**\n\n```\n┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐\n│ PR env (Railway)     │──►│ Merge a staging      │──►│ Deploy a main (prod) │\n│ base de staging      │   │ deploy rama staging  │   │ deploy rama main     │\n│ NO aplica, no       │   │ SÍ aplica            │   │ SÍ aplica            │\n│ registra             │   │ (con flag + rama)    │   │ (con flag + rama)    │\n└──────────────────────┘   └──────────────────────┘   └──────────────────────┘\n```\n\n- **PR env:** el runner saltea la migración **sin registrarla** en `_migrations`. Así el deploy posterior al merge la aplica.\n- **Staging y main:** se aplica solo si se cumplen las dos condiciones. `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y `RAILWAY_GIT_BRANCH` igual a `staging` o `main`.\n- **Por qué dos condiciones:** el PR env hereda el flag de staging. Así un preview aplicó `0180_chat_ga` contra la base compartida. Por eso el gate mira también la rama.\n- **Si hay marcadores de Railway pero no rama estampada:** el gate falla cerrado y no aplica.\n\n**Sin el marker**\n\nLa migración se trata como aditiva. El preview la aplica contra la base compartida de staging. Ahí el servicio de staging, que corre el código anterior, se rompe para todos.\n\n**Otros runners**\n\n- `scripts/apply_migrations.py` (CI y local) usa el mismo contrato. El opt-in va por base.\n- Las bases efímeras lo activan: el postgres del workflow, el container e2e y pytest.\n- `make migrate` **no** lo activa, porque la base de desarrollo local se comparte entre worktrees. Ahí la migración destructiva también se saltea.\n\n**Ojo con las aditivas del mismo PR:** se aplican a la base de staging desde el preview. Si renombrás un archivo o mergeás, hay consecuencias. Están en `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\". Ese archivo no lo tengo, así que revisalo antes de renombrar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4628,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 913,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4628,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 913,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4628,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4628
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

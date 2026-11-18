@@ -1,0 +1,71 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se decide el top-N del guard de presupuesto (cuántas memorias se conservan y con qué umbral de score de rapidfuzz), y se aplica por scope por separado o sobre el total de workspace + user?",
+   "note": "La primera oración solo introduce el tema ('Ciclo de vida de una memoria en el chat') sin responder la pregunta; la respuesta útil aparece en las secciones siguientes. El material es claro y completo en el flujo general, pero deja abierto el detalle del filtrado cuando hay muchas memorias, que es justo lo que importa para actuar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuántas memorias se conservan en el top-N del guard de presupuesto y con qué umbral de score de rapidfuzz, y el guard se aplica por scope por separado o sobre el total de workspace + user?",
+   "note": "El título y la primera sección solo abren el tema; la primera oración no responde el ciclo completo. La respuesta es sólida y bien estructurada, pero deja sin definir justo el comportamiento cuando hay muchas memorias (criterio del top-N y alcance del guard), y admite que hay que verificarlo en el código."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se decide exactamente el top-N del guard de presupuesto (cuántas memorias se conservan y con qué umbral de score de rapidfuzz), y se aplica por scope por separado o sobre el total de workspace + user?",
+   "note": "La primera oración solo dice 'Ciclo de vida de una memoria en el chat' como título, y la primera oración real ('El modelo llama a manage_memory') es solo el paso inicial, no responde el ciclo completo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo se decide el top-N del guard de presupuesto (cuántas memorias se conservan y con qué umbral de score de rapidfuzz), y se aplica por scope por separado o sobre el total de workspace + user?",
+ "followup_answer": "No pude responder esto. El material no lo dice y el código tampoco está disponible. Busqué `_MEMORY_BUDGET_CHARS` y `rapidfuzz` en `/tmp/ste-es-eval-0aab2hz7` y no hubo coincidencias. Tampoco existe `tuqui_core/chat/agent.py` en este directorio.\n\nLo único que el material afirma es esto:\n- El umbral es `_MEMORY_BUDGET_CHARS` = 12K caracteres, unos 3K tokens.\n- Si el total de caracteres de los headers lo supera, `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N.\n\nNo dice cuánto vale N ni si hay un score mínimo. Tampoco dice si el guard actúa por scope o sobre el total. Hay algunas pistas, pero son inferencias y no hechos:\n- **Total o por scope:** la redacción habla de \"total header chars\", lo que sugiere que se suma todo, workspace y user. Con 50 + 50 memorias de tamaño máximo, el total podría pasar los 12K aunque cada scope entre por separado. Además, el \"~3K tokens para 50 memorias\" del material solo cuadra con un presupuesto por scope o con un único scope.\n- **N:** puede ser un número fijo o puede ser \"las que quepan en el presupuesto\". No puedo decir cuál.\n\nPara cerrarlo hay que leer `_load_chat_setup` y la función que arma el bloque de memoria en `tuqui_core/chat/agent.py`. Busca la llamada a `rapidfuzz.process.extract` o `fuzz.*` y mira estos puntos:\n1. Si recibe una lista combinada o una por scope.\n2. Si usa `limit=`, `score_cutoff=`, o acumula headers hasta llenar 12K.\n\nSi me pasas la ruta del repo o el fragmento de código, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5469,
+  "cache_read_input_tokens": 39792,
+  "output_tokens": 898,
+  "output_tokens_details": {
+   "thinking_tokens": 88
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5469,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 676,
+    "cache_read_input_tokens": 22512,
+    "cache_creation_input_tokens": 237,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 237
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "04969d86ba"
+ }
+}

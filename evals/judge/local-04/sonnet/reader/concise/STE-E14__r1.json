@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator no encuentra nada, se queda sin tiempo o agota las llamadas a herramientas? ¿Pasa igual al Synthesizer con findings vacíos o parciales, o se corta ahí y no se muestra nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator no encuentra nada, se queda sin tiempo o agota las llamadas a herramientas? ¿Devuelve findings vacíos, lanza error o marca la hipótesis como descartada, y el Synthesizer cómo lo maneja?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente si el Investigator no encuentra nada, se queda sin tiempo (watchdog) o agota iteraciones o llamadas? ¿Se corta el pipeline o el Synthesizer recibe findings vacíos o parciales? ¿Y si falla alguna etapa por error, se muestra algo o queda en silencio?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando el Investigator no encuentra nada, se queda sin tiempo o agota las llamadas a herramientas? ¿Pasa igual al Synthesizer con findings vacíos o parciales, o se corta ahí y no se muestra nada?",
+ "followup_answer": "No lo puedo responder con lo que tengo. El material no describe ese comportamiento, y el directorio de trabajo está vacío, así que no hay `investigator.py` ni `synthesizer.py` para leer.\n\nLo que sí dice el material:\n- El Investigator devuelve `InvestigationFindings`, pero no se define qué pasa con una hipótesis sin resultados, con timeout o con el tope de llamadas agotado.\n- La única descripción de entrada del Synthesizer es \"findings de la investigación\". El Layer 2 compara contra un \"resumen combinado del investigador\", así que sí hay un resumen agregado. Eso no dice si una hipótesis fallida aporta un resumen vacío, uno parcial o ninguno.\n- Los únicos cortes documentados son el Planner con 0 hipótesis y el caso en que los guards rechazan todo (`synth_all_rejected`).\n\nUna consecuencia que se deduce de los guards: si el Synthesizer recibe findings vacíos o parciales, el Layer 2 rechazaría casi cualquier entidad o número inventado, porque no estarían en el resumen. Es decir, probablemente termine en `synth_all_rejected` y no en un corte explícito. Pero es una inferencia, no algo documentado.\n\nPara confirmarlo hay que ver:\n- En `investigator.py`: si el manejo de `asyncio.TimeoutError` y de los topes de iteraciones/llamadas devuelve findings parciales o lanza una excepción, y si se descartan las hipótesis fallidas.\n- En el orquestador del pipeline: si hay un cortocircuito cuando la lista de findings está vacía antes de llamar al Synthesizer.\n\nSi me pasás el código o el path del repo, lo reviso y te lo respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6502,
+  "cache_read_input_tokens": 40754,
+  "output_tokens": 834,
+  "output_tokens_details": {
+   "thinking_tokens": 84
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6502,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 614,
+    "cache_read_input_tokens": 23465,
+    "cache_creation_input_tokens": 326,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 326
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ca670c7cfc"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E11",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo. Sin esa línea, el preview del PR aplica el drop sobre la base compartida de staging y rompe el código viejo para todos.\n\n```sql\n-- destructive: true\nALTER TABLE chats DROP COLUMN legacy_flag;\n```\n\nEl runner solo aplica una migración destructiva si se cumplen las dos condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y deploy de la rama `staging` o `main` (`RAILWAY_GIT_BRANCH`). Si falta alguna, la saltea y no la registra en `_migrations`.\n\n| Dónde | ¿Se aplica? | Por qué |\n|---|---|---|\n| CI, e2e, pytest (`scripts/apply_migrations.py`) | Sí | Son bases efímeras con el opt-in activado. |\n| `make migrate` (local) | No | No activa el flag: la base de desarrollo se comparte entre worktrees. |\n| PR env de Railway | No | Hereda el flag de staging, pero la rama no es `staging` ni `main`. |\n| Deploy de `staging` tras el merge | Sí | Cumple las dos condiciones. |\n| Deploy de `main` (prod) | Sí, si el flag está en 1 | Verificá que prod tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. El material no lo dice. |\n\n- **Sin rama estampada:** si hay marcadores de Railway pero no `RAILWAY_GIT_BRANCH`, el gate falla cerrado y la saltea.\n- **Registro:** como el preview no la registra, el deploy real posterior al merge la aplica.\n- **Migraciones aditivas del mismo PR:** no llevan marker y sí se aplican a la base de staging desde el preview. Si renombrás un archivo, mirá [`docs/infra-ci-cd.md` § Un PR preview escribe en la base de staging](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4630,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1141,
+  "output_tokens_details": {
+   "thinking_tokens": 415
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4630,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1141,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4630,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4630
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

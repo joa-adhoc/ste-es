@@ -1,0 +1,44 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Desde el worktree, en este orden:\n\n1. `make worktree-setup`: linkea al clone principal el `.venv`, los `.env`, `node_modules`, `web/node_modules` y `.mcp.json`. Sin esto `make test` falla con \"Venv no encontrado\".\n2. **Dependencia de Python nueva:** no corras `make install` en el worktree. El target se niega, porque escribiría en el venv del clone principal y le repuntaría el editable install. Instalala en el clone principal, o borrá el link `tuqui_core/.venv` y armate un venv propio.\n3. **`web/package.json` modificado:** corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son del clone principal.\n\nDespués ya podés correr:\n\n```bash\nmake test          # unit\nmake test-rls      # aislamiento multi-tenant\nmake test-web      # frontend (vitest)\nmake lint\n```\n\nUn detalle sobre `npm ci`: borra `node_modules` antes de instalar. Si el link sigue apuntando al clone principal, podría pisar el del clone principal. No verifiqué cómo lo maneja el Makefile. Antes de correrlo, conviene sacar el symlink de `web/node_modules` para que `npm ci` cree uno propio en el worktree.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10604,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 444,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10604,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 444,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10604,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10604
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

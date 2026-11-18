@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude confirmar si la descripción de los conectores entra a un prompt, a un mail o sale por MCP, así que sigo sin saber si alcanza con el cliente. ¿Podés hacer el grep en el backend sobre dónde se lee `description` de los conectores y decirme cuál de los dos casos es? Además, confirmame si `0201_platform_connectors_description_i18n.sql` ya agrega la columna a la misma tabla de conectores, así sé si me salteo la migración."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No me quedó claro si necesito tocar el backend: ¿la descripción de los conectores entra a algún prompt del agente, mail o la superficie MCP, o solo se muestra en la SPA? ¿Podés hacer el grep en el repo de dónde se lee `description` de los conectores y decirme cuál de los dos casos es?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Ya que no podés ver el código, ¿podés confirmar si la descripción de los conectores entra a algún prompt del agente, mail o la superficie MCP? Y si `0201_platform_connectors_description_i18n.sql` ya agrega `description_i18n` a la misma tabla de conectores que uso, ¿podés decirme qué hace esa migración? Con eso sé si tengo que tocar el backend o alcanza con el cliente."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "No pude confirmar si la descripción de los conectores entra a un prompt, a un mail o sale por MCP, así que sigo sin saber si alcanza con el cliente. ¿Podés hacer el grep en el backend sobre dónde se lee `description` de los conectores y decirme cuál de los dos casos es? Además, confirmame si `0201_platform_connectors_description_i18n.sql` ya agrega la columna a la misma tabla de conectores, así sé si me salteo la migración.",
+ "followup_answer": "No pude hacer el grep ni confirmar lo de la migración, porque el repo no está disponible acá.\n\n- El directorio de trabajo (`/tmp/ste-es-eval-8yj9ihfd`) está vacío. No hay `supabase/migrations/`, ni `tuqui_core/`, ni código del front.\n- No me deja buscar fuera de ese directorio, así que no pude ubicar el repo en otro lado.\n\nPor eso no puedo decirte si alcanza con el cliente ni si te saltás la migración. Si lo adivino y me equivoco, te mando a un camino equivocado.\n\n## Lo que podés chequear vos en un par de minutos\n\n**1. ¿La migración 0201 ya cubre tu tabla?**\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n- Si tiene `ALTER TABLE <tu tabla de conectores> ADD COLUMN description_i18n JSONB`, y esa es la tabla que edita tu admin, te saltás el paso de migración.\n- Si es otra tabla (por ejemplo, un catálogo de plataformas distinto del de conectores del workspace), necesitás una migración nueva.\n\n**2. ¿Quién consume `description` en el backend?**\n```bash\n# lecturas de la columna / campo\ngrep -rnE \"description\" --include=*.py . | grep -iE \"connector\"\n\n# consumidores concretos: prompts, mails, MCP\ngrep -rniE \"connector.*description|description.*connector\" --include=*.py \\\n  | grep -iE \"prompt|system_message|mail|email|template|mcp|tool_spec|tools/list\"\n```\nFijate también en el constructor de tools MCP, porque ahí la `description` suele ir directo al modelo.\n\n**3. Cómo leer el resultado**\n- **Sólo aparece en serializers y respuestas de la API:** alcanza con el cliente. Es la ruta corta: migración si hace falta, API que devuelve el mapa, `localizedField` en el front y editor con dos inputs.\n- **Aparece en la construcción de un prompt, en un mail o en una tool MCP:** también tenés que resolver en el backend, con `lang → en → legacy` y `resolve_response_language(workspace_id, user_id)`. El `queryKey` del front tiene que incluir el idioma si resolvés en el server.\n\nSi me pasás la ruta del repo, o lo copiás dentro de `/tmp/ste-es-eval-8yj9ihfd`, hago el grep y te digo cuál de los dos casos es. También podés pegarme la salida de esos comandos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6317,
+  "cache_read_input_tokens": 63417,
+  "output_tokens": 1326,
+  "output_tokens_details": {
+   "thinking_tokens": 43
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6317,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 892,
+    "cache_read_input_tokens": 23224,
+    "cache_creation_input_tokens": 373,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 373
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c6d315dc45"
+ }
+}

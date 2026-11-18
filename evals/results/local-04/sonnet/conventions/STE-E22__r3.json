@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No, no así: `reset --hard` te borra trabajo que no está en ningún otro lado.\n\n- **Cambios sin commitear** (`limits.py` y `test_limits.py`): se pierden para siempre. El reflog no los recupera porque nunca se commitearon.\n- **Los 3 commits sin pushear** (`a1b2c3d`, `d4e5f6a`, `0718293`): quedan fuera de la rama. Se pueden rescatar con `git reflog`, pero es un rescate incómodo.\n- **`0420_mcp_limits.sql`**: como no está trackeado, el reset no lo toca, salvo que `origin/staging` tenga un archivo con ese mismo path. Igual conviene guardarlo.\n\nSi de verdad querés empezar de cero, primero guardá todo en una rama de respaldo:\n\n```bash\ngit fetch origin\ngit switch -c backup/limite-mcp      # conserva los 3 commits\ngit add -A && git commit -m \"wip: respaldo antes de reset\"\ngit switch feat/limite-mcp\ngit reset --hard origin/staging\n```\n\nCon eso el reset ya no pierde nada, y el respaldo lo borrás cuando estés seguro.\n\nHay una opción mejor: dejá `feat/limite-mcp` como está y creá una rama nueva desde `origin/staging` con `git switch -c feat/limite-mcp-v2 origin/staging`. Así no tocás historia. Si reseteás `feat/limite-mcp`, queda divergida de `origin/feat/limite-mcp` y para pushear vas a necesitar `--force-with-lease`.\n\nNo lo corrí ni verifiqué nada: el directorio de esta sesión no es un repo git, así que me baso solo en la salida que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9530,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1213,
+  "output_tokens_details": {
+   "thinking_tokens": 613
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9530,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1213,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9530,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9530
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

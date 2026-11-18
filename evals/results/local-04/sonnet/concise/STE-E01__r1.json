@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Checklist para la tabla nueva con `workspace_id`:\n\n**1. Archivo de migración**\n- Crearlo con `supabase migration new <nombre>` en `supabase/migrations/`, formato `NNNN_descripcion.sql`.\n\n**2. Contenido (todo idempotente)**\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  workspace_id uuid NOT NULL,\n  -- ...resto de columnas\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n- `CREATE TABLE IF NOT EXISTS` y `CREATE INDEX IF NOT EXISTS` son obligatorios.\n- La policy va dentro del bloque `DO $$ ... IF NOT EXISTS`, porque `CREATE POLICY` no tiene `IF NOT EXISTS`.\n- `ENABLE ROW LEVEL SECURITY` ya es idempotente, va directo.\n- El índice sobre `workspace_id` y el `NOT NULL` son sugerencia mía (no están en el material), pero tienen sentido porque la policy filtra por esa columna.\n\n**3. Por qué la idempotencia no es una formalidad**\nEl preview de tu PR corre las migraciones contra la base de staging (es la misma base, no una copia). Se aplica al abrir el PR y de nuevo si renombrás el archivo, porque el tracking es por nombre. Antes de renombrar, tené en cuenta eso. Detalle completo en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\n**4. Test de aislamiento**\nAgregar un test en `tuqui_core/tests/test_rls.py` que verifique que un workspace no ve filas de otro.\n\n**5. Modelo Pydantic**\nCrear el modelo correspondiente a la tabla.\n\n**Aparte**\n- No filtres por `workspace_id` solo en la capa de aplicación: RLS es la defensa principal.\n- Si la tabla no llevara `workspace_id`, hay que discutirlo antes; es la excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4361,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 984,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4361,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 984,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4361,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4361
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

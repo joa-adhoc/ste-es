@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Hoy, ¿dónde se lee la descripción de los conectores en el backend? ¿Entra a algún prompt LLM, mail o tool MCP, o sólo la pinta la SPA? Y la migración 0201_platform_connectors_description_i18n.sql que mencionás, ¿ya está aplicada o hay que crearla?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés buscar en el backend si la descripción de los conectores se lee en algún prompt LLM, mail o tool MCP, y confirmarme si la migración 0201_platform_connectors_description_i18n.sql ya está aplicada? Con eso sé si alcanza con el cliente o tengo que tocar también el backend.",
+   "note": "La primera oración dice 'depende' y no responde si hay que tocar el backend; además, la respuesta admite que no tiene acceso al código y deja la verificación clave a mi cargo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés buscar en el backend si la descripción de los conectores se lee en algún prompt de LLM, mail o tool MCP, y confirmarme si la migración 0201_platform_connectors_description_i18n.sql ya está aplicada? Así sé si tengo que tocar sólo el cliente o también el backend.",
+   "note": "La primera oración es condicional (depende de quién consume la descripción) y no responde directamente si hay que tocar el backend; además la respuesta admite que no tiene acceso al código y deja esa verificación pendiente."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Hoy, ¿dónde se lee la descripción de los conectores en el backend? ¿Entra a algún prompt LLM, mail o tool MCP, o sólo la pinta la SPA? Y la migración 0201_platform_connectors_description_i18n.sql que mencionás, ¿ya está aplicada o hay que crearla?",
+ "followup_answer": "No pude averiguar ninguna de las dos cosas. El directorio de trabajo (`/tmp/ste-es-eval-3vzvp0sf`) está vacío, no hay repo ahí. Tampoco pude buscar en el resto del disco, porque el `find` sobre `/` me pidió aprobación y no la tengo. No tengo evidencia sobre cuál es el caso de tu código.\n\nAdemás, tengo que corregir mi respuesta anterior. Escribí que ya existía la migración `0201_platform_connectors_description_i18n.sql`. Eso sale de tu material, que la cita como referencia. No la vi en ningún repo, así que no sé si está aplicada, si está en la rama que tenés ni si hace lo que dice su nombre.\n\nLo podés comprobar vos así:\n\n**¿Quién lee la descripción en el backend?** Desde la raíz del repo:\n```bash\ngrep -rn \"description\" --include=*.py . | grep -i connector\ngrep -rln \"platform_connectors\" --include=*.py .\n```\nDespués fijate si alguno de los lectores es de estos tipos:\n- armado de prompts (system prompt, listado de tools o conectores para el modelo)\n- templates de mail\n- definición de tools MCP (el `description` que se publica hacia afuera)\n\nSi aparece en alguno, hay que resolver en el backend con `lang → en → legacy`. Si sólo aparece en serializers o endpoints que devuelven la fila a la SPA, alcanza con el cliente.\n\n**¿Está aplicada la migración?**\n- En el repo: `ls supabase/migrations | grep 0201` y `git log --oneline -- supabase/migrations/0201_*`. Con eso ves si existe y si está en tu rama.\n- En la base: mirá si la columna existe, con `\\d platform_connectors` en psql o con `select column_name from information_schema.columns where table_name='platform_connectors' and column_name='description_i18n';`. Si usás la CLI de Supabase, `supabase migration list` te muestra qué versiones están aplicadas en cada entorno.\n\nSi existe el archivo pero la columna no está, falta aplicarla. Si no existe el archivo, creá la migración con el `ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;` que puse antes. Usá el número siguiente al último de la carpeta, no el 0201 a ciegas.\n\nSi me das la ruta del repo, o aprobás la búsqueda en disco, lo busco yo y te contesto con archivos y líneas concretas.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 6158,
+  "cache_read_input_tokens": 63243,
+  "output_tokens": 1253,
+  "output_tokens_details": {
+   "thinking_tokens": 87
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6158,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 919,
+    "cache_read_input_tokens": 23127,
+    "cache_creation_input_tokens": 311,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 311
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a2b06d78c9"
+ }
+}

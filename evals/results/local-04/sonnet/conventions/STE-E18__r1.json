@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n**1. Guardado.** El modelo guarda la memoria con la tool `manage_memory`. Queda en uno de dos scopes: usuario (personal) o workspace (compartida con el equipo).\n\n**2. Tope y desalojo.** Hay un máximo de 50 memorias por scope: por usuario en el de usuario, por workspace en el de workspace. Al agregar la número 51, se borra la más vieja según `created_at`, en la misma transacción de base. El desalojo es silencioso, pero la respuesta de la tool le avisa al modelo.\n\n**3. Carga progresiva (dos niveles).**\n- **Header**, que entra en cada turno: título más el resumen si existe. Si no hay resumen, entran los primeros 250 caracteres del cuerpo. Si el cuerpo es más largo y no hay resumen, el header termina en `... [read]`.\n- **Cuerpo**, bajo demanda: si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**4. Entrada al prompt.** En `_load_chat_setup` (`tuqui_core/chat/agent.py`), después del bloque `CURRENT USER` y antes del bloque de proyecto, se inyectan dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`. Cada línea lleva `[clave] header (id=...)`, y el id sirve para el `read`.\n\n**5. Cuando hay muchas.** El costo por turno queda acotado a unos 3K tokens, que es el caso de 50 memorias de tamaño máximo. Si el total de caracteres de los headers pasa `_MEMORY_BUDGET_CHARS` (12K, unos 3K tokens), entra una guarda. rapidfuzz puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes. Las demás no entran en ese turno, pero siguen guardadas.\n\n**Qué no dice el material (no verificado):**\n- Cuál es N en el top-N.\n- Si el tope de 50 cuenta ambos scopes juntos o cada uno por separado. Dice \"per scope\", así que sería cada uno por separado.\n- Si leer una memoria con `read` actualiza su antigüedad. Por lo escrito, el desalojo mira solo `created_at`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9921,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 868,
+  "output_tokens_details": {
+   "thinking_tokens": 39
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9921,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 868,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9921,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9921
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "La excepción se convierte en un string `[TOOL_ERROR class=X]: message` que el modelo lee como resultado de la tool, y el `DoomLoopGuard` corta los reintentos idénticos al tercero.\n\n```\n┌──────────┐  excepción  ┌────────────┐  ToolError o    ┌────────────────┐\n│   tool   │────────────►│ _wrap_tool │ classify_unknown│   ErrorClass   │\n│          │             │ (agent.py) │────────────────►│                │\n└──────────┘             └─────┬──────┘                 └────────────────┘\n                               │ record(tool_name, args, ok, error_class)\n                               ▼\n                        ┌──────────────┐  counter ≥ 3   ┌───────────────┐\n                        │ DoomLoopGuard│───────────────►│ FATAL al      │\n                        │ (guards.py)  │                │ modelo        │\n                        └──────────────┘                └───────────────┘\n```\n\n**Del fallo al modelo**\n\n1. La tool lanza una excepción.\n2. `_wrap_tool` captura el `ToolError` directamente. Si es otra excepción, la clasifica con `classify_unknown(exc)`, que mapea excepciones Python y httpx a un `ErrorClass`.\n3. `_wrap_tool` retorna `exc.for_llm()`, o sea `\"[TOOL_ERROR class=X]: message\"`. Antes devolvía un string genérico.\n4. El modelo ve ese string como resultado de la tool. La clase le indica qué pasó: `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW`, `CONNECTION`, `ODOO_NOT_CONNECTED` o `FATAL`.\n\n`ToolError` también trae `retry_after_seconds`. El material no dice si `for_llm()` lo incluye en el string.\n\n**Dos clases de Odoo con textos distintos**\n\n- `CONNECTION`: Odoo caído, falla el transporte.\n- `ODOO_NOT_CONNECTED`: nadie conectó Odoo para este run, o sea que no hay credenciales (`require_adapter` en `tools/base.py`). A este usuario no se le dice que la conexión está caída.\n\n**Corte de reintentos**\n\n1. `DoomLoopGuard.record(tool_name, args, ok, error_class)` arma la key `\"{tool_name}|{hash(args)}|{error_class}\"` y cuenta repeticiones.\n2. Un éxito limpia todos los contadores.\n3. Cuando el contador llega a `THRESHOLD=3`, `record` retorna `True`.\n4. `_wrap_tool` devuelve entonces un error `FATAL` en vez del error original e impide más calls idénticos.\n5. El guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, cada una con su aviso.\n\nLa key incluye los args y la clase de error. Un reintento con args distintos, o que falle con otra clase, arranca un contador nuevo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4443,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1076,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4443,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1076,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4443,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4443
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

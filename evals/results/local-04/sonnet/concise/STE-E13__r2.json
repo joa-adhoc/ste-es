@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Avisos (2 por prueba)**, vía el cron diario `_run_trial_expiry` a las 12:00 UTC (9 h Argentina):\n\n1. **A 7 días del fin**: aviso de \"por vencer\".\n2. **El día que vence**: aviso de \"por vencer\" (todavía funciona). Los hitos salen de `billing_trial_warning_days_list`, default `{7, 0}`.\n\nComo vence la semana que viene, el primer aviso sale cuando falten 7 días. Si ya pasó ese hito, saldría en la próxima corrida del cron, según cómo se compare, y eso el material no lo aclara.\n\n**A quién:** owners y admins siempre (aunque estén en `billing_tier = 'none'`), más todo miembro con asiento (`billing_tier <> 'none'`). Además, en el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Al vencer, sin suscripción viva:** pasa a `plan='free'`, se evalúa exceso (si lo hay, queda `account_status='restricted'` con reason `trial_expired_with_excess`, con MCP y chat bloqueados) y sale el mail de prueba vencida a los mismos destinatarios.\n\n**Con suscripción viva:** se limpian los flags de trial y no se manda nada. No cambia nada visible para el owner, y el cobro se anuncia con su propio recibo.\n\n**Si se extiende la prueba:** vuelve a avisar, porque la marca de enviado es el par `trial_warning_for` (fecha de fin) + `trial_warning_days` (hito más chico enviado), no un flag único.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4649,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 566,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 566,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4649,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4649
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

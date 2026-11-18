@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la DB local de tests es compartida entre worktrees, y la rama de tu compañero dejó un esquema sin las columnas que tu código todavía lee, lo que produce `UndefinedColumnError`.",
+  "No. El lock (`flock`) solo evita que dos corridas se pisen a la vez, pero no aísla el esquema: si los worktrees tienen migraciones distintas, la DB queda con la unión de ambas.",
+  "Arreglo inmediato: reconstruir la base desde cero con tus migraciones usando `make migrate-reset` (~3 segundos; no usar `npx supabase db reset`). Para que no vuelva a pasar: copiar `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, declarar ahí una base propia para tu worktree (los nombres de las variables están en el `.example`) y correr `make migrate-reset` para armarla. Ojo: si tu compañero sigue en la misma base, le dejarás el esquema de tu rama."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "f9a2c6499a",
+  "control": "d71584ce60"
+ }
+}

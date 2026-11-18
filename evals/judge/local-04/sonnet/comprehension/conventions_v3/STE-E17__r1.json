@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Recibe un string con el formato `[TOOL_ERROR class=X]: message`, que `_wrap_tool` arma con `exc.for_llm()`. Si la excepción ya era un `ToolError` se usa tal cual; si es otra excepción de Python o httpx, `classify_unknown(exc)` la mapea a un `ErrorClass` y arma un `ToolError`. Las clases posibles son TRANSIENT, RATE_LIMIT, PERMISSION, CONNECTION, ODOO_NOT_CONNECTED, INVALID_INPUT, NOT_FOUND, CONTEXT_OVERFLOW y FATAL. El modelo lee esa clase y ese mensaje y decide qué hacer.",
+  "Se corta cuando el contador de la misma tool, con los mismos argumentos y la misma clase de error llega a 3 o más (THRESHOLD=3). Entonces `record` devuelve True y `_wrap_tool` devuelve `FATAL`, sin dejar pasar más llamadas idénticas. En el caso de `CONNECTION` y `ODOO_NOT_CONNECTED`, el corte también se aplica entre tools distintas, cada una con su aviso. El texto exacto del FATAL y si el bloqueo ocurre antes o después de ejecutar la tool: no lo dice.",
+  "Un éxito limpia todos los contadores."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "575114c4a4",
+  "control": "85375b871e"
+ }
+}

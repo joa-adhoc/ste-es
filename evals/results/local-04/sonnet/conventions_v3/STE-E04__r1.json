@@ -1,0 +1,44 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Diferencia en una frase:** `replace` pisa el valor completo del campo; `append` conserva lo que ya había y pone lo nuevo abajo.\n\n**`replace` (por defecto)**\n- Hace un `write` plano de Odoo. No lee nada antes.\n- En campos de prosa larga (`description`, `task_description`, notas internas) es destructivo: esos campos no dejan el valor anterior en el chatter, así que no hay vuelta atrás.\n\n**`append`**\n- Solo afecta a los campos `html` y `text` de `values`. Los demás tipos se reemplazan igual.\n- Lee el valor actual de cada registro y concatena el nuevo al final.\n- En `html` concatena HTML crudo, así que links a registros, clases e imágenes sobreviven. En `text` separa con una línea en blanco.\n- Un rich text vacío desde la UI (`<p><br></p>`) cuenta como vacío. Un campo con solo una imagen cuenta como contenido.\n- Exige texto: `{\"description\": false}` se rechaza con `append_requires_text`. Para vaciar un campo, usá `replace`.\n- Si no puede leer el valor actual o resolver el schema, falla con `append_precheck_failed` y no escribe nada.\n\n**Cuándo usar cuál:** si te piden *agregar* o *completar*, mandá `append` con solo el contenido nuevo. Si te piden reescribir, `replace`.\n\n**Qué pasa si falla a mitad de camino**\n\nEl append es un write por registro, no una transacción. Hay dos casos:\n\n1. **Falla en el primer registro.** No se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada). Reintentar la llamada entera es correcto.\n2. **Falla en el registro k, con alguno escrito antes.** Los anteriores no se revierten. El error es `append_partially_applied` y trae:\n   - `written_ids`: los que ya quedaron escritos.\n   - `failed_id`: el que falló.\n   - `pending_ids`: lo que hay que reintentar. **Incluye al fallido**, porque tampoco se escribió.\n\nEjemplo con los ids `[10, 11, 12, 13]` donde falla el 12:\n- `written_ids = [10, 11]`\n- `failed_id = 12`\n- `pending_ids = [12, 13]`\n\nReintentá solo con `pending_ids`. Si reenviás los cuatro, 10 y 11 reciben el contenido duplicado.\n\nLos ids escritos también quedan en `tool_usage_log.write_metadata` con `partial: true`, para auditoría.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10809,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 898,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10809,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 898,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10809,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10809
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

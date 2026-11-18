@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo es la acción de escritura de `manage_memory` (parámetros, cómo se decide el scope y cuándo la dispara el modelo), y el filtro de `rapidfuzz` se aplica por alcance o sobre los dos juntos? Además, si una memoria queda fuera del prompt por la guarda de presupuesto, ¿cómo puede el modelo llegar a ella si no ve su `id`?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se guarda una memoria con manage_memory (qué parámetros recibe, cómo se elige el scope y cuándo decide el modelo guardar)? Y cuando se activa la guarda de presupuesto, ¿el filtro con rapidfuzz se aplica por alcance o sobre el total, y cuántas memorias se quedan (N)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no describe cómo se guarda una memoria con manage_memory (parámetros de la acción de escritura, cómo se elige el scope, cuándo decide el modelo guardar). Además, ¿el filtro de rapidfuzz bajo _MEMORY_BUDGET_CHARS se aplica por alcance o sobre el total de los dos alcances, y cómo puede el modelo recuperar una memoria que quedó fuera del prompt si no ve su id?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo es la acción de escritura de `manage_memory` (parámetros, cómo se decide el scope y cuándo la dispara el modelo), y el filtro de `rapidfuzz` se aplica por alcance o sobre los dos juntos? Además, si una memoria queda fuera del prompt por la guarda de presupuesto, ¿cómo puede el modelo llegar a ella si no ve su `id`?",
+ "followup_answer": "No pude verificar las dos primeras preguntas. La tercera sí tiene respuesta, que sale del material.\n\nEl directorio de trabajo está vacío y el código de `tuqui_core` no está accesible desde esta sesión. Solo tengo el material que pegaste, y ahí no figura ninguno de estos datos. Abajo digo qué sé y qué no.\n\n**1. Acción de escritura de `manage_memory` (parámetros, scope, cuándo la dispara el modelo)**\n\nNo verificado. El material solo muestra `action='read'` con `id`. No dice:\n- cómo se llama la acción de escritura (`create`, `save` u otra);\n- qué parámetros lleva (`title`, `body`, `summary`, `scope`, clave tipo `customer:123 / preferred_payment`);\n- cómo se elige el alcance, ni qué impide que el modelo guarde en el workspace algo personal;\n- qué instrucción del prompt le dice al modelo cuándo guardar.\n\nLas entradas de ejemplo (`[customer:123 / preferred_payment]`, `[general]`) sugieren que cada memoria tiene una categoría y una clave. Es una inferencia a partir del formato, no un dato.\n\nPara cerrarlo hay que leer la definición de la tool `manage_memory` y la parte del system prompt que habla de memorias, ambas probablemente en `tuqui_core/chat/`. Si me pasás esos archivos o el acceso al repo, lo confirmo.\n\n**2. Filtro de `rapidfuzz`: ¿por alcance o sobre los dos juntos?**\n\nNo verificado. El material dice solo que, si el total de caracteres de los encabezados supera `_MEMORY_BUDGET_CHARS`, `rapidfuzz` puntúa los encabezados contra el mensaje actual y se queda con los N mejores. Dice \"total\", lo que hace pensar en un filtro conjunto, pero no alcanza para afirmarlo. Tampoco dice cómo se define N: un número fijo o lo que entre en el presupuesto.\n\nLa diferencia importa. Si el filtro fuera conjunto, las memorias del workspace podrían desplazar a las personales, o al revés, según el mensaje. Hay que leer `_load_chat_setup`.\n\n**3. Memoria fuera del prompt: ¿cómo llega el modelo si no ve el `id`?**\n\nCon lo que sé, no llega por la vía descrita. `read` pide el `id`, y el `id` solo aparece en el encabezado inyectado. Una memoria filtrada por la guarda no tiene encabezado en ese turno, así que el modelo no tiene cómo pedirla.\n\nHay dos salidas posibles, y el material no dice si alguna existe:\n- que `manage_memory` tenga otras acciones (por ejemplo `list` o `search`) que devuelvan ids sin pasar por el prompt;\n- que el filtro por similitud con el mensaje alcance en la práctica: si la persona pregunta por algo, la memoria relevante sube y entra al prompt.\n\nLa segunda es una mitigación, no una garantía. Falla cuando el mensaje no se parece al texto de la memoria, y el modelo no puede compensarlo porque no sabe que la memoria existe. Si no hay una acción de listado o búsqueda, esto es una limitación real del diseño.\n\n**Qué necesito para responder bien:** la definición de `manage_memory` (acciones y parámetros) y el código de `_load_chat_setup` donde se aplica la guarda de presupuesto.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11780,
+  "cache_read_input_tokens": 45935,
+  "output_tokens": 1566,
+  "output_tokens_details": {
+   "thinking_tokens": 174
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11780,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1210,
+    "cache_read_input_tokens": 28646,
+    "cache_creation_input_tokens": 423,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 423
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "999b112ca0"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Mi PR ya mergeado incluye el DROP de members.lang en la misma migración? Si es así, ¿cómo lo separo sin romper lo que ya está en staging, y el código que deja de leer lang va en el tren del jueves 19 o tiene que esperar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR ya está mergeado a staging y trae el ADD y el DROP juntos. ¿Qué hago ahora para que el DROP no salga en el tren del jueves 19/11: revierto el merge, o hay alguna forma de excluir esa migración del tren? ¿Y quién lo decide o aprueba?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Mi PR ya mergeado incluye el DROP de members.lang en la misma migración? Si es así, ¿cómo lo separo sin romper lo que ya está en staging, y el código que deja de leer lang va en el tren del jueves 19 o tiene que esperar?",
+ "followup_answer": "No sé si tu PR incluye el DROP en la misma migración. No tengo acceso al repo (acá no es un repo git) y no vi el diff. Para saberlo, mirá los archivos de migración del PR, por ejemplo con `gh pr diff <n>`, y buscá `DROP COLUMN lang` o `members.lang`. Si están el ADD de `locale` y el DROP de `lang` en el mismo archivo, es la situación que describo abajo.\n\n**Una corrección a mi respuesta anterior:** el PR del DROP tiene que mergearse a staging **después** del tren del jueves 19 (12 UTC) y antes del tren del martes 24 (12 UTC). Antes dije solo \"antes del martes\", y eso era incompleto. Si lo mergeás antes del jueves a las 12 UTC, viaja en el mismo tren y rompe expand/contract.\n\n**Cómo separarlo sin romper staging:**\n1. Antes del jueves 19 a las 12 UTC, mergeá a staging un PR nuevo que saque el DROP de la migración. No reescribas la historia de staging, porque ya está mergeado.\n2. Probablemente staging ya corrió el DROP, así que `lang` ya no existe ahí. Eso es inocuo para el código nuevo, pero staging queda con un esquema distinto al de prod hasta que `lang` se borre también en prod. No sé qué herramienta de migraciones usan. Si valida checksums de migraciones ya aplicadas, editar el archivo puede fallar. En ese caso conviene dejar el archivo como está y neutralizar el DROP con una migración nueva, o consultarlo con quien mantiene el tren.\n3. Después del tren del jueves, abrí un PR aparte con el `DROP COLUMN lang`. Conviene que sea idempotente (`IF EXISTS`), porque en staging la columna ya no está.\n\n**¿El código que deja de leer `lang` va el jueves 19 o espera?** Va el jueves 19, junto con el ADD de `locale`. Esa es la mitad \"expand\" del patrón. Lo que espera al martes 24 es solo el DROP.\n\n**Una pregunta abierta:** si hay datos en `lang` que se tienen que copiar a `locale` (backfill), eso tiene que correr en el tren del jueves, antes del DROP. En lo que me pasaste no dice si tu PR lo hace. Verificalo antes de mandar el DROP.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10604,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1923,
+  "output_tokens_details": {
+   "thinking_tokens": 1085
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10604,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1923,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 10604,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10604
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d1b1259c9e"
+ }
+}

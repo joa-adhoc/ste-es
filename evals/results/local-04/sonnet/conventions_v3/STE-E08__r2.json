@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Probablemente **skill**. Un `odoo_create` con defaults es un wrapper 1→1, y el criterio lo descarta de forma explícita.\n\n**Cómo se aplica el criterio a tu caso**\n\n- **(a) No componible:** no cumple. `odoo_create` con los valores por defecto cargados a mano logra lo mismo.\n- **(b) Gate o identidad propia:** solo cumple si la tool tiene una whitelist más fina que `create` genérico, o un gate propio. Poner defaults no alcanza.\n- **(c) Procedimiento crítico:** no cumple, salvo que saltear un paso tenga costo real de compliance.\n- **(d) Eficiencia:** no cumple. El umbral duro dice que una tool que mapea a una sola call genérica no califica, aunque ahorre tokens de esquema.\n\nEs el mismo caso que `odoo_schedule_activity`: componible, y su único diferencial era (b1).\n\n**Qué hacer según el caso**\n\n- **Si solo son defaults:** hacé una skill que diga qué modelo, qué campos y qué valores pasar a `odoo_create`.\n- **Si el modelo exige varias calls:** por ejemplo, resolver ids, crear el registro y después crear líneas o postear un mensaje. Ahí puede entrar por (d), con ≥3 calls o un loop no acotado.\n- **Si la whitelist es más fina:** por ejemplo, permitir crear solo ese modelo, con esos campos, donde el `create` genérico habilita mucho más. Entra por (b2).\n\n**Qué cambia con el MCP saliente**\n\nCambia el corolario, no el criterio base. En el MCP saliente, (b1) y (c) no tienen palanca: el router ignora `requires_approval` y no hay turno donde forzar pasos. Ahí la tool solo se justifica por (a), (b2) o (d).\n\n- Si pensabas justificarla por un approval propio o por un procedimiento obligatorio, eso no vale en MCP. Vale solo en chat.\n- Si la justificás por (b2), vale en las dos superficies.\n- Un wrapper 1→1 expuesto por MCP suma superficie y esquema sin aportar nada. Con más razón va como skill.\n\n**Lo que no pude verificar:** no vi el código de `permissions.py` ni el router MCP, así que me baso en lo que dice el material. Antes de decidir por (b2), confirmá que el gate `create` del modelo es realmente más fino que el genérico.\n\nSi me pasás el modelo y los defaults, te digo en cuál de los casos cae.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10869,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 888,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10869,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 888,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10869,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10869
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

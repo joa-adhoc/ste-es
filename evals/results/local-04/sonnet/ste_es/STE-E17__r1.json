@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cuando una tool falla, `_wrap_tool` (en `agent.py`) devuelve al modelo un string `[TOOL_ERROR class=X]: message`. Si el modelo repite el mismo error 3 veces, `DoomLoopGuard` lo corta con un error `FATAL`.\n\n```\n┌──────────────────┐   ┌─────────────────────────┐\n│ tool lanza       │──►│ _wrap_tool (agent.py)   │\n│ excepción        │   └───────────┬─────────────┘\n└──────────────────┘               │\n                     ┌─────────────┴─────────────┐\n                     ▼                           ▼\n            ┌─────────────────┐       ┌─────────────────────┐\n            │ ToolError       │       │ otra excepción      │\n            │ (ya tiene clase)│       │ classify_unknown()  │\n            └────────┬────────┘       └──────────┬──────────┘\n                     └─────────────┬─────────────┘\n                                   ▼\n                      ┌─────────────────────────┐\n                      │ DoomLoopGuard.record()  │\n                      └───────┬─────────┬───────┘\n                      < 3     │         │  ≥ 3 (THRESHOLD)\n                              ▼         ▼\n              ┌───────────────────┐  ┌──────────────────────┐\n              │ exc.for_llm()     │  │ FATAL: no más calls  │\n              │ \"[TOOL_ERROR      │  │ idénticos            │\n              │  class=X]: msg\"   │  └──────────────────────┘\n              └───────────────────┘\n```\n\nLo que el diagrama no muestra:\n\n- **Clave del contador:** `\"{tool_name}|{hash(args)}|{error_class}\"`. Cuenta solo repeticiones idénticas: misma tool, mismos args y misma clase de error. Si el modelo cambia los args, el contador no sube.\n- **Reinicio:** cualquier éxito limpia todos los contadores.\n- **`CONNECTION` y `ODOO_NOT_CONNECTED`:** son clases distintas con textos distintos. `CONNECTION` es un Odoo caído (falla el transporte). `ODOO_NOT_CONNECTED` es que nadie conectó Odoo para ese run (`require_adapter` en `tools/base.py`). El guard corta las dos entre tools, cada una con su aviso.\n- **Campos de `ToolError`:** `error_class`, `message` y `retry_after_seconds`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5142,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1173,
+  "output_tokens_details": {
+   "thinking_tokens": 329
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5142,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1173,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5142,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5142
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

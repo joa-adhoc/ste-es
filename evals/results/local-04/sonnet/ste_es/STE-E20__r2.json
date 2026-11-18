@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Staging no está caído: la migración `0415_terms_acceptance.sql` falló, se hizo rollback y el deploy anterior sigue sirviendo.\n\n**Causa:** el `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL` chocó con filas viejas que tienen `accepted_version` en null (SQLSTATE 23502). El build salió bien; falló solo el paso `migrate`, así que el deploy nuevo no se promovió.\n\n**Arreglo**, según `docs/infra-ci-cd.md`, separar en dos migraciones en trenes distintos:\n\n1. Esta migración hace solo el backfill de los null en `accepted_version`.\n2. Un tren posterior agrega el `SET NOT NULL`.\n\nSacá el `SET NOT NULL` de `0415` y reenviá solo con el backfill. Antes de definir el valor del backfill, confirmá con el dueño de la funcionalidad qué versión de términos corresponde a los miembros viejos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4750,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 347,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4750,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 347,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4750,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4750
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

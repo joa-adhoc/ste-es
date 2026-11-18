@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si falla el refresh del paso 8 (por ejemplo, refresh token revocado o expirado): se borra el token, se marca el conector como desconectado o se muestra un error al usuario? ¿Y qué pasa en el callback si el state está vencido o es inválido? Además, ¿el connect_warning se reevalúa después o las habilidades rotas se reintentan?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si falla el refresh en el paso 8 (por ejemplo con un refresh token revocado) o si el state está vencido o es inválido en el callback? ¿Y el connect_warning se reevalúa después o las habilidades rotas se reintentan?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué pasa si falla el refresh del paso 8 (por ejemplo, refresh token revocado o expirado): se borra el token, se marca el conector como desconectado o se muestra un error al usuario? ¿Y qué pasa en el callback si el state está vencido o es inválido? Además, ¿el connect_warning se reevalúa después o las habilidades rotas se reintentan?",
+ "followup_answer": "Las tres preguntas siguen sin respuesta. El directorio de trabajo está vacío: no hay código de `refresh_if_expired`, del callback ni de `connect_warning`. El material que pasaste tampoco lo dice, así que no voy a inventar el comportamiento.\n\n**1. Refresh fallido en el paso 8 (token revocado o expirado)**\n- No verificado. El material solo dice que `refresh_if_expired` corre al construir los toolsets y que refresca si quedan menos de 60 s.\n- No sé si borra el token, si marca el conector como desconectado o si muestra un error al usuario.\n- Para cerrarlo, leé el manejo de error de `refresh_if_expired`. Buscá qué pasa ante un `invalid_grant` del `token_url`: si borra la fila de `user_mcp_oauth_tokens` o la deja, y si el toolset de ese server se omite o rompe la construcción.\n\n**2. `state` vencido o inválido en el callback**\n- No verificado. Solo sabemos que el backend valida el `state` en el paso 6. Está firmado con AES-GCM y tiene TTL de 10 minutos.\n- No sé si en ese caso redirige al SPA con `connect_error=<motivo>` o devuelve un error HTTP directo. Tampoco sé si distingue \"vencido\" de \"manipulado\".\n- Para cerrarlo, leé el handler de `GET /api/mcp-oauth/callback` y fijate qué hace cuando falla el descifrado, el TTL o el `server_id` / `user_id` del payload. Un `state` inválido no permite saber a qué SPA redirigir, así que puede que ni siquiera haya redirect.\n\n**3. ¿Se reevalúa el `connect_warning`?**\n- No verificado. El material solo describe la prueba de humo dentro del callback, una vez, después del intercambio.\n- Nada de lo que me pasaste indica que haya reintento o reevaluación posterior. Eso no prueba que no exista: puede ser que el banner se recalcule en otro lado.\n- Para cerrarlo, buscá si `connect_warning` es solo un query param del redirect (efímero, se pierde al recargar) o si el estado se persiste. Fijate también si hay otro código que vuelva a introspectar habilidades.\n\nSi me pasás el repo o los archivos del callback y de `refresh_if_expired`, lo leo y te respondo con evidencia. Si me decís dónde está el código, lo busco yo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 13012,
+  "cache_read_input_tokens": 47211,
+  "output_tokens": 1161,
+  "output_tokens_details": {
+   "thinking_tokens": 119
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13012,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 849,
+    "cache_read_input_tokens": 29922,
+    "cache_creation_input_tokens": 379,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 379
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1f8092ecba"
+ }
+}

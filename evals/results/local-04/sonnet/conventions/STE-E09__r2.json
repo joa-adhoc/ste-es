@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Flujo OAuth por usuario de un conector MCP\n\nEsto sale solo del material que pasaste, no del código. No verifiqué nada contra el repo.\n\n## Flujo, paso a paso\n\n| # | Actor | Qué pasa |\n|---|---|---|\n| 1 | Admin → backend | Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. |\n| 2 | Front | El usuario abre `/connectors` y hace clic en **Connect**. |\n| 3 | Front → backend | `GET /api/mcp-oauth/{server_id}/start`. El backend arma la `authorize_url` con un `state` firmado (AES-GCM, vence a los 10 min). |\n| 4 | Front → provider | Redirige el navegador a esa URL. |\n| 5 | Provider → backend | El usuario autoriza y el provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. |\n| 6 | Backend ↔ provider | Valida el `state`, canjea `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`. |\n| 6b | Backend | Prueba de humo: introspecta las habilidades habilitadas (ver más abajo). |\n| 7 | Backend → front | Redirect al SPA con el resultado: `connected`, `connect_warning` o `connect_error`. |\n| 8 | Backend | Más adelante, al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 s. |\n\n### Qué lleva el `state` y la URL (paso 3)\n- **Payload del `state`:** `{server_id, user_id, issued_at, nonce}`. Opcionalmente suma `code_verifier` (PKCE) y `scope_profile` (platform connectors).\n- **`access_type=offline` + `prompt=consent`:** Google solo emite refresh tokens si están los dos. El primero pide el refresh token y el segundo fuerza que se emita de nuevo en cada authorize. Así, un disconnect y reconnect no deja la conexión sin refresh. Los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n- **`resource` (RFC 8707):** viaja en los pasos 3, 6 y 8, pero solo si el discovery lo guardó en `OAuthPerUserConfig.resource`. Los conectores dados de alta antes de que existiera el campo siguen funcionando sin indicator. Mandar uno adivinado es peor que no mandarlo, porque un AS que valida rechaza cualquier valor que no reconozca.\n\n### Landing del redirect (paso 7)\n- **Usuario común:** `/w/{slug}/settings/connectors?connected={server_id}`.\n- **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`. El destino sale del dueño de la conexión, no de un `return_to` aparte.\n\n## Si algunas habilidades no contestan\n\nDespués del canje, el callback introspecta **todas** las habilidades habilitadas en paralelo y decide según cuántas contestan:\n\n- **Ninguna contesta:** el token no sirve para nada, así que se borra. El redirect lleva `connect_error=<motivo>` y la card muestra el banner de error. El usuario queda desconectado.\n- **Alguna contesta:** el usuario queda conectado. El redirect lleva `connect_warning=<habilidades>` y la card muestra el banner de conexión parcial. Desconectarlo por una habilidad rota sería peor que dejarle el estado parcial, que sí puede usar.\n\n## Qué no queda claro en el material\n- **`[...]` en la sección de `resource`:** hay un tramo omitido y no sé qué decía.\n- **Habilidades que no contestan:** no se dice si se reintentan ni si hay un timeout. Tampoco se dice qué pasa cuando alguien las arregla después. No sé si hace falta reconectar o si basta con una nueva introspección.\n- **Habilidades habilitadas:** no se dice qué pasa si no hay ninguna.\n- **Fallo del canje en el paso 6:** no se describe el destino del redirect si el `state` es inválido o vencido, ni si el provider rechaza el canje. Es probable que también termine en `connect_error`, pero no está escrito.\n\nSi querés cerrar esos puntos, la prueba es leer el handler del callback.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10400,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1783,
+  "output_tokens_details": {
+   "thinking_tokens": 226
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10400,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1783,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10400,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10400
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

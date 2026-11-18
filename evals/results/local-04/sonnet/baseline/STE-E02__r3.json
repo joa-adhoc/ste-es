@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Depende de quién consume la descripción. Según tu material, el backend sólo hace falta si la descripción además entra a un prompt, a un mail o sale por MCP.\n\n## Decidí primero quién la consume\n\n- **Sólo la SPA la pinta** (cards, listados de conectores): alcanza con migración, API y cliente. El backend no resuelve idioma.\n- **También entra a un prompt LLM, a un mail o sale por la superficie MCP**: hay que tocar el backend además del cliente, con la misma cadena de fallback en los dos lados.\n\nSi es lo segundo, la descripción de conectores se parece al caso de `agents`. Eso lo tenés que confirmar vos mirando quién la lee hoy. Yo no tengo el código.\n\n## De punta a punta\n\n**1. Migración.** Ya hay una para este campo: `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Revisá si ya está aplicada antes de crear otra. Si hay que crearla:\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\nDejá la columna `description` legacy como está. Si tenés que portar datos de un `description_en`, mirá `0206_features_i18n.sql` como referencia.\n\n**2. API.** Devuelve el mapa `description_i18n` entero junto con la `description` legacy, sin filtrar por idioma en el serializer. Usá los helpers de `tuqui_core/i18n.py` y no los reimplementes:\n- `normalize_i18n_keys` al escribir. Baja las claves a dos letras minúsculas y tira las vacías.\n- `decode_i18n` al leer. asyncpg puede devolver el JSONB como `str` o como dict según el pool, y todo lector tiene que tolerar las dos formas.\n\n**3. Front.**\n```ts\nlocalizedField(row.description_i18n, row.description, i18n.language)\n```\nNo escribas la cadena de fallback a mano. Es `idioma exacto → en → legacy`.\n\n**4. Editor de admin.** Poné dos inputs (ES y EN). Al guardar:\n- Mandá `description_i18n` sólo con las claves no vacías.\n- Espejá la legacy con `es || en`.\n\nLa referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n**5. Backend, sólo si aplica.**\n- Resolvé con la misma cadena `lang → en → legacy`.\n- Tomá `lang` de `resolve_response_language(workspace_id, user_id)`. No leas `Accept-Language`.\n\n**6. Caché.** Si terminás resolviendo en el server, el `queryKey` de react-query tiene que incluir el idioma. Si resolvés sólo en el cliente, no hace falta.\n\n## Qué te recomiendo\n\nBuscá en el backend dónde se lee la descripción de los conectores, por ejemplo en la construcción de prompts, en los mails o en las tools MCP. Si no aparece en ninguno, hacelo sólo con el cliente. Si aparece, agregá la resolución en el server con la misma cadena. Si querés, lo busco yo, pero necesito acceso al repo, porque el directorio de trabajo actual no es un repositorio.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4120,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1110,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4120,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1110,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4120,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4120
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

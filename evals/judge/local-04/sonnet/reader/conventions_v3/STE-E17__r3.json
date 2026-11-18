@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuándo exactamente se devuelve el FATAL: en la tercera llamada fallida (cuando el contador llega a 3) o recién en la cuarta? ¿Y qué texto recibe el modelo en ese FATAL?",
+   "note": "La primera oración responde bien el camino y el corte. Pero la parte final de la pregunta, cómo se corta el reintento, queda con huecos que importan para actuar: el momento exacto del corte, el alcance entre tools de CONNECTION/ODOO_NOT_CONNECTED y el texto del FATAL no están verificados."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿En la llamada que alcanza el umbral de 3 el modelo ya recibe el FATAL o recién en la cuarta? ¿Y qué texto exacto trae ese FATAL? Además, ¿el guard agrupa CONNECTION y ODOO_NOT_CONNECTED entre distintas tools, o la clave con tool_name lo impide?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En `_wrap_tool`, ¿el FATAL se devuelve en la llamada que alcanza el umbral de 3 o recién en la siguiente? ¿Qué texto exacto recibe el modelo en el FATAL, y `for_llm()` incluye `retry_after_seconds`? Además, ¿el guard agrupa CONNECTION y ODOO_NOT_CONNECTED entre tools distintas, o la clave con `tool_name` lo impide?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuándo exactamente se devuelve el FATAL: en la tercera llamada fallida (cuando el contador llega a 3) o recién en la cuarta? ¿Y qué texto recibe el modelo en ese FATAL?",
+ "followup_answer": "No pude buscar el código: el comando pidió aprobación y no lo corrí. Con lo que tengo, no puedo cerrar ninguna de las dos preguntas.\n\n**¿Tercera o cuarta llamada?** El material solo dice \"Si counter ≥ THRESHOLD: retorna `True`\", con `THRESHOLD=3`. Eso apunta a la tercera llamada fallida, pero depende de un detalle que el material no trae: si `record` incrementa el contador antes de comparar o después.\n- Si incrementa y compara, la tercera falla deja el contador en 3 y `record` devuelve `True`. El `FATAL` sale en la tercera.\n- Si compara y después incrementa, el contador llega a 3 en la tercera falla pero recién devuelve `True` en la cuarta.\n\nNo verificado. Lo cierra leer `DoomLoopGuard.record` en `tuqui_core/chat/guards.py`, o un test que haga tres llamadas fallidas idénticas y mire el retorno de cada una.\n\n**¿Qué texto recibe el modelo?** El material no lo dice. Solo afirma que `_wrap_tool` \"devuelve FATAL\". Lo más probable es que use el mismo formato de `for_llm()`, es decir `[TOOL_ERROR class=FATAL]: <mensaje>`. Esa es una inferencia mía, no un dato. No sé el mensaje, ni si menciona la tool o el error original. Se ve en `_wrap_tool` en `agent.py`, en la rama donde `record` devuelve `True`.\n\nSi me das el path del repo, o aprobás la búsqueda, leo los dos archivos y te contesto con las líneas exactas.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12244,
+  "cache_read_input_tokens": 46457,
+  "output_tokens": 877,
+  "output_tokens_details": {
+   "thinking_tokens": 108
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12244,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 582,
+    "cache_read_input_tokens": 29168,
+    "cache_creation_input_tokens": 365,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 365
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2dd888eef0"
+ }
+}

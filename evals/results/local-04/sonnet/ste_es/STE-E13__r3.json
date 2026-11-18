@@ -1,0 +1,44 @@
+{
+ "case": "STE-E13",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Salen dos avisos con la configuración por defecto: uno a 7 días del vencimiento y otro el día que vence, mientras el workspace todavía funciona.\n\n```\n┌──────────────────┐   ┌──────────────────┐   ┌──────────────────────┐\n│ Hito 7           │──►│ Hito 0           │──►│ Vencimiento          │\n│ aviso \"por       │   │ aviso, todavía   │   │ sin suscripción viva:│\n│ vencer\"          │   │ funciona         │   │ plan='free' + mail   │\n└──────────────────┘   └──────────────────┘   └──────────────────────┘\n```\n\n- **Cuándo:** `_run_trial_expiry` corre todos los días a las 12:00 UTC (9 h en Argentina). Los hitos salen de `platform_config.billing_trial_warning_days_list`.\n- **A quién:** los avisos de prueba (por vencer y vencida) van siempre a owners y admins. También van a todo miembro con asiento (`billing_tier <> 'none'`).\n- **Extensión:** si extendés la prueba, vuelve a avisar, porque la marca de enviado es el par `trial_warning_for` + `trial_warning_days`.\n\n**Al vencer, sin suscripción viva:**\n- El workspace pasa a `plan='free'` y el cron evalúa si hay exceso.\n- Sale el mail de prueba vencida.\n- La tabla de `account_status` lista el vencimiento de prueba como origen de `restricted`, con el motivo `trial_expired_with_excess`. Interpreto que solo se restringe si hay exceso; el material no lo dice explícito.\n- En `restricted` quedan bloqueados el MCP y el chat.\n- En el chat, `PlanLapsedBanner` avisa sobre el composer a quien perdió el asistente.\n\n**Con suscripción viva:** cambia el día del vencimiento. El cron limpia los flags de trial y no manda ningún mail. El cobro se anuncia con su propio recibo, que va solo a los owners.\n\nEl material no aclara si los avisos previos (7 y 0) se saltean cuando ya hay suscripción. Revisá `_run_trial_expiry` si necesitás confirmarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5591,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1281,
+  "output_tokens_details": {
+   "thinking_tokens": 516
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5591,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1281,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5591,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5591
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

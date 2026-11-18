@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El modelo es X y los defaults son Y, ¿en qué eje caigo: (b2) por la whitelist de create o (d) por las calls que ahorro?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás los ejes (a), (b1), (b2), (c) y (d) como si ya los conociera, pero no los definiste. ¿Podés decirme en una línea qué significa cada uno, y cuál es el umbral duro de (d) que mencionás? Además, para mi caso concreto: ¿qué tendría que mirar yo en el código para decidir entre (b2) y (d)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que no tenés el código a mano. ¿Cómo es hoy la whitelist de `create`: es por modelo o general? Y para el modelo que tengo en mente, ¿cuántas calls cuesta armar los defaults (resolver ids por nombre, `default_get`, validar)? Con eso decido si caigo en (b2) o (d), o si va como skill."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El modelo es X y los defaults son Y, ¿en qué eje caigo: (b2) por la whitelist de create o (d) por las calls que ahorro?",
+ "followup_answer": "X e Y llegaron como letras, sin el modelo ni los defaults, así que no puedo decirte en cuál caés. Lo que sí puedo darte es la prueba para cada eje. Con eso lo resolvés vos.\n\n## (b2): ¿la whitelist de create es más fina?\n\nEsto depende del gate, no de los defaults. Se cumple si el modelo X **no está permitido hoy por `create` genérico**, o si habría que abrir `execute` o un `create` más amplio para lograr lo mismo. En ese caso, una tool con su propia whitelist angosta tiene menor blast radius y vale en chat y en MCP.\n\nSi el gate de `create` sobre X ya alcanza, no cumple (b2). Los defaults no te acercan a este eje.\n\n## (d): ¿colapsa ≥3 calls o un loop no acotado?\n\nEsto depende de cómo se obtiene Y. Contá las calls que hace falta hacer **antes** del `odoo_create`:\n\n- Si Y son valores fijos que el LLM pasa en la misma call, no cumple. Es un wrapper 1→1.\n- Si Y requiere resolver ids por nombre (compañía, diario, tipo), hacer `default_get` o buscar registros relacionados, y eso suma ≥3 calls o crece con los datos, cumple.\n- Si son 1 o 2 calls previas, tampoco cumple. El umbral es ≥3.\n\n## Cómo decidir\n\n1. Probá (b2) primero. Es el eje que justifica la tool en las dos superficies.\n2. Si no cumple, probá (d).\n3. Si no cumple ninguno, va como skill. Con los defaults dentro de la skill, el consumidor MCP también la tiene por `tuqui_skill`.\n\nPasame el modelo y cómo se obtiene cada default (valor fijo, o resuelto por búsqueda) y te digo en cuál caés. Tampoco tengo el código a mano. Si querés confirmar el gate real de `create` sobre X, hay que mirar la whitelist en `tuqui_core/chat/permissions.py` y la del router MCP. Eso no lo verifiqué.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11460,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 875,
+  "output_tokens_details": {
+   "thinking_tokens": 141
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11460,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 875,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11460,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11460
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "55479dd21e"
+ }
+}

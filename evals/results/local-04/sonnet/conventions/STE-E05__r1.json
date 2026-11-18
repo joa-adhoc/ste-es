@@ -1,0 +1,44 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No, ya no es así. Hoy la regla es: **corré local lo que tocaste y la suite completa la deja al CI.**\n\n**Qué hacer ahora**\n- Mientras iterás y antes de pushear: `make test ARGS=<lo que tocaste>` y `make lint`.\n- La suite completa la corre CI, en paralelo con tu trabajo.\n\n**Por qué cambió**\n- La guía anterior pedía la suite completa antes de la revisión porque CI no te devolvía el resultado antes de lo que tardaba correrla local.\n- Eso dejó de ser cierto. El job de `test` bajó de ~11 min a ~4, por bcrypt configurable en tests (PR #829) y los runners arm64.\n- Una corrida local completa te bloquea la máquina entera.\n- Cayó el argumento, y la recomendación cayó con él.\n\n**Cuándo conviene igual correrla entera**\n1. **Cambios transversales.** Si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, arrastrás ~76% de los archivos de test (medido sobre el grafo de imports). \"Lo que tocaste\" ya no es un subconjunto útil.\n2. **Agentes de IA.** Una sola pasada completa antes de entregar, no en cada iteración. El agente no tiene el criterio del autor para elegir el subconjunto, e iterar contra CI genera pushes de ruido.\n\n**Una regla que vale siempre**\nNo pushees a ciegas varias veces esperando que CI adivine. Si algo falla en CI y no sabés por qué, reproducilo local antes del siguiente push.\n\nUna nota sobre el punto 2: la guía de este entorno dice que la validación pesada la corre CI y no la máquina del dev ni el workspace managed. Si trabajás en un workspace managed (1 CPU, 2 GiB), correr la suite completa ahí puede tirar la sesión. Esa excepción para agentes choca con esa regla, y no está verificado cuál prevalece. Lo razonable es confirmarlo con el equipo antes de correrla en un workspace managed.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10006,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 731,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10006,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 731,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10006,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10006
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

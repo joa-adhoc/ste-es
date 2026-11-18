@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el modelo guarda una memoria y ya hay 50 en el scope: se borra la más vieja siempre, o hay algún criterio de relevancia? Y cuando los headers superan los 12K caracteres y rapidfuzz recorta a las top-N, ¿cuánto vale N, y qué pasa con las memorias que quedan afuera: el modelo no se entera de que existen?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Dos cosas no me cierran: ¿qué pasa cuando el rapidfuzz recorta por presupuesto, las memorias descartadas quedan sin header y el modelo no sabe que existen, o hay algún aviso? Y la eviction a 50 es 'por scope', pero el recorte de 12K, ¿se aplica a cada header (workspace y user) por separado o a los dos juntos?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando el modelo guarda una memoria y ya hay 50 en el scope: se borra la más vieja siempre, o hay algún criterio de relevancia? Y cuando los headers superan los 12K caracteres y rapidfuzz recorta a las top-N, ¿cuánto vale N, y qué pasa con las memorias que quedan afuera: el modelo no se entera de que existen?",
+ "followup_answer": "**Eviction:** se borra siempre la más vieja por `created_at`. El material no menciona ningún criterio de relevancia ni de uso: una memoria vieja pero muy usada se borra igual.\n\n**Valor de N:** el material no lo define. Solo dice que rapidfuzz puntúa los headers contra el mensaje actual del usuario y \"keeps top-N\". No sé si N es fijo, si se calcula para entrar en los 12K caracteres, ni si hay un piso mínimo.\n\n**Memorias que quedan afuera:** el material tampoco lo dice. Describe que se recortan, pero no menciona ningún aviso al modelo ni un marcador del tipo \"hay N memorias más\". Si no existe ese aviso, el modelo no se entera de que existen. Tampoco puede pedirlas con `manage_memory(action='read', id=...)`, porque no conoce sus `id`.\n\nPara cerrar los dos puntos, mirá `_load_chat_setup` y la función que aplica `_MEMORY_BUDGET_CHARS` en `tuqui_core/chat/agent.py`. Si querés, lo busco yo cuando tenga acceso al repo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6085,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 527,
+  "output_tokens_details": {
+   "thinking_tokens": 127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6085,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 527,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6085,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6085
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9cc00ced41"
+ }
+}

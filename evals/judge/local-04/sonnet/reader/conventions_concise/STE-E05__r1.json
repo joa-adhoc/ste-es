@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si trabajo en un workspace managed (1 CPU, 2 GiB) y soy un agente de IA, ¿qué hago con la pasada completa antes de entregar: la corro igual, la salteo y dejo que la corra CI, o hay otra regla? ¿Y podés confirmarme contra la guía de validación pesada si esa excepción aplica a agentes?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que no verificaste la excepción para agentes de IA en workspace managed (1 CPU, 2 GiB): si a un agente le piden correr la suite completa una vez antes de entregar y la suite puede matar la sesión ahí, ¿qué hago en ese caso? ¿Hay un subconjunto amplio o un comando alternativo recomendado, o la corre CI y no la corro yo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para agentes de IA decís que corra la suite completa una vez antes de entregar, pero en un workspace managed (1 CPU, 2 GiB) eso puede matar la sesión y la regla general dice que lo pesado lo corre CI. ¿Cuál gana en ese caso? ¿Hay una excepción documentada para agentes en workspaces managed, o qué hacemos ahí en la práctica?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Si trabajo en un workspace managed (1 CPU, 2 GiB) y soy un agente de IA, ¿qué hago con la pasada completa antes de entregar: la corro igual, la salteo y dejo que la corra CI, o hay otra regla? ¿Y podés confirmarme contra la guía de validación pesada si esa excepción aplica a agentes?",
+ "followup_answer": "**Salteala en local y dejá que la corra CI.** Después reportá \"suite completa: la valida CI\" con el resultado de `gh pr checks`.\n\n**Contra la guía de validación pesada:** la excepción aplica a agentes y no tiene carve-out. La regla dice que builds completos y suites largas no se lanzan \"en la máquina del dev ni en el workspace managed (1 CPU y 2 GiB de RAM)\". Ahí un build mata la sesión. También dice que \"esto lo valida CI\" es un resultado válido y que correr lo caro \"para estar seguro\" es el fallo.\n\nLa pasada única del material choca con eso. Resuelvo el choque a favor de la regla de managed, por tres razones:\n- **Sin carve-out:** la regla no exime a los agentes.\n- **Qué cubre cada una:** la excepción del material se apoya en que no tenés el criterio del autor para elegir un subconjunto. CI corre la suite completa, así que esa falta queda cubierta.\n- **Qué la limita:** el límite es de recursos del workspace, no de criterio.\n\nHacé esto:\n1. Corré en local solo lo barato: `make lint` y `make test ARGS=<lo que tocaste>`, si entra en los recursos.\n2. Pusheá una vez y mirá `gh pr checks`.\n3. Si CI falla y no sabés por qué, reproducí solo el test que falló, no la suite entera. Si ni eso entra, pará y reportalo.\n\n**No verificado:**\n- No medí si la suite completa entra en 2 GiB. Que mate la sesión lo tomo de la regla general, no de una corrida.\n- No sé si el repo declara un desvío en su `AGENTS.md §Overrides`. Si lo declara, ese desvío gana. Una convención no se anula desde la sesión.\n- Si querés que se corra igual en managed, lo decide una persona. Conviene reportar el choque entre la guía y la regla con `tuqui-report-feedback`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11364,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1411,
+  "output_tokens_details": {
+   "thinking_tokens": 733
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11364,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1411,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11364,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11364
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "21970f23f2"
+ }
+}

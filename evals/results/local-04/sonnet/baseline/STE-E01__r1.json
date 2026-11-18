@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Esto es lo que tiene que tener la tabla nueva para pasar el review.\n\n## Pasos\n\n1. **Crear la migración** en `supabase/migrations/` con `supabase migration new <nombre>`. Queda como `NNNN_descripcion.sql`.\n2. **Escribirla idempotente.** Tiene que poder correr varias veces sin error.\n3. **Agregar RLS**, porque la tabla tiene `workspace_id`.\n4. **Agregar el test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n5. **Crear el modelo Pydantic** correspondiente.\n\n## Qué tiene que tener la migración\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS ...`, con la columna `workspace_id` (uuid).\n- **Índices:** `CREATE INDEX IF NOT EXISTS ...`\n- **RLS activado:** `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. Esto ya es idempotente por defecto.\n- **Policy** con este criterio:\n  ```sql\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid)\n  ```\n  `CREATE POLICY` no tiene `IF NOT EXISTS`, así que va envuelta así:\n  ```sql\n  DO $$ BEGIN\n    IF NOT EXISTS (\n      SELECT 1 FROM pg_policies\n      WHERE tablename = '<tabla>' AND policyname = '<nombre_policy>'\n    ) THEN\n      CREATE POLICY <nombre_policy> ON <tabla>\n        USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\n  END $$;\n  ```\n  La consulta a `pg_policies` es mi forma de armar el `(...)` que la guía deja abierto. Los nombres son placeholders.\n\n## Por qué la idempotencia importa de verdad\n\nEl preview de tu PR corre las migraciones **contra la base de staging**. No es una copia, es la misma base. Eso trae dos consecuencias:\n\n- La migración se aplica en staging apenas abrís el PR.\n- Si después **renombrás el archivo**, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n\nPor eso conviene que:\n\n- **El nombre del archivo quede definitivo** antes de abrir el PR.\n- **Cada sentencia tolere correr dos veces.**\n- **Revises el SQL con cuidado antes del push**, porque lo que escribas ya toca staging.\n\nEl material linkea `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging` con las consecuencias completas. Leelo antes de abrir el PR.\n\n## Otras reglas\n\n- **No filtres por `workspace_id` solo en el application layer.** RLS es la línea de defensa principal.\n- **No uses una tabla sin `workspace_id`** salvo que lo discutas antes. Es la excepción, no la regla.\n\n## Checklist antes de abrir el PR\n\n- [ ] Nombre de migración final (`NNNN_descripcion.sql`)\n- [ ] `CREATE TABLE IF NOT EXISTS` e `CREATE INDEX IF NOT EXISTS`\n- [ ] `ENABLE ROW LEVEL SECURITY`\n- [ ] Policy con el `DO $$ ... IF NOT EXISTS ...` y el `current_setting('app.current_workspace_id')::uuid`\n- [ ] Test en `tuqui_core/tests/test_rls.py`\n- [ ] Modelo Pydantic\n- [ ] Corrí la migración dos veces en local para confirmar que no falla\n\nEl último punto es mi sugerencia, no sale del material.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3886,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1313,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3886,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1313,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3886,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3886
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

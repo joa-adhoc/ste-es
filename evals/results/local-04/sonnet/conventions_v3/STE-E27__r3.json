@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los 37 timeouts de `odoo_report` coinciden con una suba de memoria del worker que terminó en un OOM kill. La causa de la suba no la encontré.\n\n**Verificado**\n- En `tool_usage_log` (workspace `pldistribucion`, 18-nov) hay 37 errores \"timeout after 30s\" de `odoo_report` entre 13:10 y 13:40 UTC. Antes y después hay 0.\n- La memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41.\n- A las 13:41:58 el log dice \"Killed: out of memory (container limit 2 GB)\". A las 13:42:10 el worker reinició.\n\n**Inferencia mía, sin probar**\n- La memoria creciente probablemente volvió lentos los reportes hasta pasar los 30 s. Los tiempos son consistentes con eso, pero es una correlación.\n- Un detalle no cierra del todo: el último timeout registrado (13:40) es anterior al kill (13:41:58). No sé si el rango es aproximado o si los errores pararon antes del reinicio.\n\n**No verificado**\n- No sé qué proceso o request hizo subir la memoria. El log no tiene detalle por request, así que no hay causa raíz.\n- No sé si el cliente volvió a pedir los reportes después de las 13:42. Si no lo hizo, \"0 errores después\" solo muestra que nadie los pidió, no que esté resuelto.\n\n**Para cerrarlo**\n- Buscar en `tool_usage_log` los llamados a `odoo_report` después de las 13:42. Si hay y salieron bien, el reinicio resolvió el síntoma.\n- Para la causa raíz, ver qué reportes se pidieron entre 13:05 y 13:41, con qué parámetros y rango de fechas. Hoy no tengo otra fuente para eso.\n- Si pasa de nuevo, conviene tener logging de memoria por request en el worker. Ahora mismo no hay con qué diagnosticarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10073,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1015,
+  "output_tokens_details": {
+   "thinking_tokens": 321
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10073,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1015,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10073,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10073
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

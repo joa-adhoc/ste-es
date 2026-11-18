@@ -1,0 +1,44 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**¿Sigue así?** No. Según el material, ahora se corre local lo que tocaste (`make test ARGS=<lo que tocaste>` + `make lint`) y la suite completa la corre CI.\n\n**¿Por qué cambió?** La guía vieja pedía la suite completa porque CI no devolvía el resultado antes de lo que tardaba una corrida local. Ese argumento se cayó: el job de `test` bajó de ~11 min a ~4 (bcrypt configurable en tests, PR #829, y runners arm64). Una corrida local completa, en cambio, te bloquea la máquina. Cae el argumento, cae la recomendación.\n\n**¿Cuándo conviene igual la suite entera?** El material marca dos casos:\n- **Cambios transversales:** si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, el cambio arrastra ~76% de los archivos de test. \"Lo que tocaste\" deja de ser un subconjunto útil.\n- **Agentes de IA:** una sola pasada completa antes de entregar, no en cada iteración. Un agente no tiene el criterio del autor para elegir el subconjunto, y iterar contra CI genera pushes de ruido.\n\nAdemás, si algo falla en CI y no sabés por qué, reproducilo local antes del siguiente push.\n\n**Dos advertencias:**\n- **La excepción para agentes choca con la convención de Adhoc.** Mis instrucciones dicen que la validación pesada la corre CI, no el agente, y que correr lo caro igual \"para estar seguro\" es el fallo. Eso pesa sobre todo en un workspace managed (1 CPU, 2 GiB). Una convención no se anula desde la sesión: para apartarse, el proyecto tiene que declararlo en su `AGENTS.md §Overrides` o en un ADR. Si ese texto no está declarado ahí, yo no correría la suite completa. Haría lint y los tests de lo tocado, pushearía y reportaría \"lo valida CI\". Si la persona me lo pide, la corro.\n- **No verifiqué las cifras** del material (11→4 min, 76%, PR #829). Las tomo tal como están escritas.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10010,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1077,
+  "output_tokens_details": {
+   "thinking_tokens": 317
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10010,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1077,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10010,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10010
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuántas memorias entran como máximo en el prompt cuando se activa la guardia de presupuesto (cuál es el N del top-N), y qué pasa con el aviso al modelo cuando una memoria queda fuera por rapidfuzz: sabe que hay más memorias ocultas o simplemente no las ve?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando la guardia de presupuesto se activa: cuántas memorias entran en el top-N (cuál es N o con qué criterio se corta), y si las memorias del scope workspace y user se puntúan juntas o por separado?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuánto vale N en el top-N de rapidfuzz, y el presupuesto de 12K caracteres (`_MEMORY_BUDGET_CHARS`) se aplica por scope o al total de workspace + user? Si es por scope, el peor caso serían ~6K tokens por turno y no 3K."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cuántas memorias entran como máximo en el prompt cuando se activa la guardia de presupuesto (cuál es el N del top-N), y qué pasa con el aviso al modelo cuando una memoria queda fuera por rapidfuzz: sabe que hay más memorias ocultas o simplemente no las ve?",
+ "followup_answer": "El material no responde ninguna de las dos preguntas.\n\n**1. El valor de N.** El texto dice solo que, si los headers superan `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), rapidfuzz puntúa los headers contra el mensaje del usuario y \"keeps top-N\". No define N, ni como constante ni como regla. Hay dos lecturas posibles:\n- N es un número fijo.\n- N es dinámico: las que quepan dentro de los 12K caracteres, de mayor a menor score.\n\nLa segunda es más coherente con un presupuesto en caracteres, pero es una inferencia mía. El valor real está en el código de `_load_chat_setup` o en el helper que aplica la guardia.\n\n**2. Si el modelo sabe que hay memorias ocultas.** Tampoco se dice. El material describe un aviso solo para la expulsión FIFO, que llega en la respuesta de `manage_memory`. Para el filtrado por rapidfuzz no menciona ningún marcador del tipo \"N memorias omitidas\". Si no existe, el modelo simplemente no ve las memorias que quedaron fuera. En ese caso puede duplicar una memoria que ya existe o afirmar que no sabe algo que sí está guardado.\n\nTampoco queda claro si el modelo puede recuperar las ocultas. El material solo describe `action='read'` por `id`, y sin el `id` no hay forma de pedirlas. No sé si `manage_memory` tiene una acción `list` o `search`.\n\nPara confirmarlo, hay que revisar en `tuqui_core/chat/agent.py`:\n- Dónde se define o calcula el top-N.\n- Si el bloque inyectado agrega alguna línea cuando se recorta.\n- Qué acciones soporta `manage_memory`.\n\nSi me das acceso al código, lo verifico.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4962,
+  "cache_read_input_tokens": 17280,
+  "output_tokens": 711,
+  "output_tokens_details": {
+   "thinking_tokens": 69
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4962,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 711,
+    "cache_read_input_tokens": 17280,
+    "cache_creation_input_tokens": 4962,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4962
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0c6463f0c6"
+ }
+}

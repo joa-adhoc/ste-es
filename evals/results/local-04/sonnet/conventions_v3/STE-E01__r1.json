@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Para que no rebote, la migración tiene que ser idempotente, activar RLS y crear la policy. Además van el test de aislamiento y el modelo Pydantic.\n\n## Pasos\n\n1. Creá la migración con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n2. Escribí la migración idempotente (ejemplo abajo).\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`. La regla de RLS lo exige para toda tabla con `workspace_id`.\n4. Creá el modelo Pydantic correspondiente.\n5. No filtres por `workspace_id` solo en el application layer. RLS es la línea de defensa principal.\n\n## Qué tiene que tener la migración\n\n- `CREATE TABLE IF NOT EXISTS`, con la columna `workspace_id` (uuid).\n- `CREATE INDEX IF NOT EXISTS` para cada índice.\n- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. Es idempotente por defecto.\n- La policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`. Va dentro de un bloque `DO $$ ... IF NOT EXISTS ...`, porque `CREATE POLICY` no tiene `IF NOT EXISTS`.\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- ...resto de columnas\n    created_at timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS idx_mi_tabla_workspace_id\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE tablename = 'mi_tabla'\n          AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\nEl SQL es un ejemplo mío. Los nombres, los tipos y el índice sobre `workspace_id` son ilustrativos. El material solo exige `IF NOT EXISTS`, RLS y la policy con ese `USING`.\n\n## Por qué la idempotencia importa\n\nEl preview de tu PR corre las migraciones contra la base de staging. No es una copia: es la misma base, porque hereda el `DATABASE_ADMIN_URL` de staging.\n\n- La migración se aplica ahí apenas abrís el PR.\n- Si renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n- Antes de abrir el PR, revisá las consecuencias completas en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging). No pude leer ese archivo desde acá.\n- Elegí bien el nombre del archivo desde el principio, para no renombrarlo después.\n\n## Excepción\n\nSi la tabla no llevara `workspace_id`, hay que discutirlo antes. No es tu caso, pero es la excepción, no la regla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10641,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1463,
+  "output_tokens_details": {
+   "thinking_tokens": 209
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10641,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1463,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10641,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10641
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

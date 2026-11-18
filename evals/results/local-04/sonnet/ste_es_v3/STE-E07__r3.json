@@ -1,0 +1,44 @@
+{
+ "case": "STE-E07",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Hiciste dos cosas mal: invocaste `pytest` desde la raíz y dejaste `-k a or b` sin comillas.\n\n**1. `pytest` desde la raíz.** La config de la suite (`asyncio_mode`, markers, `testpaths`) vive en `tuqui_core/pyproject.toml`. Desde la raíz pytest no la ve, pierde el modo asyncio y colecta `evals/tests`. El resultado son miles de fallas falsas (medido: 2302 failed / 2111 passed). El `conftest.py` de la raíz corta esa invocación con un mensaje.\n\n**2. `-k a or b` sin comillas.** El shell parte la expresión en tres palabras. Pytest lee `or` como un path y falla con `ERROR: file or directory not found: or`.\n\n**Forma correcta, desde la raíz y por `make`:**\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nLas comillas externas protegen el valor para `make`. Las internas protegen la expresión para pytest.\n\nOtros comandos útiles:\n\n```bash\nmake test                                     # unit, igual que CI\nmake test ARGS=\"tests/test_rls.py -k policy\"  # subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/\nmake lint                                     # ruff check + format check\n```\n\nSi querés pytest crudo, hacé `cd tuqui_core`. Si el código lee `os.environ` directo, cargá `.env.test` como hace el Makefile.\n\nOjo: `pytest tuqui_core/tests/test_x.py` desde la raíz sí corre bien, porque el rootdir se resuelve en `tuqui_core`. Pero se saltea el lock del Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4487,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 635,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4487,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 635,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4487,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4487
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

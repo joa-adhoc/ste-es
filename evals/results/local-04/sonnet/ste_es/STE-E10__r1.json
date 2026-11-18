@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Primero corre `workspace_write_models`, después `evaluate_permission(ctx)` en `tuqui_core/chat/permissions.py`, y recién ahí `tool.execute()`. Con \"ask\" del admin y \"allow\" del miembro, gana el \"allow\" del miembro. En un webhook gana la grilla del workspace.\n\n```\n┌──────────────────────────────────────────────┐\n│ 1. workspace_write_models (admin, por modelo)│\n└──────────────────────────────────────────────┘\n        │ no permite → el tool corta acá\n        ▼ allow\n┌──────────────────────────────────────────────┐\n│ 2. workspace_tool_approvals = deny?          │\n└──────────────────────────────────────────────┘\n        │ sí → DENY (piso, nadie lo levanta)\n        ▼ no\n┌──────────────────────────────────────────────┐\n│ 3. user_tool_approvals (user, workspace, tool)│\n│    Se saltea en exposure / webhook / scheduled│\n└──────────────────────────────────────────────┘\n        │ hay fila → esa action gana\n        ▼ no hay fila (o canal sin identidad)\n┌──────────────────────────────────────────────┐\n│ 4. workspace_tool_approvals: allow / ask     │\n└──────────────────────────────────────────────┘\n        ▼ sin fila\n┌──────────────────────────────────────────────┐\n│ 5. Default: recurso en approval → ASK        │\n│    sin approval → ALLOW                      │\n└──────────────────────────────────────────────┘\n        ▼ allow / ask concedido\n   tool.execute() → tool_usage_log (permission_action)\n```\n\n**Tus dos casos**\n\n- **Admin \"ask\", miembro \"allow\", chat normal:** el paso 3 resuelve antes que el 4, así que el tool corre sin preguntar. El admin solo puede forzar con `deny`. Un \"ask\" del admin es una política que la preferencia personal puede pisar.\n- **Agent por webhook:** el canal no tiene identidad personal (`ChannelProfile.personal_identity_applies`). El paso 3 se saltea entero, aunque el turno corra con la identidad prestada de un miembro. Decide la grilla del workspace (pasos 4 y 5), así que el \"allow\" del miembro no cuenta.\n\nEl material no dice qué pasa cuando un webhook termina en ASK, porque no hay usuario a quien preguntarle. Fijate en `permissions.py` o en `chat/client_facing_core.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5462,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1067,
+  "output_tokens_details": {
+   "thinking_tokens": 204
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5462,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1067,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5462,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5462
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

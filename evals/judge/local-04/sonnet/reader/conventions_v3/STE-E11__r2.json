@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado en el environment de prod en Railway? Si no, la migración se saltea ahí para siempre y el drop nunca llega a prod, y eso no lo puedo confirmar con lo que me dijiste."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Está seteado MIGRATIONS_ALLOW_DESTRUCTIVE=1 en el environment de prod en Railway? Si no, la migración se saltea ahí para siempre y no sé si el drop llega a prod."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿`MIGRATIONS_ALLOW_DESTRUCTIVE=1` está seteado en el environment de prod en Railway? Si no, la migración se saltea ahí para siempre y el drop nunca llega a prod, y eso no lo puedo confirmar con lo que me dijiste.",
+ "followup_answer": "No lo puedo confirmar. El material solo dice que un PR env hereda el flag de staging. No dice nada del environment de prod, y desde acá no tengo acceso a Railway.\n\nSi en prod no está seteado, pasa lo que decís. El runner saltea la migración sin registrarla y sin error, así que cada deploy la vuelve a saltear. El drop no llega nunca y nada falla.\n\nPara cerrarlo, antes de mergear:\n\n- **Variables de prod:** mirá en el dashboard de Railway, en el environment de prod y el servicio que corre el migrate, si existe `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Con la CLI: `railway variables --environment <prod>`.\n- **Rama de deploy:** confirmá que prod despliega desde `main` (o `staging`). Si despliega desde otra rama, el gate la rechaza aunque el flag esté.\n\nDespués del merge, verificá que se aplicó:\n\n- **Logs del deploy:** buscá que el runner no la haya salteado.\n- **Tabla `_migrations`:** tiene que tener una fila con el nombre del archivo. Si no la tiene, se saltó.\n\nSi el flag no está en prod, ponerlo es una decisión del equipo de infra, porque habilita drops en la base productiva. Pedísela a quien administre ese environment y no lo setees por tu cuenta.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11720,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 861,
+  "output_tokens_details": {
+   "thinking_tokens": 383
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11720,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 861,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11720,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11720
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0ce596312a"
+ }
+}

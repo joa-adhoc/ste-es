@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "La memoria vive hasta que la desaloja la número 51 de su scope, y en cada turno entra al prompt solo como header.\n\n```\n┌──────────────┐   ┌──────────────────┐   ┌───────────────────┐\n│ manage_memory│──►│ DB (cap 50 por   │──►│ _load_chat_setup  │\n│ (guardar)    │   │ scope, FIFO)     │   │ arma headers      │\n└──────────────┘   └──────────────────┘   └─────────┬─────────┘\n                                                    │\n                   ┌──────────────────┐   ┌─────────▼─────────┐\n                   │ manage_memory    │◄──│ System prompt     │\n                   │ (action='read')  │   │ (cada turno)      │\n                   └──────────────────┘   └───────────────────┘\n```\n\n**1. Guardado.** El modelo guarda la memoria con `manage_memory`. Cada memoria pertenece a un scope: user (por usuario) o workspace (por workspace).\n\n**2. Eviction.** Cada scope admite 50 memorias. Al agregar la 51, la DB borra la más vieja por `created_at` en la misma transacción. La eviction es silenciosa para el usuario, pero la respuesta del tool le avisa al modelo.\n\n**3. Carga en cada turno.** `_load_chat_setup` en `tuqui_core/chat/agent.py` inyecta un header por memoria. Va después del bloque `CURRENT USER` y antes del bloque de proyecto. Las memorias de workspace van primero (`# Workspace memory (shared with team)`) y las de user después (`# User memory (personal)`).\n\n**4. Formato del header.** Es `title` más `summary`. Sin summary, usa el body hasta 250 caracteres. Si el body pasa de 250 y no hay summary, el header termina en `... [read]`.\n\n**5. Lectura bajo demanda.** Cuando necesita el contenido completo de una memoria marcada `[read]`, el modelo llama `manage_memory(action='read', id=...)`.\n\n**6. Cuando hay muchas.** Con 50 memorias de tamaño máximo, el costo por turno es de unos 3K tokens. Si los headers superan `_MEMORY_BUDGET_CHARS` (12K caracteres), `rapidfuzz` puntúa cada header contra el mensaje actual del usuario. El sistema conserva solo los top-N.\n\nOjo con dos detalles:\n- La eviction es FIFO por `created_at`, no por uso. Una memoria vieja y muy útil se borra igual.\n- El filtro por presupuesto actúa solo sobre lo que se inyecta. No borra nada de la DB.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4367,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 917,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4367,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 917,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4367,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4367
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

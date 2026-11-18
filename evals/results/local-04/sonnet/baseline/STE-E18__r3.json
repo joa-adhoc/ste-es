@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n## 1. Guardado\nEl modelo llama a la herramienta `manage_memory` para crear una memoria. Cada una pertenece a un **scope**:\n- **user**: personal, por usuario.\n- **workspace**: compartida con el equipo, por workspace.\n\n## 2. Tope y expulsión (cap + FIFO)\n- Máximo **50 memorias por scope**.\n- Al agregar la número 51, se borra la más antigua según `created_at`, **en la misma transacción de DB**.\n- La expulsión es silenciosa para el usuario, pero el modelo se entera por un mensaje en la respuesta de la herramienta.\n\nEs FIFO puro: no importa cuán útil o reciente sea el uso de una memoria, solo cuándo se creó.\n\n## 3. Carga progresiva (dos niveles)\nInspirada en Claude Code Skills:\n\n1. **Header**, inyectado en cada turno: `title + (summary, o si no hay, los primeros 250 caracteres del body)`. Si el body supera 250c y no hay summary, el header termina en `... [read]`.\n2. **Body**, bajo demanda: si el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`.\n\nAsí el costo por turno queda acotado a ~3K tokens, incluso con 50 memorias de tamaño máximo.\n\n## 4. Entrada al prompt\nEn `tuqui_core/chat/agent.py`, función `_load_chat_setup`, se inyectan después del bloque `CURRENT USER` y antes del bloque de proyecto:\n\n```\n# Workspace memory (shared with team)\n- [customer:123 / preferred_payment] Acme — method: Wire transfer only. (id=abc-...)\n- [process:billing / default_due] Billing due end of month (not day 10). [read] (id=def-...)\n\n# User memory (personal)\n- [general] Sonnet preferred for long queries. (id=ghi-...)\n```\n\nCada línea incluye el `id`, que es lo que el modelo usa para pedir el body completo.\n\n## 5. Qué pasa cuando hay muchas\nHay dos límites distintos:\n- **Cantidad**: el tope de 50 por scope (FIFO, ver punto 2).\n- **Tamaño**: un *budget guard* con `_MEMORY_BUDGET_CHARS` = 12K caracteres (≈3K tokens). Si la suma de los headers lo excede, **rapidfuzz** puntúa cada header contra el mensaje actual del usuario y se queda con los top-N más relevantes.\n\nConsecuencia: cuando se activa el guard, el conjunto de memorias visibles **cambia de turno a turno** según de qué se esté hablando. Una memoria no seleccionada sigue existiendo, pero el modelo no la ve en ese turno.\n\n**Nota:** el material no aclara si el guard aplica a ambos scopes en conjunto o por separado, ni cómo se decide N. Eso habría que verlo en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3651,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1052,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3651,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1052,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3651,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3651
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

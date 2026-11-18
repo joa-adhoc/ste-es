@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La migración se crea con `supabase migration new <nombre>` y queda en `supabase/migrations/NNNN_descripcion.sql`. Se nombra con el patrón NNNN_descripcion; el nombre importa porque el tracking es por nombre de archivo y renombrarlo hace que se vuelva a aplicar.",
+  "Tiene que tener la columna `workspace_id`, habilitar RLS con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y una policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, creada dentro de un bloque `DO $$ BEGIN IF NOT EXISTS (...) THEN CREATE POLICY ...; END IF; END $$;` para que sea idempotente. El índice sobre `workspace_id`, el `NOT NULL` y el nombre de la policy son decisiones del autor del texto, no del material.",
+  "Porque el preview del PR corre las migraciones contra la base de staging (la misma base, no una copia, usando el `DATABASE_ADMIN_URL` de staging) apenas se abre el PR, y si se renombra el archivo la migración se vuelve a aplicar, ya que el tracking es por nombre de archivo. Las consecuencias completas están en docs/infra-ci-cd.md, que el texto dice no haber podido leer."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ce0a054e87",
+  "control": "cb1718959b"
+ }
+}

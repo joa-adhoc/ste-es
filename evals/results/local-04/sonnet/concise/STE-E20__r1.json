@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No está caído: la migración falló, se hizo rollback y el deploy nuevo no se promovió, así que staging sigue sirviendo la versión anterior.\n\n**Causa:** la migración `0415_terms_acceptance.sql` intentó `ALTER COLUMN accepted_version SET NOT NULL` en `members`, pero hay filas existentes con `accepted_version` en null (error 23502).\n\n**Cómo arreglarlo:** según `docs/infra-ci-cd.md`, hay que separarlo en dos pasos:\n1. Una migración que haga el backfill de `accepted_version` en las filas viejas.\n2. En un tren posterior, otra migración con el `SET NOT NULL`.\n\nHay que sacar el `SET NOT NULL` de la 0415 (o reemplazarlo por el backfill) y mover la restricción a una migración posterior. No hay que limpiar nada en staging: el rollback ya dejó el esquema como estaba.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3808,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 326,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3808,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 326,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3808,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3808
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

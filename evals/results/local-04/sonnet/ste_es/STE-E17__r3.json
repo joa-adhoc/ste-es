@@ -1,0 +1,44 @@
+{
+ "case": "STE-E17",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cuando una tool falla, `_wrap_tool` (`agent.py`) convierte la excepción en un string `[TOOL_ERROR class=X]: message` que ve el modelo. Si el mismo call falla 3 veces con la misma clase de error, `DoomLoopGuard` lo corta con un error `FATAL`.\n\n```\n┌────────────┐  excepción  ┌────────────┐\n│ tool       │────────────►│ _wrap_tool │\n└────────────┘             └─────┬──────┘\n                                 │ ToolError directo, o\n                                 │ classify_unknown(exc)\n                                 ▼\n                          ┌────────────┐\n                          │ ToolError  │\n                          │ error_class│\n                          └─────┬──────┘\n                                │ record(tool_name, args, ok, error_class)\n                                ▼\n                          ┌──────────────┐\n                          │ DoomLoopGuard│\n                          └─────┬────────┘\n              counter < 3       │       counter ≥ 3 (devuelve True)\n          ┌─────────────────────┴──────────────┐\n          ▼                                    ▼\n┌───────────────────────┐          ┌───────────────────────┐\n│ exc.for_llm()         │          │ FATAL: no se permiten │\n│ [TOOL_ERROR class=X]… │          │ más calls idénticos   │\n└───────────────────────┘          └───────────────────────┘\n```\n\nLo que el dibujo no muestra:\n\n- **Clasificación:** `classify_unknown` mapea excepciones de Python y httpx a un `ErrorClass`. Las clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. `ToolError` además trae `message` y `retry_after_seconds`.\n- **Qué cuenta como \"lo mismo\":** la key del contador es `\"{tool_name}|{hash(args)}|{error_class}\"`. El mismo call con la misma clase de error suma. Si cambian los args o la clase, el contador es otro.\n- **Reset:** cualquier éxito limpia todos los contadores, no solo el de esa key.\n- **Umbral:** `THRESHOLD=3`.\n- **Dos clases de conexión:**\n  - `CONNECTION` es un Odoo caído (falla el transporte).\n  - `ODOO_NOT_CONNECTED` es que nadie conectó Odoo en este run (sin credenciales, `require_adapter` en `tools/base.py`).\n  - Cada una tiene su texto. A quien no conectó su Odoo no se le dice que la conexión está caída.\n  - `DoomLoopGuard` corta las dos entre tools, cada una con su aviso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5138,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1289,
+  "output_tokens_details": {
+   "thinking_tokens": 304
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5138,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1289,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5138,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5138
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

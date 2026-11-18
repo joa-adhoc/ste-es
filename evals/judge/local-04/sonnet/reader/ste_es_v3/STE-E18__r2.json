@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el punto 6 decís que se conservan 'solo los top-N' cuando se supera el presupuesto de 12K caracteres, pero no dice cuánto vale N ni cómo se decide. ¿Es un número fijo o se van sumando headers por score hasta llenar el presupuesto? Además, ¿qué pasa con las memorias que quedan afuera: el modelo sabe que existen y puede leerlas por id, o directamente no las ve en ese turno?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa exactamente cuando se superan los 12K caracteres: cuál es el N del top-N y qué ocurre con las memorias que quedan afuera, el modelo se entera de que existen o simplemente no las ve hasta que hace una búsqueda?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuántas memorias entran como máximo tras el filtro de presupuesto (cuánto vale el top-N), y qué pasa con las que quedan afuera: el modelo sabe que existen y puede leerlas por id, o simplemente no las ve en ese turno?",
+   "note": "La primera oración es una síntesis clara, pero contradice en parte el detalle: dice que entra solo como header, y luego el filtro puede dejar memorias fuera por completo. Además, el top-N queda sin definir y no se aclara cómo el modelo accede a una memoria excluida."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el punto 6 decís que se conservan 'solo los top-N' cuando se supera el presupuesto de 12K caracteres, pero no dice cuánto vale N ni cómo se decide. ¿Es un número fijo o se van sumando headers por score hasta llenar el presupuesto? Además, ¿qué pasa con las memorias que quedan afuera: el modelo sabe que existen y puede leerlas por id, o directamente no las ve en ese turno?",
+ "followup_answer": "El material no dice cuánto vale N ni cómo se decide. Solo dice que `rapidfuzz` puntúa los headers contra el mensaje y \"keeps top-N\". No puedo confirmar si N es fijo o si se suman headers por score hasta llenar los 12K caracteres.\n\nLo que sí se deduce del material:\n\n- **Qué ve el modelo:** el `id` solo aparece en el header inyectado. Una memoria que queda afuera no tiene header ese turno, así que el modelo no la ve y no puede leerla por id. La única excepción es que el id ya figure en el historial del chat.\n- **Qué no sabemos:** si el prompt avisa que hubo recorte, por ejemplo con una línea tipo \"N memorias omitidas\". El material no muestra nada de eso.\n\nPara cerrar las dos dudas, fijate en `_load_chat_setup` (`tuqui_core/chat/agent.py`), donde se usa `_MEMORY_BUDGET_CHARS`. Buscá si hay un `[:N]` fijo o un loop que acumula longitud, y si agrega algún aviso al prompt. Si me pasás ese fragmento, te lo confirmo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5648,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 782,
+  "output_tokens_details": {
+   "thinking_tokens": 376
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5648,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 782,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5648,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5648
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "38b8c254ee"
+ }
+}

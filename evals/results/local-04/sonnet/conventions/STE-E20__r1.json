@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No está caído.** El log dice que el deploy nuevo no se promovió y que el anterior sigue sirviendo. Staging corre la versión previa.\n\n**Qué pasó:**\n- La imagen se construyó bien (2m11s).\n- Falló la migración `0415_terms_acceptance.sql`. Intentaba `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL`, pero la columna `accepted_version` tiene filas con null (error 23502).\n- La migración hizo rollback, así que la base quedó como estaba.\n\n**Causa:** la migración pasa la columna a NOT NULL en un solo paso, sin completar antes los valores de las filas existentes. `docs/infra-ci-cd.md` pide separarlo en dos: primero una migración con el backfill y, en un tren posterior, otra con el `SET NOT NULL`.\n\n**Cómo resolverlo:**\n1. Reemplazar `0415` por una migración que haga solo el backfill de `accepted_version` (con el valor que corresponda a los miembros viejos; eso lo tiene que definir quien conoce el producto).\n2. Sacar el `SET NOT NULL` de este tren y ponerlo en una migración del tren siguiente, cuando el backfill ya esté desplegado.\n3. Volver a desplegar.\n\n**No verificado:** no tengo acceso a staging, así que me baso solo en el log. Conviene confirmar que el servicio responde y que no se aplicó nada a medias. El log indica rollback, pero no lo comprobé en la base.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9606,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 533,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9606,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 533,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9606,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9606
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Encontré un problema que bloquea el PR #1840 y dos detalles menores. Todavía no publiqué nada, ni en GitHub ni en la tarea.\n\n**Bloqueante: inyección SQL.** En `tuqui_core/odoo/partners.py:88` la consulta se arma con un f-string:\n\n```python\nf\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"\n```\n\n`cuit` viene del usuario, así que se puede inyectar SQL. Corresponde pasarlo como parámetro:\n\n```python\ncr.execute(\"SELECT id FROM res_partner WHERE vat = %s\", (cuit,))\n```\n\n**Detalles menores**\n- `tuqui_core/tests/test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\n**Estado de la revisión**\n- Los checks de CI están todos verdes. Eso no detectó la inyección.\n- Leí completos `partners.py` y `test_partners.py`.\n- No corrí los tests en local: no verificado, solo cuenta el CI.\n\n¿Publico la revisión en el PR como \"cambios solicitados\", con el bloqueante primero y los menores después?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10135,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 741,
+  "output_tokens_details": {
+   "thinking_tokens": 315
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10135,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 741,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10135,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10135
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

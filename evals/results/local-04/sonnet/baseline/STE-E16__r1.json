@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Según el material, las versiones funcionan así:\n\n## Qué ve quien tiene el link\n\nSi editás un artifact ya compartido, **el link sigue mostrando lo que estaba publicado**. La ruta por token sirve siempre `published_version`, y un `save` sobre un artifact existente no la mueve.\n\nAl guardar con `artifact_id`:\n- Se crea la versión n+1 y se mueve `current_version_id`.\n- `published_version_id` **no** cambia.\n- El resultado trae `unpublished_changes: true` y el viewer interno muestra un banner avisando que hay cambios sin publicar.\n\nPara que el link muestre lo nuevo, tenés que llamar a `publish(version?)`. Sin argumento publica la última versión. Para volver atrás (revert), publicás una versión anterior.\n\nUn caso aparte es el primer `save`, el que no lleva `artifact_id`. Ese crea la v1 **y la publica**, así el flujo crear→compartir no da 404.\n\nEl viewer interno es distinto del link: navega por `current_version`, con selector de versiones. Por eso vos ves lo último y quien tiene el link ve lo publicado.\n\n## Qué pasa cuando solo se refrescan los datos\n\nCada artifact separa `content` (el template, la página completa) y `data` (un snapshot JSON opcional que el front inyecta en `<script id=\"tuqui-data\">`). Un refresh de datos crea una **versión solo-data**, con `content` en null.\n\nLa versión efectiva `n` se resuelve por separado hacia atrás:\n- el último `content` no nulo ≤ n,\n- el último `data` no nulo ≤ n.\n\nPor eso una versión solo-data hereda el diseño de la anterior y **no puede romperlo**.\n\nAdemás:\n- Si el `save` sobre un artifact existente trae `data`, se valida contra el `data_schema` almacenado (keys requeridas y tipos de las properties). Si el shape es incompatible, se rechaza **antes** de escribir.\n- Hay topes: `content` ≤ 1 MB y `data` serializada ≤ 1 MB. Si se pasan, falla con error explícito.\n\n## Lo que el material no aclara\n\nNo dice si un refresh de datos también deja el link sin actualizar, es decir, si la versión solo-data cae bajo la misma regla de no mover `published_version_id`. Por la descripción de `save` parecería que sí, pero conviene confirmarlo en el código antes de asumirlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3778,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 844,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3778,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 844,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3778,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3778
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

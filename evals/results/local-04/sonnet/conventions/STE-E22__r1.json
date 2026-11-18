@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No así, todavía. Un `reset --hard` ahí te borra cosas que no están a salvo:\n\n- **Cambios sin commitear** en `limits.py` y `test_limits.py`: no están en ningún commit, así que no se recuperan, ni con reflog.\n- **3 commits sin pushear** (`a1b2c3d`, `d4e5f6a`, `0718293`): solo existen en tu local. Se recuperarían por reflog, pero es frágil.\n- **`0420_mcp_limits.sql`** (sin trackear): el reset no la toca y queda en el árbol. Si staging ya tiene una migración 0420, puede chocar o numerarse mal.\n\nLa forma más segura es no resetear y arrancar una rama nueva desde `origin/staging`, dejando la actual como respaldo:\n\n```bash\ngit fetch origin\ngit branch backup/limite-mcp          # guarda los 3 commits\ngit add -A && git commit -m \"wip: respaldo\"   # solo si querés guardar también lo no commiteado\ngit switch -c feat/limite-mcp-v2 origin/staging\n```\n\nSi el commit de respaldo lo hacés en `feat/limite-mcp`, hacelo antes del `git branch`, o corré el `git branch` después del commit. Así el backup incluye todo. Una vez que estés seguro de que no lo necesitás, borrás el backup.\n\nSi preferís conservar el nombre `feat/limite-mcp`, primero renombrá la vieja (`git branch -m feat/limite-mcp backup/limite-mcp`) y después creá la nueva con ese nombre desde `origin/staging`. Tené en cuenta que `origin/feat/limite-mcp` ya existe en remoto, y para pushear la nueva con ese nombre vas a necesitar `--force-with-lease`.\n\n¿Querés descartar todo de verdad, o aprovechar algo (por ejemplo la migración)? Según eso ajusto los pasos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9530,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1083,
+  "output_tokens_details": {
+   "thinking_tokens": 418
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9530,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1083,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9530,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9530
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

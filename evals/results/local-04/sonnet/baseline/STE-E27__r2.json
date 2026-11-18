@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Qué encontré**\n\nEl incidente de los reportes de Odoo del 18-nov es consistente con un worker que se quedó sin memoria:\n\n- **Síntoma:** en el workspace pldistribucion, la herramienta `odoo_report` registró 37 errores \"timeout after 30s\" entre 13:10 y 13:40 UTC. No hubo errores antes ni después de esa ventana.\n- **Causa probable:** la memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41. A las 13:41:58 el contenedor fue matado por OOM (límite de 2 GB) y a las 13:42:10 el worker se reinició.\n- **Cronología:** la memoria empezó a crecer unos 5 minutos antes del primer timeout. Los errores cesaron justo cuando el worker se reinició.\n\nEsto es una correlación temporal fuerte. No tengo evidencia directa de que la memoria causara los timeouts. Es la explicación más plausible, pero es una inferencia.\n\n**Lo que no sé**\n\n- **Qué hizo subir la memoria.** Los logs no tienen detalle por request, así que no puedo decir si fue un reporte concreto, un volumen alto de peticiones u otra cosa. Es la causa raíz y sigue sin identificar.\n- **Si el cliente reintentó después de las 13:42.** No lo verifiqué. Que no haya errores después de las 13:40 puede significar que todo se recuperó, o simplemente que nadie volvió a pedir los reportes. Tampoco sé si los usuarios afectados recibieron finalmente sus reportes.\n\n**Siguientes pasos sugeridos**\n\n1. Consultar `tool_usage_log` para ver si hubo llamadas a `odoo_report` con éxito después de las 13:42.\n2. Mirar qué reportes se pidieron entre 13:05 y 13:40 (parámetros, tamaño de rango de fechas) para buscar uno anormalmente pesado.\n3. Si se repite, añadir logging por request, con memoria y duración, y valorar un límite de tamaño o paginación en los reportes.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3314,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 729,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3314,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 729,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3314,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3314
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

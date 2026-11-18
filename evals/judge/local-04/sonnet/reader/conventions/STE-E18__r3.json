@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué acción usa el modelo para guardar una memoria (create/save), y cuando el budget guard descarta headers, ¿cuánto vale N y cómo se enteran el modelo o el usuario de las memorias que quedaron afuera?",
+   "note": "La primera oración es solo un título; la respuesta real arranca después. Además, el guardado, el N del top-N y el destino de las memorias excluidas quedan sin confirmar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa con las memorias que el budget guard deja afuera (¿quedan sin header ese turno?), cuánto vale N en el top-N, y el tope de 12K caracteres es por alcance o total entre usuario y workspace?",
+   "note": "La primera oración es solo el título del tema y no responde nada. Tampoco aclara qué acción se usa para guardar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué acción/tool usa el modelo para guardar una memoria (create/save) y cuánto vale N en el top-N del budget guard? Además: ¿los 12K caracteres son por alcance o total entre usuario y workspace, y qué pasa con las memorias que el guard deja afuera?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué acción usa el modelo para guardar una memoria (create/save), y cuando el budget guard descarta headers, ¿cuánto vale N y cómo se enteran el modelo o el usuario de las memorias que quedaron afuera?",
+ "followup_answer": "Con el material que tengo, no puedo confirmar ninguna de las tres cosas. No verifiqué nada contra el código: el material no incluye `tuqui_core` y no lo busqué en disco.\n\n**1. Acción para guardar**\n- El material solo muestra `manage_memory(action='read', id=...)`.\n- Que exista un `action` sugiere que la misma tool maneja más acciones, y lo razonable es que haya una de alta (`create` o `save`). Pero es una suposición mía y no tengo el nombre.\n- Para cerrarlo, hay que leer la definición de `manage_memory` y su enum de `action`. Probablemente esté en `tuqui_core/chat/`.\n\n**2. Cuánto vale N**\n- El material dice \"keeps top-N\" sin dar el valor.\n- Tampoco dice si N es un número fijo de memorias o si es lo que entra hasta llenar `_MEMORY_BUDGET_CHARS`, que sería el comportamiento más natural con un presupuesto en caracteres.\n- Para cerrarlo, hay que leer la función que aplica el guard, donde se usa `rapidfuzz`, y mirar cómo corta.\n\n**3. Cómo se enteran el modelo o el usuario de las que quedaron afuera**\n- El material no menciona ningún aviso.\n- Sí dice que la eviction por tope le avisa al modelo vía la respuesta de la tool. Para el budget guard no dice algo equivalente.\n- Si no hay aviso, el modelo ve solo los headers filtrados y no sabe que faltan otros. Podría llegar a ellos solo si ya conoce un `id`.\n- Tampoco hay indicio de que el usuario vea algo. Es una inferencia a partir de lo que falta en el material, no un hecho.\n- Para cerrarlo, hay que ver si `_load_chat_setup` agrega una línea tipo \"N memories omitted\" al prompt, y si la tool tiene una acción de listado o búsqueda (`list` o `search`) que le permita al modelo recuperar lo descartado.\n\nSi me pasás la ruta del repo o el fragmento de `manage_memory` y del guard, lo confirmo con evidencia.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11167,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 948,
+  "output_tokens_details": {
+   "thinking_tokens": 197
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11167,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 948,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11167,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11167
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e64c3cfad2"
+ }
+}

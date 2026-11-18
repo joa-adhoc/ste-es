@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el refresh del paso 8 falla (se borra el token, se marca la conexión como caída, se le pide reconectar al usuario)? Y ¿cómo se repara una habilidad que quedó en connect_warning?",
+   "note": "La primera oración resume los actores y los dos desenlaces, pero la respuesta lista explícitamente cuatro huecos y dos de ellos (falla de refresh y reparación de habilidades en warning) afectan directamente el caso que preguntaba."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el refresh del paso 8 falla (token revocado o expirado)? ¿Se borra el token, se marca al usuario como desconectado o se reintenta? Además, ¿cómo se repara una habilidad que quedó en connect_warning, hay que reconectar o hay un reintento?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el refresh del paso 8 falla (se borra el token, se marca la conexión como caída, se le pide reconectar al usuario)? Y ¿cómo se repara una habilidad que quedó en connect_warning?",
+ "followup_answer": "No lo sé: el material no cubre ninguna de las dos preguntas. Lo que sigue es lo que el texto sí permite concluir y lo que no.\n\n## Si falla el refresh del paso 8\n\nEl material solo dice que `refresh_if_expired` corre al construir los toolsets y renueva si quedan menos de 60 s. No dice qué pasa si el provider rechaza el refresh. No puedo decirte si:\n\n- se borra el token;\n- se marca la conexión como caída;\n- se le pide reconectar al usuario;\n- se reintenta.\n\nNo lo infiero del caso del callback. Ahí se borra el token porque no sirve para nada, pero el refresh es otro camino y puede tratar el error distinto.\n\n## Cómo se repara una habilidad en `connect_warning`\n\nEl material tampoco lo describe. Solo dice que el usuario queda conectado con un estado parcial y que el banner lista las habilidades que no contestaron.\n\nUna inferencia, no verificada: reconectar vuelve a correr los pasos 3 a 7. `prompt=consent` fuerza a reemitir tokens en cada authorize, así que la prueba de humo se repetiría. Pero el texto no dice si la UI ofrece reintentar solo esa habilidad, ni si hay un botón de reconectar en el banner.\n\n## Cómo cerrarlo\n\n- **Refresh:** buscá `refresh_if_expired` en el backend y mirá qué hace en la rama de error. Fijate en particular si borra la fila de `user_mcp_oauth_tokens` y si propaga una excepción al armado de toolsets.\n- **Warning:** buscá dónde la card de `/connectors` lee `connect_warning`. Ahí se ve qué acción ofrece el banner.\n\nSi me pasás acceso al repo, lo reviso y te devuelvo el comportamiento real. Este directorio no es un repo y no tengo el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12448,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 865,
+  "output_tokens_details": {
+   "thinking_tokens": 218
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12448,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 865,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 12448,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12448
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f17932c4eb"
+ }
+}

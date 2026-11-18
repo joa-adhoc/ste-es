@@ -1,0 +1,44 @@
+{
+ "case": "STE-E21",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No, no alcanza. Según `docs/seguridad.md`, un secreto que llegó a un remoto se da por filtrado, aunque borres el commit o reescribas la historia. GitHub guarda los commits del PR y el preview de Railway ya construyó la imagen con ese commit.\n\nTenés que hacer estos pasos, en este orden:\n\n1. **Rotá la key de OpenAI.**\n   - Creá una key nueva en el panel de OpenAI.\n   - Cargala en Admin › Integraciones, en staging y en prod.\n   - Revocá la vieja recién después de cargar la nueva, para no cortar el servicio.\n   - No la pongas en variables de entorno de Railway.\n\n2. **Limpiá la rama.** Es secundario, pero conviene:\n   ```\n   git rebase -i origin/<base>   # sacá o editá el commit con la key\n   git push --force-with-lease\n   ```\n   `git push --force` sin lease está bloqueado. Si alguien ya revisó el PR, avisá antes de reescribir la historia.\n\n3. **Avisá** en la tarea abierta del proyecto 1526 (Administración Tuqui): con qué key rotaste y cuándo.\n\nLimpiar la rama no revoca nada: la key sigue válida hasta que la revoques. Por eso la rotación va primero.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10135,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 451,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10135,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 451,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10135,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10135
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

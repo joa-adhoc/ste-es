@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, binario por modelo). Si el workspace no permite la operación sobre ese modelo, el tool se corta ahí y nunca llega al evaluador.\n2. **`evaluate_permission`**, en este orden:\n   1. `workspace_tool_approvals` con **`deny`**: bloquea. Es un piso y ninguna preferencia personal lo levanta.\n   2. `user_tool_approvals` para `(user, workspace, tool)`: si hay fila, esa acción gana. **Se saltea entero** en canales sin identidad personal (`exposure`, `webhook`, `scheduled`).\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila: ASK si el recurso tiene `approval` (`\"ask\"` o `\"always\"`), ALLOW si no. Para tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Tu primer caso: admin \"ask\", miembro \"allow\" (chat)\n\nSe ejecuta **sin preguntar**.\n\n- El admin puso `ask`, no `deny`, así que el paso 2.1 no lo bloquea.\n- En el paso 2.2 el chat tiene identidad personal, y la fila del miembro (`allow`) gana.\n- El `ask` del admin ni se consulta, porque estaba en el paso 2.3.\n\nPara que el miembro no pueda saltearlo, el admin tendría que poner `deny`, y eso bloquea para todos. Con `ask` solo se fija un valor por defecto que cada miembro puede pisar en su propio workspace.\n\nEsto vale mientras el modelo esté permitido en `workspace_write_models`. Si no lo está, ni se llega al evaluador.\n\n## Tu segundo caso: agent por webhook\n\nSe ignora la preferencia personal, aunque el turno corra con la identidad prestada de un miembro (`personal_identity_applies` es falso). Resuelve la grilla del workspace:\n\n- `deny` en la grilla: bloquea.\n- `allow` o `ask` en la grilla: eso decide.\n- Sin fila: el default por recurso.\n\nCon el mismo `ask` del admin, el resultado es **ASK**, aunque ese miembro tenga `allow` personal.\n\n**No verificado:** el material no dice qué pasa con un ASK en un canal sin nadie que responda, como un webhook. Puede quedar como denegado, pendiente o fallar. Para confirmarlo hay que leer cómo trata `chat/client_facing_core.py` el resultado ASK, o mirar el `permission_action` en `tool_usage_log` de un turno real por webhook.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10318,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1381,
+  "output_tokens_details": {
+   "thinking_tokens": 409
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10318,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1381,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10318,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10318
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

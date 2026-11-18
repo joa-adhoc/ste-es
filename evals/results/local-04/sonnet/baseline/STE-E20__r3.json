@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en el paso `migrate`. Intentó hacer `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL`, pero la columna `accepted_version` ya tiene filas con valores null (error 23502). Por eso la base rechazó el cambio.\n\n**¿Está caído?** No. El log dice que la migración se revirtió (rollback) y que el nuevo deployment no se promovió. El deployment anterior sigue sirviendo. Staging debería estar funcionando con la versión previa, aunque sin los cambios de este deploy.\n\n**Causa de fondo:** según `docs/infra-ci-cd.md`, pasar una columna existente a NOT NULL se hace en dos pasos separados. Primero una migración que haga el backfill de los nulls. Después, en un tren posterior, otra con el `SET NOT NULL`. Esta migración intentó hacer solo el segundo paso (o los dos juntos) sobre filas viejas sin completar.\n\n**Cómo arreglarlo:**\n1. Dividir `0415` en una migración de backfill, que complete `accepted_version` en las filas existentes con el valor que corresponda.\n2. Dejar el `SET NOT NULL` para una migración en un tren posterior.\n3. Si el código nuevo necesita la restricción ya mismo, hay que hablarlo con quien lleva el proceso de deploys, porque va contra la guía de la documentación.\n\nSi querés, puedo revisar el archivo de la migración y proponer el backfill. No tengo el repo en este directorio, así que necesitaría la ruta o el contenido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3333,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 573,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3333,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 573,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 3333,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3333
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

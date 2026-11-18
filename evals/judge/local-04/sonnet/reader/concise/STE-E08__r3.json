@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás las letras (a), (b1), (b2), (c) y (d) como si ya las conociera, pero no las definís en la respuesta. ¿Me podés decir en una línea qué significa cada una (por ejemplo, qué es (b1) frente a (b2))?",
+   "needs_followup_reason": "La respuesta es clara en la conclusión (skill), pero el criterio depende de un código de letras no explicado."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Usás las letras (a), (b1), (b2), (c), (d) como si las conociera, pero no las defines en la respuesta. ¿Podés decirme en una línea qué significa cada una? Y para mi caso concreto, ¿qué hago si los defaults son obligatorios por regla de negocio y además la tool va por MCP?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Usás las letras (a), (b1), (b2), (c) y (d) como si ya las conociera, pero no las definís en la respuesta. ¿Me podés decir en una línea qué significa cada una (por ejemplo, qué es (b1) frente a (b2))?",
+ "followup_answer": "Tienes razón, usé las letras sin definirlas. Una línea por cada una:\n\n- **(a) No componible:** no se puede lograr con las tools genéricas (`odoo_create`, `odoo_write`, etc.) ni con otra tool existente.\n- **(b1) Approval o identidad de policy propia:** la tool tiene su propio `requires_approval` o identidad de permisos. Solo vale en chat, porque el router MCP ignora `requires_approval`.\n- **(b2) Whitelist más fina:** la tool exige un permiso más acotado que el `execute` o `create` genérico. Por ejemplo, `odoo_copy` pide `create` en vez de `execute`. Vale en chat y en MCP.\n- **(c) Procedimiento crítico:** hay compliance dura donde un paso salteado por el LLM tiene costo real. Solo vale en chat, porque en MCP no hay un turno donde forzar pasos.\n- **(d) Eficiencia o determinismo:** colapsa en una sola call determinista lo que con las tools genéricas costaría 3 o más llamadas, un loop no acotado o pasos que el LLM saltearía. Nunca aplica a un wrapper 1→1.\n\nLa diferencia entre (b1) y (b2) es qué parte del gate usa la tool. En (b1) es un approval interactivo, que solo existe en el chat. En (b2) es una restricción de permisos que se aplica igual en ambas superficies.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5712,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 498,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5712,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 498,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5712,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5712
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f3a828ffaa"
+ }
+}

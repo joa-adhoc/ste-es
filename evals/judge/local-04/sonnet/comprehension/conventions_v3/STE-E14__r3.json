@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Primero hay un armado de contexto (Context Assembler), que precede al pipeline de tres etapas. Luego: Stage 1, Planner (LLM Gemini Flash que propone 0 a N hipótesis); Stage 2, Investigator (agente Pydantic AI con herramientas de solo lectura que investiga cada hipótesis); Stage 3, Synthesizer + guards (redacta los teasers y los pasa por 3 guards en secuencia: ResponseGuard regex, StringGrounding con rapidfuzz y LLM Judge).",
+  "Termina sin mostrar nada en dos casos: (1) cuando el Planner no propone hipótesis (silencio válido, silence_reason explica por qué, y no corren las otras etapas); (2) cuando los guards rechazan todos los teasers (resultado SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")). El texto no dice qué pasa si el Investigator agota tiempo o topes, ni si falla el Synthesizer.",
+  "El teaser pasa igual. Si falla la infraestructura del Judge, eso no genera silencio."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "41cd99f558",
+  "control": "2010a7802d"
+ }
+}

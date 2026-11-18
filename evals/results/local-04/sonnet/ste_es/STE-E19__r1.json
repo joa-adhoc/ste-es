@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El test falla porque la policy `scheduled_runs_ws` quedó con `USING (true)`: la migración `0412` no la corrigió, la salteó.\n\n`0398_scheduled_runs_draft.sql` ya creó la policy permisiva. En `0412` el `IF NOT EXISTS` ve que el nombre existe y no crea la versión con `workspace_id`. El log lo avisa: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\n**Qué hacer:** no edites `0398` ni `0412`, porque el tracking es por nombre de archivo y no se vuelven a correr. Creá una migración nueva, por ejemplo `0413_fix_scheduled_runs_policy.sql`:\n\n```sql\nDROP POLICY scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nDespués corré `pytest tuqui_core/tests/test_rls.py -q` y confirmá que pasen los 7.\n\nRevisá también los entornos donde `0398` ya se aplicó (staging, producción). Ahí `scheduled_runs` sigue expuesta entre workspaces hasta que se aplique `0413`. Confirmalo con:\n\n```sql\nSELECT policyname, qual FROM pg_policies WHERE tablename = 'scheduled_runs';\n```",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5005,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 846,
+  "output_tokens_details": {
+   "thinking_tokens": 344
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5005,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 846,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5005,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5005
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Encontré un bloqueante, así que el PR #1840 (\"feat: búsqueda de partners por CUIT\", de Lari) no debería mezclarse como está.\n\n**Bloqueante**\n- `tuqui_core/odoo/partners.py:88` arma el SQL con un f-string: `f\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"`.\n- `cuit` viene del usuario, así que es una inyección SQL.\n- Sugiero usar parámetros: `cr.execute(\"SELECT id FROM res_partner WHERE vat = %s\", (cuit,))`, o directamente el ORM (`search([('vat', '=', cuit)])`).\n\n**Detalles menores**\n- `tuqui_core/tests/test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\n**Verificación**\n- Los checks de CI están todos verdes, pero no pasaron por el SQL inyectable, así que no lo detectan.\n- No corrí los tests en local: no verificado, y el CI es la evidencia que hay.\n- Leí completos `partners.py` y `test_partners.py`. No revisé el resto del diff (+212 −40).\n\n**Estado**\nNo publiqué nada, ni en GitHub ni en la tarea.\n\nQuedó sin subir la revisión del PR #1840 (un bloqueante y dos detalles menores). ¿La subo como comentario con \"request changes\"?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10135,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 817,
+  "output_tokens_details": {
+   "thinking_tokens": 307
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10135,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 817,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10135,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10135
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

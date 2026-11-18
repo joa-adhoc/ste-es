@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El test falla porque la tabla `scheduled_runs` tiene una policy `USING (true)` que deja pasar todas las filas entre workspaces.\n\n**Qué pasó**\n\n1. `0398_scheduled_runs_draft.sql` creó `scheduled_runs_ws` con `USING (true)`. Es un borrador sin aislamiento.\n2. `0412_scheduled_runs.sql` intentó crear la policy correcta, pero con el mismo nombre.\n3. Esa migración tiene un `IF NOT EXISTS` por nombre. Vio la policy del borrador y salteó el `CREATE`. Es el warning `policy \"scheduled_runs_ws\" already exists, skipped`.\n4. Quedó activa la policy abierta. El workspace B lee las 2 filas del A.\n\nEsto es una fuga real de datos entre workspaces, no un problema del test. Si `0398` ya corrió en staging o producción, esos entornos están expuestos.\n\n**Qué hacer**\n\nNo edites `0398` ni `0412`. Según AGENTS.md, las migraciones aplicadas no se reejecutan. Creá una migración nueva, por ejemplo `0413_fix_scheduled_runs_policy.sql`:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nDespués:\n\n1. Corré `pytest tuqui_core/tests/test_rls.py -q` y confirmá que pasan los 7 tests.\n2. Aplicá la migración en todos los entornos donde corrió `0398`.\n3. Revisá si hay otras policies creadas con el patrón `IF NOT EXISTS` por nombre. Pueden tener el mismo problema.\n\nVerificá además que la tabla tenga `ENABLE ROW LEVEL SECURITY`. Si `0412` la habilitaba, no hace falta repetirlo. Si no, agregalo a `0413`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4312,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 720,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4312,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 720,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4312,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4312
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

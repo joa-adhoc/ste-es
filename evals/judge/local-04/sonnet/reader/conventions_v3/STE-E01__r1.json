@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me quedó pendiente el detalle de las consecuencias de que el preview del PR corra la migración contra la base de staging, que la respuesta me manda a leer en docs/infra-ci-cd.md y no pudo leer. ¿Qué implica concretamente (por ejemplo, qué pasa si la migración falla o hay que revertirla en staging, y cómo debería nombrar el archivo para no tener que renombrarlo)? Además, ¿me confirmás la convención de numeración NNNN y si el modelo Pydantic va en algún módulo específico?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude leer docs/infra-ci-cd.md y el preview escribe en la base de staging real. ¿Qué pasa exactamente si mi migración falla o queda a medias en el PR, y cómo la reviertο o limpio en staging? Además, ¿hay una convención de numeración/nombre de archivo (NNNN_) para elegirlo bien de entrada, y cómo debe verse el test de aislamiento en test_rls.py?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que el preview de PR escribe en la base de staging y que no pudiste leer docs/infra-ci-cd.md. ¿Qué consecuencias concretas tiene eso para mi migración (por ejemplo, qué pasa si falla o si tengo que revertirla) y cómo la pruebo sin dejar la base de staging rota?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Me quedó pendiente el detalle de las consecuencias de que el preview del PR corra la migración contra la base de staging, que la respuesta me manda a leer en docs/infra-ci-cd.md y no pudo leer. ¿Qué implica concretamente (por ejemplo, qué pasa si la migración falla o hay que revertirla en staging, y cómo debería nombrar el archivo para no tener que renombrarlo)? Además, ¿me confirmás la convención de numeración NNNN y si el modelo Pydantic va en algún módulo específico?",
+ "followup_answer": "El directorio de trabajo está vacío. No hay `docs/infra-ci-cd.md`, ni `supabase/migrations/`, ni `tuqui_core/`, así que no puedo leer ninguno de esos archivos. Lo que sigue separa lo que dice el material de lo que no verifiqué.\n\n## Lo que confirma el material\n\n- **El preview corre contra staging.** El preview del PR usa el `DATABASE_ADMIN_URL` de staging, el mismo que usa el runner. No es una copia: es la misma base.\n- **Se aplica al abrir el PR.** La migración corre en staging apenas abrís el PR.\n- **Si la renombrás, se vuelve a aplicar.** El tracking es por nombre de archivo, así que un archivo con otro nombre cuenta como migración nueva.\n- **Por eso importa la idempotencia.** Esa es la razón que da el material para que la migración pueda correr varias veces sin error.\n\n## Lo que no puedo confirmar\n\nEsto lo cubre `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`. No lo leí, y el material no lo dice:\n\n- Qué pasa si la migración falla a mitad de camino en staging. No sé si corre en una transacción ni si el preview queda en rojo.\n- Cómo se revierte algo ya aplicado en staging. No sé si hay migraciones `down`, si se hace a mano o si se pide a alguien.\n- Si lo que escribe el preview en staging se limpia al cerrar el PR.\n\nMientras no lo leas, asumí lo peor: lo que tu migración haga en staging puede quedar ahí. Por eso conviene:\n\n- Probarla primero en una base local, con `supabase db reset`. Esto es una sugerencia mía, no está en el material.\n- Cerrar el SQL antes de abrir el PR.\n- No incluir `DROP` ni `DELETE` destructivos.\n\nSi no tenés acceso al doc, preguntale a quien mantiene la infra de CI/CD.\n\n## Nombre del archivo\n\n- **Lo que dice el material:** el formato es `NNNN_descripcion.sql`, y `supabase migration new <nombre>` lo genera.\n- **Lo que no sé:** si `NNNN` es un correlativo de 4 dígitos que tenés que calcular vos o si lo asigna la CLI. La CLI de Supabase suele usar un timestamp, así que el `NNNN` del material podría ser una convención propia del repo. Mirá los nombres que ya hay en `supabase/migrations/` y seguí el mismo patrón.\n- **Para no renombrar:**\n  - Corré `supabase migration new` una sola vez.\n  - Elegí una descripción definitiva, como `crear_mi_tabla`.\n  - Hacé `git fetch` antes, para ver el último número usado.\n  - Si hay otros PRs abiertos con migraciones, puede haber colisión de numeración. Eso también te obligaría a renombrar y volvería a aplicar la migración en staging.\n\n## Modelo Pydantic\n\nEl material solo dice \"crear modelo Pydantic correspondiente\". No indica módulo ni ruta. Los tests viven en `tuqui_core/tests/test_rls.py`, así que probablemente los modelos estén dentro de `tuqui_core/`. Es una inferencia mía. Buscá dónde están los modelos de las tablas existentes, por ejemplo con `grep -r \"BaseModel\" tuqui_core/`, y poné el tuyo al lado.\n\nSi me abrís el repo o me pasás el contenido de `docs/infra-ci-cd.md`, completo estos tres puntos con datos verificados.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12642,
+  "cache_read_input_tokens": 46871,
+  "output_tokens": 1551,
+  "output_tokens_details": {
+   "thinking_tokens": 88
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12642,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1269,
+    "cache_read_input_tokens": 29582,
+    "cache_creation_input_tokens": 349,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 349
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "03e9630952"
+ }
+}

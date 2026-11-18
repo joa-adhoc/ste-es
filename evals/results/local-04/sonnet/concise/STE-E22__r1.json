@@ -1,0 +1,44 @@
+{
+ "case": "STE-E22",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No, no lo hagas todavía:** perderías trabajo que no está en ningún otro lado.\n\n- `git reset --hard` descarta los cambios sin commit en `limits.py` y `test_limits.py`, y no hay stash que los respalde.\n- Los 3 commits locales (`a1b2c3d`, `d4e5f6a`, `0718293`) no están en `origin/feat/limite-mcp`. Quedarían solo en el reflog.\n- La migración `0420_mcp_limits.sql` es untracked: `reset --hard` no la borra, pero seguiría ahí como residuo que puede chocar con lo nuevo.\n\nAdemás, `origin/staging` es otra base que tu rama actual. Si quieres partir de staging, hazlo con una rama nueva y conserva la actual como respaldo:\n\n```bash\ngit branch backup/limite-mcp          # guarda los 3 commits\ngit stash push -u -m \"wip limite-mcp\" # guarda cambios y la migración untracked\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nSi prefieres no tocar esta rama: `git switch -c feat/limite-mcp-v2 origin/staging`.\n\nSi de verdad no quieres nada de lo anterior, dime y confirmo que es descartable antes de que lo ejecutes.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3726,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 443,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3726,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 443,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3726,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3726
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin encontrar resultados: devuelve findings vacíos, descarta esa hipótesis o corta todo el pipeline? ¿Y eso termina en silencio o igual llega al Synthesizer?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin encontrar resultados: devuelve findings vacíos, el Synthesizer igual genera teasers, o se corta el pipeline sin mostrar nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el tiempo o las tool calls sin resultados: la hipótesis se descarta, se pasa a la síntesis con findings parciales o falla todo el run? Y si falla el Planner, el Synthesizer o la base de datos, ¿se muestra algo o queda en silencio?",
+   "type_note": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin encontrar resultados: devuelve findings vacíos, descarta esa hipótesis o corta todo el pipeline? ¿Y eso termina en silencio o igual llega al Synthesizer?",
+ "followup_answer": "El material no lo dice, así que no puedo afirmar ninguna de las tres opciones. No hay código de `investigator.py` en lo que me pasaste.\n\nLo que sí se sabe:\n- Los topes (`max_iterations`, `max_tool_calls`) y el presupuesto de tiempo `(watchdog_sec - 30) / n_hypotheses` están definidos. No se documenta qué ocurre al alcanzarlos.\n- El Investigator devuelve `InvestigationFindings`, pero no se describe si puede venir vacío ni cómo se marca una hipótesis agotada.\n- El Synthesizer arma teasers desde los findings. Tampoco se dice si recibe hipótesis sin resultados.\n- Cada hipótesis corre con su propio presupuesto bajo `asyncio.Semaphore(3)`. Eso sugiere aislamiento entre hipótesis, pero es una inferencia mía y el material no lo confirma.\n\nPara cerrarlo, buscá en `investigator.py` estos tres puntos:\n1. Qué devuelve la función cuando el agente llega a `max_tool_calls` o `max_iterations`. Fijate si hay un `UsageLimitExceeded` de Pydantic AI y quién lo captura.\n2. Si hay `asyncio.wait_for` o un `try/except` por hipótesis. Fijate qué se devuelve en el `except`: `None`, findings vacíos o una excepción propagada.\n3. Qué hace el orquestador con los resultados `None` o vacíos antes de llamar al Synthesizer.\n\nSi me pasás ese archivo y el orquestador, te respondo con certeza. Si preferís, lo busco yo en el repo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 7271,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 691,
+  "output_tokens_details": {
+   "thinking_tokens": 107
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7271,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 691,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 7271,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7271
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a2b2416543"
+ }
+}

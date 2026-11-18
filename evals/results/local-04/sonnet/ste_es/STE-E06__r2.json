@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 2,
+ "result": "La DB de tests local es compartida entre worktrees, y la rama de tu compañero dejó un esquema sin las columnas que tu código todavía lee. Por eso ves `UndefinedColumnError` en tests que no tocaste.\n\nEl lock de `make test` solo evita corridas simultáneas. No aísla el esquema: si dos worktrees tienen migraciones distintas, la DB queda con la unión de las dos.\n\n**Para destrabarte ahora**, desde tu worktree:\n\n```bash\nmake migrate-reset\n```\n\nArma una base desde cero en ~3 segundos. No uses `npx supabase db reset`: aborta en el primer prefijo numérico repetido (hoy hay 25). Solo toca bases locales.\n\nOjo: si tu compañero sigue usando la base compartida, su próxima corrida puede romper la tuya otra vez.\n\n**Para que no se repita**, dale a cada worktree su propia base:\n\n```bash\ncp tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n# editá la URL de la base para que sea propia de tu worktree\nmake migrate-reset\n```\n\n`.env.test.local` está gitignoreado y pisa a `.env.test`. Si además querés soltar el lock con un `TEST_LOCK` distinto, necesitás también un Redis propio. Poné en `REDIS_URL` un índice de base que no sea el 15 (default compartido) ni el 0 (servidor de desarrollo). Aislar solo la base o solo Redis no alcanza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5442,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 518,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5442,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 518,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5442,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5442
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

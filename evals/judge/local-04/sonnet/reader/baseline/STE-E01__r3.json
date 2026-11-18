@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Me dijiste que la migración corre contra la base de staging apenas abro el PR y que no es una copia. ¿Cómo la pruebo de forma segura antes de abrir el PR (hay una base local o de dev para eso)? Y del doc docs/infra-ci-cd.md, ¿qué pasa si la migración falla o hay que revertirla en staging?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "La migración se aplica directo en la base de staging apenas abro el PR y no hay un entorno aislado. ¿Cómo la pruebo antes de abrir el PR sin pegarle a staging? ¿Hay una base local o un comando concreto para correr la migración y el test_rls.py, y qué hago si ya se aplicó con un error en staging?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El PR corre la migración contra la base de staging real. ¿Cómo la pruebo localmente antes de abrir el PR, sin tocar staging? ¿Hay un entorno local o una base de pruebas, y qué comando uso para verificar que es idempotente?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Me dijiste que la migración corre contra la base de staging apenas abro el PR y que no es una copia. ¿Cómo la pruebo de forma segura antes de abrir el PR (hay una base local o de dev para eso)? Y del doc docs/infra-ci-cd.md, ¿qué pasa si la migración falla o hay que revertirla en staging?",
+ "followup_answer": "No puedo responderte eso con datos reales. El directorio de trabajo está vacío y no existe `docs/infra-ci-cd.md` acá (tampoco es un repo git). Mi respuesta anterior ya decía que no había leído ese doc, y sigue siendo así.\n\n**Lo que dice el material que me pasaste**\n- El preview del PR corre las migraciones contra staging. Usa el mismo `DATABASE_ADMIN_URL` que el runner, así que es la misma base y no una copia.\n- La migración se aplica al abrir el PR. Si renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n- Las consecuencias completas están en `docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging`.\n\n**Lo que el material no dice**\n- No dice si hay una base local o de dev para probar antes del PR.\n- No dice qué pasa si la migración falla en staging.\n- No dice cómo se revierte una migración en staging.\n\nCualquier cosa que te diga sobre esos tres puntos sería inventada. Un ejemplo es afirmar que `supabase db reset` contra un Postgres local es el flujo oficial. Esa es la práctica habitual con Supabase, pero no sé si tuqui la usa.\n\n**Cómo resolverlo**\n1. Leé la sección `#un-pr-preview-escribe-en-la-base-de-staging` de `docs/infra-ci-cd.md`. Es la fuente para fallos y reversión.\n2. Fijate si el repo tiene un `supabase/config.toml` o un README con instrucciones de entorno local. Eso indicaría si hay una base local para probar.\n3. Si ninguno de los dos lo aclara, preguntale a quien mantiene la infra de tuqui. Preguntá qué hacer si la migración falla a mitad en staging y quién puede revertirla.\n\nSi me pasás el repo o pegás esa sección del doc, te armo el flujo de prueba y el plan de rollback con lo que diga el doc.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 5805,
+  "cache_read_input_tokens": 40063,
+  "output_tokens": 946,
+  "output_tokens_details": {
+   "thinking_tokens": 75
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5805,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 711,
+    "cache_read_input_tokens": 22783,
+    "cache_creation_input_tokens": 302,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 302
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "33c47b3998"
+ }
+}

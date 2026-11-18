@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para decidir me falta saber dos cosas de mi caso: ¿la whitelist del gate `create` de esta tool sería más estrecha que la del `odoo_create` genérico (b2), y la creación necesita resolver cosas previas (buscar partner, crear líneas) que sumen ≥3 calls (d)? Si ninguna es cierta, ¿confirmás que va como skill también para MCP?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Dijiste que probablemente skill y que (b2) es la única vía realista, pero no tengo cómo saber si la whitelist del `create` de ese modelo es más estrecha que la del `odoo_create` genérico. ¿Cómo lo verifico en el código o la config (dónde se define el gate/whitelist de `odoo_create` y de `odoo_copy`) para decidir si va como tool o skill?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Para decidir me falta saber dos cosas de mi caso: ¿la whitelist del gate `create` de esta tool sería más estrecha que la del `odoo_create` genérico (b2), y la creación necesita resolver cosas previas (buscar partner, crear líneas) que sumen ≥3 calls (d)? Si ninguna es cierta, ¿confirmás que va como skill también para MCP?",
+ "followup_answer": "Sí: si ninguna es cierta, va como skill, también para MCP.\n\nPara MCP el criterio es más estricto, porque ahí solo sirven (a), (b2) y (d). Un `odoo_create` con defaults sobre un modelo fijo no es (a), porque se compone con `odoo_create`. Tampoco es (d) si es una sola call o dos. Solo sería (b2) si el gate `create` fuera más estrecho que el del genérico.\n\nPuntos a chequear:\n\n- **(b2):** mirá cómo se resuelve hoy el permiso de `odoo_create` genérico para ese modelo. Si ya está habilitado ahí, tu tool no agrega whitelist más fina, así que no califica. Si el modelo no está habilitado en el genérico y querés exponerlo solo vía la tool nueva, sí califica.\n- **(d):** cuenta las calls reales, no las posibles. Buscar partner + crear cabecera + crear líneas son ≥3. Si las líneas van como one2many en un único `create`, es 1→1 con un lookup, y no llega al umbral. Si el número de líneas es variable y las creás una por una, es un loop no acotado, y sí califica.\n\nSi no se cumple ninguna de las dos, no hay (a), (b2) ni (d). En MCP no se puede usar (b1) ni (c), así que no queda ninguna justificación. Los defaults van en las instrucciones de la skill.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5761,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 489,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5761,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 489,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5761,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5761
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "dc38708934"
+ }
+}

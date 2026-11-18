@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Flujo por paso\n\n| # | Front | Backend | Provider |\n|---|---|---|---|\n| 1 | | El admin registra el server con `auth_type=oauth_per_user`, `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. | |\n| 2 | El usuario abre `/connectors` y clickea **Connect**. | | |\n| 3 | Llama a `GET /api/mcp-oauth/{server_id}/start`. | Devuelve la `authorize_url` con un `state` cifrado con AES-GCM (TTL 10 min, payload `{server_id, user_id, issued_at, nonce}`). Opcionalmente suma `code_verifier` (PKCE) y `scope_profile`. Agrega `access_type=offline` y `prompt=consent`. Agrega `resource` (RFC 8707) solo si está guardado. | |\n| 4 | Redirige al provider. | | Muestra la pantalla de consentimiento. |\n| 5 | | | Redirige a `GET /api/mcp-oauth/callback?code=…&state=…`. |\n| 6 | | Valida el `state` (descifra, TTL, usuario y server). Cambia `code` por tokens en `token_url` (con `resource` si existe y el `code_verifier` si hubo PKCE). Guarda los tokens encriptados en `user_mcp_oauth_tokens`. | Emite access token y refresh token. |\n| 7 | Aterriza en `/w/{slug}/settings/connectors?connected={server_id}`. Si el dueño es una cuenta de servicio, aterriza en `/w/{slug}/settings/members/{member_id}?connected=…`. | Arma el redirect. | |\n| 8 | | `refresh_if_expired` corre al construir los toolsets: si quedan menos de 60 s de validez, refresca (con `resource` si existe). | Emite el token nuevo. |\n\nPor qué `access_type=offline` y `prompt=consent`: Google solo emite refresh token si van los dos. `prompt=consent` fuerza que se vuelva a emitir en cada authorize, así un disconnect y reconnect no deja al usuario sin refresh. Los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n\nPor qué `resource` es condicional: los conectores dados de alta antes de que existiera el campo siguen andando sin él. Un valor adivinado es peor que ninguno, porque el AS que valida rechaza lo que no reconoce.\n\n## Si después del intercambio algunas habilidades no contestan\n\nEntre los pasos 6 y 7 el callback hace una prueba de humo: introspecta **todas** las habilidades habilitadas en paralelo.\n\n- **Ninguna contesta:** el token no sirve, así que se borra. El redirect lleva `connect_error=<motivo>` y la card muestra el banner de error. El usuario queda desconectado.\n- **Alguna contesta:** el usuario queda conectado. El redirect lleva `connect_warning=<habilidades>` y la card muestra el banner de conexión parcial. Se prefiere esto a desconectarlo por una habilidad rota, porque el estado parcial sí le sirve.\n\n## No está en el material (no verificado)\n\n- Qué pasa con un `state` vencido, inválido o reusado en el callback: no dice si hay redirect con error ni qué código.\n- Qué pasa si falla el refresh del paso 8 (por ejemplo, refresh token revocado).\n- Si la prueba de humo se repite después, o solo corre en el callback. Hoy parece que `connect_warning` aparece una sola vez, en el redirect.\n- Qué pasa si no hay ninguna habilidad habilitada.\n- El material llama \"firmado\" al `state`, pero AES-GCM cifra y autentica; no es una firma. No cambia el flujo.\n\nSi querés, lo verifico en el código del backend. En este directorio no hay repo, así que necesitaría la ruta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11050,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 1857,
+  "output_tokens_details": {
+   "thinking_tokens": 491
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11050,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1857,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11050,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11050
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults es un wrapper 1→1, y con el criterio que pegaste eso no califica.\n\n**Cómo lo evalúo, eje por eje:**\n\n- **(a) No componible:** no cumple. Se hace con `odoo_create` pasando los valores.\n- **(b) Gate o identidad propia:** solo cumple si la tool tiene una whitelist más bien fina, como `odoo_copy` o `odoo_message_post`. Si el gate sería el mismo `create` sobre ese modelo, no hay menor blast radius y no cumple.\n- **(c) Procedimiento crítico:** solo si saltear los defaults tiene un costo de compliance real. Un default que el LLM puede olvidar no alcanza.\n- **(d) Eficiencia:** no cumple. Es 1 call genérica, y el umbral duro dice que un wrapper 1→1 no entra aunque ahorre tokens de esquema. Cambiaría si la tool hiciera varias cosas (por ejemplo resolver referencias, crear registros hijos y postear un mensaje) que hoy cuestan ≥3 calls.\n\n**Qué pasa si se expone por el MCP saliente:**\n\nCasi no cambia el veredicto, y solo puede empeorar para la tool nativa. En el MCP no valen (b1) ni (c), porque no hay approval ni un turno donde forzar pasos. Quedan solo (a), (b2) y (d). Como un `odoo_create` con defaults no cumple (a) ni (d), la única vía sería (b2).\n\n**Lo que me haría cambiar de opinión (b2):**\n\nSi el modelo es sensible y querés habilitar su creación sin dar `create` genérico, una tool nativa con whitelist acotada a ese modelo es defendible, también en MCP. En ese caso el argumento es el gate, no la conveniencia. Habría que poder decir qué permiso más chico otorga que `odoo_create`.\n\n**Recomendación:** hacé la skill, que documenta el modelo, los defaults y los campos obligatorios, y llama a `odoo_create`. Pasá a tool nativa solo si podés nombrar el eje (b2) o (d) concretamente. Si no podés, es el caso de `odoo_schedule_activity`, que la tabla ya bajó a skill.\n\nUna pregunta que define el caso: ¿el modelo tiene restricciones de permisos que justifiquen un gate propio, o la tool solo ahorra pasar los defaults?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10385,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 861,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10385,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 861,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10385,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10385
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Los ejes (a), (b1), (b2), (c) y (d) los usás sin definirlos, y no entiendo bien qué es (c) ni la diferencia entre (b1) y (b2). ¿Me los explicás en una línea cada uno, para poder aplicar el criterio a mi tool?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La respuesta usa etiquetas (a), (b1), (b2), (c), (d) sin definir todas: (b1) y (c) solo aparecen como 'valen solo en chat'. ¿Podés decirme qué significan exactamente (b1) y (c), y con un ejemplo concreto qué sería un caso (b2) para un create con defaults sobre un modelo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Los ejes (a), (b1), (b2), (c) y (d) los usás sin definirlos, y no entiendo bien qué es (c) ni la diferencia entre (b1) y (b2). ¿Me los explicás en una línea cada uno, para poder aplicar el criterio a mi tool?",
+ "followup_answer": "- **(a) No componible:** la tool hace algo que las genéricas no pueden. Por ejemplo, leer bytes binarios, ejecutar código en sandbox o tocar el embed.\n- **(b1) Approval o identidad de policy propia:** la tool exige aprobación del usuario antes de ejecutar. Solo el chat lo respeta, porque el router MCP ignora `requires_approval`.\n- **(b2) Whitelist más fina:** la tool pide un permiso más chico que la genérica equivalente. Por ejemplo, `odoo_copy` usa el gate `create` en vez de `execute`. Esto vale en chat y en MCP, porque es un permiso y no una aprobación.\n- **(c) Procedimiento crítico:** la tool fuerza pasos que el LLM podría saltearse, y saltearlos tiene un costo real, como una exigencia de compliance. Necesita un turno donde forzar esos pasos, así que no aplica en MCP.\n- **(d) Eficiencia o determinismo:** la tool colapsa en una sola call algo que con las genéricas cuesta 3 o más llamadas, o un loop no acotado. Un wrapper 1→1 nunca califica.\n\nLa diferencia entre (b1) y (b2) es qué se restringe. En (b1) pedís que una persona apruebe cada uso. En (b2) reducís el permiso que la tool necesita.\n\nPara tu tool, un `odoo_create` con defaults solo califica por (b2), si exigís un permiso más chico que el de `odoo_create`. Si no, es skill.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 6436,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 821,
+  "output_tokens_details": {
+   "thinking_tokens": 283
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6436,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 821,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 6436,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6436
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c644a1ffa4"
+ }
+}

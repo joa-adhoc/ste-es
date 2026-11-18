@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin resultados, y qué pasa si falla el Planner o el Synthesizer (error, timeout, JSON inválido)? ¿Termina en silencio, reintenta o deja el insight en error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el presupuesto de tiempo o de tool calls sin encontrar resultados, y qué pasa si falla el Planner o el Synthesizer (error, timeout)? ¿Se muestra algo, se reintenta o queda en silencio ese día?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el presupuesto de tiempo o de tool calls sin resultados, y qué pasa si falla el Planner o el Synthesizer? ¿Eso también termina sin mostrar nada, o hay reintento o error visible?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota su presupuesto de tiempo o de tool calls sin resultados, y qué pasa si falla el Planner o el Synthesizer (error, timeout, JSON inválido)? ¿Termina en silencio, reintenta o deja el insight en error?",
+ "followup_answer": "El directorio está vacío y no tengo el código, así que no puedo confirmar ninguno de los tres casos. El material solo cubre el caso \"Planner con 0 hipótesis\" y el de \"guards rechazan todo\".\n\nEsto es lo que sí se puede decir y lo que no:\n\n**Lo que dice el material**\n- El Investigator tiene topes de `max_iterations`, `max_tool_calls` y tiempo por hipótesis (`(watchdog_sec - 30) / n_hypotheses`). No describe qué devuelve al llegar al tope.\n- Hay un `watchdog_sec`, que sugiere un timeout global. No dice qué hace al dispararse.\n- El único manejo de errores documentado es el del Judge: si falla por infraestructura, el teaser pasa.\n\n**Lo que el material no dice**\n- Si un tope agotado produce findings parciales, findings vacíos o una excepción.\n- Si un error, timeout o JSON inválido en el Planner o el Synthesizer se reintenta, se traga como silencio o deja el insight en error.\n- Si hay reintentos o validación de esquema con reparación.\n\nNo voy a inventar ese comportamiento. Para responderlo, buscá en el código:\n\n```bash\ngrep -n \"except\\|retry\\|retries\\|timeout\\|watchdog\\|silence_reason\\|debug_note\" \\\n  planner.py investigator.py synthesizer.py\n```\n\nFijate en estos puntos:\n- **Investigator:** qué hace `asyncio.gather` con una hipótesis que falla (`return_exceptions`) y qué pasa cuando el tiempo por hipótesis se agota (`asyncio.timeout` o `wait_for`).\n- **Planner y Synthesizer:** el manejo de errores de validación de Pydantic y si el `silence_reason` o el `debug_note` se rellenan en el camino de error.\n- **Orquestador:** quién llama a las 3 etapas y qué escribe en `insights` si una lanza excepción.\n\nSi me pasás el código o la ruta del repo, te digo exactamente qué pasa en cada caso.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6957,
+  "cache_read_input_tokens": 41236,
+  "output_tokens": 946,
+  "output_tokens_details": {
+   "thinking_tokens": 91
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6957,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 714,
+    "cache_read_input_tokens": 23947,
+    "cache_creation_input_tokens": 299,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 299
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "925b436de5"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "ste_es_v3",
+ "arm_hash": "528b3868d2",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No está caído: staging sigue sirviendo la versión anterior. El deploy nuevo no se promovió.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;`. La columna `accepted_version` tiene filas con `null` en `members` (SQLSTATE 23502). La migración hizo rollback y el paso de deploy cortó ahí.\n\n**Causa:** la migración pasa la columna a `NOT NULL` sin completar antes los valores viejos. Según `docs/infra-ci-cd.md`, eso va en dos migraciones separadas:\n\n1. Una migración con el backfill de `accepted_version` para las filas existentes.\n2. En un tren posterior, otra migración con el `SET NOT NULL`.\n\n**Cómo arreglarlo:**\n\n1. Sacá el `SET NOT NULL` de `0415`.\n2. Agregá el backfill en esa migración, con el valor por defecto que corresponda a las filas viejas.\n3. Poné el `SET NOT NULL` en una migración del próximo tren.\n\nNo sé qué valor corresponde para el backfill. Eso lo define el equipo de producto o de términos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4049,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 429,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4049,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 429,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4049,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4049
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

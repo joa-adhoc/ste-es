@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota el presupuesto de tiempo o los límites de iteraciones/tool calls, o si una hipótesis falla: se descarta o se sigue con los hallazgos parciales? Y si una de las 6 consultas del Context Assembler falla, ¿se aborta el pipeline o se sigue sin ese contexto?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el tiempo o los límites de iteraciones/tool calls, o falla en una hipótesis: se descarta esa hipótesis o se sigue con los hallazgos parciales? ¿Y qué pasa si falla alguna de las 6 consultas del Context Assembler?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando el Investigator agota el tiempo o los límites sin llegar a un hallazgo, o cuando una hipótesis falla: se descarta, se sigue con lo parcial, o aborta todo el run? Y si el Synthesizer puede devolver cero teasers por su cuenta antes de las guardas, ¿cómo decide cuántos generar (0–2)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota el presupuesto de tiempo o los límites de iteraciones/tool calls, o si una hipótesis falla: se descarta o se sigue con los hallazgos parciales? Y si una de las 6 consultas del Context Assembler falla, ¿se aborta el pipeline o se sigue sin ese contexto?",
+ "followup_answer": "No lo sé: el material no dice nada de ninguno de los dos casos, y no lo verifiqué en código.\n\n## Investigator: presupuesto agotado o hipótesis que falla\nLo único que el material fija es que hay topes (`max_iterations`, `max_tool_calls`) y un presupuesto de tiempo por hipótesis, `(watchdog_sec - 30) / n_hipótesis`. De ahí se deduce que al llegar al tope la investigación se corta. No dice qué pasa después, y hay tres posibilidades:\n- Se descarta la hipótesis.\n- Se sigue con los hallazgos parciales.\n- Se marca la hipótesis como fallida y se sigue con las demás.\n\nTampoco dice si una excepción en una hipótesis tira abajo a las otras que corren en paralelo bajo `Semaphore(3)`.\n\nEl Synthesizer solo ve el \"resumen combinado del investigador\", y la guarda de grounding compara contra ese texto. Por eso importa saber si los hallazgos parciales entran en ese resumen. Si entran, la guarda es la que filtra lo mal fundado.\n\n## Context Assembler: falla una de las 6 consultas\nEl material dice que corren \"en paralelo bajo el RLS del usuario\". No dice si el fallo de una aborta todo, si esa fuente se omite del bundle o si hay reintento. Una consulta que devuelve vacío tampoco es lo mismo que una que lanza error.\n\n## Cómo cerrarlo\nHabría que leer estas partes del código:\n- `investigator.py`: el manejo de timeout y de límites alcanzados, y cómo se agrega el resumen.\n- `context_assembler.py`: si usa `asyncio.gather` con `return_exceptions=True` o sin eso, y si hay `try/except` por consulta.\n- El orquestador del pipeline: el watchdog y qué hace con una excepción de cada etapa.\n\nEn este directorio no hay repo. Si me pasás la ruta o esos archivos, te lo confirmo con las líneas exactas.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12278,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 941,
+  "output_tokens_details": {
+   "thinking_tokens": 238
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12278,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 941,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 12278,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12278
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1c042e1f36"
+ }
+}

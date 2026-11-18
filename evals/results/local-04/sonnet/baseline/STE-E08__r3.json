@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Por defecto: skill.** Un `odoo_create` con defaults es un wrapper 1→1, y el criterio lo descarta explícitamente. Solo pasa a tool nativa si cumple al menos uno de los ejes (a)–(d).\n\n## Aplicando los ejes a tu caso\n\n- **(a) No componible:** no aplica. Se logra con `odoo_create` más los valores por defecto.\n- **(b) Gate o identidad propia:**\n  - **(b2)** aplica si la tool tiene una whitelist más fina que la del `create` genérico. Por ejemplo, si solo puede crear en ese modelo y con esos campos, mientras que `odoo_create` genérico necesita habilitar el modelo entero. Es el único eje que puede justificarla.\n  - **(b1)** (approval propio) solo vale en chat.\n- **(c) Procedimiento crítico:** solo aplica si hay compliance dura. \"Con algunos defaults\" no lo es.\n- **(d) Eficiencia:** no aplica. Es 1 call, y el umbral duro dice que un wrapper 1→1 no califica aunque ahorre tokens de esquema.\n\n## Qué cambia con el MCP saliente\n\nEl MCP ignora `requires_approval`, y tampoco tiene un turno donde forzar pasos. Por eso (b1) y (c) pierden valor ahí. Ahí solo cuentan **(a)**, **(b2)** y **(d)**.\n\nEn la práctica:\n\n- Si tu justificación era \"quiero que pida approval\", eso funciona en chat pero no en MCP. Es el mismo caso que `odoo_schedule_activity`: se bajó a skill y ya estaba en `MCP_EXCLUDED_TOOLS`.\n- Si la tool se expone por MCP, lo que importa es que tenga un **gate más estrecho (b2)**. Exponer un `create` con defaults sin ese estrechamiento no suma nada. Además amplía la superficie sin ninguna protección extra.\n\n## Cómo decidir\n\n1. ¿Los defaults son solo conveniencia o instrucciones? → skill. La skill le dice al LLM qué valores pasar a `odoo_create`.\n2. ¿El gate de la tool puede ser más fino que `create` genérico (modelo y campos acotados)? → tool nativa por (b2). Vale en chat y en MCP.\n3. ¿Solo querías approval propio? → no alcanza para MCP. Queda como skill, o como tool solo-chat si la justificás por (b1). En ese caso agregala a `MCP_EXCLUDED_TOOLS`.\n\nSi me contás el modelo y qué restringiría la tool, te digo si (b2) se sostiene.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4114,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 929,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4114,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 929,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4114,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4114
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

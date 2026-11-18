@@ -1,0 +1,44 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La DB de tests local es compartida entre worktrees. Tu compañero tiene una rama con una migración destructiva, la aplicó sobre esa DB, y ahora el esquema no tiene columnas que tu código todavía lee. Por eso ves `UndefinedColumnError` en tests que no tocaste.\n\nEl lock (`flock`) no te protege de esto. Evita que dos corridas se pisen a la vez, pero no aísla el esquema: la DB queda con la unión de las migraciones de ambos worktrees.\n\n**Arreglo inmediato:** recreá la base desde cero con las migraciones de tu rama.\n\n```bash\nmake migrate-reset\n```\n\nTarda unos 3 segundos y solo toca bases locales. No uses `npx supabase db reset`: aborta en el primer prefijo numérico repetido (hoy hay 25).\n\nOjo: si tu compañero corre tests después, va a pasarle lo mismo a la inversa, porque comparten la base.\n\n**Para que no vuelva a pasar:** dale a tu worktree su propia base.\n\n1. Copiá el ejemplo: `cp tuqui_core/.env.test.local.example tuqui_core/.env.test.local`\n2. Editá `tuqui_core/.env.test.local` y declará una base propia para este worktree. Ese archivo está gitignoreado y se carga encima de `.env.test`.\n3. Corré `make migrate-reset` para armarla.\n\nPedile a tu compañero que haga lo mismo con su base.\n\n**Sobre el lock:** seguí usándolo mientras compartan Redis. Solo podés soltarlo con un `TEST_LOCK` distinto si tenés base **y** Redis propios. Para el Redis, usá un índice de base propio en `REDIS_URL`: el 15 es el default compartido de `.env.test` y el 0 es el del server de desarrollo, así que elegí otro. Aislar solo uno de los dos recursos no alcanza.\n\nEsto sale del material que pasaste. No lo corrí ni verifiqué los nombres de las variables del `.env.test.local.example`: fijate ahí cuáles declarar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10788,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 727,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10788,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 727,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10788,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10788
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

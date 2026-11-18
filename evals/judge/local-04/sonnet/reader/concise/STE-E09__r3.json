@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El orden de la prueba de humo respecto del redirect lo dedujiste vos, no lo confirma el material. ¿Podés confirmar en el código del callback si la introspección corre antes del redirect y bloquea la respuesta (o si es asíncrona), y qué pasa con los tokens guardados si el callback falla entre el guardado y la prueba?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El orden de la prueba de humo respecto del redirect lo dedujiste vos, no lo confirma el material. ¿Podés confirmar en el código del callback si la introspección corre antes del redirect (y bloquea la respuesta) o en segundo plano? Y ya que estamos: ¿qué pasa con los tokens si el provider no devuelve refresh token, y qué ve el usuario si el intercambio de `code` falla antes de llegar a la prueba de humo?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El material no dice en qué orden ocurre la prueba de humo respecto del redirect, y lo inferiste. ¿Podés confirmar si la introspección corre sincrónicamente dentro del callback, antes de redirigir al SPA, o si es asíncrona? Y en el caso de que ninguna habilidad conteste, ¿se borran solo los tokens de ese usuario y servidor, o hay algún otro efecto?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El orden de la prueba de humo respecto del redirect lo dedujiste vos, no lo confirma el material. ¿Podés confirmar en el código del callback si la introspección corre antes del redirect y bloquea la respuesta (o si es asíncrona), y qué pasa con los tokens guardados si el callback falla entre el guardado y la prueba?",
+ "followup_answer": "No puedo confirmarlo. El directorio de trabajo (`/tmp/ste-es-eval-ugw0_2fp`) está vacío, no es un repo git y no hay código del callback para leer. Una búsqueda de `connect_warning`, `mcp-oauth` y `user_mcp_oauth_tokens` no devolvió nada.\n\nMi respuesta anterior sigue sin confirmarse. Lo que sí respalda el material es que el redirect lleva `connect_error` o `connect_warning`. De eso se deduce que el resultado de la introspección ya existe cuando se arma el redirect, y por lo tanto corre antes y bloquea la respuesta. No tengo evidencia de que sea así en el código. Tampoco puedo decir nada sobre si las llamadas son asíncronas internamente (el material solo dice \"en paralelo\") ni sobre el estado de los tokens si el callback falla entre el guardado y la prueba. El material no cubre ese caso. Solo dice que se borran cuando ninguna habilidad contesta, no cuando el callback revienta a mitad de camino.\n\nSi me pasás la ruta del repo, o el archivo del handler de `/api/mcp-oauth/callback`, lo reviso. Lo que voy a verificar:\n- Si la introspección se hace con `await` antes de construir el redirect.\n- Si el guardado y la prueba están en la misma transacción, o si hay un `try/except` que borre los tokens ante una excepción.\n- Qué pasa con los tokens guardados si el proceso se cae o lanza una excepción en ese tramo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6347,
+  "cache_read_input_tokens": 40608,
+  "output_tokens": 753,
+  "output_tokens_details": {
+   "thinking_tokens": 27
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6347,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 542,
+    "cache_read_input_tokens": 23319,
+    "cache_creation_input_tokens": 317,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 317
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cf07866cd2"
+ }
+}

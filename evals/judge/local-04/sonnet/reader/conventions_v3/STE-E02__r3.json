@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción del conector sale por MCP o entra a algún prompt o mail, o solo la pinta la SPA? Además, ¿la migración 0201 ya agregó la columna description_i18n, o tengo que crearla yo?",
+   "note": "La primera oración responde (alcanza con el cliente para el idioma, pero hay que tocar el backend mínimamente), aunque la respuesta deja abierta la decisión real: depende de si el consumo es solo front o también MCP/prompt/mail, y no se verificó si la columna ya existe."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿La descripción del conector sale por MCP o entra a algún prompt o mail, o sólo la pinta la SPA? Y la migración 0201_platform_connectors_description_i18n.sql, ¿ya existe en supabase/migrations/ con la columna creada, o tengo que escribirla yo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No pude confirmar si la columna ya existe ni si la descripción del conector sale por MCP o entra a un prompt o mail. ¿Podés decirme eso y si la migración 0201 ya está aplicada, así sé si me alcanzan los pasos 1 a 5 o tengo que resolver el idioma también en el backend?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿La descripción del conector sale por MCP o entra a algún prompt o mail, o solo la pinta la SPA? Además, ¿la migración 0201 ya agregó la columna description_i18n, o tengo que crearla yo?",
+ "followup_answer": "Ninguna de las dos se puede confirmar desde acá. El directorio de trabajo está vacío, sin repo ni `supabase/migrations/`. El material tampoco las responde.\n\n**1. ¿Sale por MCP, o entra a un prompt o un mail?**\nEl material no lo dice. Esto lo sabés vos o el código. Para chequearlo, buscá dónde se lee la descripción del conector en el backend:\n```bash\ngrep -rn \"description\" --include=*.py . | grep -i connector\n```\n- Si la descripción aparece en la construcción de un prompt, en una plantilla de mail o en la salida de tools MCP, el backend también tiene que resolver el idioma.\n- Si sólo la serializa la API hacia la SPA, alcanza con el cliente.\n\n**2. ¿La migración 0201 ya agregó `description_i18n`?**\nEs probable, por el nombre (`0201_platform_connectors_description_i18n.sql`). El material sólo la cita como referencia, no muestra su contenido. Confirmalo así:\n```bash\ngrep -n \"description_i18n\" supabase/migrations/0201_platform_connectors_description_i18n.sql\n```\n- Si el `ADD COLUMN` está ahí, no crees nada. Pasá a los pasos de backend y front.\n- Si no está, o si la migración es de otra tabla, creala vos con el `ALTER TABLE` del paso 1.\n\nSi me pasás el repo o pegás la salida de esos dos comandos, te digo cuáles pasos te quedan.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12448,
+  "cache_read_input_tokens": 46682,
+  "output_tokens": 800,
+  "output_tokens_details": {
+   "thinking_tokens": 108
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12448,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 523,
+    "cache_read_input_tokens": 29393,
+    "cache_creation_input_tokens": 344,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 344
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f3cfdb3c3e"
+ }
+}

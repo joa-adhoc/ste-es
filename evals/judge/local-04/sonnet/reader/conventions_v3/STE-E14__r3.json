@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tiempo o sus topes de iteraciones y llamadas, o si falla el Synthesizer? ¿Se descarta solo esa hipótesis, se corta todo el pipeline o se guarda algo igual? ¿Y qué ocurre si el Planner o el Investigator devuelven un error en lugar de una lista vacía?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tiempo o sus topes de iteraciones/tool calls, o si falla el Synthesizer? ¿Se descarta solo esa hipótesis o se corta todo el pipeline y no se muestra nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si el Investigator agota su tiempo o sus topes de iteraciones y llamadas, o si falla el Synthesizer? ¿Se descarta solo esa hipótesis o se corta todo el pipeline y no se muestra nada?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa si el Investigator agota su tiempo o sus topes de iteraciones y llamadas, o si falla el Synthesizer? ¿Se descarta solo esa hipótesis, se corta todo el pipeline o se guarda algo igual? ¿Y qué ocurre si el Planner o el Investigator devuelven un error en lugar de una lista vacía?",
+ "followup_answer": "El material no responde ninguna de las cuatro preguntas, y no tengo el código para mirarlo. Lo que sigue es lo que se sabe y lo que no.\n\n## Lo que el material sí dice\n\n- Un Planner con 0 hipótesis es un silencio válido, no un error.\n- Si el Judge falla por infraestructura, el teaser pasa igual. Es el único manejo de fallas que el material documenta.\n- Si los guards rechazan todo, el resultado es `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"`.\n- El Investigator tiene un presupuesto de tiempo por hipótesis, `(watchdog_sec - 30) / n_hypotheses`. Los 30 segundos de margen sugieren que hay un watchdog global. El material no dice qué hace cuando vence.\n\n## Lo que no dice (no verificado)\n\n1. **Tope de iteraciones o llamadas agotado.** No se sabe si el Investigator devuelve hallazgos parciales o descarta esa hipótesis. Tampoco se sabe si Pydantic AI lanza una excepción por el tope, como `UsageLimitExceeded`, y si alguien la captura.\n2. **Tiempo agotado.** No se sabe si se cancela solo esa hipótesis o todo el lote. Tampoco se sabe qué pasa con las hipótesis que ya terminaron.\n3. **Falla del Synthesizer.** No se sabe si hay reintento ni si el error corta el pipeline.\n4. **Error (excepción) del Planner o del Investigator.** No se sabe si se distingue de una lista vacía. Lo ideal sería que un error no se registre como silencio válido, pero el material no lo confirma.\n5. **Si se guarda algo.** El material solo muestra el upsert al final, con los 0 a 2 teasers que sobreviven. No dice si hay un registro de fallas, como un `debug_note` o un estado de error, ni si una corrida fallida se puede distinguir de una corrida en silencio.\n\n## Cómo cerrarlo\n\nHay que leer estos puntos del código:\n\n- `investigator.py`: cómo se aplican `REGISTER_CAPS` y el presupuesto de tiempo, y si hay `try/except` o `asyncio.wait_for` por hipótesis.\n- El `asyncio.gather` con el `Semaphore(3)`: si usa `return_exceptions=True`. Si no lo usa, una hipótesis que falla tira abajo a las demás.\n- El orquestador que llama a las tres etapas: dónde captura excepciones y qué escribe en `insights` cuando algo falla.\n- `synthesizer.py`: el manejo de errores del LLM, incluido el JSON mal formado.\n\nSi me pasás esos archivos o el repo, te respondo con certeza.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12540,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1157,
+  "output_tokens_details": {
+   "thinking_tokens": 194
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12540,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1157,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 12540,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12540
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "41cd99f558"
+ }
+}

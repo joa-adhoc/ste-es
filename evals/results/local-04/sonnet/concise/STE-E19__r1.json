@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "La migración 0398 (borrador) creó la policy `scheduled_runs_ws` con `USING (true)`, así que cualquier workspace ve todas las filas. La 0412 tiene la policy correcta, pero la protege un `IF NOT EXISTS` por nombre: como ya existía la del borrador, la saltó (el warning del log lo confirma). Resultado: la policy permisiva sigue activa y el workspace B ve las 2 filas del A.\n\n**Qué hacer**\n\n1. No edites 0398 ni 0412: según AGENTS.md ya se aplicaron y editarlas no las vuelve a correr.\n2. Crea una migración nueva (por ejemplo `0413_fix_scheduled_runs_rls.sql`) que reemplace la policy:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\n3. Vuelve a correr `test_rls.py`. Debería pasar el test fallido.\n\n**Antes de desplegar**\n\n- Si 0398 ya se aplicó en staging o producción, esa policy `USING (true)` está activa ahí y hay exposición de datos entre workspaces. Conviene confirmarlo, y que la 0413 salga cuanto antes.\n- Revisa si hay otras migraciones con el mismo patrón `IF NOT EXISTS` por nombre de policy, que pueden estar enmascarando policies viejas de la misma forma.\n- Considera añadir `WITH CHECK` con la misma condición si también quieres restringir los INSERT/UPDATE. Hoy la 0412 no lo incluye.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4065,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 612,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4065,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 612,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4065,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4065
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

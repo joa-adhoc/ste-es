@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Quién consume hoy la descripción de los conectores: solo la SPA o también prompts, mails o MCP? Y la tabla de `0201_platform_connectors_description_i18n.sql` es la misma que la de conectores, o es otra?",
+   "reason": "La primera oración es un 'depende' que no responde si hay que tocar el backend; además la respuesta no verificó el código ni quién consume la descripción."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Quién consume hoy la descripción de los conectores además de la SPA: entra a algún prompt, mail o sale por MCP? Y la migración 0201 ¿es de la tabla de conectores o de otra cosa?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "No verifiqué quién consume la descripción de los conectores. ¿Me podés confirmar si además de la SPA entra a algún prompt, mail o MCP, y si la tabla de la migración 0201 es la de conectores? Con eso sé si alcanza con el cliente o tengo que tocar el backend."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Quién consume hoy la descripción de los conectores: solo la SPA o también prompts, mails o MCP? Y la tabla de `0201_platform_connectors_description_i18n.sql` es la misma que la de conectores, o es otra?",
+ "followup_answer": "No puedo responder ninguna de las dos con certeza. En este directorio no hay código ni repo, y el material solo trae la regla general.\n\n- **Tabla de `0201`:** por el nombre, `0201_platform_connectors_description_i18n.sql` agrega `description_i18n` a `platform_connectors`. Eso apunta a que es la tabla de conectores, pero es una inferencia y no la verifiqué. Abrí el archivo y fijate en el `ALTER TABLE`. Si es esa tabla y la migración ya está aplicada, no hace falta migración nueva.\n- **Quién consume la descripción:** el material no lo dice. Para saberlo, en el repo del backend buscá dónde se lee la columna:\n\n  ```bash\n  grep -rn \"platform_connectors\" --include=*.py . | grep -i description\n  grep -rn \"connector.*description\\|description.*connector\" --include=*.py .\n  ```\n\n  Si solo aparece en serializers y endpoints de listado, la consume únicamente la SPA y alcanza con el cliente. Si aparece armando un prompt, un mail o la salida de una tool MCP, hay que resolver también en el backend con `lang → en → legacy`.\n\nSi me pasás el repo o los resultados de esos grep, te confirmo cuál de los dos casos es.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11929,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 641,
+  "output_tokens_details": {
+   "thinking_tokens": 197
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11929,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 641,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 11929,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11929
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "866175725d"
+ }
+}

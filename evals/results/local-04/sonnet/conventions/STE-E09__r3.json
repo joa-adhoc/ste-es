@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Flujo de conexión de un conector MCP con OAuth por usuario\n\nLo que sigue sale solo del material que pasaste. No lo contrasté con el código.\n\n## Antes de conectar\n\n1. **Admin:** registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n## Conexión\n\n| Paso | Front | Backend | Provider |\n|---|---|---|---|\n| 2 | El usuario abre `/connectors` y clickea **Connect**. | | |\n| 3 | Llama a `GET /api/mcp-oauth/{server_id}/start`. | Arma la `authorize_url` con un `state` firmado (AES-GCM, vence a los 10 min, payload `{server_id, user_id, issued_at, nonce}`). Suma `code_verifier` si hay PKCE y `scope_profile` si es un platform connector. Agrega `access_type=offline` y `prompt=consent`. Si el server declaró `resource` (RFC 8707), lo manda. | |\n| 4 | Redirige al provider. | | Muestra el consentimiento. |\n| 5 | | | Redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. |\n| 6 | | Valida el `state`. Cambia el `code` por tokens en `token_url` (con `resource`, si está guardado). Guarda los tokens encriptados en `user_mcp_oauth_tokens`. | Emite los tokens. |\n| 7 | Recibe el redirect al SPA. | Redirige a `/w/{slug}/settings/connectors?connected={server_id}`. Si el dueño es una cuenta de servicio, va a `/w/{slug}/settings/members/{member_id}?connected=...`. El landing sale del dueño, no de un `return_to`. | |\n\n**Por qué `access_type=offline` y `prompt=consent`:**\n- Google solo emite refresh tokens si están los dos parámetros.\n- El segundo fuerza que se emita uno nuevo en cada authorize. Así, un disconnect seguido de reconnect no se queda sin refresh.\n- Los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n\n**`resource` (RFC 8707):**\n- Viaja en los pasos 3, 6 y 8, pero solo si está guardado en `OAuthPerUserConfig.resource`. Lo escribe el discovery.\n- Los conectores dados de alta antes de que existiera el campo siguen andando sin indicator.\n- No se manda uno adivinado, porque un AS que valida rechaza cualquier valor que no reconozca.\n\n## Después del intercambio: prueba de humo\n\nEl callback introspecta **todas** las habilidades habilitadas en paralelo. Según el resultado:\n\n- **Ninguna contesta:**\n  - El token no sirve para nada, así que se borra.\n  - El redirect lleva `connect_error=<motivo>`.\n  - La card muestra el banner de error.\n- **Alguna contesta (conexión parcial):**\n  - El usuario queda conectado.\n  - El redirect lleva `connect_warning=<habilidades>` con las que fallaron.\n  - La card muestra el banner de conexión parcial.\n  - Se eligió no desconectarlo, porque sacarle el acceso por una habilidad rota es peor que dejarle el estado parcial que sí puede usar.\n- **Todas contestan:** conexión normal, sin banner. El material no lo dice explícito, pero se deduce de los otros dos casos.\n\n## Mantenimiento\n\n8. **Refresh proactivo:** `refresh_if_expired` corre al construir los toolsets. Renueva el token si quedan menos de 60 s de validez, y también manda `resource` si está guardado.\n\n## Qué no queda claro en el material\n\n- Qué pasa si el refresh falla en el paso 8.\n- Si en una conexión parcial hay reintento o una forma de volver a probar las habilidades que no contestaron.\n- El texto de `[...]`, que quedó recortado en la sección de `resource`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10398,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1536,
+  "output_tokens_details": {
+   "thinking_tokens": 127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10398,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1536,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10398,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10398
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

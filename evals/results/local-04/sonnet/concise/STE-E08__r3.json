@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Probablemente skill.** Un `odoo_create` con defaults sobre un modelo es componible con `odoo_create`, así que no cumple (a). Y casi seguro es un wrapper 1→1, que el umbral duro de (d) excluye aunque ahorre tokens de esquema.\n\n**Cómo decidirlo, en orden:**\n\n1. **(a)** ¿Se puede lograr con las tools genéricas? Si es un create con defaults, sí → no califica.\n2. **(d)** ¿Colapsa ≥3 calls, un loop no acotado o pasos que el LLM saltearía? Si es 1 call con defaults → no califica. Si además hace lookups (resolver partner, buscar el producto, crear líneas), sí podría calificar.\n3. **(b)** ¿Tiene un gate más fino que `create` genérico? Si los defaults no cambian qué permiso se necesita, no. Si querés restringir el modelo o los campos escribibles, eso es (b2).\n4. **(c)** ¿Hay compliance dura donde un skip del LLM cuesta? Si los defaults son obligatorios por regla de negocio y no pueden quedar a criterio del LLM, podría aplicar, pero solo en chat.\n\nSi no cumple ninguno → skill, que documenta los defaults y llama a `odoo_create`.\n\n**Si se expone por el MCP saliente:** el criterio se estrecha. (b1) y (c) no valen ahí, porque el router ignora `requires_approval` y no hay turno donde forzar pasos. La tool solo se justifica por **(a)**, **(b2)** o **(d)**. Entonces:\n\n- Si hoy la justificás por approval o por \"que no se saltee los defaults\", en MCP no tiene sustento. Es el caso de `odoo_schedule_activity`, que se demotó y ya estaba en `MCP_EXCLUDED_TOOLS`.\n- Si la justificás por una whitelist más fina (b2), por ejemplo que solo cree en ese modelo y no abra `create` genérico, sí vale en ambas superficies.\n\n**Lo único que podría cambiar el veredicto:** que los defaults sean un requisito duro que no querés dejar al LLM. En ese caso es (c) y queda solo en chat. Para MCP necesitarías (b2) o (d) además.\n\nSi me pasás el modelo y qué defaults aplica, te digo en cuál eje cae.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4585,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 828,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4585,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 828,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4585,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4585
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

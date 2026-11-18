@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El flujo tiene tres actores (front, backend, provider) y dos desenlaces después del intercambio: conexión completa/parcial o error con token borrado.\n\n## Flujo paso a paso\n\n**Preparación (admin)**\n1. El admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n**Inicio (front → backend)**\n2. El usuario abre `/connectors` y clickea **Connect**.\n3. El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend arma la `authorize_url` con:\n   - un `state` firmado con AES-GCM, TTL de 10 minutos, con payload `{server_id, user_id, issued_at, nonce}`. Puede sumar `code_verifier` (PKCE) y `scope_profile` (platform connectors);\n   - `access_type=offline` y `prompt=consent`. Google solo emite refresh tokens con ambos, y `prompt=consent` evita que un disconnect+reconnect quede sin refresh. Los otros providers ignoran los params desconocidos (RFC 6749 §3.1);\n   - `resource` (RFC 8707), solo si el server lo declaró.\n\n**Autorización (front ↔ provider)**\n4. El front redirige al provider. El usuario autoriza ahí.\n5. El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**Callback (backend ↔ provider)**\n6. El backend valida el `state`. Después cambia el `code` por tokens en `token_url` (con `resource` si está guardado) y los guarda encriptados en `user_mcp_oauth_tokens`.\n7. Ejecuta la prueba de humo (ver abajo) y redirige al SPA:\n   - `/w/{slug}/settings/connectors?connected={server_id}`;\n   - o `/w/{slug}/settings/members/{member_id}?connected=...` si el dueño es una cuenta de servicio. El landing sale del dueño, no de un `return_to`.\n\n**Mantenimiento (backend ↔ provider)**\n8. Al construir los toolsets, `refresh_if_expired` renueva el token si quedan menos de 60 s de validez. También manda `resource` si está guardado.\n\n## Qué pasa si algunas habilidades no contestan\n\nTras el intercambio, el callback introspecta **todas** las habilidades habilitadas en paralelo:\n\n| Resultado | Estado del token | Redirect | UI |\n|---|---|---|---|\n| Ninguna contesta | Se borra | `connect_error=<motivo>` | Banner de error |\n| Alguna contesta | Se conserva | `connect_warning=<habilidades>` | Banner de conexión parcial |\n\nEl criterio es que desconectar al usuario por una sola habilidad rota sería peor que dejarlo con un estado parcial que sí puede usar.\n\n## Sobre `resource`\n\nSe manda solo si el discovery lo guardó en `OAuthPerUserConfig.resource`. Los conectores viejos siguen andando sin él. Un valor adivinado es peor que ninguno, porque un AS que valida rechaza lo que no reconoce.\n\n## No está en el material\n\n- Los valores posibles de `<motivo>` en `connect_error`.\n- Cómo se reintenta o se repara una habilidad que quedó en la lista de `connect_warning`.\n- Qué pasa si el refresh del paso 8 falla.\n- Cuántas habilidades se consideran \"todas las habilitadas\" cuando hay scopes distintos por `scope_profile`.\n\nSi necesitás alguno de esos puntos, hay que verlo en el código del callback.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10882,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1469,
+  "output_tokens_details": {
+   "thinking_tokens": 194
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10882,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1469,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10882,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10882
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

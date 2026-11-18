@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Para agentes de IA decís que conviene una pasada completa antes de entregar, pero también que en un workspace managed (1 CPU, 2 GiB) correrla puede tirar la sesión y que no está verificado cuál regla prevalece. ¿Qué hago concretamente si soy un agente en un workspace managed: corro la suite completa o la dejo a CI?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Para agentes de IA decís que conviene una pasada completa antes de entregar, pero también que en un workspace managed (1 CPU, 2 GiB) eso puede tirar la sesión y que no está claro cuál regla prevalece. ¿Qué hago concretamente cuando trabajo como agente en un workspace managed: corro la suite completa o la dejo a CI?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La última nota dice que la excepción para agentes choca con la regla de que la validación pesada la corre CI, y que no está verificado cuál prevalece. Cuando trabajo en un workspace managed (1 CPU, 2 GiB), ¿corro la suite completa una vez antes de entregar o la dejo a CI? ¿Quién lo puede confirmar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Para agentes de IA decís que conviene una pasada completa antes de entregar, pero también que en un workspace managed (1 CPU, 2 GiB) correrla puede tirar la sesión y que no está verificado cuál regla prevalece. ¿Qué hago concretamente si soy un agente en un workspace managed: corro la suite completa o la dejo a CI?",
+ "followup_answer": "**Dejala a CI.** En un workspace managed no corras la suite completa.\n\nAntes dije que no estaba verificado cuál regla prevalecía. Eso lo dejé más abierto de lo que está. Las convenciones del entorno son explícitas: la validación pesada la corre CI, y \"esto lo valida CI\" es un resultado válido y reportable. Además, en 1 CPU y 2 GiB una corrida completa no es solo lenta: puede matar la sesión. La excepción para agentes viene de la guía del repo y no puede pasar por encima de esa restricción. Una convención tampoco se anula desde la sesión.\n\n**Qué hacer**\n1. Corré solo lo barato: `make test ARGS=<lo que tocaste>` y `make lint`.\n2. Pusheá una sola vez, cuando eso esté en verde, y mirá el resultado con `gh pr checks`. El job de `test` tarda ~4 min, así que esperarlo sale barato.\n3. Si CI falla y no sabés por qué, reproducí ese caso puntual en local antes del siguiente push. No hace falta la suite entera.\n4. En el reporte, declará la suite completa como \"no verificado en local; la valida CI\". No la des por pasada hasta que CI lo confirme.\n\n**Si el cambio es transversal** (`config`, `db.pool`, `chat.agent`, `workspaces.service`, `billing.service`), CI sigue siendo el lugar. Dejalo dicho en el body del PR, para que quien revise sepa que el alcance es amplio. Si la persona quiere una pasada completa antes de pushear, que la corra en su máquina o en un entorno con recursos. Esa decisión es de ella, no del agente.\n\n**Lo que no está verificado:** cuál es el razonamiento exacto del equipo para la excepción de agentes en un workspace managed. Si te hace ruido, reportalo por `tuqui-report-feedback` para que la guía del repo lo aclare.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11072,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1056,
+  "output_tokens_details": {
+   "thinking_tokens": 384
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11072,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1056,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11072,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11072
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "df44a271d9"
+ }
+}

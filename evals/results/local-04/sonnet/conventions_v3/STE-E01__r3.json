@@ -1,0 +1,44 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Para que no rebote, la migración tiene que crear la tabla, activar RLS con su policy y ser idempotente. Además necesitás un test y un modelo Pydantic.\n\n## Pasos\n\n1. Creá la migración con `supabase migration new <nombre>`. Queda en `supabase/migrations/NNNN_descripcion.sql`.\n2. Escribila idempotente, o sea que corra varias veces sin error.\n3. Agregá RLS, porque la tabla lleva `workspace_id`.\n4. Escribí el test de aislamiento en `tuqui_core/tests/test_rls.py`.\n5. Creá el modelo Pydantic de la tabla.\n\n## Qué lleva la migración\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL,\n    -- ...tus columnas\n    created_at timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_id_idx\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE tablename = 'mi_tabla' AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`.\n- **Índices:** `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ENABLE ROW LEVEL SECURITY` ya es idempotente, no necesita guarda.\n- **Policy:** va dentro del bloque `DO $$ ... IF NOT EXISTS ...`, porque `CREATE POLICY` no tiene `IF NOT EXISTS`.\n- **Condición de la policy:** tiene que ser exactamente `workspace_id = current_setting('app.current_workspace_id')::uuid`.\n\nEl índice sobre `workspace_id` es una sugerencia mía. El material no lo exige.\n\n## Por qué la idempotencia no es una formalidad\n\n- El preview de tu PR corre las migraciones contra la base de staging. Es la misma base, no una copia.\n- Tu migración se aplica en staging apenas abrís el PR.\n- Si después renombrás el archivo, se vuelve a aplicar, porque el tracking es por nombre de archivo.\n- Por eso conviene fijar el nombre temprano y no renombrar.\n- Las consecuencias completas están en [`docs/infra-ci-cd.md`](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging). No pude leer ese archivo desde acá, así que revisalo antes de abrir el PR.\n\n## Otras reglas\n\n- No filtres por `workspace_id` solo en el application layer. RLS es la defensa principal.\n- Si la tabla no tuviera `workspace_id`, discutilo antes. Es la excepción, no la regla.\n\n## Pendiente de verificar\n\nEl material pide un test en `test_rls.py`, pero no dice qué tiene que cubrir. Lo razonable es que un workspace no vea ni escriba filas de otro. Mirá los tests existentes en ese archivo y copiá su patrón.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10645,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1504,
+  "output_tokens_details": {
+   "thinking_tokens": 226
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10645,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1504,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10645,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10645
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

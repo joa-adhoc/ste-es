@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/`, creada con `supabase migration new <nombre>`. El archivo queda como `NNNN_descripcion.sql`, y el nombre tiene que ser definitivo antes de abrir el PR.",
+  "Tiene que tener la columna `workspace_id` (uuid), el RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y una policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, envuelta en un `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = '<tabla>' AND policyname = '<nombre_policy>') THEN CREATE POLICY ... END IF; END $$;` porque `CREATE POLICY` no tiene `IF NOT EXISTS`.",
+  "Porque el preview del PR corre las migraciones contra la base de staging, que es la misma base y no una copia. La migración se aplica en staging apenas se abre el PR, y si se renombra el archivo se vuelve a aplicar, porque el tracking es por nombre de archivo. Por eso cada sentencia tiene que tolerar correr dos veces."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "4211551504",
+  "control": "cb1718959b"
+ }
+}

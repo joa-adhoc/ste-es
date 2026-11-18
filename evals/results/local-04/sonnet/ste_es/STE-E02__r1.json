@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Alcanza con el cliente si la descripción del conector solo la pinta la SPA. Tocás el backend solo si además entra a un prompt LLM, a un mail o sale por MCP. En ese caso resolvés en los dos lados, con la misma cadena `idioma exacto → en → legacy`.\n\n**De punta a punta**\n\n1. **Migración:** agregá la columna y dejá la legacy como está. Ya existe `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Fijate si cubre tu caso antes de crear otra.\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n2. **API:** devolvé el mapa entero junto con la columna legacy. No filtres por idioma en el serializer. Usá los helpers de `tuqui_core/i18n.py` sin reimplementarlos:\n   - `normalize_i18n_keys` al escribir.\n   - `decode_i18n` al leer, porque asyncpg puede devolver JSONB como `str` o como dict.\n3. **Front:** resolvé con el helper. Nunca escribas la cadena de fallback a mano.\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n4. **Editor de admin:** poné dos inputs, ES y EN. Al guardar, mandá `description_i18n` con las claves no vacías y espejá la legacy con `es || en`. Referencia: `AdminAgentEditorPage.tsx:95-115`.\n\n**Solo si el backend consume el campo**\n\n5. Resolvé con la misma cadena `lang → en → legacy`. Tomá `lang` de `resolve_response_language(workspace_id, user_id)` y no leas `Accept-Language`.\n6. Si el server resuelve, incluí el idioma en el `queryKey` de react-query.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5533,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 962,
+  "output_tokens_details": {
+   "thinking_tokens": 315
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5533,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 962,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 5533,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5533
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

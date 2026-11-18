@@ -1,0 +1,44 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Ciclo de vida de una memoria en el chat\n\n## 1. Guardado\n- El modelo guarda la memoria en uno de dos alcances: **usuario** (personal) o **workspace** (compartida con el equipo).\n- Cada alcance tiene un tope de **50 memorias**: por usuario en el primero, por workspace en el segundo.\n- Al agregar la 51ª, se borra la más vieja según `created_at`, en la misma transacción de base.\n- El borrado es silencioso para el usuario, pero la respuesta de la tool le avisa al modelo.\n- Es FIFO por antigüedad de creación, no por uso. Una memoria vieja que se usa mucho igual es la primera en salir.\n\n## 2. Entrada al prompt (carga progresiva)\nEn cada turno, `_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta solo el **header** de cada memoria. Lo hace después del bloque `CURRENT USER` y antes del bloque de proyecto, en dos secciones: `# Workspace memory (shared with team)` y `# User memory (personal)`.\n\nEl header es `título + resumen`. Si no hay resumen, usa el cuerpo hasta 250 caracteres. Si el cuerpo pasa de 250 y no hay resumen, el header termina en `... [read]`. Cada línea lleva el `id`.\n\n## 3. Lectura del cuerpo\nSi el modelo necesita el contenido completo de una memoria marcada `[read]`, llama a `manage_memory(action='read', id=...)`. El cuerpo se trae a demanda y no viaja en cada turno.\n\n## 4. Cuando hay muchas\n- Con 50 memorias de tamaño máximo, el costo por turno queda acotado a unos 3K tokens.\n- Si el total de caracteres de los headers pasa de `_MEMORY_BUDGET_CHARS` (12K ≈ 3K tokens), entra el **budget guard**: `rapidfuzz` puntúa cada header contra el mensaje actual del usuario y se queda con los top-N.\n- Es decir, con muchas memorias lo que entra al prompt cambia según lo que se pregunta en ese turno.\n\n## Preguntas abiertas\nEl material no lo dice, así que no lo confirmo:\n- Qué acción usa el modelo para guardar (se ve `read`, pero no `create`).\n- Cuánto vale N en el top-N.\n- Si los 12K son un total entre ambos alcances (hasta 100 memorias) o por alcance. Dice \"total\", pero el cálculo de 3K tokens solo contempla 50.\n- Qué pasa con las memorias que el guard deja afuera: quedan sin header en ese turno, y el modelo solo las vería si ya sabe su `id`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9920,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1267,
+  "output_tokens_details": {
+   "thinking_tokens": 315
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9920,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1267,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9920,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9920
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

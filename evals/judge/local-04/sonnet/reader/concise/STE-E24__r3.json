@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el ADD de `locale` y el DROP de `lang` juntos. Si no hago nada, ¿el tren del jueves 12 UTC bloquea el DROP o lo corre igual con el código nuevo? Y si hay que sacarlo, ¿lo revierto en staging antes del jueves o hay otra forma?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con las dos migraciones juntas. ¿El DROP de members.lang sale igual el jueves con el tren? Si sí, ¿qué hago ahora para frenarlo: revertir y separar en dos PRs antes del jueves a las 12 UTC? Y si no sale, ¿qué lo frena?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con las dos migraciones juntas (agrega locale y borra lang). ¿Qué pasa si no hago nada antes del jueves 12 UTC: el tren bloquea el DROP o lo corre igual? Y si tengo que sacarlo, ¿lo revierto en staging o hago otro PR encima? ¿Hasta qué hora del jueves tengo para hacerlo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado a staging con el ADD de `locale` y el DROP de `lang` juntos. Si no hago nada, ¿el tren del jueves 12 UTC bloquea el DROP o lo corre igual con el código nuevo? Y si hay que sacarlo, ¿lo revierto en staging antes del jueves o hay otra forma?",
+ "followup_answer": "No lo sé: el extracto describe la regla, pero no dice que el tren la haga cumplir. Si no hay un chequeo en `release-train.yml`, el tren del jueves probablemente corra el DROP junto con el código nuevo. Antes dije que el tren trataría ambas migraciones igual, pero eso era una suposición mía. Revisá el workflow para confirmarlo. Hasta entonces, asumí que el DROP corre.\n\nLo seguro es sacarlo de staging antes del jueves 12 UTC (09:00 ART). El extracto no menciona otra forma. Un release manual solo sirve para hotfixes y necesita la aprobación de jjs.\n\n1. Hacé un PR que revierta solo la migración `DROP COLUMN lang`, con `locale` y el código intactos. Mergealo a staging antes del jueves 09:00 ART y dejá margen por si el CI se pone rojo. Si el CI de staging está rojo ese día, el tren salta al martes 24/11.\n2. Antes de revertir, mirá si staging ya aplicó el DROP. Si lo hizo, borrar el archivo no restaura la columna y la base de staging queda distinta de la migración. En ese caso hay que recrear `lang` en staging a mano o con una migración, y conviene coordinarlo con quien mantenga esa base.\n3. Después del tren del jueves, reabrí el DROP en otro PR y mergealo a staging antes del martes 24/11 a las 12 UTC.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4586,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1032,
+  "output_tokens_details": {
+   "thinking_tokens": 523
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4586,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1032,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 4586,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4586
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6e18ebf433"
+ }
+}

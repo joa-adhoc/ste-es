@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "ste_es",
+ "arm_hash": "5251df77ec",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No está caído: el deploy nuevo no se promovió y el anterior sigue sirviendo.\n\nLa migración `0415_terms_acceptance.sql` falló porque `members.accepted_version` tiene filas en null y el `SET NOT NULL` lo rechazó (SQLSTATE 23502). La migración hizo rollback, así que la base no cambió.\n\nSegún `docs/infra-ci-cd.md`, hay que partir el cambio en dos:\n\n1. Esta entrega: una migración que complete los valores (backfill) de `accepted_version`.\n2. Un tren posterior: otra migración con `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;`.\n\nAntes de reintentar, sacá el `SET NOT NULL` de la `0415` y dejá solo el backfill.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4746,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 279,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4746,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 279,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4746,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4746
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

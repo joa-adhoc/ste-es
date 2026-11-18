@@ -1,0 +1,44 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Skill, salvo que cumpla un eje que no sea un wrapper 1→1.** Un `odoo_create` sobre un modelo con defaults mapea a una sola call genérica, así que por el criterio no califica.\n\n**Cómo aplicar los ejes a tu caso**\n\n- **(a) No componible:** falla. `odoo_create` con los valores por defecto lo resuelve.\n- **(b) Gate o identidad propia:**\n  - Si querés approval propio, solo vale en chat (b1). El MCP lo ignora.\n  - Si querés una whitelist más fina que `create` genérico, (b2) vale en chat y en MCP. Pero eso es un gate distinto, no solo defaults. Pasa solo si la tool restringe de verdad lo que se puede crear, y menos que `odoo_create` abierto.\n- **(c) Procedimiento crítico:** solo si saltear un paso tiene costo real de compliance. Los defaults no lo son.\n- **(d) Eficiencia:** falla por el umbral duro. 1 call genérica no son ≥3 calls ni un loop no acotado. Ahorrar tokens de esquema no alcanza.\n\n**Si la tool también va por el MCP saliente**\n\nSí cambia: (b1) y (c) pierden palanca ahí. No hay canal de approval ni un turno donde forzar pasos. Solo queda justificarla por (a), (b2) o (d). Para tu caso, la única salida viable es (b2).\n\n**Qué haría**\n\n1. Si es solo \"create con defaults\", hacé una skill que indique el modelo, los valores por defecto y cómo llamar a `odoo_create`. Es el mismo veredicto que `odoo_schedule_activity`: componible, y el único diferencial posible era (b1).\n2. Si el modelo es sensible y querés que el agente no pueda crear en otros modelos ni con otros campos, evaluá (b2). Ahí la tool nativa se justifica por el gate, y tenés que declararlo así.\n3. Si también va por el MCP y solo tenés (b1), excluila con `MCP_EXCLUDED_TOOLS`, como `odoo_schedule_activity`, o pasala a skill.\n\nUn dato que cambia la respuesta: ¿los defaults son una restricción (el modelo o los campos que se pueden tocar) o solo una comodidad? Si es comodidad, es skill. Si es restricción de permisos, puede ser (b2).",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10867,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 834,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10867,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 834,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10867,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10867
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

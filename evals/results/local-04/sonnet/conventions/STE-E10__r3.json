@@ -1,0 +1,44 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Orden de decisión\n\n1. **`workspace_write_models`** (admin, por modelo). Si el workspace no permite la operación sobre ese modelo, la tool se corta ahí, antes del gate de permisos.\n2. **`evaluate_permission`**, en este orden y cortando en el primer match:\n   1. `workspace_tool_approvals` con `deny` → **DENY**. Es un piso: nada lo levanta.\n   2. `user_tool_approvals` de `(user, workspace, tool)` → si hay fila, gana su `action`. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n   3. `workspace_tool_approvals` con `allow` o `ask`.\n   4. Default por ausencia de fila: **ASK** si el recurso está en `approval` (`ask` o `always`), **ALLOW** si no. En tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**, auditado en `tool_usage_log` con `permission_action`.\n\n## Tus dos casos\n\n**Admin en `ask`, miembro en `allow`, chat normal.** La tool **se ejecuta sin preguntar**. Solo el `deny` del admin es piso, y `ask` no lo es. Cuando se evalúa el paso 2.2, la fila del miembro gana y el `ask` del admin ni se consulta. Si el admin quiere que nadie se lo saltee, tiene que poner `deny`, y entonces nadie la usa. Con `ask` solo fija un valor por defecto que cada miembro puede pisar. Esto sigue valiendo si el recurso está en `approval`, porque ese default es el último paso.\n\n**Agent por webhook.** Se saltea la preferencia personal entera (paso 2.2). El turno corre con la identidad prestada de un miembro, y la preferencia de esa persona no es política del canal. Queda así:\n- Si el workspace puso `deny`, se bloquea.\n- Si el workspace tiene fila `allow` o `ask`, se aplica esa.\n- Sin fila, vale el default: ASK si el recurso está en `approval`, ALLOW si no.\n\nEn tu ejemplo, el `allow` del miembro no cuenta en el webhook, y el `ask` del admin sí. Eso es lo esperado.\n\n## Qué no dice el material\n\nNo dice qué pasa cuando el resultado en un webhook o en un canal `scheduled` es **ASK**, porque ahí no hay nadie que conteste. Puede quedar bloqueado, esperando o denegado. No lo verifiqué. Lo cerraría leyendo `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`, o probando un webhook con una tool en `ask` y mirando `permission_action` en `tool_usage_log`. Si el agent tiene que correr sin intervención, la solución segura es dejar esa tool en `allow` o `deny` explícito en la grilla del workspace, y no depender del default.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10320,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1395,
+  "output_tokens_details": {
+   "thinking_tokens": 357
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10320,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1395,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10320,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10320
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la base de tests local es compartida entre worktrees: un compañero corre conftest con su rama, que trae una migración destructiva (borra o renombra columnas), y la base queda con ese esquema. Tu código todavía lee esas columnas, así que aparece UndefinedColumnError en tests que no tocaste. No es un bug tuyo ni falta una migración.",
+  "No del todo: el flock evita que dos corridas se pisen al mismo tiempo, pero no aísla el esquema. Si dos worktrees tienen migraciones distintas, la base queda con la unión de las dos.",
+  "Arreglo inmediato: en tu worktree correr `make migrate-reset`, que arma una base desde cero en unos 3 segundos con el mismo runner que CI y deploy (no usar `npx supabase db reset`). Para que no vuelva a pasar: copiar `tuqui_core/.env.test.local.example` a `tuqui_core/.env.test.local`, declarar ahí una base propia para tu worktree, correr `make migrate-reset` para crearla, y que tu compañero haga lo mismo con otro nombre de base. Mientras compartan Redis, mantener el lock; solo se puede soltar con un `TEST_LOCK` distinto si además tenés un Redis propio (otro índice en `REDIS_URL`, distinto de 15 y de 0)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "9740590f98",
+  "control": "d71584ce60"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si editás un artifact ya compartido, quien tiene el link sigue viendo la versión publicada, no la nueva. Un refresh de datos crea una versión solo-data y no rompe el diseño.\n\n**Qué pasa al editar**\n- `save` con `artifact_id` crea la v(n+1) y mueve `current_version_id`. No mueve `published_version_id`.\n- La ruta por token sirve siempre `published_version`. El link que ya circuló no cambia.\n- El result trae `unpublished_changes: true` y el viewer muestra un banner.\n- El viewer interno navega por `current_version`, con selector de versiones.\n- Para que el link muestre lo nuevo, corré `publish(version?)`. Sin versión, publica la última.\n- Para volver atrás (revert), publicá una versión anterior.\n- `save` sin `artifact_id` crea la v1 y la publica. Así el flujo crear→compartir no da 404.\n\n**Qué pasa cuando solo se refrescan los datos**\n- Cada versión guarda `content` (el template, la página completa) y `data` (snapshot JSON, opcional). Cualquiera de los dos puede ser nulo.\n- Un refresh crea una versión solo-data, con `content` nulo.\n- Para la versión `n`, el sistema resuelve cada campo por separado hacia atrás. Toma el último `content` no nulo ≤ n y el último `data` no nulo ≤ n (`service._effective_version`).\n- Por eso el diseño se hereda de la versión anterior y no se rompe.\n- El front inyecta `data` como `<script type=\"application/json\" id=\"tuqui-data\">`. El template lo lee con `JSON.parse(document.getElementById('tuqui-data').textContent)`.\n\n**Validación y límites**\n- Un `save` con `data` sobre un artifact existente se valida contra el `data_schema` guardado. Chequea claves `required` y tipos de `properties`. Si el shape no encaja, rechaza antes de escribir.\n- `content` ≤ 1 MB y `data` serializada ≤ 1 MB. Si se pasan, falla con error explícito.\n\n**No está claro en el material:** si la versión solo-data también queda sin publicar, o si el refresh publica solo. Por la regla de `save` parece que no se publica, pero el texto no lo dice. No verificado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10531,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 795,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10531,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 795,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10531,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10531
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

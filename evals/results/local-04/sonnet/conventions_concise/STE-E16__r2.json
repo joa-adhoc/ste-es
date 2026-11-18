@@ -1,0 +1,44 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si editás un artifact ya compartido, quien tiene el link **sigue viendo la versión publicada**, no tu edición. Los cambios quedan como borrador hasta que los publiques.\n\n**Cómo funciona**\n- **Crear** (`save` sin `artifact_id`): genera la v1 y la publica de entrada, así que el link funciona desde el primer momento.\n- **Editar** (`save` con `artifact_id`): crea la v(n+1) y mueve `current_version_id`, pero no `published_version_id`. El resultado avisa con `unpublished_changes: true` y el viewer muestra un banner.\n- **Publicar** (`publish(version?)`): mueve el puntero publicado. Por defecto toma la última versión. Para volver atrás (revert), publicás una versión anterior.\n- **Quién ve qué**: el viewer interno navega por la versión actual, con selector. La ruta por token, la del link compartido, sirve siempre la publicada.\n\n**Cuando solo se refrescan los datos**\n- Cada versión tiene dos partes: `content` (el template, o sea la página) y `data` (un snapshot JSON opcional). Un refresh de datos crea una versión solo-data, sin `content`.\n- Para resolver qué se muestra en una versión `n`, se toma por separado el último `content` no nulo ≤ n y el último `data` no nulo ≤ n. Por eso un refresh no puede romper el diseño: el template sigue siendo el último que tenía.\n- Si el artifact ya existe y el `save` trae `data`, se valida contra el `data_schema` guardado (claves requeridas y tipos). Si no encaja, se rechaza antes de escribir.\n- Límite de 1 MB para `content` y 1 MB para `data` serializada.\n\nEl material no dice si un refresh de datos se publica solo. Por la regla de `save`, crea una versión nueva y mueve `current_version_id`, así que lo esperable es que también requiera `publish`. No lo puedo confirmar con lo que me pasaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10702,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 689,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10702,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 689,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10702,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10702
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

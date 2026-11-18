@@ -1,0 +1,44 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No está caído: staging sigue sirviendo la versión anterior, porque el deploy nuevo no se promovió.\n\n**Qué pasó:** la migración `0415_terms_acceptance.sql` falló en el paso `migrate`. Intentó hacer `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL`, pero hay filas de `members` con `accepted_version` en null (error 23502). La migración se revirtió y el deploy se canceló.\n\n**Causa:** la migración hace el `SET NOT NULL` sin completar antes los valores viejos. Según `docs/infra-ci-cd.md`, eso se hace en dos pasos: primero una migración de backfill y, en un tren posterior, otra con el `SET NOT NULL`.\n\n**Qué hacer:**\n1. Dejar en `0415` solo el backfill de `accepted_version`. Hace falta definir con qué valor se completan las filas viejas.\n2. Mover el `SET NOT NULL` a una migración del tren siguiente.\n3. Volver a desplegar.\n\nNo verifiqué el estado real de staging: lo deduzco del log (`previous deployment keeps serving`). Conviene confirmarlo con un chequeo de salud o la versión desplegada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10256,
+  "cache_read_input_tokens": 17298,
+  "output_tokens": 430,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10256,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 430,
+    "cache_read_input_tokens": 17298,
+    "cache_creation_input_tokens": 10256,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10256
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

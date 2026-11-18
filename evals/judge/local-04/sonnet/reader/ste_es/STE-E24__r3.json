@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado en staging con el ADD y el DROP juntos. ¿Qué hago ahora para que el tren del jueves no lleve el DROP? ¿Hago un revert parcial en staging antes del jueves a las 12 UTC y abro un PR nuevo solo con el DROP? Y si el tren del jueves salta, ¿qué fecha exacta le toca al DROP?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR ya está mergeado a staging con el ADD y el DROP juntos. ¿Qué pasa con ese DROP si no hago nada antes del jueves a las 12 UTC: el tren lo corre igual, lo bloquea o falla? ¿Tengo que revertir o sacar el DROP de staging antes de esa hora, y cómo? Además, si el tren del jueves salta por el CI rojo, ¿en qué fecha exacta saldría el DROP?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR ya está mergeado a staging con el ADD y el DROP juntos. ¿Qué pasa con ese merge en el tren del jueves? ¿Tengo que revertirlo y rehacerlo en dos PRs antes del jueves 12 UTC, o el tren ya separa la migración destructiva por su cuenta?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Mi PR ya está mergeado en staging con el ADD y el DROP juntos. ¿Qué hago ahora para que el tren del jueves no lleve el DROP? ¿Hago un revert parcial en staging antes del jueves a las 12 UTC y abro un PR nuevo solo con el DROP? Y si el tren del jueves salta, ¿qué fecha exacta le toca al DROP?",
+ "followup_answer": "Sí, el revert en staging es el camino, pero revertí solo el `DROP` y no todo el PR. Dejá el `ADD COLUMN` y el código en staging.\n\n1. Abrí un PR que quite la migración del `DROP COLUMN` (un revert de ese commit). Mergealo a staging antes del jueves 19/11 a las 09:00 ART (12 UTC), con el CI verde. Si ese PR deja el CI rojo, el tren salta y perdés la fecha.\n2. Guardá el `DROP` en un PR nuevo, pero no lo mergees a staging todavía. El tren lleva lo que haya en staging cuando corre.\n3. Mergeá el PR del `DROP` a staging después de que el tren del jueves corra y el código nuevo esté en prod. Tiene que estar antes del martes 24/11 a las 09:00 ART (12 UTC).\n\nSi la migración ya corrió en el entorno de staging, el revert no restaura `members.lang` ni sus datos. Revisá ese entorno y recreá la columna si hace falta.\n\nFechas si el tren del jueves salta (todas a las 12 UTC, es decir 09:00 ART):\n\n```\n┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐\n│ Jue 19/11 salta  │──►│ Mar 24/11        │──►│ Jue 26/11        │\n│ (CI rojo)        │   │ código + locale  │   │ DROP de lang     │\n└──────────────────┘   └──────────────────┘   └──────────────────┘\n```\n\n- **Código y `members.locale`:** llegan el martes 24/11.\n- **`DROP` de `members.lang`:** le toca el jueves 26/11, porque va un tren después del código.\n- **Si el martes 24/11 también salta:** el código pasa al jueves 26/11 y el `DROP` al martes 01/12.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5523,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 1306,
+  "output_tokens_details": {
+   "thinking_tokens": 656
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5523,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1306,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 5523,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5523
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e337a2f115"
+ }
+}

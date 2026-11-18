@@ -1,0 +1,44 @@
+{
+ "case": "STE-E02",
+ "arm": "baseline",
+ "arm_hash": "da39a3ee5e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Depende de quién consuma la descripción. Si sólo la pinta la SPA, alcanza con el cliente (más la migración y el serializer). Si además entra a un prompt, a un mail o sale por MCP, hay que tocar también el backend.\n\nPara los conectores conviene que lo verifiques antes de empezar. Las descripciones de conectores suelen terminar en el prompt del agente o en la superficie MCP, y ahí no hay cliente que resuelva el idioma. No tengo el código a la vista, así que no puedo confirmar cuál es tu caso.\n\n## De punta a punta\n\n1. **Migración.** Primero mirá `0201_platform_connectors_description_i18n.sql`. Por el nombre, parece que `platform_connectors` ya tiene la columna. Si es la misma tabla, te saltás este paso. Si es otra tabla de conectores:\n   ```sql\n   ALTER TABLE <tabla> ADD COLUMN description_i18n JSONB;\n   ```\n   Dejá `description` como está, porque es la columna legacy y es el último eslabón del fallback.\n\n2. **API.** Devolvé `description_i18n` (el mapa entero) junto con `description`. No filtres por idioma en el serializer.\n   - Al escribir, pasá el mapa por `normalize_i18n_keys` de `tuqui_core/i18n.py`.\n   - Al leer, pasalo por `decode_i18n`, porque asyncpg puede devolver el JSONB como `str` o como dict.\n   - No reimplementes ninguna de las dos.\n\n3. **Front (lectura).**\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas el fallback a mano. La cadena es `idioma exacto → en → legacy`.\n\n4. **Editor de admin.** Poné dos inputs (ES y EN). Al guardar:\n   - Mandá `description_i18n` sólo con las claves no vacías.\n   - Espejá la legacy con `es || en`.\n   - La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n5. **Backend (sólo si aplica).** Si la descripción entra a un prompt, a un mail o sale por MCP, resolvela en el server con la misma cadena `lang → en → legacy`.\n   - Tomá `lang` de `resolve_response_language(workspace_id, user_id)`.\n   - No leas `Accept-Language`.\n\n6. **Caché.** Esto aplica sólo si terminaste resolviendo en el server. En ese caso el `queryKey` de react-query tiene que incluir el idioma. Si resuelve el cliente, no hace falta.\n\n## Dos advertencias\n\n- Si la consumen los dos lados, usá la misma cadena de fallback en ambos. Si divergen, la SPA muestra un texto y el modelo recibe otro. El material cita el caso de `agents` como el bug de referencia.\n- Hacé un grep de dónde se lee `description` de los conectores en el backend (prompts, mails, MCP). Si aparece en alguno, el paso 5 es obligatorio.\n\nSi querés, hago ese grep en el repo y te digo cuál de los dos casos es. El directorio de trabajo actual (`/tmp/ste-es-eval-vunsfkqr`) no parece contener el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4120,
+  "cache_read_input_tokens": 17771,
+  "output_tokens": 1439,
+  "output_tokens_details": {
+   "thinking_tokens": 303
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4120,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1439,
+    "cache_read_input_tokens": 17771,
+    "cache_creation_input_tokens": 4120,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4120
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

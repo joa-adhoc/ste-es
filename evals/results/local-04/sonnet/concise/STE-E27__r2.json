@@ -1,0 +1,44 @@
+{
+ "case": "STE-E27",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los reportes de `odoo_report` fallaron por timeout (37 errores de \"timeout after 30s\") entre 13:10 y 13:40 UTC del 18-nov. Eso coincide con un OOM del worker, pero la causa del OOM no se encontró.\n\n**Lo que sí está respaldado:**\n- La memoria del worker subió de 0,9 GB a 2 GB entre 13:05 y 13:41.\n- A las 13:41:58 el contenedor fue matado por OOM (límite 2 GB) y el worker se reinició a las 13:42:10.\n- No hubo errores de timeout antes de 13:10 ni después de 13:40.\n\n**Lo que no se sabe:**\n- **Qué proceso consumió la memoria:** el log no tiene detalle por request. Es una correlación temporal (memoria creciente + timeouts + OOM en la misma ventana), no una causa probada. Lo más probable es que el worker, saturado, no respondiera dentro de 30 s, pero eso es inferencia.\n- **Si el cliente volvió a pedir los reportes después de las 13:42:** no se verificó. Que no haya errores posteriores puede significar que se recuperó, o simplemente que nadie los pidió.\n\n**Siguiente paso sugerido:** consultar `tool_usage_log` por llamadas a `odoo_report` después de las 13:42 para confirmar la recuperación. Para la causa raíz, habría que activar logging por request (o ver qué reportes se pidieron entre 13:05 y 13:41 y su tamaño) y vigilar si se repite.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 3791,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 538,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3791,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 538,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 3791,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3791
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

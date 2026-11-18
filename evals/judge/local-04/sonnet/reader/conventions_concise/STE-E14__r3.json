@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando una hipótesis agota su presupuesto de tiempo o de tools sin hallazgos, y cómo se limita a 2 teasers (lo hace el Synthesizer o hay un tope aparte)? ¿Puede el Synthesizer devolver 0 teasers por decisión propia?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa si una hipótesis agota su presupuesto de tiempo o de tool calls sin hallazgos, puede el Synthesizer devolver 0 teasers por decisión propia, y dónde y cómo se limita el resultado a 2 teasers?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa cuando una hipótesis agota su presupuesto de tiempo o de tools sin hallazgos, y puede el Synthesizer devolver 0 teasers por decisión propia? Además, ¿dónde y cómo se limita el resultado a 2 teasers como máximo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué pasa cuando una hipótesis agota su presupuesto de tiempo o de tools sin hallazgos, y cómo se limita a 2 teasers (lo hace el Synthesizer o hay un tope aparte)? ¿Puede el Synthesizer devolver 0 teasers por decisión propia?",
+ "followup_answer": "No lo puedo responder: el material no lo dice y no tengo el código. El directorio de trabajo está vacío y no hay un repo con `investigator.py` ni `synthesizer.py`. No voy a inventar el comportamiento.\n\n**Lo que dice el material**\n- Cada hipótesis tiene topes de iteraciones y de llamadas a tools según su registro, más un presupuesto de tiempo de `(watchdog_sec - 30) / n_hipótesis`.\n- El resultado de la etapa 2 se llama `InvestigationFindings`.\n- Etapa 3 termina con 0 teasers solo en el caso `synth_all_rejected`, cuando los guards rechazan todo.\n- El diagrama dice \"0-2 Teasers\", pero no indica qué componente aplica el tope.\n\n**Lo que no dice**\n- Qué pasa cuando una hipótesis agota tiempo o tools. Puede ser que devuelva hallazgos parciales, que la descarte o que marque un error. Tampoco sé si el Synthesizer recibe esos hallazgos parciales.\n- Qué componente limita a 2. Puede ser el prompt del Synthesizer, un recorte en código (por ejemplo `teasers[:2]`) o un máximo en el esquema de salida.\n- Si el Synthesizer puede devolver 0 teasers por decisión propia. El único `debug_note` que muestra el material es `synth_all_rejected`, así que no sé si hay otro camino de salida vacía.\n\n**Para cerrarlo**\n- Si me pasás `investigator.py` y `synthesizer.py`, o la ruta del repo, lo verifico.\n- Si no, en `investigator.py` buscaría el manejo de `asyncio.TimeoutError`, `UsageLimitExceeded` y de los límites de tools.\n- En `synthesizer.py` buscaría el slicing o `max_length` sobre `teasers`, y el prompt del Synthesizer, para ver si permite una lista vacía.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13127,
+  "cache_read_input_tokens": 77367,
+  "output_tokens": 1045,
+  "output_tokens_details": {
+   "thinking_tokens": 129
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13127,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 682,
+    "cache_read_input_tokens": 30218,
+    "cache_creation_input_tokens": 207,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 207
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ab465227d5"
+ }
+}

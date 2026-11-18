@@ -1,0 +1,44 @@
+{
+ "case": "STE-E09",
+ "arm": "concise",
+ "arm_hash": "28fdc1735d",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Flujo completo\n\n**Setup (admin)**\n1. El admin registra el server con `auth_type=oauth_per_user` y sus credenciales OAuth (`client_id`, `client_secret`, `authorize_url`, `token_url`, `scopes`).\n\n**Inicio (front → backend)**\n2. El usuario abre `/connectors` y hace clic en **Connect**.\n3. El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend arma la `authorize_url` con:\n   - `state` firmado con AES-GCM (TTL 10 min, payload `{server_id, user_id, issued_at, nonce}`, más `code_verifier` PKCE y `scope_profile` si aplica).\n   - `access_type=offline` + `prompt=consent`. Google solo emite refresh token con ambos, y `prompt=consent` fuerza re-emisión en cada authorize, así un disconnect+reconnect no se queda sin refresh. Los demás providers ignoran params desconocidos (RFC 6749 §3.1).\n   - `resource` (RFC 8707), solo si está guardado.\n\n**Autorización (front → provider)**\n4. El front redirige al provider, donde el usuario consiente.\n5. El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**Callback (backend ↔ provider)**\n6. El backend valida el state (firma, TTL, y que corresponda al usuario/server), intercambia `code` → tokens en `token_url` (con `resource` si está guardado) y guarda los tokens encriptados en `user_mcp_oauth_tokens`.\n7. **Prueba de humo**: introspecta todas las habilidades habilitadas en paralelo (ver abajo).\n8. Redirige al SPA:\n   - `/w/{slug}/settings/connectors?connected={server_id}`, o\n   - `/w/{slug}/settings/members/{member_id}?connected=...` si el dueño es una cuenta de servicio. El destino sale del dueño, no de un `return_to`.\n\n**Después (uso)**\n9. Al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 s (con `resource` si está guardado).\n\n## Si algunas habilidades no contestan\n\n| Resultado de la prueba | Efecto |\n|---|---|\n| Ninguna contesta | El token no sirve: se **borra** y el redirect lleva `connect_error=<motivo>` (banner de error en la card). |\n| Alguna contesta | El usuario **queda conectado** y el redirect lleva `connect_warning=<habilidades>` (banner de conexión parcial). |\n\nLa conexión parcial es deliberada: desconectar por una habilidad rota sería peor que dejar al usuario con el estado parcial que sí puede usar.\n\n## Sobre `resource` (RFC 8707)\nViaja en el start, el intercambio y el refresh, solo si el discovery lo guardó en `OAuthPerUserConfig.resource`. Los conectores anteriores a ese campo siguen funcionando sin indicator, porque un valor adivinado haría que un AS estricto rechace la request.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 4598,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1082,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4598,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1082,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 4598,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4598
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque la DB local de tests es una sola para todos los worktrees y el conftest aplica las migraciones de la rama que corre. Si la rama de tu compañero trae una migración destructiva (borra o renombra una columna), la DB queda sin esa columna, y tu código, que no tiene esa migración, todavía la lee y falla con UndefinedColumnError. El texto aclara que no verificó que sea tu caso: se confirma mirando qué columna falta y comprobando que la borra o renombra una migración de la otra rama.",
+  "No, el lock (flock) no lo evita. Solo impide que dos corridas pisen la DB al mismo tiempo, pero no aísla el esquema, y la DB queda con la unión de las migraciones de las dos ramas.",
+  "En este orden: 1) copiar tuqui_core/.env.test.local.example a tuqui_core/.env.test.local (gitignoreado, se carga encima de .env.test); 2) apuntar ahí la URL de la base a una propia de tu worktree (los nombres exactos de las variables están en el .example); 3) correr make migrate-reset, que arma la base desde cero en unos 3 segundos y solo toca bases locales. Si corrés migrate-reset antes de cambiar la URL, vaciás la base compartida y le rompés la corrida a tu compañero. No usar npx supabase db reset, porque aborta en el primer prefijo numérico repetido y hoy hay 25. Tu compañero tiene que hacer lo mismo en su worktree."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d9a4352984",
+  "control": "d71584ce60"
+ }
+}

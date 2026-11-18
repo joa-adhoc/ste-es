@@ -1,0 +1,44 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La política `scheduled_runs_ws` quedó con la definición del borrador (`USING (true)`), así que el workspace B ve las filas del A.\n\n**Qué pasó**\n\n1. `0398_scheduled_runs_draft.sql:12` creó la política con `USING (true)`. Deja pasar todas las filas.\n2. `0412_scheduled_runs.sql:20` intenta crear la política correcta, con `workspace_id = current_setting('app.current_workspace_id')::uuid`. Pero está envuelta en `IF NOT EXISTS`, y la política ya existía por la 0398.\n3. La 0412 saltó la creación (el warning del log: `policy \"scheduled_runs_ws\" already exists, skipped`). La política abierta siguió vigente.\n\nEl test falla porque detecta el hueco de aislamiento. Es un fallo real de RLS, no un test flojo.\n\n**Qué hacer**\n\nNo edites la 0398 ni la 0412: según `AGENTS.md`, ya están aplicadas y no se vuelven a correr. Hace falta una migración nueva, por ejemplo `0413_fix_scheduled_runs_policy.sql`:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nAntes de cerrar, tené en cuenta:\n\n- **Chequeá el estado real de la base.** Corré `SELECT policyname, qual FROM pg_policies WHERE tablename = 'scheduled_runs';`. Puede haber otras políticas, o la tabla sin `ENABLE ROW LEVEL SECURITY`.\n- **Revisá otros entornos.** Si la 0398 o la 0412 ya llegaron a staging o producción, esas bases tienen el mismo hueco. La migración nueva lo cierra, pero conviene confirmar si hubo exposición real de datos entre workspaces y avisar a quien corresponda.\n- **Revisá `WITH CHECK`.** Si la tabla recibe escrituras desde la app, evaluá agregar `WITH CHECK` con la misma condición. Sin eso, un workspace podría insertar filas con otro `workspace_id`.\n- **Revisá el patrón `IF NOT EXISTS` en otras migraciones.** Una política con el mismo nombre y definición distinta se saltea sin error, solo con un warning. Puede haber otros casos iguales.\n\nDespués de agregar la 0413, volvé a correr `pytest tuqui_core/tests/test_rls.py -q`. No lo corrí yo: no tengo el repo acá, así que el arreglo está **no verificado**.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10347,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 956,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10347,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 956,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 10347,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10347
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,70 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo se resuelve hoy en el tren un PR que trae las dos migraciones (ADD y DROP) juntas? ¿Se separan solas o se bloquea el merge? Y si el CI de staging del jueves está rojo, ¿quién lo avisa o lo destraba?",
+   "note": "La primera oración responde la pregunta, pero la respuesta admite no haber verificado el caso central (PR con ADD y DROP juntos) y deja una suposición sin confirmar, así que falta ese dato antes de mergear con tranquilidad."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa con el DROP de members.lang si no parto el PR? ¿El tren lo bloquea, lo salta o lo despliega igual junto con el ADD? Necesito saber si debo partirlo antes de mergear o si ya quedó mergeado así a staging, y qué hago en ese caso.",
+   "note": "La primera oración responde cuándo llega cada cosa, pero la respuesta admite que no verificó cómo se resuelve un PR con ambas migraciones y que lo dicho es una suposición. Como el PR ya está mergeado a staging, falta saber qué ocurre realmente con el DROP y qué acción tomar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El tren del jueves 19/11 sale a las 12 UTC y mi merge fue a las 18 UTC del miércoles, así que entra. Pero ¿el tren sale de staging tal como está, o tengo que hacer algo para que mi PR quede incluido? Y sobre el PR partido en dos: ¿confirmaste con el equipo cómo se maneja hoy una migración destructiva en el mismo PR? Si ya está mergeado con el DROP incluido, ¿qué hago: revierto y lo parto, o el tren lo bloquea solo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo se resuelve hoy en el tren un PR que trae las dos migraciones (ADD y DROP) juntas? ¿Se separan solas o se bloquea el merge? Y si el CI de staging del jueves está rojo, ¿quién lo avisa o lo destraba?",
+ "followup_answer": "**No lo sé: el extracto no lo dice.** Dice que la migración destructiva no corre en el mismo tren que el código que deja de usar la columna. No dice cómo se hace cumplir. No sé si el tren separa las migraciones solo, si un check bloquea el merge o si queda a cargo de quien revisa el PR.\n\nNo tengo `release-train.yml` ni el CI de staging a mano (acá no hay repo), así que no puedo confirmarlo. Para cerrarlo, buscá en `release-train.yml` o en los checks del PR algo que detecte `DROP COLUMN` o `DROP TABLE`. Si no hay nada, asumí que no se separa solo y partí el PR vos, como te sugerí.\n\n**Quién avisa o destraba si el CI de staging del jueves está rojo:** tampoco figura. El extracto dice solo que el tren salta al próximo. No nombra a nadie que avise ni que destrabe. El único nombre que aparece es jjs, y solo para aprobar un release manual de hotfix. No es una responsabilidad de destrabar CI, y no lo tomaría como tal.\n\nPara saber a quién preguntar, mirá el dueño del workflow en `CODEOWNERS` o en el historial de `release-train.yml`. Si no hay nada ahí, preguntale al equipo.\n\nSi querés llegar a prod el jueves sin riesgo, mergeá hoy solo el PR con `ADD COLUMN locale`, sin el `DROP`.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11047,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 761,
+  "output_tokens_details": {
+   "thinking_tokens": 250
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11047,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 761,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11047,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11047
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "634ee2b9d5"
+ }
+}

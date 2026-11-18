@@ -1,0 +1,44 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Resumen:** el `locale` llega a prod el jueves 19/11 a las 09:00 (hora argentina) y el borrado de `lang` recién el martes 24/11 a las 09:00. Tal como está, el PR junta las dos cosas y hay que partirlo.\n\nTu merge es el miércoles 18/11 a las 15:00 ART, o sea 18:00 UTC. El próximo tren sale el jueves 19/11 a las 12:00 UTC (09:00 ART).\n\n- **Jueves 19/11, 09:00 ART:** llega a prod la columna `members.locale` (migración aditiva) y el código que deja de usar `lang`.\n- **Martes 24/11, 09:00 ART (12 UTC):** llega a prod el `DROP COLUMN members.lang`. La doc prohíbe que una migración destructiva viaje en el mismo tren que el código que deja de usar la columna, porque durante el deploy conviven la versión vieja y la nueva.\n\n**Qué tenés que hacer:**\n1. Partí el PR en dos. El primero agrega `locale` y pasa el código a usarla. El segundo borra `lang`.\n2. Mergeá el primero hoy a staging, como planeabas.\n3. Mergeá el segundo a staging después de que corra el tren del jueves y antes del martes 24/11 a las 12 UTC.\n\n**Qué puede mover las fechas:**\n- Si el CI de staging está rojo en un tren, ese tren salta al siguiente. El jueves pasaría al martes 24/11 y el borrado al jueves 26/11.\n- Un release manual es solo para hotfix y necesita la aprobación de jjs, así que no sirve para adelantar esto.\n\nNo verificado: la doc no dice qué hace el tren si un solo PR trae ambas migraciones. Lo más probable es que se bloquee o rompa el deploy, y por eso conviene partirlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9623,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1210,
+  "output_tokens_details": {
+   "thinking_tokens": 557
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9623,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1210,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 9623,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9623
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "La última parte me deja dudando: ¿yo, como dev del equipo, tengo que correr la suite completa local en los cambios transversales (config, db.pool, etc.) antes de pedir review, o eso solo aplica a agentes de IA y para mí alcanza con lo barato local + CI? ¿Cuál es la regla concreta para mí?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Si toco algo transversal como config o db.pool, ¿corro la suite completa en local o la dejo a CI? Dijiste que conviene correrla entera, pero también que una corrida local bloquea la máquina y que CI ya es rápido. ¿Cuál es la regla para mí, y la excepción de agentes de IA aplica a mí o solo a agentes?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "La última parte me deja dudando: ¿yo, como dev del equipo, tengo que correr la suite completa local en los cambios transversales (config, db.pool, etc.) antes de pedir review, o eso solo aplica a agentes de IA y para mí alcanza con lo barato local + CI? ¿Cuál es la regla concreta para mí?",
+ "followup_answer": "La excepción de cambios transversales también te aplica a vos. No es solo para agentes.\n\nEl material lista dos excepciones separadas:\n- **Cambios transversales:** aplica a cualquiera que toque `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`. Esos archivos arrastran ~76% de los tests, así que \"lo que tocaste\" ya no sirve como subconjunto.\n- **Agentes de IA:** es una regla aparte. Los agentes corren la suite completa una vez antes de entregar, porque no tienen el criterio del autor para elegir un subconjunto.\n\n**Tu regla concreta:**\n- **Cambio acotado:** corré `make test ARGS=<lo que tocaste>` y `make lint`, y pusheá. CI corre el resto.\n- **Cambio transversal:** corré la suite completa local, una vez, antes de pedir revisión.\n- **CI falla y no sabés por qué:** reproducilo local antes del siguiente push.\n\nEl material dice que en los transversales la suite completa local \"sí vale\". No dice \"obligatoria\" ni fija el momento exacto (antes de pedir revisión). Es mi lectura razonable, pero no está escrita así. Si necesitás que sea una regla dura, confirmalo con quien mantiene la guía.\n\nMi advertencia anterior sobre el workspace managed (1 CPU, 2 GiB) era una restricción mía como agente en ese entorno. No cambia tu regla en tu máquina.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11414,
+  "cache_read_input_tokens": 17289,
+  "output_tokens": 780,
+  "output_tokens_details": {
+   "thinking_tokens": 263
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11414,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 780,
+    "cache_read_input_tokens": 17289,
+    "cache_creation_input_tokens": 11414,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11414
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "73d4b09422"
+ }
+}

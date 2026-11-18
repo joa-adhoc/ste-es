@@ -1,0 +1,44 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los insights diarios salen de un pipeline de 3 etapas, que arranca con un paso previo de armado de contexto. Termina con 0 a 2 teasers, que se guardan con upsert en la tabla `insights`.\n\n## Paso previo: Context Assembler\n\nCorre 6 consultas en paralelo bajo el RLS del usuario y arma un bundle en markdown de unos 2–4K tokens. Las fuentes son:\n\n- `workspace_profiles`: descripción de la empresa, rubro y objetivos.\n- `user_profiles`: rol y preferencias del usuario.\n- `memory` de workspace: conocimiento compartido de la organización.\n- `memory` de usuario: conocimiento personal.\n- `chat_conversations` de los últimos 7 días: títulos y último mensaje, sin resumir con LLM.\n- `insight_history` de los últimos 14 días: datos ya mostrados, para no repetir.\n\n## Etapa 1: Planner\n\n- Usa Gemini Flash con salida JSON estructurada y temperatura 1.0. El modelo sale de `platform_config.insights_planner_model`.\n- Recibe el bundle y el prompt `INSIGHTS_PLANNER_PROMPT`.\n- Devuelve `PlannerOutput(hypotheses, silence_reason)`: de 0 a N hipótesis, más el motivo si decide no proponer ninguna.\n\n## Etapa 2: Investigator\n\n- Es un agente de Pydantic AI con herramientas de solo lectura, sin las que requieren `approval`.\n- Recibe las hipótesis del Planner. Investiga hasta 3 en paralelo, con `asyncio.Semaphore(3)`.\n- Los topes dependen del registro de cada hipótesis:\n\n| Registro | max_iterations | max_tool_calls | reasoning |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta` / `analisis` | 12 | 25 | medium |\n\n- El tiempo por hipótesis es `(watchdog_sec - 30) / n_hipótesis`.\n- Devuelve `InvestigationFindings`, con un resumen de lo encontrado por hipótesis.\n\n## Etapa 3: Synthesizer y guards\n\nEl Synthesizer es un LLM con salida JSON y temperatura 1.0. Redacta los teasers a partir de los hallazgos. Después pasan 3 capas de guards en secuencia:\n\n1. **ResponseGuard (regex):** rechaza patrones sospechosos, como `\"cliente A\"`, `\"seguramente\"`, `\"<cliente>\"`, `\"NOMBRE_\"` o `\"[nombre]\"`.\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado del Investigator, con `partial_ratio >= 75`.\n3. **LLM Judge:** usa el mismo modelo que el Synthesizer, con temperatura cero. Devuelve `{grounded: bool, reason: str}`.\n\n## Cuándo termina sin mostrar nada\n\n- **Silencio del Planner:** devuelve 0 hipótesis. Es un silencio válido y no se genera ningún teaser. El motivo queda en `silence_reason`.\n- **Todos los teasers rechazados:** si los guards descartan todos, el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nQué pasa si el Investigator no encuentra nada o se queda sin tiempo o sin tool calls, el material no lo dice. Tampoco dice qué pasa si el Synthesizer devuelve 0 teasers por sí mismo. No verificado: habría que mirar `investigator.py` y `synthesizer.py`.\n\nUn caso borde sí está definido: si el Judge falla por un error de infraestructura, el teaser pasa. Ese fallo no bloquea la publicación.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11044,
+  "cache_read_input_tokens": 17780,
+  "output_tokens": 1397,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11044,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1397,
+    "cache_read_input_tokens": 17780,
+    "cache_creation_input_tokens": 11044,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11044
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
