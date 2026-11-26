@@ -26,7 +26,7 @@ npx skills add joa-adhoc/ste-es -g -y
 node ~/.agents/skills/ste-es/scripts/install.mjs
 ```
 
-This installs two skills: `ste-es` and `html-plan` (see [Plans](#plans)). To install only `ste-es`, add `--skill ste-es`.
+Earlier versions also installed `html-plan`. It is no longer part of this repo: if you got it from here, remove it with `npx skills remove html-plan -g -y`, or install it from its own plugin.
 
 A skill is loaded on demand, so installing it is not enough: in the eval, an installed but inactive skill was never loaded. `install.mjs` turns it on for every session by adding one plain-text block to the global instructions of each agent it finds:
 
@@ -54,14 +54,6 @@ Skill scanners can flag a skill whose script writes to an agent's global configu
 Version 1 added a `SessionStart` hook that ran this script in every session. **If you installed version 1, run `install.mjs` again**: it removes that hook. Until then the hook still starts `node` in each session, but it only shows you a message with that command. The message goes to you, not to the model.
 
 To skip the script, paste the block into the files above by hand. The skill works the same.
-
-## Plans
-
-`/html-plan <what to build>` writes an implementation plan as one interactive HTML page: a tree of claims, each shown by a mockup, state machine, call stack, schema or code, with the decisions placed where they matter. Its structure is used as is. Its prose follows the ste-es rules in Spanish instead of English STE, with a budget of about 500 words: see [`patches/html-plan-words.md`](patches/html-plan-words.md).
-
-Plans use the Adhoc look: [`themes/adhoc.css`](themes/adhoc.css) holds the brand values and maps html-plan's variables to them, dark only: the page stays dark even where the host forces light, as claude.ai does. To go back to html-plan's own colors, run `node scripts/sync-html-plan.mjs --theme anthropic`.
-
-`skills/html-plan/` is a copy of [html-plan](https://github.com/anthropics/claude-plugins-community/tree/main/html-plan) by Thariq Shihipar (MIT), pinned to the commit in `skills/html-plan/UPSTREAM`. Two changes on top: its "Words" section is replaced by the patch above, and the theme is appended to its CSS. To update it, run `node scripts/sync-html-plan.mjs`, review the diff and commit.
 
 ## What was measured
 
