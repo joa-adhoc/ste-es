@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo llega el cambio de `staging` a `main`? Necesito confirmarlo para saber cuándo se va a dropear la columna en prod."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo llega un cambio de `staging` a `main`? Si no la tiene, ¿cómo y cuándo se aplica el drop en prod?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, dónde lo verifico y cómo se promueve el cambio de `staging` a `main` para saber cuándo se aplica el drop en prod?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo llega el cambio de `staging` a `main`? Necesito confirmarlo para saber cuándo se va a dropear la columna en prod.",
+ "followup_answer": "**No puedo confirmar ninguna de las dos cosas, así que todavía no se puede saber cuándo se va a dropear la columna en prod.** El fragmento no dice qué variables tiene el servicio de prod ni cómo pasa un cambio de `staging` a `main`. Solo dice que el runner aplica una migración destructiva si el deploy tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y es de la rama `staging` o `main`. Que `main` esté permitida no prueba que prod tenga la variable.\n\nPara confirmarlo:\n\n1. **Variable:** en Railway, mirá las variables del servicio de prod, en su environment, y buscá `MIGRATIONS_ALLOW_DESTRUCTIVE`. El valor documentado para habilitar es `1`. Confirmá también qué rama deploya ese servicio. Si no tenés acceso, pedíselo a quien administre Railway.\n2. **Promoción:** en el repo, revisá `docs/infra-ci-cd.md` y los workflows. Esto te muestra dónde buscar:\n   ```bash\n   git grep -nE 'MIGRATIONS_ALLOW_DESTRUCTIVE|RAILWAY_GIT_BRANCH' origin/staging\n   git grep -nwE 'main|staging' origin/staging -- docs/infra-ci-cd.md .github/workflows\n   ```\n   Necesitás saber qué lleva el cambio a `main` (un PR, un workflow u otra cosa), quién lo dispara, cuándo, y si eso inicia el deploy de prod.\n\nCómo leer el resultado:\n- **Prod tiene `1` y deploya desde `main`:** según el fragmento, la columna se dropea cuando corre el runner en el primer deploy de prod que incluya la migración, siempre que `RAILWAY_GIT_BRANCH` sea `main` y la migración no falle. La fecha depende de cómo se promueve a `main`.\n- **La variable falta o no habilita:** el runner saltea la migración y no la registra. El drop queda pendiente hasta un deploy que cumpla las dos condiciones. Si el código nuevo necesita que el drop ya esté hecho, revisalo antes de promover.\n\nDespués del deploy, verificá en el log del runner y en `_migrations` de prod que el archivo figure como aplicado, y en el esquema que la columna ya no esté. El merge a `staging`, por sí solo, no te confirma nada sobre prod.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11877,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1261,
+  "output_tokens_details": {
+   "thinking_tokens": 401
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11877,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1261,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11877,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11877
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ad9b6b0938"
+ }
+}

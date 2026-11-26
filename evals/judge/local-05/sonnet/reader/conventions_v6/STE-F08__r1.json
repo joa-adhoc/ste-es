@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me conseguís las respuestas que faltan para poder mandarle al cliente algo cerrado? Son: (1) las IPs desde las que se conecta Odumbo y si son fijas; (2) si los packs tipo kit publican bien el stock y descuentan las patas al venderse; (3) los pasos concretos para cambiar desde su módulo sin duplicar ventas ni facturas; (4) con qué módulo se hacen los tipos de pedido de venta en Odoo 17 Enterprise; y (5) qué datos guarda Odumbo y qué hace con ellos al dar de baja el servicio. Para cada una, decime a quién se la tengo que pedir o qué hay que probar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El borrador deja casi todo \"a confirmar\": IPs, kits, pasos del cambio, módulo para Odoo 17 y datos. ¿Podés conseguir esas respuestas, o decirme a quién le pido cada una y en cuánto tiempo, empezando por kits y por el cambio sin duplicar ventas ni facturas? Así sé si le mando al cliente esta respuesta parcial o espero a tenerla completa."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me podés conseguir lo que quedó pendiente para poder contestarle al cliente? Son las IPs de salida de Odumbo (y si son fijas), si con un kit publica bien el stock y descuenta las 4 patas al vender, los pasos para cambiar desde su módulo actual sin duplicar ventas ni facturas, con qué módulo se hace la facturación automática en Odoo 17 Enterprise y qué datos guardamos y qué pasa con ellos en la baja. Para cada punto, decime quién lo tiene que confirmar o probar y para cuándo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Me conseguís las respuestas que faltan para poder mandarle al cliente algo cerrado? Son: (1) las IPs desde las que se conecta Odumbo y si son fijas; (2) si los packs tipo kit publican bien el stock y descuentan las patas al venderse; (3) los pasos concretos para cambiar desde su módulo sin duplicar ventas ni facturas; (4) con qué módulo se hacen los tipos de pedido de venta en Odoo 17 Enterprise; y (5) qué datos guarda Odumbo y qué hace con ellos al dar de baja el servicio. Para cada una, decime a quién se la tengo que pedir o qué hay que probar.",
+ "followup_answer": "No pude conseguir ninguna de las cinco respuestas, así que todavía no hay una versión cerrada para el cliente. No encontré herramientas de Tuqui, y la búsqueda en carpetas locales y las dos consultas al código público (kits de Odoo 17 y `sale_order_type` de OCA) quedaron sin ejecutar porque requieren aprobación. Según tu material, el manual, las specs y el código del conector tampoco responden las IPs, el cambio, los datos y la baja, ni el módulo; los kits no tienen un tratamiento específico en el código.\n\nNo sé quién ocupa cada rol, así que abajo van los roles.\n\n**1. IPs: pedirlas a infraestructura de Odumbo**\n> ¿Desde qué IPs de salida se conecta Odumbo al Odoo de un cliente? ¿Son fijas y valen para todos los procesos? ¿Cómo se avisa si cambian?\n\nSi no sabés cómo llegar a ese equipo, el manual indica pedir por ticket los datos técnicos de la conexión. Ver una IP en los logs del servidor no prueba que sea fija ni que sea la única.\n\n**2. Kits: probar en Odoo 17, con QA o quien mantiene el conector**\n1. En una base y una publicación de prueba, armá un kit de 4 patas con 10 patas a la mano y 3 salientes, en la ubicación configurada.\n2. Sincronizá. Quedan 7 libres, así que debería publicar **1 pack**. Si publica 2, hay riesgo de sobreventa.\n3. Vendé 1 pack y confirmá la venta. La entrega debería pedir 4 patas y el stock publicado debería pasar a **0**.\n4. Validá la entrega. Las patas a la mano deberían bajar de 10 a 6, con las 3 salientes anteriores todavía pendientes.\n\nRepetilo con cada tipo de producto que el cliente use en sus kits, porque el conector saltea algunos no almacenables.\n\n**3. Cambio de módulo: pedirlo a implementación y a quien mantiene el conector**\n> ¿Desde qué fecha importa ventas Odumbo? ¿Cómo reconoce las que ya cargó otro módulo? ¿Puede volver a subir facturas ya cargadas en Mercado Libre? ¿En qué orden se apaga uno y se activa el otro, qué pasa con las ventas hechas en el medio y cómo se vuelve atrás?\n\nCon esas respuestas hay que ensayar el cambio con una venta ya facturada, una sin facturar y una que entre durante el corte. No lo ensayes en una copia conectada a la cuenta real de Mercado Libre: podría modificar stock o subir facturas.\n\n**4. Módulo para Odoo 17: pedirlo a un consultor funcional de Odoo**\n> ¿Qué módulo usamos en Odoo 17 Enterprise para los tipos de pedido de venta con factura automática? ¿Qué dependencias y configuración necesita?\n\nComo pista, de memoria y sin verificar: `sale_order_type` de OCA, junto con los módulos de flujo automático de ventas. Antes de recomendarlo, hay que instalarlo en una base de prueba, confirmar una venta y ver si la factura se crea **y se valida** sola.\n\n**5. Datos: pedirlo al responsable de privacidad o legales de Odumbo, con ayuda de desarrollo**\n> Además de las credenciales, ¿qué datos del cliente se guardan (ventas, compradores, facturas, productos, logs, backups)? ¿Para qué se usan, dónde están y quién accede? En la baja, ¿qué se borra, qué se conserva, por cuánto tiempo y cómo se pide el borrado?\n\nDesarrollo puede decir qué se guarda; el uso, la conservación y el compromiso de borrado los tiene que confirmar privacidad o legales.\n\nSi necesitás contestarle hoy, podés mandar el borrador anterior como **respuesta parcial**, aclarando que los datos pendientes van después. Para avanzar con los puntos 2 y 4, podés aprobar las consultas al código público cuando se vuelvan a pedir, o pegarme esos archivos. Eso no reemplaza las pruebas. Cuando tengas las respuestas y los resultados, pasámelos y cierro el texto para el cliente.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 22262,
+  "cache_read_input_tokens": 87391,
+  "output_tokens": 3524,
+  "output_tokens_details": {
+   "thinking_tokens": 1270
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 22262,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2371,
+    "cache_read_input_tokens": 39070,
+    "cache_creation_input_tokens": 702,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 702
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "aaf26b2785",
+  "persona": "comercial"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Todo llega a prod recién el martes a las 9:00 (hora argentina, 12 UTC), si el CI de staging está verde en los dos trenes.**\n\n| Tren | Qué llega a prod |\n|---|---|\n| Jueves, 9:00 | El código de tu PR y la columna nueva `members.locale`. Esto supone que el código ya no usa `members.lang`. |\n| Martes siguiente, 9:00 | El borrado de `members.lang`. |\n\nEl borrado va después porque durante el deploy conviven la versión vieja y la nueva, y la vieja todavía puede usar `lang`.\n\n**Si el CI de staging está rojo,** ese tren salta al siguiente:\n- **Rojo el jueves:** el código y `locale` pasan al martes, y el borrado al jueves siguiente.\n- **Rojo solo el martes:** el borrado pasa al jueves siguiente.\n\n**Revisá cómo está armada la migración de tu PR.** El extracto dice que el `DROP COLUMN` va en el tren siguiente, pero no dice si el pipeline lo separa solo. Como mergeaste los dos cambios, confirmá antes del tren del jueves a las 9:00 que el borrado no vaya a correr ahí. Si no se separa solo, hay que sacarlo de ese tren y mandarlo en el siguiente. Para saberlo, mirá `release-train.yml` y cómo ejecuta las migraciones. El release manual no es un atajo: es solo para hotfixes y requiere la aprobación de jjs.\n\n**Fecha:** dijiste que hoy es miércoles, pero la fecha de mi sesión es el jueves 26/11/2026. Si hoy es miércoles 25, los trenes son el jueves 26/11 y el martes 1/12. Si ya es jueves y pasaron las 9:00, revisá si el tren corrió y qué migraciones ejecutó. No verifiqué ninguna ejecución ni el estado del CI; me basé solo en el extracto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10468,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1223,
+  "output_tokens_details": {
+   "thinking_tokens": 537
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10468,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1223,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10468,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10468
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando un owner conecta su Odoo, Tuqui valida la credencial, el permiso de admin y la versión. Después guarda la conexión en el workspace y, según el modo, vincula a quien conecta con un usuario de Odoo. Esto sale solo del material que pegaste; no lo contrasté con el código.\n\n## Recorrido de `connect_odoo`\n\nEl pedido entra por `POST /workspaces/{slug}/odoo`, requiere permisos de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autentica:** `_authenticate_odoo(url, db, login, api_key)` devuelve `admin_uid`.\n2. **Verifica el permiso:** `_verify_odoo_admin_group` consulta `has_group(uid, 'base.group_system')`. Si la credencial no es de un admin de sistema en Odoo, lanza `ValueError`.\n3. **Detecta la versión:** `get_version(url)` obtiene, por ejemplo, `\"18\"`. Lanza `ValueError` si la detección falla o la versión mayor es menor que `MIN_SUPPORTED`.\n4. **Resuelve el vínculo:** `_resolve_link_mode` define `auto`, `manual` o `none`.\n5. **Guarda la conexión:** actualiza en `workspaces` `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace pasa a estar conectado y el rol `owner` no cambia. Si otro workspace ya tiene el mismo `database.uuid`, responde **409 Conflict**. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n6. **Limpia si cambió la URL:** borra los vínculos de los miembros (detalle abajo).\n7. **Vincula:** solo en `auto` o `manual`, guarda `odoo_user_id` en el miembro que conecta. Después lanza `sync_user_api_key` con `asyncio.create_task`, sin esperar a que termine.\n8. **Responde:** devuelve `WorkspaceConnectOdooResult`. Suma a los datos del workspace `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## A qué usuario de Odoo vincula\n\nSon dos identidades distintas. La **credencial del workspace** tiene que ser de un admin de sistema. El **vínculo personal** de quien conecta es opcional.\n\n| Modo | Cuándo | Resultado |\n|---|---|---|\n| `auto` | Es el modo por defecto si `current_user.email == odoo_login` | Vincula al miembro con `admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y lo vincula |\n| `none` | Es el modo por defecto si los emails no coinciden | No asigna `odoo_user_id` |\n\nPor ejemplo, si conectás con un login técnico distinto de tu email y no elegís nada, queda en `none`. La conexión del workspace se guarda igual. El material no muestra que se exija admin de sistema al usuario elegido en `manual`; solo que exista.\n\n## Qué pasa si cambia la URL\n\n- Se limpian `odoo_user_id` y `odoo_api_key` de **todos los miembros, incluido el owner**. El motivo es que esas identidades pueden apuntar a otra instancia.\n- Las credenciales del workspace son las nuevas, guardadas en el paso 5.\n- En `auto` o `manual`, quien conecta se vuelve a vincular y se lanza la sincronización de su API key.\n- En `none`, quien conecta también queda sin vínculo.\n- El flujo no muestra que se vuelva a vincular a los demás miembros.\n- `members_invalidated` es 0 salvo que cambie la URL. `warning` trae un mensaje para mostrar en la interfaz, pero el material no dice cuándo se completa ni con qué texto.\n\nSi la URL **no** cambia y el modo es `none`, el pseudocódigo no toca el miembro. Entonces un vínculo anterior se conservaría, aunque `none` se describe como \"deja el Member sin `odoo_user_id`\". Conviene revisar ese caso, también para ver qué informa `link_status`.\n\n## Preguntas abiertas\n\nEl material no alcanza para responder esto, y se puede confirmar en el código de `connect_odoo`:\n\n- **Cambio de base:** ¿`url_changed` contempla un cambio de `odoo_db` con la misma URL? Si solo compara la URL, podrían quedar vínculos que apuntan a usuarios de la base anterior.\n- **Atomicidad:** ¿el guardado, la limpieza y el nuevo vínculo van en una sola transacción?\n- **`database.uuid`:** el pseudocódigo no muestra dónde se obtiene ni dónde se guarda.\n- **Sincronización:** como no se espera la tarea, la respuesta no confirma que la API key se haya sincronizado. No se ve cómo se manejan o informan sus errores.\n- **Modo `manual`:** no dice qué error devuelve si el `res.users` no existe. Como se resuelve antes del guardado, un error ahí debería frenarlo, siempre que se propague.\n- **Elección del modo:** no aclara si se puede forzar `auto` cuando los emails difieren, ni si la comparación distingue mayúsculas.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11309,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2565,
+  "output_tokens_details": {
+   "thinking_tokens": 642
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11309,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2565,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11309,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11309
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

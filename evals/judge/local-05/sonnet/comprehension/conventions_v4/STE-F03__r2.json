@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según el texto, Odoo no intenta borrar la recepción 412. Al confirmar P00231, el código estándar crea una recepción nueva y, si queda sin movimientos, la borra. «Recepciones» tiene activado el bloqueo de eliminación, así que `stock_ux` lanza el error aunque la recepción esté en borrador. El error revierte toda la operación y la orden sigue en borrador. Falta confirmar por qué la recepción queda vacía. El autor cree que Odoo descuenta las 2 unidades ya recibidas en la 412 y no queda nada pendiente, pero el material no incluye el código que calcula esos movimientos y no reprodujo el error.",
+  "El texto no atribuye estas acciones a un usuario en particular ni afirma qué originó el problema por culpa de alguien. Dice que el 11/11 la orden se confirmó (12:26), se registraron las 2 unidades recibidas (12:27), se canceló (13:26) y volvió a borrador (13:27), mientras la 412 seguía en Hecho. No dice para qué se canceló. Tampoco puede decir si poder cancelar con la recepción hecha es un comportamiento esperado u otra falla.",
+  "El texto propone este camino, primero en una copia de la base:\n1. Anotar el stock del producto, las cantidades de la orden y el estado de la 412 y la factura.\n2. En el tipo de operación «Recepciones», desmarcar «Bloquear eliminación de traslados».\n3. Confirmar P00231.\n4. Volver a marcar la opción enseguida, también si la confirmación falla.\n5. Verificar que la orden quedó como Orden de compra; que sigue con 2 pedidas, 2 recibidas y 2 facturadas; que la 412 sigue en Hecho y vinculada, sin recepciones nuevas; que el stock no cambió; y que BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSi aparece otra recepción con movimientos o cambia alguna cantidad, no hay que validarla ni repetirlo en producción. Conviene hacerlo en un momento sin actividad, porque con la opción desmarcada otros usuarios podrían borrar recepciones en borrador o canceladas. Antes, el autor preguntaría para qué se canceló la orden: si querían cambiar precio, cantidad o proveedor, volver a confirmarla puede no ser lo que buscan. Para destrabarlo no haría lo siguiente: borrar o devolver la 412, cancelar o rehacer la factura, ni duplicar la orden. Como pendiente de fondo, si se confirma la reproducción, hay que reportar que el bloqueo de `stock_ux` alcanza también a la limpieza interna de Odoo. El texto incluye además un borrador de respuesta al cliente, sin enviar."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "54fa6d8af4",
+  "control": "cf4a8527a9"
+ }
+}

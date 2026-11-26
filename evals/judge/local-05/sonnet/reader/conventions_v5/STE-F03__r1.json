@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como lo veo en pantalla, sin nombres de código (`stock_ux`, `created_receipt.unlink()`, `block_picking_deletion`, `_check_block_picking_deletion`)? Aclarame si «la 412» es la WH/IN/00098 y qué son los números 415 y 416. Decime también en qué menú está la opción «Bloquear eliminación de traslados», y si la corrección en `stock_ux` la tengo que pedir o derivar a alguien o si me alcanza con los pasos para regularizar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, como para alguien que usa Odoo desde la pantalla? No entiendo qué son `stock_ux`, `created_receipt.unlink()`, `block_picking_deletion` ni `_check_block_picking_deletion`. Decime también si la «412» es la recepción WH/IN/00098 que le nombrás al cliente, qué son la 415 y la 416 y dónde las veo. Y para probar en una copia, ¿en qué menú está «Bloquear eliminación de traslados», y la corrección en `stock_ux` la tengo que pedir yo a desarrollo o alcanza con los pasos para regularizar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás en términos de lo que veo en pantalla? ¿La «412» (y la 415 y 416) es la recepción WH/IN/00098 u otra cosa, y dónde veo esos números? ¿Qué es `stock_ux`? La «Corrección en `stock_ux`», ¿la tengo que pedir a desarrollo, o alcanza con desactivar y volver a activar «Bloquear eliminación de traslados» para resolver este ticket?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás como lo veo en pantalla, sin nombres de código (`stock_ux`, `created_receipt.unlink()`, `block_picking_deletion`, `_check_block_picking_deletion`)? Aclarame si «la 412» es la WH/IN/00098 y qué son los números 415 y 416. Decime también en qué menú está la opción «Bloquear eliminación de traslados», y si la corrección en `stock_ux` la tengo que pedir o derivar a alguien o si me alcanza con los pasos para regularizar.",
+ "followup_answer": "**Sí, «la 412» es la WH/IN/00098**, la recepción en estado Hecho con las 2 unidades. 412 es su número interno y WH/IN/00098 es el nombre que ves en pantalla.\n\n**415 y 416** también son números internos de traslados, pero no existen en la base. Por lo que muestran los datos y el funcionamiento de Odoo, aunque no lo reproduje:\n\n1. La orden se confirmó, se recibió, se canceló y volvió a borrador.\n2. Al tocar **Confirmar orden**, Odoo empieza a crear otra recepción.\n3. Como las 2 unidades ya figuran recibidas, esa recepción quedaría vacía y Odoo intenta borrarla.\n4. «Recepciones» no permite borrar traslados, así que aparece el error y se deshace todo el intento.\n\nPrimero fue la 415 y después la 416 porque cada intento usa un número nuevo, aunque no quede guardado.\n\n**Dónde está la opción:** **Inventario → Configuración → Tipos de operación → Recepciones → «Bloquear eliminación de traslados»**. La ruta es la habitual de Odoo, pero no la comprobé en esta base. Si hay varios «Recepciones», elegí el que usa P00231, según su almacén. Si no ves el menú o no podés cambiar la opción, puede ser por permisos.\n\n**Para regularizar** (primero en una copia, y solo si la compra sigue vigente):\n1. Anotá el stock del producto y cómo están la orden, la recepción y la factura.\n2. En un momento sin otra operación, desmarcá la opción y guardá. Mientras tanto, otros usuarios pueden borrar traslados de ese tipo que estén en borrador o cancelados.\n3. En P00231, tocá **Confirmar orden**.\n4. Volvé a marcar la opción y guardá, aunque la confirmación falle.\n5. Revisá que:\n   - P00231 figure como orden de compra, con 2 unidades pedidas, recibidas y facturadas.\n   - Su única recepción siga siendo WH/IN/00098, en Hecho.\n   - El stock no haya cambiado ni haya movimientos nuevos.\n   - BILL/2026/11/0007 siga contabilizada y vinculada a la orden.\n\nEn la copia, mirá además si pide aprobación, si envía avisos y si cambian la fecha de confirmación o los datos del proveedor en el producto. Si algo del paso 5 no se cumple, no lo apliques en la base del cliente. Si querían anular la compra, no la reconfirmes: hay que evaluar la devolución y la nota de crédito.\n\n**¿Alcanza con los pasos o hay que derivar?**\n- **Para este ticket:** deberían alcanzar los pasos, si la prueba en la copia sale bien. No necesitás esperar la corrección.\n- **Para que no se repita:** te recomiendo derivarla aparte a quien mantiene ese módulo de Adhoc; no sé quién es. Según este análisis, puede volver a pasar al reconfirmar una orden ya recibida por completo mientras la opción esté marcada. No revisé si una versión más nueva ya lo resuelve, así que conviene mirarlo antes.\n\nPodés pasar este texto:\n> En Odoo 19.0, con «Bloquear eliminación de traslados» marcada en «Recepciones», P00231 (ya recibida, cancelada y vuelta a borrador) no se puede confirmar. Inferimos que el bloqueo impide que Odoo borre la recepción vacía que crea al confirmar; falta reproducirlo. Se pide permitir esa limpieza automática y mantener el bloqueo para los demás borrados. Ticket 139447.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12947,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2138,
+  "output_tokens_details": {
+   "thinking_tokens": 856
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12947,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2138,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12947,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12947
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e14b37c1e1",
+  "persona": "soporte"
+ }
+}

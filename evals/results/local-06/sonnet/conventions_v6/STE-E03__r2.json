@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "En el worktree, seguí estos pasos:\n\n1. **Linkear lo que no viaja en git.** Corré esto desde el worktree:\n   ```bash\n   make worktree-setup\n   ```\n   Sin esto, `make test` falla con \"Venv no encontrado\".\n\n2. **Instalar la dependencia de Python nueva.** No corras `make install` en el worktree linkeado: el target se niega, porque escribiría en el venv del clone principal y repuntaría su editable install. Tenés dos opciones:\n   - **Instalarla en el clone principal.** Ese `.venv` lo comparten el clone principal y todos los worktrees linkeados, así que la dependencia queda para todos.\n   - **Borrar el link `tuqui_core/.venv` y armar un venv propio** en el worktree. Es la opción para no tocar el entorno compartido. El material no dice con qué comandos armarlo.\n\n3. **Instalar las dependencias web.** Como tocás `web/package.json`, corré `npm ci` en el worktree antes de `make test-web`. Los `node_modules` linkeados son los del clone principal, y el material no aclara si `npm ci` sobre el link los modifica. `npm ci` suele borrar `node_modules` antes de instalar, así que antes mirá con `ls -ld node_modules web/node_modules` cuáles son links. Para no arriesgar los del clone principal, sacá el link del que vayas a reinstalar (`rm web/node_modules`, sin `-r` ni barra final) y recién ahí corré `npm ci` dentro de `web/`. No probé cómo se comporta en este repo.\n\n4. **Correr los tests y el lint**, según lo que necesites:\n   ```bash\n   make test                                     # unit (el mismo paso de pytest del job `test` de CI)\n   make test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\n   make test-rls                                 # aislamiento multi-tenant\n   make test-web                                 # frontend (vitest)\n   make test-evals                               # unit tests del módulo evals/ (no los benchmarks)\n   make lint                                     # ruff check + format check\n   ```\n\nAunque compartas el `.venv`, el código que se ejecuta es el del worktree: su raíz entra primero en `sys.path`. Si estás en tu máquina o en un workspace con pocos recursos, corré solo lo barato, como el lint o un subconjunto de tests, y dejá las suites largas para CI.\n\nMe basé en el material que pegaste; no corrí ningún comando en tu worktree.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10808,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 884,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10808,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 884,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10808,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10808
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

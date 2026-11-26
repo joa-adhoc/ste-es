@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**El error del ticket 140512 fue transitorio y salió durante la actualización del 04/11. Con estos datos, no veo que haga falta corregir código.** La causa más probable es que el pod A siguiera con el código Python anterior cuando la base ya tenía las reglas nuevas.\n\nMe basé solo en la introspección y los logs que pegaste. No consulté la base ni los logs por mi cuenta, porque en esta sesión no tengo `tuqui-adhoc`. Para darlo de alta, usá `adhoc-way-guide`.\n\n## Secuencia (UTC; en Argentina, 3 horas menos)\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A. |\n| 15:07:39 | Se actualiza `account_multicompany_ux`. |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro cuatro veces y el uid 31 recibe tres errores. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones porque no encuentra otro método. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el pod A. |\n| 15:09–15:30 | El pod B no registra errores. |\n\n## Diagnóstico\n- **Mecanismo (inferido):** las reglas, que están en la base, ya llamaban a `_get_branch_stock_root_ids`, pero el pod A no tenía ese método. Recargar el registro lee los cambios de la base, pero no vuelve a importar el Python que el proceso ya tiene en memoria.\n- **A favor:** el cron falla igual, con `_cron_update_consolidation_rates` sobre `res.company`. Además, los errores del material aparecen en el pod A, y el pod B no registra ninguno en el período filtrado.\n- **El código actual:** el método está definido y `res_users` se importa. Eso no muestra qué código tenía el pod A.\n- **Falta confirmar:** qué imagen y versión de los módulos tenía el pod A. Se cierra mirando la imagen de ese pod en el historial del despliegue. Tampoco sé qué proceso actualizó la base mientras el pod A atendía.\n\n## Lo que no cierra o falta probar\n- **Hora del reporte:** el cliente indica 15:09:12, pero los errores del uid 31 son de 15:08:37–38. A las 15:09:12 el pod A ya había iniciado su apagado, y el pod B no registra errores desde las 15:09. Puede ser la hora en que copió el error, pero no está verificado. El material tampoco informa qué pasó en el pod B entre 15:08:53 y 15:09.\n- **Funcionamiento posterior:** que no haya errores no prueba que el usuario 31 haya vuelto a usar stock. Hay que confirmar que puede leer `stock.quant` y las ubicaciones, o repetir la operación con el cliente.\n- **Carga de stock:** no sabemos qué estaba guardando. Conviene que revise si la carga quedó registrada antes de repetirla, para no duplicarla.\n- **Cron:** revisá que «Consolidation: bring currency rates in» haya corrido bien después y que no falten cotizaciones. El período sin errores no muestra que se haya vuelto a ejecutar.\n\n## Qué haría con el ticket\n1. Cargar como módulo `stock_account_multicompany_ux`. El producto no lo puedo determinar con este material.\n2. Hacer las verificaciones de stock y del cron.\n3. Avisar al equipo que maneja los despliegues: la base se actualizó mientras el pod A seguía atendiendo. Si el mecanismo se confirma, puede repetirse cuando una regla o un cron use un método nuevo. Va aparte de la respuesta al cliente.\n\n**Borrador de nota interna:**\n> Error probablemente transitorio, de la actualización del 04/11. Las reglas 507 y 508 se reescribieron a las 15:08:01 UTC. El uid 31 tuvo tres errores en el pod A a las 15:08:37–38, presuntamente porque ese pod seguía con el código anterior. El pod B (imagen nueva) arrancó a las 15:08:53 y no registra errores entre las 15:09 y las 15:30. Pendiente: confirmar la imagen del pod A, el acceso a stock del usuario 31, la ejecución posterior del cron de cotizaciones y la diferencia con la hora informada (15:09:12).\n\n**Borrador para el cliente:**\n> Hola. El 04/11, cerca de las 12:08 (hora argentina), registramos este error mientras se actualizaba el sistema. Todo indica que fue algo momentáneo de esa actualización. ¿Podés revisar si la carga de stock que estabas haciendo quedó registrada? Si no está, probá hacerla de nuevo. Si vuelve a aparecer el error, avisanos con la hora y qué estabas haciendo.\n\nNo modifiqué el ticket ni envié ningún mensaje.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10923,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3190,
+  "output_tokens_details": {
+   "thinking_tokens": 1420
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10923,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3190,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10923,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10923
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

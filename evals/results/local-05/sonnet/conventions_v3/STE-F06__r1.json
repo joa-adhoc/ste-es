@@ -1,0 +1,44 @@
+{
+ "case": "STE-F06",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El cliente no tiene personalizaciones en esto, y no hay tarea ni borrador sobre este error en 18. No encontré en el material nada que pruebe la causa. Me baso solo en lo que pegaste: no volví a abrir el código, la base ni las tareas.\n\n## 16 contra 18\nMódulo `account_cashbox_l10n_latam_check`. La validación no cambió: si el usuario requiere sesión de caja y el asistente no la tiene, sale «Your user requires to use payment session on each tranfer». Cambió cómo llega la sesión al asistente:\n\n| | 16 | 18 |\n|---|---|---|\n| ¿Se guarda? | Sí (`store=True`) | No (se sacó en noviembre de 2025) |\n| Cálculo | Una vez al abrir; la completa si hay una sola sesión abierta | Se recalcula al cambiar el diario destino |\n| Sesiones que ofrece | Las abiertas del usuario en la compañía | Solo las de cajas que manejan el diario destino (desde abril de 2026) |\n| Al cambiar el diario destino | El material no lo indica | Borra la sesión elegida |\n\nEl cambio que sacó el guardado no tiene tarea vinculada, así que no se sabe por qué se hizo.\n\n**Hipótesis sin probar:** el asistente llega sin sesión a la validación. Revisaría tres caminos:\n- **No se conserva:** la sesión se elige en pantalla, pero se pierde al confirmar porque no se guarda. Depende de cómo esté definido el cálculo, y el material no lo detalla.\n- **No hay sesión válida:** ninguna sesión abierta del usuario es de una caja que maneje el diario destino.\n- **Orden de carga:** se elige la sesión, después cambia el diario y la selección se borra.\n\nPara probarlo, en una copia de la base en 18 y con un usuario que requiera sesión, elegí primero el diario destino, después la sesión y confirmá. La caja de esa sesión tiene que manejar el diario. Si falla igual, el orden de carga no lo explica y apuntaría a que el valor se pierde. Para los intentos del 02/11, falta ver qué diario usaron y qué sesiones tenía abiertas el usuario.\n\n**El otro cambio:** `l10n_latam_check_ux` reescribió en setiembre de 2026 la creación de los pagos del asistente. Sus vistas se actualizaron en la base el 02/11 a las 05:11 y 05:26, y los intentos fallidos fueron a las 09:13 (hora argentina). No se ve por qué eso haría fallar el control de sesión, que es anterior. Que sea el mismo día no prueba que sea la causa.\n\n## Personalizaciones\nNo hay módulos a medida ni campos manuales, y las tres vistas del asistente vienen de módulos estándar. **No se revisaron las reglas de acceso ni las acciones automatizadas sobre las sesiones de caja.**\n\n## Dónde se trató\n- [41001, «Sesiones de caja v16»](https://www.adhoc.inc/odoo/project.task/41001): origen del módulo.\n- [41002, «Cashbox - Transferencia de cheques» (2023)](https://www.adhoc.inc/odoo/project.task/41002): nació el asistente. En las pruebas ya apareció este error, en 16.\n- [41003, «Indicar sesión en transferencia masiva de cheques» (2023)](https://www.adhoc.inc/odoo/project.task/41003): pedido relacionado.\n- [41004, «Método de pago del diario destino» (18 y 19)](https://www.adhoc.inc/odoo/project.task/41004): es el cambio de `l10n_latam_check_ux`. Está Realizada y salió en la imagen 18.0.2026.09.24.\n- [41005 (19)](https://www.adhoc.inc/odoo/project.task/41005): pide elegir la sesión antes que el diario. Dice que en 18 «se elegía la sesión y el diario se ajustaba». Eso no coincide con el 18 descripto arriba, donde cambiar el diario borra la sesión. Puede referirse a un comportamiento anterior, pero no está confirmado.\n- [41006 (otro cliente)](https://www.adhoc.inc/odoo/project.task/41006): el segundo pago de la transferencia no recibe la sesión.\n\n**Sobre el borrador:** el que figura en el material es la spec de la 41004. Sigue como «Borrador» aunque el cambio ya está en producción, y no es un borrador sobre este error.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11202,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2815,
+  "output_tokens_details": {
+   "thinking_tokens": 1243
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11202,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2815,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11202,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11202
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, el `_search` de `account.journal` ni el ORM. Necesito saber en criollo si un usuario que solo tiene sucursal Norte debería poder abrir «Ver asientos» de una factura de Sur, por qué sospechás que hoy falla aunque «debería ver», y cuáles de los pasos para cerrarlo puedo hacer yo desde la pantalla (por ejemplo, cómo saco el error completo) y cuáles tiene que hacer alguien de desarrollo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, el `_search` de `account.journal` ni el ORM. En concreto: un usuario que solo tiene la sucursal Norte, ¿debería poder ver una factura de Sur y usar «Ver asientos»? ¿Por qué creés que igual le salta el error de lectura? Y decime cómo saco el «traceback» y el mensaje en modo desarrollador que me pedís."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, el `_search` de `account.journal` ni el ORM. En palabras de pantalla: según cómo está pensado el sistema, ¿un usuario que solo tiene Norte debería poder abrir «Ver asientos» de una factura del punto 22, y qué es lo que hoy se lo estaría bloqueando? Y para pasarte el error completo, ¿qué es el traceback, cómo activo el modo desarrollador y de dónde lo copio?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, el `_search` de `account.journal` ni el ORM. Necesito saber en criollo si un usuario que solo tiene sucursal Norte debería poder abrir «Ver asientos» de una factura de Sur, por qué sospechás que hoy falla aunque «debería ver», y cuáles de los pasos para cerrarlo puedo hacer yo desde la pantalla (por ejemplo, cómo saco el error completo) y cuáles tiene que hacer alguien de desarrollo.",
+ "followup_answer": "## ¿Debería poder abrirlo?\n\n**Según el criterio que describe el propio sistema, debería poder ver, pero no publicar ni modificar.** La ayuda del campo «Sucursal» del diario dice que quien es de otra sucursal puede ver sus registros. Entonces Encargado Norte debería poder consultar una factura de Sur.\n\nQue eso incluya «Ver asientos» es mi lectura de esa ayuda: no la nombra, y no probamos que esa opción esté pensada para funcionar así.\n\n## ¿Por qué sospecho que falla?\n\nPor lo que leímos, el sistema trata distinto estas cosas:\n\n- **Ver:** las restricciones por sucursal que leímos sobre diarios, asientos y pagos no lo prohíben.\n- **Modificar:** ahí sí hay restricciones por sucursal.\n- **Buscar diarios:** además, a Encargado Norte se le ocultan los diarios de otras sucursales, como el del punto 22.\n\nSospecho del tercer punto. La idea era sacar esos diarios de las búsquedas sin prohibir verlos, para no provocar errores en las pantallas que los usan. Pero la factura está asociada al diario de Sur. Si al tocar «Ver asientos» el sistema necesita datos de ese diario y los pide con una búsqueda que lo oculta, puede interpretar que no tenés permiso y mostrar el error.\n\nSería como una guía donde sacaron un nombre del índice, y un trámite que solo usa el índice concluye que no podés consultar esa ficha.\n\n**Es una hipótesis, no está comprobada.** Todavía no sabemos qué intenta leer «Ver asientos», ni por qué desde el libro mayor de Contabilidad sí ves. Las reglas que nombra el cartel son una pista, pero hay que leer cuáles son. También hay una restricción por compañía que sí limita la lectura, así que conviene mirar a qué compañía pertenecen los datos.\n\n## Lo que podés hacer desde la pantalla\n\nSi podés, hacelo en una copia de la base.\n\n**1. Copiar el error completo**\n1. Entrá como Encargado Norte.\n2. Activá el modo desarrollador agregando `?debug=1` a la dirección, por ejemplo `https://<direccion-de-la-base>/odoo?debug=1`.\n3. Repetí el recorrido hasta «Ver asientos».\n4. Copiá todo el texto del cartel, o sacale capturas. Interesa qué dice que no se puede leer, sobre qué registro, con qué usuario y qué reglas nombra.\n\nEn los errores de permiso, el cartel normalmente no trae el detalle técnico largo (el «traceback» que te pedí). Podés intentar sacarlo así, aunque no lo probé en esta base:\n\n1. Antes de tocar «Ver asientos», apretá F12 y abrí la pestaña **Red** (o *Network*).\n2. Tocá «Ver asientos».\n3. Revisá la respuesta de los pedidos que aparecieron hasta encontrar la que diga `error`. Puede no estar marcada en rojo.\n4. Copiá esa respuesta completa, sobre todo la parte `debug`. Compartila solo por un canal interno, porque puede traer datos del cliente.\n\n**2. Comparar los dos caminos.** Con el mismo usuario y la misma factura, probá «Ver asientos» entrando desde el libro mayor de Contabilidad. Anotá si abre o falla, y qué filtros y qué compañía tenías elegidos en cada camino. Que puedas ver la factura en un listado no asegura que esa opción funcione.\n\n**3. Probar con la sucursal Sur.** Solo en la copia, sumale Sur a Encargado Norte y repetí; después sacásela. Necesitás un usuario con permiso para editar usuarios. Si deja de fallar, la sucursal influye, pero no prueba que la causa sea el ocultamiento en las búsquedas.\n\n## Lo que le toca a desarrollo\n\nSi no tenés la copia o los accesos, primero hay que pedirlos. Después, desarrollo tiene que:\n\n- Seguir el detalle técnico en el código para saber qué intenta leer «Ver asientos» y qué lo bloquea.\n- Comprobar si el ocultamiento de diarios es la causa.\n- Comparar cómo funcionan el reporte de seguimiento y el libro mayor.\n- Comparar con la versión 16, para saber si de verdad cambiaron los permisos.\n- Si se confirma la hipótesis, corregirlo y probar que Encargado Norte pueda consultar lo de Sur y siga sin poder publicarlo ni modificarlo.\n\nPara empezar, hacé los pasos 1 y 2 y pasale los resultados a desarrollo; el 3 puede esperar si todavía no tenés la copia. Si en cambio el negocio quiere que Norte **no vea nada** de Sur, eso es cambiar el criterio actual y hay que decidirlo aparte, incluyendo qué saldo del cliente mostrarían los reportes.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12236,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3163,
+  "output_tokens_details": {
+   "thinking_tokens": 1410
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12236,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3163,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12236,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12236
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4d786bf282",
+  "persona": "actualizacion"
+ }
+}

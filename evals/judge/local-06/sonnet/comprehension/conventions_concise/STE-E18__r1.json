@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "En la misma transacción de la base se borra la memoria más vieja del scope según `created_at`. Es FIFO por fecha de creación, no por uso ni relevancia. El material la llama eliminación \"silenciosa\", pero aclara que al modelo se le avisa con un mensaje en la respuesta de la tool. El tope es de 50 por usuario en el scope de usuario y por workspace en el de workspace.",
+  "En cada turno, `_load_chat_setup` pone las memorias en el system prompt, después del bloque `CURRENT USER` y antes del bloque del proyecto, separadas en \"Workspace memory\" y \"User memory\". De cada una entra solo un encabezado con el título y el resumen o, si no tiene resumen, hasta 250 caracteres del cuerpo. Cada línea del ejemplo incluye también el `id`. Si el cuerpo supera los 250 caracteres y no hay resumen, el encabezado termina en `[read]`. Cuando el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.",
+  "Si los encabezados suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), rapidfuzz les pone un puntaje contra el mensaje actual y entran los N mejores. El material no dice que las demás se borren; solo habla de qué entra al prompt, así que eso puede cambiar de un turno a otro. No dice cómo se calcula N ni si una memoria que quedó afuera por presupuesto se puede descubrir y leer de otra forma."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d9dda01feb",
+  "control": "2fefeeffdf"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los insights diarios salen de un armado de contexto seguido de tres etapas (Planner, Investigator y Synthesizer con filtros), y terminan en 0 a 2 teasers que se guardan con upsert en la tabla `insights`. Me baso solo en el material que pegaste; no revisé el código.\n\n**0. Context Assembler** (`context_assembler.py`, previo a las tres etapas)\nHace 6 consultas en paralelo bajo el RLS del usuario:\n- el perfil del workspace;\n- el perfil del usuario;\n- la memoria del workspace;\n- la memoria del usuario;\n- los títulos y el último mensaje de las conversaciones de los últimos 7 días, sin resumirlos con un LLM;\n- los datos ya mostrados en los últimos 14 días, para no repetirlos.\n\nLa tabla del material separa las dos memorias como fuentes distintas. **Le pasa al Planner** un bloque en markdown de unos 2 a 4K tokens.\n\n**1. Planner** (`planner.py`)\nUn LLM (el material dice Gemini Flash en el diagrama, con temperatura 1.0) propone qué vale la pena investigar. El modelo se configura en `platform_config.insights_planner_model`; si no está, usa el de la plataforma por defecto. Devuelve `PlannerOutput(hypotheses, silence_reason)`. **Le pasa al Investigator** de 0 a N hipótesis, cada una con un registro.\n\n**2. Investigator** (`investigator.py`)\nUn agente de Pydantic AI investiga cada hipótesis con herramientas de solo lectura, sin las que tienen `approval`. Corre hasta 3 a la vez, y cada hipótesis tiene un tiempo de `(watchdog_sec - 30) / n_hypotheses`. El registro fija los topes:\n\n| Registro | Iteraciones | Llamadas a herramientas | Razonamiento |\n|---|---|---|---|\n| `dato`, `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta`, `analisis` | 12 | 25 | medium |\n\n**Le pasa al Synthesizer** los `InvestigationFindings`, que incluyen los resúmenes de la investigación.\n\n**3. Synthesizer y filtros** (`synthesizer.py`, `guards.py`)\nUn LLM redacta los teasers a partir de los hallazgos (JSON, temperatura 1.0). Después pasan por tres filtros en orden:\n1. **Regex:** rechaza textos con marcas sospechosas de relleno o invento, como `\"cliente A\"`, `\"seguramente\"` o `\"[nombre]\"`.\n2. **Respaldo textual (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado de la investigación, con `partial_ratio >= 75`.\n3. **LLM juez:** usa el mismo modelo que el Synthesizer, con temperatura cero, y devuelve `{grounded, reason}`.\n\n## Cuándo termina sin mostrar nada\nEl material describe dos casos:\n- **El Planner no devuelve hipótesis.** Es un silencio válido y no se generan teasers. El resultado tiene un campo `silence_reason`.\n- **Los filtros rechazan todos los teasers.** Devuelve `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"`.\n\nQue falle la infraestructura del juez **no** lleva al silencio: el teaser pasa ese filtro. Ya tuvo que superar los otros dos, pero en ese caso se publica sin la verificación del juez.\n\nEl diagrama también permite que salgan 0 teasers, pero el material no dice si el Synthesizer puede no generar ninguno antes de los filtros. Tampoco explica qué pasa si:\n- se agota el tiempo o un tope de una hipótesis;\n- el Investigator no encuentra nada o falla;\n- falla el Context Assembler, el Planner o el Synthesizer;\n- hay teasers vacíos y hay que decidir qué se hace con la tabla `insights`.\n\nPara confirmar esos casos hay que revisar el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11283,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1460,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11283,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1460,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11283,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11283
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

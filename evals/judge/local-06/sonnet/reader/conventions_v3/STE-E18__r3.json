@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el código cómo funciona el filtro por presupuesto? Necesito saber si los 12K son un total o un presupuesto por scope, cómo se calcula N, y si una memoria con resumen y un cuerpo más largo muestra `[read]` o el modelo no se entera de que hay más para leer."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código cómo funciona el filtro por presupuesto? Necesito saber si los 12K son un total o un límite por scope, cómo se decide cuántas memorias (N) entran, y si una memoria con resumen y cuerpo más largo lleva `[read]` o el modelo no se entera de que hay más para leer."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código cómo funciona el filtro cuando se superan los 12K? Necesito saber si el presupuesto es total o por scope, cómo se calcula N y si `[read]` aparece cuando la memoria tiene resumen y además un cuerpo más largo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés confirmar en el código cómo funciona el filtro por presupuesto? Necesito saber si los 12K son un total o un presupuesto por scope, cómo se calcula N, y si una memoria con resumen y un cuerpo más largo muestra `[read]` o el modelo no se entera de que hay más para leer.",
+ "followup_answer": "No pude confirmar ninguno de los tres puntos en el código, porque **no llegué a verlo**. El directorio de trabajo (`/tmp/ste-es-eval-m9hu6_lx`) está vacío. También intenté buscar en `/tmp` y `/home/joa`: un comando falló por un error de redirección y el siguiente pedía aprobación, así que ninguno devolvió resultados. Eso no significa que el código no exista.\n\n| Pregunta | Qué dice el material | En el código |\n|---|---|---|\n| ¿Los 12K son un total o por scope? | Habla del \"total header chars\", pero no aclara si suma los dos scopes. | No verificado |\n| ¿Cómo se calcula N? | Solo dice \"keeps top-N\". No define N. | No verificado |\n| ¿Hay `[read]` con resumen y un cuerpo de más de 250 caracteres? | Según la regla, no: la marca exige un cuerpo largo **y** que no haya resumen. | No verificado |\n\nSobre el tercer punto, en mi respuesta anterior escribí \"en ese caso\" y quedaba confuso. El riesgo aparece cuando la memoria **sí tiene resumen**. Según el material, el encabezado muestra el resumen sin `[read]`. El modelo igual ve el id, si la memoria entró en el prompt, pero esa regla no le da una señal de que hay más para leer. No sé si el código o las instrucciones de la tool lo compensan.\n\nPara cerrarlo, pasame la ruta local del repo, o corré esto desde su raíz y pegame la salida:\n\n```bash\ngrep -rnE \"_MEMORY_BUDGET_CHARS|_load_chat_setup|rapidfuzz|\\[read\\]\" --include='*.py' .\n```\n\nCon eso ubico las funciones, y probablemente te pida el código completo de las que arman y filtran los encabezados. Ahí hay que mirar:\n\n- **Alcance de los 12K:** si el largo se suma una vez con los dos scopes juntos, o por separado para cada uno.\n- **N:** si es un número fijo, o si se agregan encabezados por puntaje hasta llenar el presupuesto. En el segundo caso, conviene ver qué pasa con el primero que no entra: si corta ahí o prueba con los siguientes.\n- **`[read]`:** si la condición revisa que haya resumen antes de mirar el largo del cuerpo. También conviene buscar un test del caso con resumen y cuerpo largo.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 12962,
+  "cache_read_input_tokens": 107089,
+  "output_tokens": 1831,
+  "output_tokens_details": {
+   "thinking_tokens": 479
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12962,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1209,
+    "cache_read_input_tokens": 30123,
+    "cache_creation_input_tokens": 349,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 349
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6459cd73a8"
+ }
+}

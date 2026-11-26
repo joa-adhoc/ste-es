@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser administrador de sistema en Odoo: se consulta `res.users.has_group(uid, 'base.group_system')` y, si no lo es, se lanza `ValueError`. Además, la conexión requiere que se pueda detectar la versión de Odoo y que la versión mayor no sea menor que `MIN_SUPPORTED`; si no, también se lanza `ValueError`. Si otro workspace ya tiene el mismo `database.uuid`, responde 409 Conflict.",
+  "Vincula en modo `auto` por defecto cuando el email en Tuqui de quien conecta es igual a `odoo_login`, y le asigna `admin_uid`, el usuario de las credenciales. El modo `none` es el default cuando los emails no coinciden, y a quien conecta no se le asigna ningún usuario de Odoo. También existe el modo `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, y se asigna el id elegido después de verificar que ese `res.users` exista. El texto no dice si la comparación de emails distingue mayúsculas, ni si `auto` o `none` se pueden forzar cuando los emails indican lo contrario.",
+  "Se borran `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque esas identidades pueden pertenecer a otra instancia. `members_invalidated` informa la cantidad afectada. Después, en modo `auto` o `manual`, se vuelve a vincular solo a quien está conectando y se lanza la sincronización de su API key; en `none` queda sin vínculo. El resumen no muestra que los demás members se vuelvan a vincular dentro de este flujo. Tampoco dice si cambiar solo la base con la misma URL invalida identidades, ni si el guardado y la limpieza van en una misma transacción."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d28786124e",
+  "control": "d70443294a"
+ }
+}

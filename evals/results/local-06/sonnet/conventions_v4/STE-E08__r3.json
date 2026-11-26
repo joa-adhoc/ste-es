@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Te conviene una skill.** Un `odoo_create` con algunos defaults se puede armar con las tools genéricas, y como tool sería un wrapper 1→1.\n\n**Criterio:** va como tool nativa solo si cumple al menos uno de estos ejes. Si no cumple ninguno, va como skill.\n\n| Eje | Cuándo cambiaría la respuesta en tu caso | ¿Vale en MCP saliente? |\n|---|---|---|\n| **(a)** No componible | Hace algo que no se logra con las tools genéricas ni con otra tool existente. Los defaults solos no alcanzan. | Sí |\n| **(b1)** Approval o policy propia | Necesitás que el chat pida aprobación o le aplique una policy propia. | No |\n| **(b2)** Whitelist más fina | Tiene un gate propio, con menor alcance de daño que el `create` genérico. | Sí |\n| **(c)** Procedimiento crítico | Saltearse un paso o un default tiene un costo real (compliance dura). | No |\n| **(d)** Eficiencia o determinismo | Resuelve en una call lo que con las genéricas lleva 3 o más calls, un loop no acotado o un procedimiento con pasos que el LLM saltearía. Nunca si equivale a una sola call genérica. | Sí |\n\n**Si se expone por el MCP saliente, cambia qué justificaciones sirven.** Ahí solo cuentan (a), (b2) y (d). El router MCP ignora `requires_approval` y no hay un turno donde forzar pasos. Si lo único a favor es (b1) o (c), en MCP la tool no se justifica. El material tiene un precedente: `odoo_schedule_activity` pasó a system skill. Era componible, su único diferencial era (b1) y ya estaba excluida del MCP.\n\nAntes de cerrarlo, revisá dos cosas:\n\n- **Cómo salen los defaults.** Si son valores fijos o se completan en el mismo `create`, va skill. Si para calcularlos hacen falta consultas previas y en total son 3 o más calls, puede entrar por (d).\n- **Qué restringe de verdad.** Fijar el modelo en el código no prueba por sí solo que cumpla (b2). Tiene que haber un gate que permita esta operación con permisos más acotados que los del `create` genérico. Si quien la usa necesita igual el `create` genérico habilitado, yo no veo una ventaja de (b2).\n\nAparte del criterio del material, te hago una sugerencia: si un default tiene que cumplirse siempre, evaluá garantizarlo en el modelo de Odoo. Así no depende de que se use tu tool o tu skill, porque el `odoo_create` genérico puede saltearse las dos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11230,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1542,
+  "output_tokens_details": {
+   "thinking_tokens": 596
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11230,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1542,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11230,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11230
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

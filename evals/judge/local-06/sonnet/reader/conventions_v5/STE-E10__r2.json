@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el webhook, si el resultado es ASK (el workspace está en \"ask\", como en mi caso del admin, o la tool pide aprobación por defecto), ¿qué pasa en la práctica? ¿Se bloquea, queda pendiente hasta que alguien la apruebe (y quién puede hacerlo) o se ejecuta igual? Revisalo en el código, desde `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`, y de paso confirmá que el orden que me describiste coincide."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en el webhook cuando el resultado es ASK, como no hay nadie en el chat: se rechaza, queda pendiente o alguien puede aprobarlo? Miralo en el código, a partir de `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (desde `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`) qué pasa cuando en un agent por webhook el resultado es ASK? ¿Se rechaza, queda pendiente o alguien lo puede aprobar, y quién?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "En el webhook, si el resultado es ASK (el workspace está en \"ask\", como en mi caso del admin, o la tool pide aprobación por defecto), ¿qué pasa en la práctica? ¿Se bloquea, queda pendiente hasta que alguien la apruebe (y quién puede hacerlo) o se ejecuta igual? Revisalo en el código, desde `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`, y de paso confirmá que el orden que me describiste coincide.",
+ "followup_answer": "**No pude confirmar qué pasa en un webhook cuando el resultado es ASK: no tengo el código.** El directorio de trabajo, `/tmp/ste-es-eval-_jy832pf`, está vacío. Antes intenté buscar los dos archivos en todo el disco, pero ese comando requería aprobación y no se ejecutó. No revisé otras carpetas, así que esto no significa que el repo no esté en tu máquina.\n\nPor ahora no puedo decir si se bloquea, queda pendiente o se ejecuta igual, ni quién podría aprobarla. El diagrama muestra que se llega a `tool.execute()` con `allow` o `asked-granted`. Si el webhook respeta ese esquema, un ASK sin aprobación no debería ejecutarse. Eso no prueba que el código lo cumpla, ni dice si en ese canal hay forma de aprobar.\n\nEl orden que te describí **coincide con el material, pero no está verificado contra el código**: Write Models, `deny` del workspace, preferencia personal (salvo en `exposure`, `webhook` y `scheduled`), `allow` o `ask` del workspace y valor por defecto.\n\nPara revisarlo, pasame la ruta del repo. Si no puedo acceder, corré esto desde su raíz y pegame la salida:\n\n```bash\nrg -n -i 'evaluate_permission|personal_identity_applies|\\bASK\\b|asked|permission_action|approval' -g '*.py' .\n```\n\nCon eso ubico qué partes hay que leer; la búsqueda sola puede no alcanzar. Hay que comprobar:\n\n1. **Orden:** que `evaluate_permission` aplique esa secuencia, y dónde se controla `workspace_write_models` respecto de esa llamada.\n2. **Canal:** que `webhook` tenga `personal_identity_applies` en falso. También si `client_facing_core.py` o quien lo llama transforma el ASK en otro resultado, o saltea el control.\n3. **Qué hace con ASK:** si corta el turno, guarda un pedido pendiente, espera una respuesta o llega a `tool.execute()`.\n4. **Quién aprueba:** si queda pendiente, qué ruta recibe la aprobación, qué usuario acepta (admin, el miembro cuya identidad se usa u otro), si el pedido vence y cómo se retoma el turno.\n5. **Tests:** si alguno cubre un webhook con ASK. Que exista no alcanza para saber si pasa; habría que ver su resultado en CI.\n\nHasta revisarlo, **no cuentes con \"ask\" como freno en el webhook**. Si esa tool no debe ejecutarse ahí, según el material corresponde poner `deny` en el workspace. Tené en cuenta que ese bloqueo no se limita al webhook: ningún \"allow\" personal lo levanta.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12996,
+  "cache_read_input_tokens": 77679,
+  "output_tokens": 1851,
+  "output_tokens_details": {
+   "thinking_tokens": 540
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12996,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1451,
+    "cache_read_input_tokens": 30225,
+    "cache_creation_input_tokens": 281,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 281
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7eb43e09ec"
+ }
+}

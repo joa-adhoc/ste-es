@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline posterga solo el `DROP` de `members.lang` al tren siguiente, o tengo que sacarlo de staging yo? Mi PR trae las dos migraciones juntas: ¿dónde lo confirmo (workflow o config del tren) antes del próximo tren?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR tiene la columna nueva y el DROP juntos. ¿El pipeline posterga solo el DROP al tren siguiente o lo tengo que separar a mano? Si es a mano, ¿dónde lo confirmo y qué hago si el tren de las 9:00 ya salió con todo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El pipeline posterga solo el `DROP` de `members.lang` al tren siguiente, o tengo que sacarlo de staging yo? Mi PR trae las dos migraciones juntas: ¿dónde lo confirmo (workflow o config del tren) antes del próximo tren?",
+ "followup_answer": "**No lo sé: el extracto no dice que el pipeline postergue el `DROP`, ni que lo tengas que sacar a mano.** Fija la regla (el `DROP` va en el tren siguiente al del código que deja de usar `lang`), pero no dice quién o qué la hace cumplir. En mi directorio de trabajo no hay archivos, así que no pude revisar el workflow ni la config. Hasta confirmarlo, no des por hecho que se posterga solo.\n\n**Dónde mirar:** empezá por `release-train.yml`. Supongo que está en `.github/workflows/`, pero el extracto no da la ruta. Desde tu clon:\n\n```bash\ngit fetch origin\ngit ls-tree -r --name-only origin/staging | grep release-train\ngit show origin/staging:.github/workflows/release-train.yml\ngit grep -niE 'migrat|destructive|contract|drop.?column' origin/staging\ngit show origin/main:.github/workflows/release-train.yml\n```\n\nCompará las dos versiones del workflow: no verifiqué desde qué rama corre. Seguí también los scripts, workflows o jobs de deploy que llame, porque el filtro puede estar ahí o fuera del repo.\n\n- **Se posterga solo:** necesitás ver el mecanismo que excluye el `DROP` del primer tren y lo corre en el siguiente, y que alcance a tu migración (por ejemplo, si depende de una marca o carpeta). Un comentario o la regla en la documentación no alcanzan.\n- **No se posterga o no lo podés confirmar:** antes del tren, sacá el `DROP` de staging con un PR. Dejá `locale` y el código que ya no usa `lang`. Revisá que el CI quede verde y que tu herramienta de migraciones admita sacarlo, sobre todo si ya corrió en staging. Volvé a mergearlo recién cuando el primer tren haya llevado ese código a prod, y antes del siguiente.\n\nSi no llegás a hacer ninguna de las dos cosas, avisá ya a quien mantiene el tren para que frene el release. El extracto no dice cómo se frena. Solo nombra a jjs como quien aprueba los releases manuales de hotfix.\n\n**Verificá primero si el tren ya salió.** Para mi sesión hoy es jueves 26/11 y no sé la hora; el tren de hoy es a las 9:00 de Argentina. Si mergeaste ayer, miércoles 25/11, puede que ya haya corrido:\n\n```bash\ngh run list --workflow=release-train.yml --limit 5\ngit merge-base --is-ancestor <sha-de-tu-merge> origin/main && echo \"ya está en main\"\n```\n\nSi tu merge ya está en `main`, revisá en los logs del run y del deploy si el `DROP` corrió; que esté en `main` no lo demuestra. Si corrió o el deploy sigue en curso, avisá enseguida a quien opera prod. Si fue hoy a las 15:00 y para vos es miércoles, tomá la fecha de tu calendario: el próximo tren es el del jueves a las 9:00.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11458,
+  "cache_read_input_tokens": 46241,
+  "output_tokens": 1794,
+  "output_tokens_details": {
+   "thinking_tokens": 585
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11458,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1583,
+    "cache_read_input_tokens": 28731,
+    "cache_creation_input_tokens": 237,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 237
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "766ae2b2b2"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Agrega `description_i18n`, de tipo JSONB, en `platform_connectors`: `ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;`. Se aplica solo si falta, porque la columna quizás ya existe; también hay que revisar si \"conectores\" es la tabla `platform_connectors`. Se usa el número de migración que siga. La columna legacy `description` queda como está. Aparte, solo si además hay datos en una columna `description_en`, hay que mirar cómo se portan en `0206_features_i18n.sql`.",
+  "Idioma exacto → `en` → `description`. En el front se usa `localizedField(row.description_i18n, row.description, i18n.language)` y no se escribe la cadena a mano. En el backend se resuelve con `lang → en → description`.",
+  "El backend resuelve solo si hay un consumidor del segundo caso, es decir, si la descripción también la usa un prompt LLM, un mail o el MCP saliente. El idioma (`lang`) lo toma de `resolve_response_language(workspace_id, user_id)`, no de `Accept-Language`."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "75d074dff8",
+  "control": "d8434cbbef"
+ }
+}

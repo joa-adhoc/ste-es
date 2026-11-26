@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Si editás un artifact que ya compartiste, quien tiene el link sigue viendo la versión publicada.** Tu cambio le llega recién cuando lo publicás.\n\n**Cómo funcionan las versiones**\n\n| Acción | Versión actual (`current_version_id`) | Lo que sirve el link (`published_version_id`) |\n|---|---|---|\n| `save` sin `artifact_id` | Crea la v1 | Publica la v1 |\n| `save` con `artifact_id` | Pasa a la v(n+1) | No cambia |\n| `publish(version?)` | El material no indica que cambie | Pasa a la versión elegida; si no elegís, a la última |\n\n- Cuando hacés `save` sobre un artifact existente, el resultado avisa con `unpublished_changes: true` y el viewer muestra un banner.\n- En el viewer interno ves la versión actual y podés elegir otras con el selector. La ruta por token sirve siempre la publicada.\n- Para volver atrás, publicás una versión anterior.\n\n**Cuando solo se refrescan los datos**\n\nCada versión puede cambiar el template (`content`), los datos (`data`) o ambos. Para armar la versión `n`, el sistema busca por separado el último `content` y el último `data` que no estén vacíos, hasta `n` inclusive.\n\nPor ejemplo:\n\n| Versión | Qué guarda | Qué se ve en esa versión |\n|---|---|---|\n| v1 | template A y datos A | template A y datos A |\n| v2 | solo datos B | template A y datos B |\n\nEl refresh no toca el template, así que el diseño se mantiene. Además, si el link tiene publicada la v1, no toma los datos B, porque la v1 solo busca hasta la v1.\n\n**Sin confirmar:** el material no dice si el refresh publica automáticamente la versión que crea. Si se comporta como un `save` común, quien tiene el link sigue viendo los datos anteriores hasta que alguien publique. Esto importa en los dashboards: se podrían refrescar por dentro y verse viejos por el link. El material ubica el refresh en la fase 2. Para confirmarlo, hay que revisar en el código del refresh si mueve `published_version_id`, o probarlo si ya está implementado.\n\n**Límites al guardar**\n- Si el artifact tiene un `data_schema` y guardás `data`, se validan las claves obligatorias y los tipos de las propiedades. Si no cumplen, el `save` se rechaza antes de escribir.\n- `content` admite hasta 1 MB, y `data` serializada, otro 1 MB. El material indica que, al pasarse, falla de forma explícita.\n\nMe basé solo en el material que pegaste; no revisé el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10776,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1317,
+  "output_tokens_details": {
+   "thinking_tokens": 390
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10776,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1317,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10776,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10776
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

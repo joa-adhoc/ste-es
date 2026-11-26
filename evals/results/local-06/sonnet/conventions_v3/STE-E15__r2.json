@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`connect_odoo` valida las credenciales contra Odoo, las guarda en el workspace y, según el modo, vincula a quien conecta con un `res.users`. El rol `owner` no cambia. Todo esto sale del fragmento que pasaste; no revisé el código.\n\n## Recorrido\n\nEl pedido entra por `POST /workspaces/{slug}/odoo`, que exige permisos de owner o admin. De ahí llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autentica:** `_authenticate_odoo(url, db, login, api_key)` devuelve `admin_uid`.\n2. **Exige un admin de Odoo:** `_verify_odoo_admin_group` consulta `res.users.has_group(uid, 'base.group_system')`. Si ese usuario no es admin de sistema, lanza `ValueError`. El requisito es para las credenciales que se cargan. Quien conecta no necesita tener identidad en Odoo.\n3. **Detecta la versión:** `get_version(url)` obtiene, por ejemplo, `\"18\"`. Lanza `ValueError` si la detección falla o si la versión mayor es menor que `MIN_SUPPORTED`.\n4. **Decide el vínculo:** lo resuelve `_resolve_link_mode`.\n5. **Guarda en `workspaces`:** actualiza `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace queda conectado. Si otro workspace ya tiene el mismo `database.uuid`, responde `409 Conflict`. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n6. **Si cambió la URL:** limpia los vínculos de los members.\n7. **Si el modo es `auto` o `manual`:** guarda `odoo_user_id` en el member de quien conecta. Después lanza `sync_user_api_key` con `asyncio.create_task`, sin esperar el resultado.\n\n## Cómo elige el usuario de Odoo\n\n| Modo | Cuándo se usa | Usuario vinculado |\n|---|---|---|\n| `auto` | Por defecto, si `current_user.email == odoo_login` | `admin_uid`, el usuario de las credenciales |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Ese id, después de verificar que el `res.users` existe |\n| `none` | Por defecto, si el email y el login no coinciden | Ninguno |\n\nEl chequeo de `base.group_system` se hace sobre las credenciales. En `manual`, el fragmento solo indica que se verifica la existencia del usuario elegido. No muestra que se exija que sea admin, ni que corresponda a la persona que conecta.\n\n## Qué pasa si cambia la URL\n\n- Se borran `odoo_user_id` y `odoo_api_key` de **todos** los members, incluido el owner. El motivo es que esas identidades pueden apuntar a otra instancia.\n- Después, solo en `auto` o `manual`, se vuelve a vincular a quien conecta. En `none`, queda sin vínculo.\n- El fragmento no muestra cómo se vuelven a vincular los demás members.\n\nLa respuesta (`WorkspaceConnectOdooResult`, que extiende `WorkspaceRead`) informa:\n- `members_invalidated`: es 0 si la URL no cambió.\n- `warning`: un mensaje para mostrar en la UI, o `None`. El fragmento no dice cuándo se completa.\n- `link_status`: `auto`, `manual` o `none`.\n- `linked_odoo_user_id`: el id vinculado, o `None`.\n\n## Preguntas abiertas\n\nConviene revisar estos puntos en el código:\n\n- **`none` sin cambio de URL:** el comentario dice que el member queda sin `odoo_user_id`. Pero el pseudocódigo solo lo actualiza en `auto` o `manual`, y solo limpia si cambió la URL. Según ese flujo, un vínculo anterior se conservaría aunque `link_status` diga `none`.\n- **Cambio de base con la misma URL:** la limpieza depende de `url_changed`. Si esa variable no considera `odoo_db`, los vínculos podrían quedar apuntando a usuarios de otra base.\n- **Errores y consistencia:** no se ve si los pasos 5 a 7 van en una misma transacción. Tampoco qué código HTTP devuelve cada `ValueError`.\n- **Sincronización de la API key:** la respuesta no espera a `sync_user_api_key`, así que recibirla no confirma que la key se haya sincronizado. No se ve cómo se manejan sus fallas.\n- **Elección del modo:** no se aclara si la comparación de email y login distingue mayúsculas. Tampoco qué pasa si se pide `auto` explícitamente y no coinciden.\n- **`database.uuid`:** el fragmento no muestra en qué paso se lee de Odoo ni se guarda.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11194,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2294,
+  "output_tokens_details": {
+   "thinking_tokens": 531
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11194,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2294,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11194,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11194
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

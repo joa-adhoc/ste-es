@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Depende de qué querés descartar: `git reset --hard origin/staging` solo no te deja exactamente \"de cero\", y borra cosas que quizás no puedas recuperar.\n\n**Qué pasa con cada cosa:**\n\n| Qué | Efecto | ¿Se recupera? |\n|---|---|---|\n| Cambios sin commitear en `limits.py` y `test_limits.py` | Se borran. | En general no. Como no están en stage, git no guardó copia. |\n| Commits `a1b2c3d`, `d4e5f6a` y `0718293` | Salen de tu rama. No están en `origin/feat/limite-mcp`. | Sí, por hash o con `git reflog`, por un tiempo. |\n| `0420_mcp_limits.sql` (sin seguimiento) | Queda donde está, salvo que `origin/staging` tenga un archivo en esa misma ruta. En ese caso lo pisa. | Si lo pisa, no. |\n\nAdemás, tu rama `feat/limite-mcp` pasa a apuntar a lo que tengas en `origin/staging`. Si no hiciste `git fetch` hace poco, esa referencia puede estar vieja. Con el material que pasaste no sé cuánto difiere de la rama remota.\n\n**Si querés empezar de cero sin perder nada**, te recomiendo guardar todo y crear una rama nueva:\n\n```bash\ngit stash push -u -m \"limite-mcp antes de reiniciar\"   # incluye el .sql\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 --no-track origin/staging\n```\n\nLos 3 commits quedan en `feat/limite-mcp` y los cambios sin commitear en el stash. Los dos quedan solo en tu clon, no en el remoto. El nombre `-v2` es una sugerencia.\n\n**Si querés conservar el nombre de la rama**, antes del reset hacé un respaldo:\n\n```bash\ngit stash push -u -m \"limite-mcp antes de reiniciar\"\ngit branch backup/limite-mcp        # apunta a los 3 commits\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nDespués, un push normal a `origin/feat/limite-mcp` puede ser rechazado si esa rama tiene commits que no están en `staging`. Forzarlo reescribe la rama remota, así que revisá antes si ya hubo revisión humana en el PR o si alguien más pushea ahí.\n\n**Si de verdad querés descartar todo**, el reset alcanza para los cambios y los commits, pero el `.sql` sigue ahí. Antes de borrarlo, confirmá que no lo necesitás: no está en git y no se puede recuperar.\n\nNo ejecuté nada; el análisis sale solo de la salida que pegaste. ¿Querés conservar algo de este trabajo, como la migración o los tests?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10262,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 970,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10262,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 970,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10262,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10262
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

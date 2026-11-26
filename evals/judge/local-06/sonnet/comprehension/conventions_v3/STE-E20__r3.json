@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "`[migrate] ERROR: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502)`, en la sentencia `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;` (archivo `0415_terms_acceptance.sql`).",
+  "No. Según el texto, staging sigue sirviendo con el deploy anterior; el nuevo no se promovió porque falló el paso de migración. El autor aclara que no consultó el estado actual de staging, que solo vio el log y el extracto pegado.",
+  "Con dos pasos en trenes separados, según el extracto de `docs/infra-ci-cd.md`. En este tren va una migración que haga el backfill de los valores de `accepted_version`, y hay que sacar el `SET NOT NULL` de lo que se despliega ahora. En un tren posterior va otra migración con `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;`. Juntar el backfill y el `SET NOT NULL` no sirve, porque según el doc fallan si hay filas viejas en null. Reintentar sin cambios tampoco debería funcionar mientras sigan los nulls. Antes de escribir el backfill falta definir qué valor corresponde a las filas viejas. El autor no pondría una versión cualquiera, porque podría quedar registrada una aceptación que no ocurrió."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "08addf9313",
+  "control": "a20a96ac5b"
+ }
+}

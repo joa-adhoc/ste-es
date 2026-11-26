@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Va como skill.** Un `odoo_create` con defaults es el caso 1→1: por sí solo no justifica una tool nativa. La skill indica el modelo y los defaults, y el agente llama a `odoo_create`.\n\n**Criterio:** es tool nativa solo si cumple al menos uno de estos ejes:\n\n| Eje | Cuándo se cumple | En tu caso |\n|---|---|---|\n| **(a)** No componible | No se logra con las tools genéricas ni con otra existente | No, es un `odoo_create` |\n| **(b1)** Approval o identidad de policy propia | Necesitás aprobación o policy distintas (solo vale en chat) | Solo si ese es el requisito |\n| **(b2)** Whitelist más fina | Tiene menor blast radius que la genérica equivalente | Solo si restringe de verdad. Poner defaults no es restringir, y el gate de `create` ya lo tiene `odoo_create` |\n| **(c)** Procedimiento crítico | Que el LLM saltee un paso tiene un costo real (compliance dura) | Solo si los defaults son obligatorios en ese sentido, no por comodidad |\n| **(d)** Eficiencia o determinismo | Reemplaza 3 o más llamadas, un loop no acotado o un procedimiento con pasos que el LLM saltearía | No como la describís. El material excluye los wrappers 1→1, aunque ahorren tokens de esquema |\n\n**Con el MCP saliente sí cambia:** ahí (b1) y (c) no sirven, porque no hay canal de approval (el router ignora `requires_approval`) ni un turno donde forzar pasos. En esa superficie, la tool solo se justifica por **(a), (b2) o (d)**.\n\nSi se expone en las dos superficies y su único argumento es (b1) o (c), eso la puede sostener en el chat, pero no en el MCP. El precedente es `odoo_schedule_activity`, que pasó a system skill: era componible, su único diferencial era (b1) y ya estaba excluida del MCP.\n\nLa respuesta cambiaría si la tool, por ejemplo, limitara qué modelo y qué campos se pueden crear, con un gate más fino que el `create` genérico. Eso podría entrar por (b2), que vale en chat y en MCP. Si además tiene que buscar datos antes de crear, revisá (d): contá las llamadas genéricas que reemplaza, que tienen que ser al menos 3 o un loop no acotado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11221,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 853,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11221,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 853,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11221,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11221
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

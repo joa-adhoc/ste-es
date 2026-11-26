@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Poné la línea `-- destructive: true` cerca del inicio del archivo, si al dropear la columna el código anterior deja de poder correr. Por ejemplo, si todavía la lee o la escribe.\n\n```sql\n-- destructive: true\nALTER TABLE mi_tabla DROP COLUMN mi_columna;  -- nombres de ejemplo\n```\n\nCon esa línea, el runner aplica la migración solo donde está habilitada. Si no, la saltea **sin registrarla** en `_migrations`, así un deploy posterior la puede aplicar.\n\n| Dónde | ¿Se aplica? | Por qué |\n|---|---|---|\n| PR environment de Railway | No | Puede heredar `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero su rama no es `staging` ni `main`. |\n| CI (postgres de servicio de cada workflow) | Sí | La base es efímera y el workflow activa el flag. |\n| Container del stack e2e | Sí | La base es efímera y tiene la habilitación. |\n| Base de pytest | Sí | El `conftest` usa `allow_destructive=True`. |\n| Local con `make migrate` | No | No activa el flag, porque los worktrees comparten la base de desarrollo. |\n| Deploy de Railway de `staging` o `main` | Sí, solo si además tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` | Tienen que cumplirse las dos condiciones. |\n\nEl recorrido es este:\n\n1. **Abrís el PR.** El preview comparte la base con staging, que sigue corriendo el código anterior. El runner saltea tu migración y la columna sigue ahí. En CI, en cambio, se aplica sobre bases que nadie más comparte.\n2. **Mergeás.** El deploy corre `python -m tuqui_core.db.migrate`. En un deploy de `staging` o `main` con el flag, aplica la migración y la registra.\n3. **Llega a prod.** El fragmento no dice qué rama o environment es prod, ni cómo se pasa de `staging` a `main`. Tampoco dice si prod tiene el flag, así que no puedo confirmar que ahí se aplique. Revisá en la configuración de Railway la rama de prod y `MIGRATIONS_ALLOW_DESTRUCTIVE`. Sin las dos condiciones, el runner la saltea y la columna queda.\n\nTené en cuenta también:\n\n- **Si te olvidás la línea:** el fragmento dice que las migraciones sin marca se aplican a la base de staging desde el preview. El drop afectaría a staging antes del merge y rompería el código anterior si depende de la columna.\n- **Si Railway no informa la rama:** cuando hay marcadores de Railway pero falta `RAILWAY_GIT_BRANCH`, el runner no aplica la migración.\n- **Tu código en el preview:** va a correr con la columna todavía presente, así que tiene que funcionar así. Por ejemplo, si la columna es `NOT NULL` sin valor por defecto y el código nuevo deja de escribirla, los inserts van a fallar. Esto lo deduzco del comportamiento descrito; no lo probé.\n- **Si el mismo archivo tiene cambios aditivos:** entiendo que tampoco se aplican en el preview, porque el runner registra archivos. Si el preview necesita esos cambios, ponelos en otra migración sin la marca. Esos sí se van a aplicar a la base de staging desde el preview.\n\nMe baso solo en el fragmento que pegaste; no revisé el código del runner. Para lo que pasa con las migraciones aditivas al mergear o al renombrar un archivo, el fragmento remite a `docs/infra-ci-cd.md`, sección «Un PR preview escribe en la base de staging».",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11032,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1975,
+  "output_tokens_details": {
+   "thinking_tokens": 651
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11032,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1975,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11032,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11032
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

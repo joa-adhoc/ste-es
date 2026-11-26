@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Corré `make worktree-setup` en el worktree y, antes de testear, resolvé las dos dependencias por separado, porque el setup linkea el `.venv` y los `node_modules` al clone principal.\n\n1. **Setup:** `make worktree-setup`. No corras `make install` mientras el `.venv` esté linkeado. El target se niega, porque escribiría en el venv del clone principal y le repuntaría el editable install.\n\n2. **Dependencia de Python:** tenés dos opciones.\n   - **Instalarla en el venv del clone principal:** es lo más simple, pero ese venv lo comparten todos los worktrees. Instalá el paquete puntual, con la versión que declaraste. Un `make install` desde el clone principal usaría los archivos de ese checkout, que pueden no tener tu dependencia nueva. Por ejemplo, si el venv tiene `pip`:\n     ```bash\n     <clone-principal>/tuqui_core/.venv/bin/python -m pip install \"<paquete><versión>\"\n     ```\n   - **Usar un venv propio:** conviene si la dependencia cambia versiones de paquetes que usan otras ramas. Primero sacá solo el link con `rm tuqui_core/.venv`, **sin `-r` ni barra final**. Después armá el venv en el worktree. El material no dice cómo armarlo; revisá en el `Makefile` si `make install` lo crea desde cero.\n\n3. **Frontend:** como tocás `web/package.json`, necesitás `npm ci` antes de `make test-web`. `npm ci` borra `node_modules` antes de instalar, y no verifiqué qué hace tu versión de npm cuando es un symlink. Para no arriesgar el del clone principal, sacá antes el link:\n   ```bash\n   test -L web/node_modules && rm web/node_modules   # sin -r ni barra final\n   (cd web && npm ci)\n   ```\n   `npm ci` usa el lockfile. Si agregaste o cambiaste dependencias, `package-lock.json` tiene que estar actualizado, o va a fallar. Si volvés a correr `make worktree-setup`, comprobá con `ls -ld web/node_modules tuqui_core/.venv` que lo que hiciste propio no haya vuelto a ser un link.\n\n4. **Tests:**\n   ```bash\n   make test        # unit\n   make test-web    # frontend\n   make lint\n   ```\n   Para un subconjunto, usá `make test ARGS=\"tests/test_rls.py -k policy\"`, con paths relativos a `tuqui_core/`. Si tu cambio toca el aislamiento multi-tenant, está `make test-rls`; para el módulo `evals/`, `make test-evals`.\n\nMe basé solo en el material que pegaste y no ejecuté nada. Si ves \"Venv no encontrado\", revisá que `make worktree-setup` haya corrido bien o, si armaste un venv propio, que esté en `tuqui_core/.venv`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10788,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1476,
+  "output_tokens_details": {
+   "thinking_tokens": 463
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10788,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1476,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10788,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10788
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si no quiero tocar el .venv compartido, ¿con qué comandos exactos armo un venv propio en el worktree e instalo ahí la dependencia nueva? ¿Y si en cambio la instalo en el clone principal, cómo lo hago sin romper los otros worktrees, dado que mi cambio de dependencias solo existe en esta rama?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Para no tocar el entorno compartido, ¿con qué comandos exactos armo un venv propio en el worktree e instalo ahí las dependencias, incluida la nueva, para que `make test` lo use sin afectar el clone principal?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Con qué comandos exactos instalo la dependencia nueva sin romper nada? Si va en el venv compartido del clone principal, ¿qué corro y desde dónde, teniendo en cuenta que el cambio de dependencias está solo en la rama del worktree? Si conviene un venv propio, ¿cómo lo armo después de borrar el link `tuqui_core/.venv`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Si no quiero tocar el .venv compartido, ¿con qué comandos exactos armo un venv propio en el worktree e instalo ahí la dependencia nueva? ¿Y si en cambio la instalo en el clone principal, cómo lo hago sin romper los otros worktrees, dado que mi cambio de dependencias solo existe en esta rama?",
+ "followup_answer": "**Te recomiendo el venv propio.** Instalar en el `.venv` compartido afecta a todos los worktrees, aunque la dependencia exista solo en tu rama. El material no trae los comandos exactos y no los probé, así que tomá los de abajo como propuesta.\n\n**Venv propio**\n\nDesde la raíz del worktree, mirá primero qué haría la instalación:\n\n```bash\nls -ld tuqui_core/.venv node_modules web/node_modules\ngrep -n -A20 -E '^(install|worktree-setup)[ :]' Makefile\n```\n\nDespués sacá solo el link, sin `-r` ni barra final. El `&&` evita seguir si no era un link:\n\n```bash\ntest -L tuqui_core/.venv && rm tuqui_core/.venv && python3 -m venv tuqui_core/.venv\n```\n\nPara instalar, usá lo que haga `make install` en el `Makefile`, con la dependencia nueva ya declarada en tu rama. Podés correr el target si apunta al `.venv` del worktree y no escribe en otros links, como `node_modules`. No sé si al sacar ese link deja de negarse. Si se niega, no lo fuerces: corré a mano solo la parte de Python. Si usa `uv` u otra herramienta, o pide cierta versión de Python, seguí eso también al crear el venv.\n\nRevisá además si volver a correr `make worktree-setup` respeta tu venv. En un workspace de Tuqui Work, otro venv puede ocupar demasiado disco o memoria; ahí dejá esos tests para CI.\n\n**En el clone principal**\n\nNo hay forma de garantizar que no afecte a los otros worktrees. Si igual lo elegís, y el venv usa `pip`, instalá solo el paquete nuevo. Reemplazá la ruta, el nombre y la versión, y primero simulá:\n\n```bash\nPY=/ruta/al/clone-principal/tuqui_core/.venv/bin/python\n$PY -m pip freeze > /tmp/venv-antes.txt\n$PY -m pip install --dry-run 'paquete==X.Y.Z'\n```\n\n- **Si solo agrega paquetes:** corré el mismo `install` sin `--dry-run` y después `$PY -m pip check`.\n- **Si cambia la versión de uno ya instalado** (compará con `venv-antes.txt`): no sigas y usá el venv propio.\n- **Qué evitar:** no hagas `pip install -e` apuntando al worktree, porque puede repuntar el editable install. Tampoco necesitás cambiar de rama en el clone principal; su `make install` no incluiría una dependencia declarada solo en la tuya.\n\nAun si solo agrega paquetes, otras ramas pueden pasar los tests en local porque el paquete está instalado, aunque no lo declaren. Para revertir, desinstalá el paquete **y las dependencias que se hayan agregado con él**; desinstalar solo el principal las deja en el venv.\n\nEsto resuelve solo Python. Para `web/package.json`, antes de `npm ci` seguí separando el link de `node_modules` que vayas a reinstalar, como te indiqué antes.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11843,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1940,
+  "output_tokens_details": {
+   "thinking_tokens": 860
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11843,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1940,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11843,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11843
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "89a37cd762"
+ }
+}

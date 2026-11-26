@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_multi_store`, `account_journal_security`, `perm_read`, el «filtro en `_search`», el traceback ni `account_followup`. Decime en términos de pantalla y permisos qué debería poder ver y hacer el usuario de Norte con una factura de Sur (y de dónde sale que es de Sur, si yo hablé del punto 22), por qué le saltaría el error si en teoría puede verla, y qué tengo que probar y copiar yo, y cómo saco cada cosa. Lo que haya que revisar en el código, ¿quién lo hace?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, como se ve desde la pantalla? No entiendo qué son `account_multi_store`, `account_journal_security`, `account_followup`, `perm_read` = False, el «filtro en `_search`» ni «superadmin», y por eso no sigo por qué decís que no cierra que el error sea por la sucursal. Tampoco sé de dónde sale que la factura del punto 22 es de la sucursal Sur. Y decime cómo saco el «traceback» que me pedís, o si alcanza con copiar el mensaje de error que aparece en pantalla."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_multi_store`, `account_journal_security`, `perm_read`, `_search`, `account_followup` ni el traceback. Decime en términos de pantalla y de permisos del usuario: ¿el usuario de Norte debería poder abrir la factura de Sur y usar «Ver asientos», sí o no, y de dónde sale ese criterio de «ve, pero no modifica»? ¿Y qué tengo que probar yo? Si hay algo que tiene que revisar un desarrollador (el traceback o leer el código), separalo y decime cómo consigo lo que haya que pasarle."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_multi_store`, `account_journal_security`, `perm_read`, el «filtro en `_search`», el traceback ni `account_followup`. Decime en términos de pantalla y permisos qué debería poder ver y hacer el usuario de Norte con una factura de Sur (y de dónde sale que es de Sur, si yo hablé del punto 22), por qué le saltaría el error si en teoría puede verla, y qué tengo que probar y copiar yo, y cómo saco cada cosa. Lo que haya que revisar en el código, ¿quién lo hace?",
+ "followup_answer": "**Según cómo se describe la sucursal en la configuración, el usuario de Norte debería poder ver una factura de Sur, pero no cambiarla.** No probé en pantalla que eso se cumpla, y todavía no sabemos por qué salta el error.\n\n**De dónde sale que es de Sur:** en la base del cliente, el diario del punto 22 es «FACTURA ELECTRONICA SUR» y está asignado a la sucursal Sur. El «Encargado Norte» tiene la sucursal Norte y ningún diario asignado a su nombre. Doy por hecho que la factura que abriste es de ese diario; confirmalo en la factura.\n\n**Qué debería pasar con ese usuario**\n\n| En pantalla | Qué se espera |\n|---|---|\n| Ver la factura de Sur, sus asientos y sus pagos | La restricción por sucursal no debería impedirlo |\n| Crear, modificar, publicar o borrar asientos de ese diario | No debería poder |\n| Modificar, crear o borrar pagos de Sur | No debería poder |\n| Buscar o elegir el diario de Sur en una lista de diarios | No debería aparecerle |\n\nQue el diario no aparezca en una lista no significa que sus facturas estén prohibidas. Esto tampoco asegura que pueda verlas, porque pueden intervenir otros permisos, como el de la compañía.\n\n**Por qué podría saltar el error**\n\nTodavía son posibilidades:\n- «Ver asientos» intenta cambiar algo además de mostrar.\n- Al abrirlo, consulta otro dato que ese usuario no puede ver.\n- Lo frena otra restricción que no revisamos, o la de compañía (una compañía no es lo mismo que una sucursal).\n\nPor eso, que él tenga solo Norte no alcanza para explicarlo.\n\n**Qué probás vos**\n\nUsá en las dos pruebas el mismo usuario, la misma factura y las mismas compañías marcadas en el selector de arriba a la derecha.\n\n1. **Desde Contactos:** repetí tu recorrido hasta «Ver asientos». Copiá todo el texto del cartel de error; si no te deja seleccionarlo, sacá capturas donde se lea completo. Me interesa qué dice que no podés hacer (leer, modificar u otra cosa), sobre qué documento o dato y qué reglas nombra.\n2. **Desde Contabilidad:** entrá al libro mayor, abrí esa factura y tocá «Ver asientos». Anotá si abre la factura, si muestra los asientos o en qué clic falla. Si hay error, copialo igual.\n\nPasame además el número de la factura, el diario y la compañía que figuran en ella, y las compañías que tenías marcadas.\n\nSi el cartel no nombra las reglas, activá el modo desarrollador agregando `?debug=1` a la dirección, después de `/odoo` (por ejemplo, en la pantalla de inicio), y repetí el recorrido. No lo probé en esta base. No hace falta que busques por ahora el registro técnico del error.\n\n**Quién revisa el código**\n\nNo te toca para hacer estas pruebas. La revisión la puedo hacer yo si tengo acceso al código que usa el cliente; todavía no leí el de los dos reportes ni el de la versión 16. Si no llego a ese código o hace falta el detalle técnico del servidor, lo tiene que conseguir alguien del equipo con acceso.\n\n**Sobre el criterio:** si falla solo desde Contactos, hay que comparar los dos recorridos. Si falla en ambos, no es un problema exclusivo de ese reporte. En los dos casos, propongo que el criterio sea el mismo: **puede consultar, pero no modificar**. Si en cambio se decide que no vea nada de Sur, es un cambio de lo que se pide, y el contacto podría aparecerle con la deuda incompleta.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12708,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2571,
+  "output_tokens_details": {
+   "thinking_tokens": 1238
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12708,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2571,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12708,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12708
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ee8f377bb9",
+  "persona": "actualizacion"
+ }
+}

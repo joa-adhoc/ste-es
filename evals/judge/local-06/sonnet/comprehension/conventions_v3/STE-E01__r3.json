@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/`, con el formato `NNNN_descripcion.sql`, y se crea con `supabase migration new <nombre>`. El texto pide revisar que el nombre generado siga el formato de las otras migraciones, porque la CLI de Supabase suele usar un timestamp como prefijo.",
+  "Tiene que llevar `workspace_id` y tener RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`. También necesita una policy por workspace con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, creada dentro de un bloque `DO $$` que primero verifique si ya existe. RLS es la defensa principal, así que no hay que filtrar por `workspace_id` solo en la aplicación. Una tabla sin `workspace_id` es la excepción y hay que discutirlo antes de crearla.",
+  "El texto no dice expresamente por qué no es una formalidad. Sí pide que el SQL pueda correr varias veces sin error. También dice que, si se renombra el archivo después de aplicado, la migración se aplica de nuevo porque el tracking es por nombre. Al abrir el PR, además, se aplica sobre la base real de staging. El texto infiere que, con un nombre nuevo, `IF NOT EXISTS` saltea la tabla existente aunque hayan cambiado sus columnas, y que lo mismo pasa con un índice o una policy que conserven el nombre."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "not_stated"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e6ce2ab491",
+  "control": "cb1718959b"
+ }
+}

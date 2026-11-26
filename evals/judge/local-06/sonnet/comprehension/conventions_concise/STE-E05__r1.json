@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Mientras iterás y antes de pushear: `make test ARGS=<lo que tocaste>` y `make lint`. La suite completa la corre CI en paralelo con tu trabajo. El texto señala excepciones en las que sí pide la suite completa local (cambios transversales y agentes de IA).",
+  "La regla anterior se basaba en que CI no daba el resultado antes de lo que tardaba una corrida local, y eso ya no pasa: el job de `test` bajó de ~11 a ~4 min por el bcrypt configurable en tests (PR #829) y los runners arm64. Además, la corrida local completa te bloquea la máquina. El texto aclara que los datos de tiempos salen del material y no fueron verificados.",
+  "Según el material: (1) en cambios transversales, si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, porque se arrastra ~76% de los archivos de test (según el grafo de imports) y correr solo lo que tocaste deja de servir; (2) para agentes de IA, una sola vez antes de entregar y no en cada iteración, porque el agente no tiene el criterio del autor para elegir el subconjunto e iterar contra CI genera pushes de ruido. El texto advierte que la excepción para agentes contradice las convenciones Adhoc de la sesión de quien lo escribe (las suites completas se corren en CI, no en la máquina del dev ni en el workspace managed, tampoco \"para estar seguro\"). No sabe si el repo declara un override revisado (`AGENTS.md §Overrides` o un ADR) y dice que conviene confirmarlo antes de aplicar esa excepción. El porcentaje no fue verificado. Aparte, si algo falla en CI y no sabés por qué, hay que reproducirlo local antes de volver a pushear (el texto no dice que eso requiera la suite completa)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e9edcf49e6",
+  "control": "e1d643cdec"
+ }
+}

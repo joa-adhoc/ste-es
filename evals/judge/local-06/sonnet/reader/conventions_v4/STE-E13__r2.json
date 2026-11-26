@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código y confirmar dos cosas? Primero, en `scheduler/billing_cron.py::_run_trial_expiry` y donde se manden los avisos previos: si el workspace ya tiene una suscripción viva, ¿igual le llegan el aviso de una semana antes y el del día del vencimiento? Segundo, si no tiene suscripción: ¿en qué condiciones exactas queda en `account_status='restricted'` con el MCP y el chat bloqueados, qué cuenta como exceso y qué pasa si no tiene exceso?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código (`scheduler/billing_cron.py::_run_trial_expiry` y el filtro de avisos previos) y confirmarme dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos de 7 días y del día del vencimiento. Segundo, qué le pasa exactamente al vencer a uno sin suscripción: ¿en qué casos queda en `account_status='restricted'` con MCP y chat bloqueados, qué cuenta como exceso y qué pasa si no lo tiene?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (`scheduler/billing_cron.py::_run_trial_expiry` y lo que evalúa el exceso) dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos de una semana antes y del día del vencimiento. Segundo, qué cuenta como exceso y si un workspace sin suscripción y sin exceso queda funcionando en free o queda `restricted`, con el chat y el MCP bloqueados."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Podés mirar el código y confirmar dos cosas? Primero, en `scheduler/billing_cron.py::_run_trial_expiry` y donde se manden los avisos previos: si el workspace ya tiene una suscripción viva, ¿igual le llegan el aviso de una semana antes y el del día del vencimiento? Segundo, si no tiene suscripción: ¿en qué condiciones exactas queda en `account_status='restricted'` con el MCP y el chat bloqueados, qué cuenta como exceso y qué pasa si no tiene exceso?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas, porque no llegué a leer el código. El directorio de trabajo (`/tmp/ste-es-eval-dotb294u`) está vacío y no es un repo. Después intenté buscar los archivos en `/home/joa` y `/tmp`, pero ese comando requería aprobación y no se ejecutó. No sé si el repo está en otro lugar de la máquina.\n\n| Pregunta | Qué dice el material | Sin verificar |\n|---|---|---|\n| ¿Con suscripción viva llegan los avisos previos? | Al vencer, se limpian los flags de trial y no se manda nada. | Si el aviso de una semana antes y el del día del vencimiento excluyen a quienes tienen suscripción. El hito `0` sale mientras el workspace todavía funciona; es distinto del mail que sale al vencer. |\n| Sin suscripción, ¿cuándo queda `restricted`? | Pasa a `plan='free'`, se evalúa el exceso y sale el mail. `trial_expired_with_excess` figura como motivo de `account_status_reason`, y `restricted` bloquea el MCP y el chat. | La condición exacta y qué cuenta como exceso. |\n| ¿Y si no tiene exceso? | No lo dice. | Si queda `active` o si otro control, como los límites de free, lo restringe. |\n\nEn mi respuesta anterior dije que el bloqueo por vencimiento pasa cuando hay exceso. Eso lo deduje del nombre del motivo y de la tabla, así que no lo des por confirmado.\n\nPara cerrarlo, pasame la ruta del repo o aprobá la búsqueda. También podés correr esto desde la raíz del repo y pegarme la salida:\n\n```bash\ngrep -rnE \"_run_trial_expiry|trial_warning|trial_expired_with_excess|free_member_limit_exceeded|account_status\" --include='*.py' .\n```\n\nCon eso ubico las funciones, pero después necesito leerlas completas:\n- **Avisos previos:** hay que ver qué workspaces selecciona la consulta y si algún filtro por suscripción los descarta, ahí o antes del envío. Si el envío está en otra función, también hay que seguirla.\n- **Vencimiento:** hay que seguir la rama sin suscripción hasta la función que evalúa el exceso. Ahí se ve qué compara, contra qué límites y qué valor de `account_status` deja en cada caso.\n- **Tests:** `tests/test_trial_notices.py` puede cubrir alguno de estos casos. Leerlo no equivale a haberlo corrido.\n\nMientras tanto, si ese workspace ya tiene suscripción, no le asegures al cliente que no va a recibir avisos antes del vencimiento.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13028,
+  "cache_read_input_tokens": 77627,
+  "output_tokens": 1610,
+  "output_tokens_details": {
+   "thinking_tokens": 314
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13028,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1189,
+    "cache_read_input_tokens": 30163,
+    "cache_creation_input_tokens": 375,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 375
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "39f0fb6b9f"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cada `save` sobre un artifact existente crea una versión nueva, pero **no cambia lo que ve quien tiene el link** hasta que publicás.\n\n- **Versiones:** la primera (`save` sin `artifact_id`) crea la v1 y la publica sola. Cada `save` siguiente crea la v(n+1) y la marca como actual. La publicada queda donde estaba.\n- **Si editás algo ya compartido:** el link sigue mostrando la versión publicada. El `save` devuelve `unpublished_changes: true` y el viewer muestra un banner. En el viewer interno se ve la versión actual y podés elegir otras con un selector.\n- **Publicar y volver atrás:** `publish(version?)` define qué versión muestra el link. Sin número, publica la última. Para revertir, publicás una anterior.\n- **Refresco de datos (fase 2, dashboards regenerables):** crea una versión que solo trae datos. Cada versión combina, por separado, la última página (`content`) y los últimos datos (`data`) que haya hasta ese número. Así, el refresco usa la página anterior y no puede romper el diseño.\n\nUn `save` sobre un artifact que tiene `data` se valida contra el `data_schema` guardado: claves requeridas y tipos. Si no es compatible, se rechaza antes de escribir. Además, `content` y `data` serializada tienen un tope de 1 MB cada uno.\n\nSobre el refresco con link ya compartido, el material no dice que se publique solo. Si pasa por el `save` normal, el link seguiría mostrando los datos publicados hasta que hagas `publish`. No está confirmado que el refresco de la fase 2 funcione así. Para saberlo, habría que revisar el código de ese flujo.\n\nComo la página se combina hasta el número de versión elegido, si hay cambios de diseño sin publicar y después un refresco, la versión nueva los incluye. Al publicarla, saldrían junto con los datos. Esto lo deduzco de la regla de combinación; no lo probé.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10765,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 694,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10765,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 694,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10765,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10765
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

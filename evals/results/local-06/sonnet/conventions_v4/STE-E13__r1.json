@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con los valores por defecto hay dos avisos previos: uno 7 días antes y otro el día del vencimiento, con el workspace todavía funcionando.** Los hitos se configuran en `platform_config.billing_trial_warning_days_list` (por defecto `{7, 0}`). El proceso que los maneja corre todos los días a las 12:00 UTC (9 h en Argentina). Si vence la semana que viene, según la fecha exacta el aviso de 7 días ya tendría que haber salido o está por salir. Esto no lo verifiqué contra el workspace.\n\nCada aviso dice qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar. Si se extiende la prueba, vuelve a avisar para la nueva fecha.\n\n**A quién le llegan** (por vencer y vencida):\n- A owners y admins siempre, aunque no tengan asiento.\n- A todos los miembros con asiento (`billing_tier` distinto de `none`).\n\n**El día que vence, sin suscripción viva:**\n1. El workspace pasa a `plan='free'`.\n2. Se evalúa si tiene exceso.\n3. Sale el mail.\n\nSi queda restringido por exceso al terminar la prueba, `account_status` es `restricted` y el motivo es `trial_expired_with_excess`. Eso **bloquea el MCP y el chat**. La tabla también incluye los límites del plan free entre las causas de `restricted`. El fragmento no dice expresamente cómo queda un workspace sin exceso; infiero que no se restringe por este motivo.\n\nAdemás, a quien pierde el asistente le aparece un aviso en el chat, arriba del cuadro para escribir (`PlanLapsedBanner`). El material dice que, al terminar la prueba, el asistente deja de responderle a todo el equipo. No aclara cómo se combina eso con un workspace free sin exceso.\n\n**Con una suscripción viva, el vencimiento sí cambia:** solo se limpian los indicadores de prueba y **no se manda nada**. Para el owner no cambia nada visible, y el cobro se avisa con su propio recibo. El fragmento no describe un pase a free ni una evaluación de exceso en este caso.\n\n**Preguntas abiertas:** el material no dice si con una suscripción viva salen igual los avisos previos (7 y 0). La regla de \"no se manda nada\" se refiere solo al momento del vencimiento. Tampoco define qué cuenta como suscripción \"viva\". Para confirmar ambas cosas, revisá `_run_trial_expiry` en `scheduler/billing_cron.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11294,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1469,
+  "output_tokens_details": {
+   "thinking_tokens": 572
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11294,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1469,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11294,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11294
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

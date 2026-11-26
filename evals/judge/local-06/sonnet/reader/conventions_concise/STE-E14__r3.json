@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar en qué otros casos termina sin mostrar nada? En concreto: qué pasa si fallan el Context Assembler, el Planner, el Investigator o el Synthesizer; si una hipótesis agota el tiempo o los topes, o no encuentra nada; si el Synthesizer no genera ningún teaser antes de los filtros; y, cuando hay 0 teasers, qué se escribe en la tabla `insights` (¿queda lo anterior, se pisa con vacío o no se toca?) y qué ve el usuario."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar en qué otros casos no se muestra nada? En concreto: qué pasa si fallan el Context Assembler, el Planner o el Synthesizer; si el Investigator falla, no encuentra nada o agota el tiempo o los topes de una hipótesis; y si el Synthesizer puede devolver 0 teasers antes de los filtros. Cuando el resultado es vacío, ¿qué pasa con la tabla `insights`: quedan visibles los teasers anteriores, se borran o no se escribe nada?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código y confirmar en qué otros casos termina sin mostrar nada? En concreto: qué pasa si fallan el Context Assembler, el Planner, el Investigator o el Synthesizer; si una hipótesis agota el tiempo o los topes, o no encuentra nada; si el Synthesizer no genera ningún teaser antes de los filtros; y, cuando hay 0 teasers, qué se escribe en la tabla `insights` (¿queda lo anterior, se pisa con vacío o no se toca?) y qué ve el usuario.",
+ "followup_answer": "**No pude revisar el código, así que no confirmé ninguno de esos casos.** La carpeta de trabajo (`/tmp/ste-es-eval-nku9bnle`) está vacía. Intenté buscar los archivos en tu home, pero el comando requería aprobación y no se ejecutó. No probé otra forma de buscar ahí.\n\n| Caso | Qué dice el material | Qué hay que mirar en el código |\n|---|---|---|\n| Falla el Context Assembler | Nada | Si una de las 6 consultas con error corta todo o se sigue con contexto parcial |\n| Falla el Planner | Solo que una lista de hipótesis vacía es un silencio válido | Qué pasa con errores, timeouts o JSON inválido, y si se distinguen de ese silencio |\n| Falla el Investigator | Nada | Si un error descarta solo esa hipótesis o toda la corrida |\n| Se agota el tiempo o un tope | Cuáles son los topes y la fórmula del tiempo, no qué pasa al agotarlos | Si se descarta la hipótesis o se usan resultados parciales |\n| El Investigator no encuentra nada | Nada | Qué hallazgo recibe el Synthesizer y si igual lo llama |\n| Falla el Synthesizer | Nada sobre fallas de generación. Solo cubre la del juez: el teaser pasa | Qué pasa con errores o JSON inválido, y si hay reintentos |\n| No genera teasers antes de los filtros | La salida final es de 0 a 2, sin aclarar este caso | Si acepta una lista vacía y qué `debug_note` deja |\n| 0 teasers y tabla `insights` | El diagrama dice `upsert insights table`, sin detallar el caso vacío | Si se llama al upsert con una lista vacía, cuál es la clave de conflicto y si algo borra o vence las filas anteriores |\n| Qué ve el usuario | Nada | El endpoint y la interfaz que leen `insights`: si filtran por fecha y qué muestran sin filas nuevas |\n\nCon el material no se puede saber si **queda lo anterior, se pisa con vacío o no se toca**. Que diga \"upsert\" no alcanza para deducirlo. Tampoco permite asegurar que los dos casos de mi respuesta anterior (sin hipótesis y todos los teasers rechazados) sean los únicos.\n\nPara confirmarlo, pasame la ruta del repo o cloná el repo en la carpeta de trabajo. Si ya está en tu home, también podés aprobar la búsqueda. Además de `context_assembler.py`, `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`, necesito el código que ejecuta el pipeline, el que escribe en `insights` y el que lee esa tabla para mostrarla.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13742,
+  "cache_read_input_tokens": 78824,
+  "output_tokens": 1800,
+  "output_tokens_details": {
+   "thinking_tokens": 476
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13742,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1301,
+    "cache_read_input_tokens": 30823,
+    "cache_creation_input_tokens": 438,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 438
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9a3bd1432d"
+ }
+}

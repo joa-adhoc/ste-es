@@ -1,0 +1,47 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Odoo intenta borrar una recepción nueva y vacía que crea al confirmar P00231, no WH/IN/00098 (412).** `stock_ux` frena ese borrado porque «Recepciones» tiene activado el bloqueo. Esto sale de cruzar tus datos con el código que resumiste. No lo reproduje ni consulté la base.\n\n**Por qué pasa**\n1. La orden se confirmó (12:26), recibió las 2 unidades (12:27), se canceló (13:26) y volvió a borrador (13:27). La 412 quedó en Hecho.\n2. Al confirmar de nuevo, Odoo estándar crea otra recepción. Si queda sin movimientos, la borra (`purchase_order.py`, 383-404). Lo más probable es que quede vacía porque las 2 unidades ya figuran recibidas. No está verificado: falta leer cómo se calculan los movimientos pendientes.\n3. `_check_block_picking_deletion` lanza el error si el tipo de operación tiene el bloqueo **o** si el estado no es borrador ni cancelado. Con el bloqueo activo, no importa que la recepción nueva esté vacía.\n4. El error deshace la operación, así que esa recepción no queda guardada. El número interno no se reutiliza, porque las secuencias de PostgreSQL no vuelven atrás. Eso explica que veas 415 y después 416, y que ninguno exista.\n\n**Cómo regularizar (probalo primero en una copia de la base)**\n1. Anotá el estado inicial: recepciones y movimientos de la orden, stock del producto, cantidades de la línea y datos de la factura.\n2. En un momento sin otra operación en depósito, desactivá «Bloquear eliminación de traslados» en «Recepciones». Mientras esté desactivado, ese bloqueo deja de aplicar para todos los usuarios en ese tipo de operación.\n3. Confirmá P00231.\n4. Volvé a activar el bloqueo enseguida, aunque la confirmación falle.\n5. Revisá el resultado:\n   - La orden queda confirmada o, si requiere aprobación, pendiente de aprobarse. En ese caso, revisá el circuito en la copia, incluido el momento en que se crea la recepción.\n   - La 412 sigue en Hecho y no aparece otra recepción ni movimientos pendientes.\n   - El stock no cambia.\n   - La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSi en la copia aparece una recepción por otras 2 unidades o cambia algo de esa lista, no lo apliques en la base del cliente. Para regularizar no hace falta devolver ni tocar la 412, tocar la factura, crear otra orden o cambiar estados por SQL.\n\n**Preguntas abiertas**\n- **Cancelación:** el historial muestra que la orden se canceló con la recepción ya hecha. No se leyó el código que decide si eso se permite, así que todavía no sé si es un comportamiento estándar o una falla. Tampoco sé por qué el usuario la canceló. Conviene preguntarlo antes de reconfirmar, por si quería anular o corregir la compra.\n- **Arreglo en `stock_ux`:** el bloqueo también alcanza la limpieza automática que hace Odoo. Propongo evaluar una excepción para ese borrado interno, sin habilitar el borrado manual. Desactivar el bloqueo resuelve este caso, pero no corrige eso.\n\n**Borrador de respuesta al cliente** (no lo envié):\n> Revisamos el error. La recepción WH/IN/00098 no es la que Odoo intenta borrar. Según nuestro análisis, al confirmar se genera una recepción auxiliar, y el bloqueo de eliminación de «Recepciones» impide descartarla. Por eso el número del mensaje cambia en cada intento. Antes de aplicar la solución, la vamos a probar en una copia para comprobar que no cambien el stock ni la factura. ¿Nos confirman por qué se canceló la orden el 11/11? Mientras tanto, les pedimos no hacer devoluciones ni modificar la factura para destrabarla.\n\nNo tuve disponible el MCP `tuqui-adhoc`, así que no cargué las reglas de la empresa para Odoo. Para darlo de alta, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11063,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2798,
+  "output_tokens_details": {
+   "thinking_tokens": 1247
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11063,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2798,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11063,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11063
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

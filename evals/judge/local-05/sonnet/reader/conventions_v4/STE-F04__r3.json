@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás tu hipótesis en términos de lo que se ve en pantalla, sin nombres técnicos? No entiendo qué es ese «filtro adicional» sobre la búsqueda de diarios, ni por qué haría fallar «Ver asientos» en una factura del punto 22 si las reglas de sucursal permiten verla. Tampoco entiendo qué tiene que ver ahí la regla de compañía: ¿qué tendría que revisar en la ficha del usuario para descartarla?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás sin lo técnico, desde lo que veo en pantalla, qué es el «filtro adicional» y tu hipótesis? No entiendo qué son los «campos relacionados con el diario», ni por qué esconder un diario haría que «Ver asientos» dé error de permiso si las reglas de sucursales dejan leer. Tampoco sé quién es «Encargado Norte»: ¿es el usuario del cliente con el que repliqué el problema u otro usuario de prueba?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás desde la pantalla, sin lo del código? No entiendo qué es eso de que el módulo «modifica la búsqueda de diarios», ni qué son los «campos relacionados» o la regla de «Usuarios por diario», ni cómo todo eso termina en el error al tocar «Ver asientos». Tampoco sé quién es «Encargado Norte»: ¿es el usuario del cliente o un usuario de prueba que tengo que usar? Y la sucursal Sur, ¿es la del punto 22? En concreto, con el diseño «ve, pero no modifica», ¿ese usuario debería poder abrir «Ver asientos» en una factura del punto 22, y entonces el error sería una falla nuestra?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás tu hipótesis en términos de lo que se ve en pantalla, sin nombres técnicos? No entiendo qué es ese «filtro adicional» sobre la búsqueda de diarios, ni por qué haría fallar «Ver asientos» en una factura del punto 22 si las reglas de sucursal permiten verla. Tampoco entiendo qué tiene que ver ahí la regla de compañía: ¿qué tendría que revisar en la ficha del usuario para descartarla?",
+ "followup_answer": "**Mi hipótesis es que el sistema esconde el diario del punto 22 de las búsquedas, y que «Ver asientos» podría tomar eso como «no podés leerlo».** No está probada.\n\n**El «filtro adicional»**\n\nHay dos controles distintos:\n- **Los permisos por sucursal:** definen qué puede hacer Encargado Norte. En diarios, asientos y pagos le limitan los cambios, pero no la vista.\n- **El filtro:** actúa cuando el sistema busca diarios, por ejemplo para armar una lista o un desplegable. Deja solo los de Norte y los que no tienen sucursal. El usuario no lo ve ni lo puede sacar.\n\nSegún el comentario de quienes lo programaron, querían ocultar diarios en las búsquedas sin impedir leerlos. Así no fallarían las pantallas que muestran un documento de otra sucursal.\n\n**Por qué podría fallar «Ver asientos»**\n\n1. La factura del punto 22 pertenece al diario «FACTURA ELECTRONICA SUR».\n2. Al tocar «Ver asientos», se abre otra pantalla, que puede necesitar datos de ese diario.\n3. Por lo que sé de Odoo 18, para ver si podés leer esos datos puede usar la misma búsqueda filtrada.\n4. La búsqueda no devuelve el diario Sur, y el sistema podría responder «no tenés permiso», aunque el permiso por sucursal no prohíba verlo.\n\nLos pasos 2 a 4 no los comprobé. La hipótesis además tiene dos huecos:\n- **La factura sí se abre:** también está en el diario Sur. Mostrar el nombre del diario podría no exigir lo mismo que pedir otros datos suyos, pero no lo verifiqué.\n- **El error habla de reglas:** el filtro no es una de ellas. Si el mensaje nombra reglas, el filtro solo no alcanza para explicarlo.\n\n**Qué tiene que ver la compañía**\n\nNo es parte del filtro: es otro control. De las reglas **sobre diarios** de tu material, la de compañía es la que sí puede impedir verlos. Las de usuarios por diario no afectan a este, y la de sucursal no limita la vista. Por eso conviene descartarla. Compañía y sucursal son datos distintos.\n\nCon un usuario administrador, revisá esto (los nombres pueden variar un poco en tu pantalla):\n1. **Diario:** en Contabilidad → Configuración → Diarios, abrí «FACTURA ELECTRONICA SUR» y anotá su compañía.\n2. **Usuario:** en Ajustes → Usuarios y compañías → Usuarios, abrí Encargado Norte. En «Compañías permitidas» tiene que estar la del diario. Mirá también la compañía por defecto, aunque que sea otra no significa por sí solo un problema.\n3. **Sesión donde sale el error:** entrando como Encargado Norte, mirá el selector de compañías, arriba a la derecha. La del diario tiene que estar marcada. Esto no alcanza con verlo en la ficha. Si hay una sola compañía, puede que el selector no aparezca.\n\nSi la compañía del diario está permitida y marcada al reproducir el error, descartaría esa regla **para este diario**. El mensaje podría referirse a otro tipo de registro. No hace falta cambiarle la sucursal al usuario para revisar nada de esto.\n\n**Lo que más ayuda ahora es el texto completo del error.** Pegámelo y vemos si habla del diario, del asiento o de otra cosa, y qué reglas nombra. Con eso la hipótesis puede ganar fuerza o caerse, y para confirmarla puede hacer falta el detalle técnico del error y el código.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12743,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2521,
+  "output_tokens_details": {
+   "thinking_tokens": 1217
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12743,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2521,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12743,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12743
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2dd766db6f",
+  "persona": "actualizacion"
+ }
+}

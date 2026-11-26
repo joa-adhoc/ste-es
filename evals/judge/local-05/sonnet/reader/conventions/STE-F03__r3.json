@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de lo que veo en pantalla, sin nombres técnicos (qué son `stock_ux`, `purchase_stock` y lo de `block_picking_deletion`)? Y para la regularización, decime paso a paso en qué menú desactivo «Bloquear eliminación de traslados» y cómo reviso desde la pantalla que el movimiento de la recepción WH/IN/00098 esté vinculado a la línea de P00231. Si eso no se puede ver desde la pantalla o necesito a alguien técnico, avisame."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de lo que veo en pantalla? No entiendo qué son `stock_ux`, `purchase_stock`, `_check_block_picking_deletion`, `block_picking_deletion = True` ni la «secuencia de PostgreSQL». Tampoco entiendo qué son `tuqui-adhoc` y `adhoc-way-guide`, ni a qué se refiere «para darlo de alta». Y para regularizar, ¿en qué menú está «Bloquear eliminación de traslados», cómo reviso en pantalla que el movimiento de la 412 esté vinculado a la línea de P00231, y puedo hacer esos pasos yo o los tiene que hacer alguien técnico?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? En concreto: ¿en qué menú y pantalla está la opción «Bloquear eliminación de traslados» de «Recepciones», qué permiso necesito para cambiarla, y cómo reviso desde Odoo, sin base de datos ni código, que el movimiento de la 412 esté vinculado a la línea de P00231? Decime también en palabras simples qué está fallando, sin nombres como `stock_ux`, `purchase_stock` o `block_picking_deletion`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en términos de lo que veo en pantalla, sin nombres técnicos (qué son `stock_ux`, `purchase_stock` y lo de `block_picking_deletion`)? Y para la regularización, decime paso a paso en qué menú desactivo «Bloquear eliminación de traslados» y cómo reviso desde la pantalla que el movimiento de la recepción WH/IN/00098 esté vinculado a la línea de P00231. Si eso no se puede ver desde la pantalla o necesito a alguien técnico, avisame.",
+ "followup_answer": "# Ticket 139447, visto desde la pantalla\n\n## Qué pasa\n- Al tocar **Confirmar orden**, la parte de Odoo que conecta Compras con Inventario prepara una recepción. Si no le queda nada para recibir, intenta borrarla.\n- Un agregado de Adhoc al inventario suma la opción **Bloquear eliminación de traslados**, que en «Recepciones» está activada. Por eso impide ese borrado y aparece el error.\n- La confirmación se deshace: la orden sigue en borrador y la recepción nueva no queda guardada. **No sería WH/IN/00098**, que sigue en Hecho.\n\nEsta sigue siendo la explicación más probable, pero no la reproduje.\n\n## Revisar el vínculo con la orden\n**La pantalla da indicios; para confirmar el vínculo con la línea, pedí ayuda técnica.** No cuento con que una pantalla estándar muestre a qué línea de compra pertenece cada movimiento. El modo desarrollador tampoco lo garantiza.\n\nHacelo antes de cambiar la configuración:\n\n1. Entrá en **Compras → Órdenes → Solicitudes de cotización** y abrí **P00231**. Si no aparece, buscala por número y revisá los filtros.\n2. Entrá en el botón de **Recepción**, arriba de la orden, y comprobá que abra **WH/IN/00098**. Por cómo funciona Odoo estándar, esto indica que la recepción tiene algún movimiento vinculado a la orden. No lo verifiqué en esta base.\n3. En la recepción, revisá que esté en **Hecho**, con el mismo producto que la orden y 2 unidades. Fijate también si hay otros movimientos.\n4. Pedile a la persona técnica: «Confirmá, solo consultando la base, que el movimiento de las 2 unidades de WH/IN/00098 esté vinculado a la línea de P00231, y no solo a la orden o al mismo producto».\n\nQue coincidan el producto, las cantidades o el origen **no prueba el vínculo**. Si falta el botón, abre otra recepción o la persona técnica no confirma el vínculo, no sigas.\n\n## Regularizar\nSolo si la compra sigue vigente y está aclarado que la cancelación del 11/11 no buscaba anularla. Necesitás permisos para configurar Inventario y confirmar compras. Hacé todo **primero en una copia de la base**; si no tenés una, pedila a la persona técnica y asegurate de que no envíe correos ni se conecte con servicios reales.\n\n1. Anotá el stock del producto, las recepciones de la orden, las cantidades de la línea y el estado e importe de la factura.\n2. Entrá en **Inventario → Configuración → Tipos de operación**.\n3. Abrí **Recepciones**. Si hay varias, elegí la del almacén y la compañía de WH/IN/00098.\n4. Buscá **Bloquear eliminación de traslados**, desmarcá la casilla y guardá. No sé en qué pestaña o sector del formulario está; si no la ves, consultá a la persona técnica.\n5. Volvé a **P00231** y tocá **Confirmar orden**. Si pide aprobación, completala.\n6. Volvé a **Recepciones**, marcá otra vez la casilla y guardá. Hacelo enseguida, **aunque la confirmación falle o el resultado no sea el esperado**.\n7. Comprobá:\n   - La orden quedó confirmada.\n   - No apareció otra recepción ni otro movimiento. Revisalo en la orden y en el historial de movimientos del producto.\n   - WH/IN/00098 sigue en Hecho y el stock no cambió.\n   - La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSi algo no coincide, no repitas el cambio en la base real. En particular, **no valides una recepción nueva**: podrías ingresar stock dos veces.\n\nSi la copia sale bien, repetí los pasos en la base real en un momento de poco uso, después de comprobar que la orden y la recepción no cambiaron. Mientras la casilla esté desmarcada, otras personas podrían borrar traslados de ese tipo de operación que estén en borrador o cancelados.\n\nLos nombres de los menús son los que conozco de Odoo; no los verifiqué en la base del cliente y pueden variar un poco.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12461,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2930,
+  "output_tokens_details": {
+   "thinking_tokens": 1372
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12461,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2930,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12461,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12461
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2c52c8c4a1",
+  "persona": "soporte"
+ }
+}

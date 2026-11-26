@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El orden es: primero la whitelist de modelos, después el gate de permisos (ALLOW, ASK o DENY) y al final la ejecución. En tu primer caso, **en un canal con identidad personal gana el \"allow\" del miembro y la tool corre sin preguntar**.\n\n## Orden de decisión\n\n1. **`workspace_write_models`** (Settings → Write Models): el admin permite o no la operación sobre cada modelo. Si no la permite, la tool se corta acá y no llega al gate.\n2. **`evaluate_permission(ctx)`**: decide la primera regla que aplique.\n   1. `workspace_tool_approvals` dice `deny` → **DENY**. Ninguna preferencia personal lo levanta.\n   2. Hay una fila en `user_tool_approvals` para ese usuario, workspace y tool → gana su `action`. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n   3. `workspace_tool_approvals` dice `allow` o `ask` → se aplica eso.\n   4. No decidió ninguna regla anterior → default de la tool. Si el recurso está en `approval` (`\"ask\"` o `\"always\"`), es **ASK**; si no, **ALLOW**. En tools de conector sin declaración en el REGISTRY se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**: corre si el resultado fue ALLOW, o si fue ASK y se aprobó. Queda auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin \"ask\", miembro \"allow\"\n\nSuponiendo que el paso 1 permite la operación:\n\n| Canal | Resultado | Por qué |\n|---|---|---|\n| Con identidad personal | **ALLOW**, no pregunta | La fila del miembro (2.2) se evalúa antes que el `ask` del workspace (2.3). |\n| `exposure`, `webhook`, `scheduled` | **ASK** | La fila del miembro se ignora y se aplica la del workspace. |\n\nEl único valor del admin que funciona como piso es `deny`. **Un `ask` no obliga a pedir confirmación** a quien tiene su propio `allow`. Si el admin quiere impedir que la tool corra, con estas reglas de permisos por tool tiene `deny`, que la bloquea para todos. También puede no permitir la operación en Write Models, si aplica a ese modelo. Ninguna de las dos opciones equivale a \"preguntar siempre\".\n\n## Caso 2: agent por webhook\n\nEl turno usa la identidad prestada de un miembro, pero **sus preferencias no cuentan**, ni su `allow` ni ninguna otra. Si el paso 1 lo permite, decide esto:\n\n| Fila en `workspace_tool_approvals` | Resultado |\n|---|---|\n| `deny` | DENY |\n| `allow` | ALLOW |\n| `ask` | ASK |\n| Sin fila | Default de la tool (2.4) |\n\n**El material no dice qué pasa con un ASK en un webhook:** quién puede aprobarlo, y si el turno espera, falla o se rechaza. No asumas ninguna de esas opciones. Para cerrarlo, revisá cómo maneja ASK el código de ese canal (podés partir de `chat/client_facing_core.py`) o probá un webhook con una tool en `ask`.\n\nMe basé solo en el material que pegaste y no revisé el código. `ChannelProfile.personal_identity_applies` es lo que define en qué canales cuentan las preferencias personales.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11048,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1642,
+  "output_tokens_details": {
+   "thinking_tokens": 422
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1642,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11048,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11048
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

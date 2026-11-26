@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin términos técnicos (qué es el «pod A» y el «pod B», «recargar el registro», el método que faltaba, las reglas 507 y 508, el cron y «tuqui-adhoc»/«adhoc-way-guide»)? Necesito saber qué le pasó al usuario, si ya está resuelto, y qué tengo que hacer yo en el ticket y qué tengo que pasarle a otro equipo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos? No entiendo qué son el «pod A» y el «pod B», «recargar el registro», el «método» que faltaba, el «cron» ni las «reglas 507 y 508», ni para qué sirven `tuqui-adhoc` y `adhoc-way-guide`. En concreto, decime qué pasó, si el usuario ya puede cargar stock, qué tengo que hacer yo en el ticket y qué cosas hay que pedirle a alguien técnico (y a quién), como revisar los logs de la hora que informó el cliente (12:09:12) y el cron de cotizaciones."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos? No entiendo qué es un «pod», «recargar el registro», «importar el código Python», el método `_get_branch_stock_root_ids`, el «cron», las «reglas 507 y 508», `tuqui-adhoc` ni `adhoc-way-guide`. Decime en simple qué pasó, y qué tengo que hacer yo en el ticket y qué le toca a otro equipo (incluido quién revisa los logs del pod A y el cron, y cómo se lo pido)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin términos técnicos (qué es el «pod A» y el «pod B», «recargar el registro», el método que faltaba, las reglas 507 y 508, el cron y «tuqui-adhoc»/«adhoc-way-guide»)? Necesito saber qué le pasó al usuario, si ya está resuelto, y qué tengo que hacer yo en el ticket y qué tengo que pasarle a otro equipo.",
+ "followup_answer": "**Lo más probable es que al usuario le haya aparecido el error porque intentó cargar stock en plena actualización del sistema.** No parece que siga pasando, pero todavía no está confirmada la causa ni que el usuario haya podido hacer la carga.\n\n**Qué le pasó**\n\nDurante la actualización convivieron un rato la versión vieja del sistema y la nueva. La vieja seguía atendiendo, pero ya leía una configuración nueva que le pedía hacer algo que no sabía hacer. Por eso dio error. En los registros hay tres errores de ese usuario, a las 12:08 del 04/11 (hora argentina). El cliente informa las 12:09:12, y esa diferencia todavía no está explicada.\n\n**Los términos**\n\n| Término | Qué es |\n|---|---|\n| Pod A y pod B | Dos copias del sistema en funcionamiento: A es la que ya estaba atendiendo (creemos que con la versión vieja) y B, la que arrancó con la nueva para reemplazarla. |\n| Recargar el registro | El sistema vuelve a leer parte de su configuración sin reiniciarse. Con eso no incorpora el programa nuevo. |\n| El método que faltaba | Una instrucción del programa, necesaria para decidir qué stock puede ver el usuario. La copia A aparentemente no la tenía. |\n| Reglas 507 y 508 | Permisos sobre qué puede ver cada usuario: la 507, sobre ubicaciones de stock; la 508, sobre las existencias. Las nuevas usan esa instrucción. |\n| Cron | Una tarea automática programada. La que falló debía traer cotizaciones de monedas. |\n| `tuqui-adhoc` | La conexión que me dice quién sos y me da acceso a herramientas de Adhoc. No la tenía, así que no consulté por mi cuenta el ticket, la base ni los registros; me basé en lo que pegaste. |\n| `adhoc-way-guide` | La guía para configurar esa conexión. |\n\n**¿Está resuelto?**\n\nLa copia nueva no registró errores entre las 12:09 y las 12:30. Eso es una buena señal, pero no muestra que alguien haya repetido la carga, y no dice nada sobre lo que pasó después. Tampoco sabemos si la tarea de cotizaciones volvió a funcionar.\n\n**Qué hacés en el ticket**\n1. En el campo de módulo, cargá `stock_account_multicompany_ux` (el de la parte de stock donde está la instrucción que faltaba). Con este material no se sabe qué producto corresponde.\n2. Mandale al cliente la respuesta sugerida en mi mensaje anterior. Lo clave es que **revise si la carga quedó registrada antes de repetirla**, para no duplicarla.\n3. Cerralo cuando confirme que el stock quedó bien cargado. Si el error volvió a aparecer después de la actualización, no lo cierres: hay que investigar de nuevo.\n\nNo hace falta que cambies las reglas 507 y 508 por lo que vimos hasta ahora.\n\n**Qué le pasás a otro equipo**\n\nAl que se ocupa de las actualizaciones (el material no dice cuál es), podés mandarle esto:\n\n> Ticket 140512, base en Odoo 19.0, 04/11, horas UTC. El pod A arrancó a las 15:06:29; las reglas 507 y 508 se reescribieron a las 15:08:01. El uid 31 tuvo errores en el pod A a las 15:08:37–38 porque `res.users` no tenía `_get_branch_stock_root_ids`. El pod B arrancó con la imagen nueva a las 15:08:53 y el A empezó a apagarse a las 15:08:58. Hipótesis sin confirmar: el A atendía con código anterior sobre la base ya actualizada. ¿Pueden verificar:\n> 1. qué imagen usaba el pod A, si tenía ese método y qué proceso actualizó los módulos;\n> 2. si el A registró algo desde las 15:08:58, en especial cerca de las 15:09:12, la hora que informa el cliente;\n> 3. si el cron «Consolidation: bring currency rates in», que falló a las 15:08:40 en el A por no encontrar `_cron_update_consolidation_rates`, corrió bien después o quedaron cotizaciones sin traer?\n>\n> Si se confirma la hipótesis, hay que revisar el orden de la actualización para que la versión vieja no atienda ni ejecute tareas con la base ya cambiada.\n\nNo envié ningún mensaje ni modifiqué el ticket.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12615,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2178,
+  "output_tokens_details": {
+   "thinking_tokens": 588
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12615,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2178,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12615,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12615
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7e1f94e1c0",
+  "persona": "soporte"
+ }
+}

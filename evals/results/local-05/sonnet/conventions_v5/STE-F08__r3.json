@@ -1,0 +1,47 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Borrador para enviar\n\n**1. Permisos e IPs**\nHoy Ajustes como Administrador es imprescindible: el chequeo de conexión lo exige en todas las versiones de Odoo, así que no alcanza con Ventas, Inventario y Facturación. El manual pide además:\n- Ventas: Administrador\n- Contabilidad: Facturación\n- Inventario: Administrador\n- En los ajustes técnicos: Gestión de Productos y Límite de crédito\n\nEl manual explica que Ajustes se usa para leer la configuración de la base (aplicaciones, empresas y catálogo). El conector además escribe: crea un campo técnico de precio en los productos y registros técnicos asociados. Recomendamos usar un usuario exclusivo para esta conexión.\n\nEl manual no publica las IPs desde las que se conecta Odumbo, y todavía no tenemos ese dato. Antes de restringir el acceso, pídanlo con un ticket y confirmen si las IPs son fijas.\n\n**2. Kits**\nOdumbo publica la cantidad «A la mano» menos la «Saliente» del producto, en la ubicación configurada. No vimos un tratamiento específico para kits, y todavía no podemos confirmar que el stock publicado del pack sea correcto. El descuento de las patas depende de cómo Odoo arma la entrega del kit. Antes de publicar packs, hay que probarlo en su base.\n\n**3. Cambio desde el módulo actual**\nNo tenemos un procedimiento documentado de Odumbo para este cambio. Como precaución general, proponemos:\n1. Confirmar antes qué ventas anteriores importa Odumbo y si reconoce las que ya cargó el módulo actual.\n2. Definir una fecha y hora de corte, y guardar la lista de ventas de Mercado Libre ya cargadas y facturadas.\n3. Desactivar en el módulo actual la importación de ventas, la facturación y la sincronización de stock antes de activar Odumbo.\n4. Definir cómo se va a facturar desde ese momento, porque Odumbo no factura. Revisar también las ventas pendientes de facturar o de subir la factura.\n5. Después del corte, comparar las ventas de Mercado Libre con las de Odoo y sus facturas, para detectar duplicadas o faltantes.\n\nEstos pasos por sí solos no garantizan que no haya duplicados: depende de la respuesta al punto 1.\n\n**4. Facturación**\nPueden facturar a mano y en lote cada día. Odumbo detecta las facturas validadas en Odoo y las sube a la venta entre 6 y 24 horas después; ese plazo se suma a lo que tarden en validarlas. La subida de facturas es solo para Mercado Libre. El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n\nPara la factura automática, el manual recomienda tipos de pedido de venta. Todavía no podemos confirmar con qué módulo se implementan en Odoo 17 Enterprise.\n\n**5. Datos**\nTodavía no tenemos información confirmada sobre qué datos guarda Odumbo además de las credenciales, ni sobre qué hace con ellos al dar de baja el servicio. No queremos responderlo con suposiciones.\n\n---\n\n## Antes de enviarlo (no va al cliente)\n\n**Riesgo en kits: podría publicarse stock de más.** Esto sale de lo que recuerdo del módulo `mrp` de Odoo; no revisé el código ni lo probé. Odoo calcula por separado «A la mano» y «Saliente» del kit a partir de los componentes, y redondea hacia abajo. Con 20 patas y 3 reservadas en ventas sueltas:\n\n| | Packs |\n|---|---|\n| A la mano: 20 / 4 | 5 |\n| Saliente: 3 / 4, hacia abajo | 0 |\n| Odumbo publicaría | 5 |\n| Se pueden armar con las 17 libres | 4 |\n\n- **Prueba:** reproducir ese caso en una base 17 con una copia de su configuración y mirar qué stock se publica. Después, vender un pack y confirmar que la entrega descuente 4 patas.\n- **Productos no almacenables:** el conector los saltea, salvo los packs. No sé si «pack» incluye un kit de `mrp`. Si no lo incluye y el kit no es almacenable, no se publicaría su stock. La prueba tiene que usar el mismo tipo de producto que tiene el cliente.\n\n**Para confirmar con el equipo de Odumbo:**\n- IPs de salida.\n- Importación de ventas anteriores y detección de las ya cargadas.\n- Datos guardados, plazos de conservación y borrado en la baja.\n- Módulo para los tipos de pedido en 17 Enterprise. Verificá también que automatice la factura y no solo clasifique el pedido.\n\n**Manual:** conviene corregir la explicación del permiso Ajustes, porque habla de leer la configuración y el código también crea cosas.\n\nEl borrador se basa en el material que pegaste; no revisé el manual ni el código por mi cuenta. En esta sesión tampoco tengo disponible `tuqui-adhoc`, así que no consulté las reglas de comunicación de la empresa. Para darlo de alta, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11284,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3746,
+  "output_tokens_details": {
+   "thinking_tokens": 1905
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11284,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3746,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11284,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11284
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

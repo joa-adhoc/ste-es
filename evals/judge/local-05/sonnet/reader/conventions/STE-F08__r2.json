@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Puedo mandarle este borrador al cliente ya, o primero hay que probar los kits y hacer las consultas? Decímelo en palabras simples, con quién tiene que hacer cada cosa. La nota dice que un pack podría publicarse como 2 cuando solo se puede armar 1, pero el borrador no le avisa al cliente de ese riesgo de sobreventa. Si hay que mandarlo antes de probar, ¿qué le decimos sobre eso? Explicame también qué son \"campo técnico en product.product\", \"ir.model.data\" y \"tuqui_context / adhoc-way-guide\", y si los dos primeros tienen que ir en el mensaje al cliente, por si me pregunta."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Puedo mandar el borrador así o tengo que esperar? En el borrador le pedís al cliente que pruebe que se publique 1 pack, pero en la nota interna decís que Odoo podría publicar 2 y que conviene probarlo antes de enviar. Decime quién hace esa prueba, qué hago con el punto 2 mientras tanto y a quién le paso cada consulta pendiente. Y explicame en palabras simples qué son \"campo técnico\", \"product.product\", \"ir.model.data\" y \"lista de materiales\", o sacalos del texto para el cliente si no hacen falta, porque si me preguntan no los sé explicar."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás en palabras simples para saber si ya puedo mandar el borrador? Dentro de lo que va al cliente, no entiendo qué son el «campo técnico de precio en los productos (`product.product`)», los «registros de identificadores externos (`ir.model.data`)», «Technical Settings» ni los «productos no almacenables, salvo los packs», y no sabría explicarlos si me preguntan. En las notas internas dice que pruebes los kits en la versión 17 antes de enviar: ¿tengo que frenar el envío hasta hacer esa prueba? ¿Quién la hace? ¿Y qué son `tuqui_context` y `adhoc-way-guide`? ¿Tengo que hacer algo con eso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Puedo mandarle este borrador al cliente ya, o primero hay que probar los kits y hacer las consultas? Decímelo en palabras simples, con quién tiene que hacer cada cosa. La nota dice que un pack podría publicarse como 2 cuando solo se puede armar 1, pero el borrador no le avisa al cliente de ese riesgo de sobreventa. Si hay que mandarlo antes de probar, ¿qué le decimos sobre eso? Explicame también qué son \"campo técnico en product.product\", \"ir.model.data\" y \"tuqui_context / adhoc-way-guide\", y si los dos primeros tienen que ir en el mensaje al cliente, por si me pregunta.",
+ "followup_answer": "## Se puede mandar antes de probar, con cambios\n\nPara mandarlo no hace falta tener la prueba ni las respuestas, siempre que **avises el riesgo de los kits y no los des por resueltos**. Antes te sugerí probar antes de enviar. Si no querés demorar la respuesta, alcanza con este aviso, pero la prueba sigue pendiente.\n\nAntes de enviar:\n1. Reemplazá el punto 2 por este:\n\n> **2. Kits.** Todavía no podemos confirmarles que Odumbo publique bien el stock de los kits. Hay un posible riesgo de sobreventa, que aún no probamos: con 8 patas a la mano y 2 comprometidas en una venta suelta, quedan 6 y se puede armar solo 1 pack de 4, pero podrían publicarse 2.\n>\n> Hasta que lo confirmemos, no pasen a Odumbo la publicación del stock de los packs. Si no saben cómo dejarlos afuera, no hagan el cambio de stock y consúltennos antes. Tengan cuidado de no apagar la actualización actual sin tener otra que la reemplace.\n>\n> También tenemos que verificar que Odumbo tome los kits, que actualice su stock cuando cambia el de las patas y que al vender se descuenten las patas. Al confirmarse una venta, Odoo genera la entrega, aunque no facturen.\n\n2. En el punto 1, cambiá el párrafo que empieza con \"Tengan en cuenta\" por este:\n\n> Tengan en cuenta que el acceso no es solo de lectura: el conector también crea en su Odoo un campo técnico de precio y algunos registros internos. Sugerimos usar un usuario exclusivo para la conexión.\n\nLa sugerencia del usuario exclusivo es mía, no sale del manual. Sacala si no querés recomendarlo.\n\n3. Confirmá quién va a hacer las consultas, porque el mensaje las promete.\n\n## Quién hace qué\n\nNo sé los nombres ni cómo se reparte el trabajo en tu equipo. Esta es mi propuesta:\n\n| Quién | Qué hace | Cuándo |\n|---|---|---|\n| Vos | Cambiar el borrador, enviarlo y asignar los pendientes | Ahora |\n| Vos o alguien técnico con un Odoo 17 de prueba | Probar el caso de las patas, sin publicar en una cuenta real: ver qué stock lee Odumbo, si se actualiza y qué descuenta la venta | Antes de habilitar los kits |\n| Quien conozca la infraestructura de Odumbo | Averiguar las IP y si son fijas | Antes de que el cliente limite el acceso |\n| Quien conozca el conector | Confirmar qué ventas importa, cómo evita duplicados y qué facturas sube | Antes de programar el cambio |\n| Quien conozca Odoo 17 Enterprise | Confirmar el módulo de tipos de pedido | Antes de que configuren la factura automática |\n| Responsable de privacidad | Responder qué datos se guardan y qué pasa en la baja | Para completar el punto 5 |\n| El cliente | No pasar los packs a Odumbo ni programar el cambio todavía | Hasta recibir nuestra confirmación |\n\nSi la prueba muestra 2 packs, hay que reportar el error y mantener el aviso. Si muestra 1 en ese caso, falta revisar los otros puntos antes de habilitar los kits. El riesgo sale de lo que sé de Odoo: no está en el material ni lo probé.\n\n## Qué significa cada cosa\n\n- **Campo técnico en `product.product`:** es un dato adicional que el conector agrega a los productos en el Odoo del cliente. `product.product` es el nombre interno de las variantes de producto. El material dice que el campo es de precio, pero no detalla cómo se usa. No me consta que cambie los precios de venta.\n- **Registros en `ir.model.data`:** `ir.model.data` es donde Odoo guarda identificadores para reconocer registros, como etiquetas internas. El material no dice cuáles crea el conector ni para qué.\n- **`tuqui_context`:** es la consulta interna de Adhoc que trae tu identidad y las reglas de la empresa. No la tuve disponible, así que no pude revisar el borrador contra las reglas de comunicación.\n- **`adhoc-way-guide`:** es la guía interna que ayuda, entre otras cosas, a dar de alta esa conexión. Te toca a vos si querés habilitarla.\n\n**Para el cliente:** conviene avisarle que el conector crea cosas en su Odoo, con las palabras simples del párrafo del punto 1. Los nombres `product.product` e `ir.model.data` no hacen falta en el mensaje. Si pregunta, podés responder:\n\n> El conector agrega un campo de precio en `product.product` (las variantes de producto) y crea registros en `ir.model.data`, donde Odoo guarda identificadores internos. Si necesitan el detalle de esos registros y su uso, lo tenemos que verificar.\n\n`tuqui_context` y `adhoc-way-guide` son internos y no van en el mensaje.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12891,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4153,
+  "output_tokens_details": {
+   "thinking_tokens": 2371
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12891,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4153,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12891,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12891
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fe980501c0",
+  "persona": "comercial"
+ }
+}

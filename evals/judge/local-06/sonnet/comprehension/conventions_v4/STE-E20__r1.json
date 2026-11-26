@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "ERROR: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502)",
+  "No está caído, según el log: falló el deploy de staging, pero el nuevo no se promovió y el anterior sigue atendiendo. El texto aclara que no se consultó staging en vivo.",
+  "Según `docs/infra-ci-cd.md`: en este tren, dejar solo la migración que completa los valores nulos (backfill) y sacar el `SET NOT NULL`; en un tren posterior, agregar otra migración con el `SET NOT NULL`. Antes de cambiarlo hay que revisar: (a) el contenido de `0415`, que no se vio, así que no se sabe si ya trae un backfill; si lo trae, juntarlo con el `SET NOT NULL` va contra la guía, y si además falló por filas viejas, revisar que el backfill las cubra todas. (b) El valor del backfill: si la columna registra la versión de términos aceptada (se deduce por los nombres), no asignar la versión actual solo para pasar la migración, porque quedaría registrada una aceptación que quizás no existió; el valor lo tiene que definir quien sea dueño de esa regla. (c) El código nuevo: hasta que esté el `SET NOT NULL`, la columna puede seguir recibiendo nulls, así que revisar que el código los tolere y si las altas nuevas ya guardan un valor."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "80a37d0a5a",
+  "control": "a20a96ac5b"
+ }
+}

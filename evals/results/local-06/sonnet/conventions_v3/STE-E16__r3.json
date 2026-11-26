@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Si editás un artifact que ya compartiste, quien tiene el link sigue viendo la versión publicada.** Tu cambio no le llega hasta que lo publiques. Todo esto sale del material que pegaste; no revisé el código.\n\n**Cómo funcionan las versiones**\n\nHay dos punteros:\n\n| Puntero | Qué indica | Quién lo usa |\n|---|---|---|\n| `current_version_id` | la versión actual, que se mueve con cada edición | el viewer interno, que además tiene un selector de versiones |\n| `published_version_id` | la versión publicada | la ruta por token (el link), que sirve **siempre** esta |\n\n- **Crear** (`save` sin `artifact_id`): crea la v1 y la publica, así que el link funciona desde el principio.\n- **Editar** (`save` con `artifact_id`): crea la v(n+1) y mueve solo la actual. El resultado devuelve `unpublished_changes: true` y el viewer muestra un banner.\n- **Publicar** (`publish(version?)`): mueve el puntero publicado. Si no indicás la versión, publica la última.\n- **Revertir:** publicás una versión anterior.\n\n**Qué pasa cuando solo se refrescan los datos**\n\nCada versión puede tener dos partes: `content`, que es la página completa, y `data`, un JSON opcional que la página lee al renderizar. Un refresh crea una versión que trae solo `data`.\n\nPara mostrar la versión `n`, el sistema busca cada parte por separado: el último `content` y el último `data` que existan hasta `n`. Por ejemplo:\n\n| Versión | Guarda | Se ve |\n|---|---|---|\n| v1 | content A + data 1 | A + 1 |\n| v2 (refresh) | data 2 | A + 2 |\n| v3 (cambio de diseño) | content B | B + 2 |\n\nPor eso un refresh no puede romper el diseño. Además, si el link está en v1, sigue mostrando A + 1: los datos de v2 quedan fuera de lo que esa versión puede tomar. Lo mismo al revertir: si publicás v1, vuelven el diseño **y los datos** de ese momento.\n\n**Lo que el material no aclara:** si el refresh publica automáticamente la versión que crea. La regla general dice que un `save` sobre un artifact existente no publica. Si el refresh funciona así, quien tiene el link no ve los datos nuevos hasta que alguien haga `publish`. El material lo ubica en la fase 2 (dashboards regenerables) y no dice qué operación usa. Para confirmarlo, revisá en el código si el refresh mueve `published_version_id`, o hacé un refresh y abrí el link.\n\nSi publicás después de un refresh y hay ediciones de diseño pendientes anteriores a esa versión, **también se publican**. En el ejemplo, un refresh posterior a v3 se vería con el diseño B.\n\n**Cuándo se rechaza un guardado**\n\n- **Formato de los datos:** al guardar sobre un artifact que tiene `data`, se valida contra el `data_schema` almacenado (claves obligatorias y tipos). Si no es compatible, se rechaza antes de escribir.\n- **Tamaño:** `content` admite hasta 1 MB, y `data` serializada, otro 1 MB. Si te pasás, falla con un error explícito.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10776,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1486,
+  "output_tokens_details": {
+   "thinking_tokens": 336
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10776,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1486,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10776,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10776
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

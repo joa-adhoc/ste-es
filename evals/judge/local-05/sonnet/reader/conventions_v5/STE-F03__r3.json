@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en criollo y corto? ¿Qué problema reporta el ticket (qué orden, qué quiso hacer el cliente y qué error le salió)? ¿La solución de desactivar el bloqueo y confirmar P00231 ya se probó en una copia, o la tengo que probar yo? Si me toca a mí, decime desde qué menú se hace y qué quieren decir «stock_ux», «traslados 415 y 416» y «tuqui-adhoc», y si me afecta que no lo hayas tenido disponible."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás sin nombres técnicos? No sé qué es `stock_ux` (¿es parte de Odoo estándar o un agregado nuestro, y a quién le aviso del posible defecto?). Tampoco sé qué es `tuqui-adhoc` ni si, al no haber cargado las reglas de la empresa, cambia algo de los pasos que proponés o tengo que hacer algo antes de seguirlos."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás corto y sin términos técnicos? Pedí revisar el ticket: decime primero qué problema tiene el cliente (qué quiso hacer y qué error le salió) y cómo se soluciona. Aclará también qué es `stock_ux` y dónde encuentro en pantalla la opción «Bloquear eliminación de traslados» para hacer la prueba en la copia."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en criollo y corto? ¿Qué problema reporta el ticket (qué orden, qué quiso hacer el cliente y qué error le salió)? ¿La solución de desactivar el bloqueo y confirmar P00231 ya se probó en una copia, o la tengo que probar yo? Si me toca a mí, decime desde qué menú se hace y qué quieren decir «stock_ux», «traslados 415 y 416» y «tuqui-adhoc», y si me afecta que no lo hayas tenido disponible.",
+ "followup_answer": "**No probé la solución en una copia y el material no muestra que alguien lo haya hecho.** Si tenés el ticket a cargo, te toca probarla antes de tocar producción.\n\n**El problema:** el cliente quiso confirmar la orden de compra P00231, del Proveedor A, con **Confirmar orden**. Le salió que no se puede eliminar el traslado 416 porque el borrado está bloqueado en «Recepciones», o porque el traslado no está en borrador ni cancelado (antes nombraba el 415). La orden ya tenía las 2 unidades recibidas y la factura contabilizada; después la cancelaron y la pasaron a borrador.\n\n**Mi explicación probable, sin reproducir:** al confirmar, Odoo crea otra recepción. Como ya estaría todo recibido, queda vacía e intenta borrarla, y el bloqueo se lo impide.\n\n**Cómo probarlo, en la copia** (son los menús habituales de Odoo; no los verifiqué en esta base):\n1. Anotá stock del producto, movimientos de la recepción WH/IN/00098, cantidades y fecha de confirmación de la orden (si todavía figura) y estado y saldo de la factura. Fijate que el movimiento de esa recepción siga vinculado a la línea de la orden.\n2. En **Inventario → Configuración → Tipos de operaciones → Recepciones** (la del almacén de la orden), desmarcá **Bloquear eliminación de traslados** y guardá.\n3. En **Compras**, abrí P00231 y tocá **Confirmar orden**.\n4. Volvé a marcar la opción, aunque la confirmación falle.\n5. La orden tiene que quedar confirmada, con 2 pedidas, 2 recibidas y 2 facturadas, sin recepciones ni movimientos nuevos. Stock, WH/IN/00098 y factura no tienen que cambiar. Compará también la fecha, que puede pasar a ser la de la prueba. Si aparece algo nuevo o cambia el stock, una cantidad o la factura, no lo apliques en producción.\n\n**Los términos:**\n- **`stock_ux`:** módulo de Odoo by Adhoc; en el código que pasaste, es el que lanza este error al intentar borrar el traslado.\n- **Traslados 415 y 416:** un traslado es, por ejemplo, una recepción o una entrega. Esos números son IDs internos, no números como WH/IN/00098 (ID 412). No existen en la base; creo que eran las recepciones vacías de cada intento, que no quedaron guardadas por el error.\n- **`tuqui-adhoc`:** la conexión de tu agente con Tuqui, de donde salen tu identidad y las reglas de Adhoc.\n\n**Sí te afecta no haberlo tenido:** no revisé las reglas de la empresa, incluidas las de cómo operar Odoo. La explicación sale solo del material que pasaste. Antes de aplicar el cambio o contestarle al cliente, registrá o autenticá `tuqui-adhoc` (`https://tuqui.com/mcp/adhoc`) y revisá esas reglas. La respuesta sugerida para el cliente no la envié.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12845,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1819,
+  "output_tokens_details": {
+   "thinking_tokens": 720
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12845,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1819,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12845,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12845
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f29d520f61",
+  "persona": "soporte"
+ }
+}

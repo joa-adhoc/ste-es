@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el nombre de un test que haya fallado. Dice que falló el aislamiento entre workspaces: B ve 2 filas de `scheduled_runs` que son de A. Pide correr de nuevo `pytest tuqui_core/tests/test_rls.py -q`.",
+  "Porque `0398_scheduled_runs_draft.sql` ya crea una policy llamada `scheduled_runs_ws` con `USING (true)`. `0412_scheduled_runs.sql` crea la suya, filtrada por `workspace_id`, solo si no existe una con ese nombre. Como ya existe, la saltea, y el log lo muestra (`already exists, skipped`). Según el log y el `grep`, quedó activa la policy del borrador.",
+  "No. El texto dice que no hay que editar `0398` ni `0412`, porque según `AGENTS.md` una migración ya aplicada no vuelve a correr y las bases que ya las tienen seguirían con la policy abierta. Hay que agregar una migración nueva, con el número que siga en la secuencia, que haga `DROP POLICY IF EXISTS` y vuelva a crear `scheduled_runs_ws` con el filtro por `workspace_id`."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "67ab9ce8eb",
+  "control": "8368a6d09b"
+ }
+}

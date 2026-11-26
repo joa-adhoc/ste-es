@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**El error del ticket 140512 se explica por el despliegue del 2026-11-04. No veo evidencia de un bug de código.** Las reglas nuevas ya estaban en la base mientras el pod A seguía atendiendo sin el método que usan. Que el pod A tenía el código anterior lo deduzco de los errores; el material no dice qué imagen corría.\n\n| UTC (11-04) | Qué pasó |\n|---|---|\n| 15:06:29–58 | Arranca el pod A y carga 233 módulos. |\n| 15:07:39 / 15:08:01 | Se actualizan `account_multicompany_ux` y `stock_account_multicompany_ux`. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro, y el uid 31 tiene tres veces el `AttributeError`. |\n| 15:08:40 | Un cron falla con el mismo patrón: falta un método, esta vez en `res.company`. |\n| 15:08:53 / 15:08:58 | Arranca el pod B con la imagen nueva y se apaga el pod A. |\n| 15:09–15:30 | El pod B no registra errores. |\n\n- **Causa:** recargar el registro no alcanza para incorporar código Python de otra imagen. El pod A podía leer las reglas nuevas de la base, pero no tenía `_get_branch_stock_root_ids`.\n- **Hoy:** el método está definido en `stock_account_multicompany_ux/models/res_users.py` y el archivo se importa. Con esto y los logs del pod B, no propongo cambiar código.\n- **Diferencia de horario:** el cliente informa las 15:09:12, 34 segundos después del último error del uid 31 que figura en el material y 14 después de que el pod A empezó a apagarse. Puede ser la hora en que vio o copió el error, pero **no está verificado**. Para cerrarlo, buscaría ese traceback y los pedidos del uid 31 entre 15:08:58 y 15:09:30 en **los dos pods**, incluyendo el cierre del A. El dato de \"ningún error\" es solo del B y arranca a las 15:09.\n- **Alcance de lo revisado:** no sé si volvió a pasar después de las 15:30 de ese día. Para saberlo, habría que buscar los dos `AttributeError` en los logs posteriores.\n\n**Qué haría**\n1. Pedirle al cliente que confirme si la carga de stock quedó hecha y, antes de repetirla, que revise los movimientos para no duplicarla.\n2. Cargar `stock_account_multicompany_ux` como módulo del ticket.\n3. Avisar a quien maneja los despliegues que la base se actualizó con el pod anterior todavía activo. El material no muestra qué proceso hizo la actualización ni si esto es lo esperado. El cron que falló conviene revisarlo también: confirmar que después haya corrido bien.\n\n**Borrador para el cliente**\n> Hola. El error que viste al cargar stock coincide con una actualización que se estaba aplicando en tu base el 4/11, cerca de las 12:08 (hora argentina). Durante ese momento, una parte del sistema todavía no estaba al día con la otra. En la revisión de los registros hasta las 12:30, no encontramos errores en la nueva instancia. Antes de repetir la carga, revisá si quedó registrada. Si no quedó, probá de nuevo, y si vuelve a aparecer el error, mandanos la hora y qué estabas haciendo.\n\nNo tuve `tuqui-adhoc` en esta sesión, así que no leí el ticket en vivo ni hice consultas nuevas a la base o a los logs. El análisis sale solo del material que pegaste, y no modifiqué ni envié nada. Para dar de alta la conexión, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 28433,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 2767,
+  "output_tokens_details": {
+   "thinking_tokens": 1438
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 28433,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2767,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 28433,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 28433
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

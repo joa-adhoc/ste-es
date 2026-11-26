@@ -1,0 +1,47 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "La diferencia es qué pasa con lo que el campo ya tenía: **`replace` lo pisa y `append` lo conserva y agrega lo nuevo abajo.**\n\n## `replace` y `append`\n\n- **`mode=\"replace\"` (por defecto):** reemplaza cada campo que mandás con el valor nuevo. No lee antes el valor actual. En textos largos como `description` es peligroso: lo anterior se pierde sin vuelta, porque esos campos no lo guardan en el chatter.\n- **`mode=\"append\"`:** en los campos `html` y `text`, lee cada registro y le agrega el contenido nuevo a lo que ya tiene. **Los demás tipos de campo se reemplazan igual.**\n\nPor ejemplo, si `description` dice `<p>A</p>` y mandás `<p>B</p>`:\n\n| Modo | Resultado |\n|---|---|\n| `replace` | `<p>B</p>` |\n| `append` | `<p>A</p>` y abajo `<p>B</p>` |\n\nCon `append` mandás **solo lo nuevo**. Si incluís también lo anterior, queda duplicado. El HTML se concatena sin pasar por Markdown, así que no se rompen los links a registros, las clases ni las imágenes embebidas. En campos `text`, los separa una línea en blanco.\n\n## Si el `append` falla a mitad de camino\n\nNo es una transacción: escribe registro por registro y **lo que ya se escribió no se revierte.**\n\nSupongamos que mandás los ids `[10, 11, 12, 13]` y falla el 12. Recibís el error `append_partially_applied` con estos datos:\n\n| Dato | Valor | Qué significa |\n|---|---|---|\n| `written_ids` | `[10, 11]` | Ya tienen el texto nuevo |\n| `failed_id` | `12` | Falló y no se escribió |\n| `pending_ids` | `[12, 13]` | Son los que hay que reintentar, **incluido el 12** |\n\nReintentá **solo con `pending_ids`**, después de resolver la causa del error si hace falta. Si repetís la llamada con los cuatro, el 10 y el 11 quedan con el texto duplicado. Los ids escritos quedan además en `tool_usage_log.write_metadata`, con `partial: true`.\n\n**Si falla el primero**, no se escribió nada. En vez de `append_partially_applied`, recibís un error de escritura común (`invalid_values` o la excepción original). Ahí corresponde reintentar la llamada entera, una vez resuelta la causa.\n\n## Otros dos casos en que `append` rechaza la escritura\n\n- **`append_precheck_failed`:** no pudo leer el valor actual o resolver el schema. No escribe, porque sin ese valor terminaría pisando el contenido.\n- **`append_requires_text`:** mandaste un valor que no es texto en un campo `html` o `text`, como `{\"description\": false}`. Para vaciar el campo, usá `mode=\"replace\"`.\n\nEn resumen para el uso diario: si te piden \"agregar\" o \"completar\", va `append`. Como `replace` es el valor por defecto, tenés que indicar `append` de forma explícita.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11055,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1311,
+  "output_tokens_details": {
+   "thinking_tokens": 229
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11055,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1311,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11055,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11055
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

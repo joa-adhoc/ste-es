@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás una tabla que diga a qué campo de la pantalla de Odoo corresponde cada columna de los CSV (por ejemplo, `to_pay_move_line_ids/id`, `l10n_ar_withholding_line_ids/...` y `l10n_latam_new_check_ids/...`) y cuáles son obligatorias? Aclarame también qué es «el material» al que te referís y qué es `tuqui-adhoc`, y si eso cambia cuánto puedo confiar en los nombres de las columnas."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me armás una tabla con cada columna de los CSV, con el nombre que tiene en la pantalla de Odoo, si es obligatoria u opcional (y en qué archivo), y de dónde saco el valor? En especial, explicame paso a paso cómo exporto el identificador de la línea de la factura que va en `to_pay_move_line_ids/id`: no sé qué columnas como `l10n_ar_withholding_line_ids/...` o `l10n_latam_new_check_ids/...` corresponden a qué campo de la pantalla."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me podés pasar una tabla que diga, para cada columna de los CSV, a qué campo de la pantalla de Odoo corresponde, si es obligatoria u opcional y qué va ahí, con un ejemplo de cómo se ve el identificador del apunte de una factura al exportarlo? De paso, aclarame qué son «el material» y `tuqui-adhoc`, y si los nombres de las columnas de cheques y retenciones se pueden dar por buenos o los tengo que verificar antes de usarlos (y cómo lo hago desde la pantalla)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me pasás una tabla que diga a qué campo de la pantalla de Odoo corresponde cada columna de los CSV (por ejemplo, `to_pay_move_line_ids/id`, `l10n_ar_withholding_line_ids/...` y `l10n_latam_new_check_ids/...`) y cuáles son obligatorias? Aclarame también qué es «el material» al que te referís y qué es `tuqui-adhoc`, y si eso cambia cuánto puedo confiar en los nombres de las columnas.",
+ "followup_answer": "Las columnas son las mismas en los tres CSV, salvo que el de cheques agrega las de cheques y no lleva `amount`. **Los nombres de pantalla los puse de memoria y no los verifiqué en la base del cliente**; pueden cambiar según la traducción o la vista.\n\n**Datos del pago**\n\n| Columna | Campo en pantalla (aproximado) | ¿Obligatoria? |\n|---|---|---|\n| `id` | No se ve; es el identificador externo del registro | No figura como obligatoria. La uso para identificar cada pago importado |\n| `partner_type` | Cliente o proveedor; suele depender del menú desde donde entrás | **Sí** |\n| `payment_type` | Tipo de pago (recibir o enviar) | **Sí** |\n| `partner_id` | Cliente / Proveedor | **Sí** |\n| `date` | Fecha | **Sí** |\n| `journal_id/id` | Diario | **Sí** |\n| `payment_method_line_id/id` | Método de pago | **Sí** |\n| `amount` | Importe | No figura como obligatoria. Completala si no hay cheques; con cheques se calcula |\n| `to_pay_move_line_ids/id` | Deudas a pagar | No, pero la necesitás para elegir qué facturas saldar |\n\n**Retenciones** (cada columna empieza con `l10n_ar_withholding_line_ids/`)\n\n| Termina en | Campo en la línea de retención | ¿Obligatoria en cada línea? |\n|---|---|---|\n| `tax_id/id` | Impuesto | **Sí** |\n| `name` | Número | A proveedores va vacía. En recibos, no está indicado si es obligatoria; cargá el número del certificado |\n| `base_amount` | Base | No está indicado; en los ejemplos la completé |\n| `amount` | Importe | No está indicado; en los ejemplos la completé |\n\n**Cheques nuevos** (cada columna empieza con `l10n_latam_new_check_ids/`)\n\n| Termina en | Campo en la línea del cheque | ¿Obligatoria en cada cheque? |\n|---|---|---|\n| `name` | Número | No está indicado; completala |\n| `payment_date` | Fecha de pago | No está indicado; completala |\n| `bank_id` | Banco | No; si va vacía, sale del cliente |\n| `issuer_vat` | CUIT del emisor | No; si va vacía, sale del cliente. El CUIT se valida |\n| `amount` | Monto | Tiene que ser mayor a 0 |\n\nLas retenciones y los cheques son obligatorios solo en el sentido de la tabla: si el pago no los tiene, no van esas líneas. El talonario de recibos se calcula solo.\n\n**Qué es «el material».** Es el texto que pegaste en tu pedido debajo de «Material:», sobre los módulos de Odoo by Adhoc 18. De ahí salen los campos obligatorios y el comportamiento descrito. El mismo texto aclara que nada se probó importando en la base del cliente.\n\n**Qué es `tuqui-adhoc`.** Es el servidor MCP de Adhoc, una conexión que le da al asistente la identidad del dev, reglas de la empresa y skills publicadas. No lo tuve disponible.\n\n**Cuánto confiar en los nombres.** Depende de dónde sale cada uno. No haber tenido `tuqui-adhoc` no prueba que estén mal, y tenerlo conectado no alcanzaría para darlos por probados en esa base.\n\n- **Están en el material:** los campos del pago, `receiptbook_id` y los nombres `to_pay_move_line_ids`, `l10n_latam_new_check_ids` y `l10n_ar_withholding_line_ids`. También el formato `to_pay_move_line_ids/id`.\n- **Salen de mi conocimiento de Odoo:** las terminaciones de las columnas de cheques y retenciones. El material describe esos datos, pero no da sus nombres técnicos. Lo mismo vale para `id` y para usar `/id` en diario, método de pago e impuesto. Confiá menos en estos hasta verificarlos.\n\n**Cómo verificarlos en la base del cliente:**\n1. Activá el modo desarrollador y pasá el mouse sobre las etiquetas o los encabezados: se ve el nombre técnico del campo.\n2. Exportá un pago de prueba que tenga cheques y retenciones, con la opción «compatible con importación», y compará los encabezados.\n3. En una base de prueba, subí cada CSV con datos reales, revisá a qué campo se asigna cada columna y usá «Probar».\n\n«Probar» ayuda a detectar errores de columnas y valores, pero no alcanza para saber cómo quedan las deudas y las retenciones. Para eso, importá en la base de prueba, revisá el borrador, confirmalo y controlá la conciliación.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13083,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2919,
+  "output_tokens_details": {
+   "thinking_tokens": 1234
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13083,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2919,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13083,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13083
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "98682762b3",
+  "persona": "consultoria"
+ }
+}

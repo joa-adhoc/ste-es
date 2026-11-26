@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código y confirmarme todos los caminos que terminan en 0 teasers? En particular, qué pasa si el Synthesizer no genera ninguno; si una investigación no encuentra nada, falla o se queda sin tiempo (por el watchdog) o sin llamadas; y si falla la llamada al modelo del Planner, del Investigator o del Synthesizer, incluido un JSON inválido. En cada caso, decime si queda en silencio, si deja algún debug_note o si sale con error."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y decirme todos los casos en que no se muestra nada? En particular: qué pasa si el Synthesizer no genera ningún teaser; si una investigación no encuentra nada, falla o se queda sin tiempo, iteraciones o llamadas; y si fallan el Context Assembler, el Planner, el Synthesizer o el guardado en `insights`. En cada caso, ¿el resultado es silencio, error o se sigue con resultados parciales?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar todos los casos en que no se muestra nada? En particular: qué pasa si el Synthesizer no genera ningún teaser, si una investigación no encuentra nada, falla o se queda sin tiempo o sin llamadas a herramientas, si se corta por el watchdog, y si falla la llamada al modelo del Planner o del Synthesizer."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés mirar el código y confirmarme todos los caminos que terminan en 0 teasers? En particular, qué pasa si el Synthesizer no genera ninguno; si una investigación no encuentra nada, falla o se queda sin tiempo (por el watchdog) o sin llamadas; y si falla la llamada al modelo del Planner, del Investigator o del Synthesizer, incluido un JSON inválido. En cada caso, decime si queda en silencio, si deja algún debug_note o si sale con error.",
+ "followup_answer": "No pude confirmarlo con el código: el directorio de trabajo, `/tmp/ste-es-eval-kh_xj4uj`, está vacío. Mi primer intento incluía buscar en tu home y en `/tmp`, pero requería aprobación y no se ejecutó. Después solo revisé el directorio de trabajo, así que no sé si hay una copia del repo en otro lado.\n\nEsto es lo que se puede afirmar **solo con el texto que pegaste**:\n\n| Caso | ¿Termina en 0 teasers? | Qué deja o cómo sale |\n|---|---|---|\n| El Planner no devuelve hipótesis | Sí, es un silencio válido | `PlannerOutput` tiene `silence_reason`; el texto no dice si se guarda o se registra |\n| Los filtros rechazan todos los teasers | Sí | `debug_note=\"synth_all_rejected: ...\"` |\n| El Synthesizer no genera ningún teaser | Sin confirmar | No dice si lleva `debug_note` ni si usa el mismo que cuando se rechazan todos |\n| Una investigación no encuentra nada | Sin confirmar | No lo dice |\n| Una investigación falla | Sin confirmar | No dice si afecta solo a esa hipótesis o a toda la corrida |\n| Se acaba el tiempo | Sin confirmar | Solo da el tiempo por hipótesis, `(watchdog_sec - 30) / n_hypotheses`; no dice qué pasa al agotarse ni cuando actúa el watchdog |\n| Se acaban las iteraciones o las llamadas a herramientas | Sin confirmar | Solo da los límites; no dice si quedan hallazgos parciales o hay un error |\n| Falla el modelo del Planner o devuelve JSON inválido | Sin confirmar | No lo dice |\n| Falla el modelo del Investigator o su salida es inválida | Sin confirmar | No lo dice |\n| Falla el modelo del Synthesizer o devuelve JSON inválido | Sin confirmar | No lo dice |\n| Falla el LLM juez por infraestructura | No por ese error: el teaser pasa | El texto no menciona un `debug_note`; tampoco aclara si un JSON inválido del juez cuenta como falla de infraestructura |\n\nPor eso **la lista de caminos a 0 teasers está incompleta**: el texto solo confirma dos. Que no mencione los demás no significa que queden en silencio ni que salgan con error.\n\nPara cerrarlo, pasame la ruta del repo o dejá una copia en el directorio de trabajo. Si preferís que lo busque en tu home, aprobá la búsqueda cuando te la pida. Con el código, seguiría:\n- **Etapas:** `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`: manejo de excepciones, reintentos, validación del JSON, límites y listas vacías.\n- **Quien las llama:** el watchdog, qué pasa con las investigaciones que corren a la vez si una falla, y dónde se guardan o registran `debug_note`, `silence_reason` y los errores antes del upsert en `insights`.\n- **Tests:** cuáles de estos casos están cubiertos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13611,
+  "cache_read_input_tokens": 78722,
+  "output_tokens": 1818,
+  "output_tokens_details": {
+   "thinking_tokens": 306
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13611,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1361,
+    "cache_read_input_tokens": 30825,
+    "cache_creation_input_tokens": 296,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 296
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7adb0a899b"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "La credencial del workspace tiene que ser de un admin de sistema en Odoo: se verifica con `has_group(uid, 'base.group_system')` y, si no lo es, lanza `ValueError`. El texto aclara que el vínculo personal de quien conecta es una identidad distinta y opcional. Para el usuario elegido en `manual`, el material no muestra que se exija admin de sistema, solo que el `res.users` exista.",
+  "Por defecto usa `auto` si `current_user.email == odoo_login`, y vincula al miembro con `admin_uid`. Si los emails no coinciden, el modo por defecto es `none` y no asigna `odoo_user_id`. También existe `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, se verifica que ese `res.users` exista y se lo vincula. Si la URL no cambia y el modo es `none`, el pseudocódigo no toca el miembro, así que un vínculo anterior se conservaría, aunque `none` se describe como \"deja el Member sin `odoo_user_id`\"; el texto dice que conviene revisar ese caso. No dice si se puede forzar `auto` cuando los emails difieren, ni si la comparación distingue mayúsculas.",
+  "Se limpian `odoo_user_id` y `odoo_api_key` de todos los miembros, incluido el owner, porque esas identidades pueden apuntar a otra instancia. Las credenciales del workspace son las nuevas, guardadas en el paso 5. En `auto` o `manual`, quien conecta se vuelve a vincular y se lanza la sincronización de su API key; en `none`, también queda sin vínculo. El flujo no muestra que se vuelva a vincular a los demás miembros. `members_invalidated` es 0 salvo que cambie la URL. Sobre `warning`, trae un mensaje para mostrar en la interfaz, pero el material no dice cuándo se completa ni con qué texto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "672942f7c2",
+  "control": "d70443294a"
+ }
+}

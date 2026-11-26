@@ -1,0 +1,44 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El traslado que Odoo intenta borrar no es la recepción 412.** Todo indica que es una recepción nueva y vacía que crea al confirmar P00231. `stock_ux` impide borrarla y la confirmación falla. Lo deduzco del material: no lo reproduje ni consulté la base.\n\n## Qué pasa\n\n1. El 11/11 la orden se confirmó, figuró con 2 unidades recibidas y se validó la recepción 412. Después se canceló y volvió a borrador. La 412 sigue en Hecho.\n2. Al confirmar de nuevo, Odoo estándar crea una recepción (`purchase_order.py`, líneas 383-404).\n3. Las 2 unidades de la línea ya figuran recibidas. Por eso no quedaría nada pendiente y la recepción nueva quedaría sin movimientos.\n4. Odoo intenta borrarla con `created_receipt.unlink()`.\n5. «Recepciones» tiene `block_picking_deletion` = True. Con eso alcanza para que `_check_block_picking_deletion` lance el error, aunque el traslado esté en borrador.\n\n**Los id 415 y 416** no existen porque el error revierte la transacción. PostgreSQL no devuelve los números ya usados de la secuencia, así que otro intento puede mostrar un id distinto.\n\n## Cómo regularizar\n\nPropongo confirmar la orden con el bloqueo desactivado por un momento. **No está probado**, así que hacelo primero en una copia de la base.\n\n1. **Antes de confirmar:**\n   - Revisá que la línea siga en 2 unidades y que no haya líneas nuevas.\n   - Revisá que el movimiento hecho de la 412 siga vinculado a esa línea.\n   - Anotá el stock del producto, y las cantidades recibidas y facturadas.\n2. Desactivá «Bloquear eliminación de traslados» en «Recepciones». Hacelo en un momento de poco uso, porque afecta a todo ese tipo de operación.\n3. Confirmá P00231. Si queda pendiente de aprobación, apróbala con el bloqueo todavía desactivado.\n4. Volvé a activar el bloqueo, también si la confirmación falla.\n5. **Verificá:**\n   - La orden quedó como Orden de compra.\n   - La única recepción vinculada es la 412, sigue en Hecho y no apareció otra.\n   - La línea sigue con 2 recibidas y 2 facturadas, y el stock no cambió.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSi en la copia queda una recepción nueva con movimientos, la hipótesis o los vínculos están mal. En ese caso no lo apliques en producción, porque validarla podría duplicar el stock. En la copia, mirá también qué más cambia al confirmar, como la fecha de confirmación o los avisos que se envíen.\n\nPara regularizar, no toques la 412 ni la factura: no hagas devoluciones ni notas de crédito. Tampoco dupliques la orden, porque la copia pediría recibir otra vez. No cambies el estado por SQL, porque saltea la lógica de confirmación.\n\n## Corrección de fondo\n\nSi se confirma la hipótesis, hay un choque entre `stock_ux` y el estándar: el bloqueo también frena la limpieza interna de una recepción vacía. Podría repetirse en otras confirmaciones sin cantidad pendiente, con tipos de operación que tengan el bloqueo.\n\nSe podría exceptuar en `stock_ux` ese borrado interno, idealmente solo para traslados en borrador y sin movimientos. Limitarlo al flujo de confirmación, por ejemplo con una marca en el contexto, evita habilitar el borrado manual de borradores vacíos. Antes hay que leer el método completo y sumar un test con la secuencia recibir → cancelar → pasar a borrador → confirmar.\n\n## Preguntas abiertas\n\n- **¿Por qué se pudo cancelar una orden con una recepción hecha?** No se leyó el código que lo decide, así que no sé si es estándar, una personalización o un error. Conviene revisarlo aparte. Hasta entonces, no recomiendo volver a cancelar la orden.\n- **¿Para qué se canceló el 11/11?** Conviene preguntárselo al cliente. Si quería corregir precio, cantidad o anular la compra, confirmar la orden tal como está puede no alcanzar.\n\nNo pude cargar `tuqui_context` porque `tuqui-adhoc` no está disponible en esta sesión. Antes de operar la base o responderle al cliente, revisá las reglas de la empresa. Para darlo de alta, usá `adhoc-way-guide`. No modifiqué nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10948,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3158,
+  "output_tokens_details": {
+   "thinking_tokens": 1505
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10948,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3158,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10948,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10948
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo pasás en pasos que pueda hacer desde la pantalla? Decime dónde está «Bloquear eliminación de traslados» (menú y pestaña, y si necesito algún permiso o modo especial), quién arma la copia neutralizada y a quién se la pido. También qué quiere decir en criollo «stock_ux», «created_receipt.unlink()» y «block_picking_deletion», y qué son la 412, la 415 y la 416: ¿cómo las identifico en Odoo si en pantalla veo números como WH/IN/00098?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? ¿Dónde está exactamente la opción «Bloquear eliminación de traslados» (menú y pestaña, y si hace falta algún permiso o modo desarrollador)? ¿Qué es `stock_ux` y qué significan `block_picking_deletion` y `created_receipt.unlink()`? ¿Y cómo consigo la «copia neutralizada» de la base para probarlo, o a quién se la pido?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en pasos de pantalla y sin nombres técnicos? Necesito saber en qué menú está «Bloquear eliminación de traslados» y cómo hago o pido la copia neutralizada de la base para probar. También qué son `stock_ux`, `unlink` y `block_picking_deletion`, y si hay algo de eso que yo tenga que hacer o pasarle a desarrollo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo pasás en pasos que pueda hacer desde la pantalla? Decime dónde está «Bloquear eliminación de traslados» (menú y pestaña, y si necesito algún permiso o modo especial), quién arma la copia neutralizada y a quién se la pido. También qué quiere decir en criollo «stock_ux», «created_receipt.unlink()» y «block_picking_deletion», y qué son la 412, la 415 y la 416: ¿cómo las identifico en Odoo si en pantalla veo números como WH/IN/00098?",
+ "followup_answer": "**Probalo primero en una copia neutralizada. En producción, solo si la prueba sale bien y todo coincide.** No vi las pantallas de esta base. Los menús son los habituales de Odoo y los nombres pueden variar un poco.\n\n## 1. Pedí la copia\nEl material no dice quién arma la copia ni a quién pedírsela. Preguntale a tu equipo quién administra la base de este cliente. Podés mandar este mensaje:\n\n> Para el ticket 139447 necesito una copia neutralizada y actualizada de la base del cliente (Odoo 19.0). Voy a probar la confirmación de P00231 con «Bloquear eliminación de traslados» desactivado. ¿Quién la puede armar y cómo accedo?\n\n\"Neutralizada\" significa una copia para pruebas, sin acciones sobre el mundo real, como mandar correos. Pedí que confirmen que también estén desconectadas las integraciones externas, incluida la facturación electrónica. Antes de empezar, verificá que estás en la copia.\n\n## 2. Anotá cómo está todo\n- **Orden:** en **Compras**, abrí P00231. Anotá el estado y las cantidades pedida, recibida y facturada. Si falta una columna, revisá el selector de columnas.\n- **Traslados:** en **Inventario**, entrá a la lista de recepciones, quitá los filtros y buscá P00231 como documento de origen. Anotá cada una y su estado.\n- **Stock:** abrí el producto y anotá la cantidad a mano y la prevista. En **Inventario → Informes → Historial de movimientos**, anotá sus movimientos.\n- **Factura:** abrí BILL/2026/11/0007 en **Contabilidad → Proveedores → Facturas**. Anotá estado, importe y orden vinculada.\n\n## 3. Desactivá el bloqueo\n1. Entrá a **Inventario → Configuración → Tipos de operaciones**.\n2. Abrí **Recepciones**. Si hay varias, elegí la del almacén de WH/IN/00098.\n3. Buscá **Bloquear eliminación de traslados**, anotá que está activado, desmarcalo y guardá.\n\n**No sé en qué pestaña está**, porque no vi la pantalla que agrega Adhoc. Normalmente necesitás ser administrador de Inventario para entrar a ese menú. No verifiqué si esta opción pide otro permiso o el modo desarrollador. Si no la ves, consultalo con quien administra la base.\n\n## 4. Confirmá y compará\n1. Abrí P00231 y tocá **Confirmar orden**.\n2. Volvé a **Recepciones** y activá de nuevo el bloqueo, **aunque la confirmación haya fallado**.\n3. Compará con lo que anotaste:\n   - La orden quedó confirmada. Si quedó pendiente de aprobación, falta ese paso.\n   - WH/IN/00098 sigue en Hecho, y no hay recepciones ni movimientos nuevos.\n   - El stock no cambió.\n   - La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - La factura sigue contabilizada, con el mismo importe y vinculada a la orden.\n   - La fecha de confirmación puede cambiar. Revisá si afecta algún reporte.\n\nLa prueba puede fallar aun sin el bloqueo: el módulo tampoco deja borrar traslados que no estén en borrador o cancelados. **Si falla o algo no coincide, no sigas en producción.** Guardá el mensaje completo.\n\nAntes de pasar a producción, confirmá con el cliente por qué canceló la orden y si corresponde confirmarla tal como está. Si todo está bien, repetí los pasos 2 a 4 en un momento de poca actividad. Mientras el bloqueo esté desactivado, otros usuarios pueden borrar recepciones en borrador o canceladas de ese tipo. No devuelvas WH/IN/00098, no anules la factura ni cargues otra orden por esta compra.\n\n## En criollo\n| Nombre | Qué es |\n|---|---|\n| `stock_ux` | Un agregado de Adhoc para Inventario. Incluye el control que muestra este error. |\n| `created_receipt.unlink()` | La instrucción de Odoo estándar que borra la recepción recién creada si quedó sin movimientos. No es algo que tengas que ejecutar. |\n| `block_picking_deletion` | El nombre interno de la opción **Bloquear eliminación de traslados**. |\n\n## 412, 415 y 416\nSon **ID internos**: el número con el que la base identifica cada traslado. WH/IN/00098 es el nombre que se ve en pantalla, y su número no tiene por qué coincidir con el ID.\n\n- **412:** según los datos, es WH/IN/00098, la recepción en Hecho.\n- **415 y 416:** no existen en la base, así que no los podés abrir. Creo que fueron recepciones temporales de dos intentos de confirmación, que se deshicieron con el error. No lo reproduje, y no sé qué nombre habrían tenido.\n\nPara ver el ID de una recepción, abrila y mirá la dirección del navegador: normalmente es el número del final. También podés activar el modo desarrollador desde **Ajustes**, si tenés acceso. Después, tocá el ícono del bicho y elegí **Ver metadatos**. Si probás de nuevo y falla, el error puede mostrar otro número.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12963,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3174,
+  "output_tokens_details": {
+   "thinking_tokens": 1285
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12963,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3174,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12963,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12963
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5bd35f691c",
+  "persona": "soporte"
+ }
+}

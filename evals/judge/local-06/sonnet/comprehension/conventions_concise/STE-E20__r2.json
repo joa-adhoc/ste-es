@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "`23502`, en el `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL` de la migración `0415_terms_acceptance.sql`, porque la columna tiene valores en null.",
+  "Según el log, no: el deploy nuevo no se promovió y el anterior sigue sirviendo. No se consultó el entorno, así que su estado actual no está verificado.",
+  "Según el extracto de `docs/infra-ci-cd.md`, separándolo en dos trenes: (1) una migración que haga el backfill de `accepted_version` en las filas en null, sacando el `SET NOT NULL` de este tren; (2) en un tren posterior, otra migración con el `SET NOT NULL`. Antes de escribirlo hay que definir qué valor les corresponde a las filas viejas. Como la columna parece registrar una aceptación de términos (inferido por los nombres), no conviene completar una versión que esas personas quizás nunca aceptaron. También hay que revisar que el código que escribe en `members` ya cargue el valor, para que no aparezcan nulls nuevos antes del segundo tren."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6587e35a65",
+  "control": "a20a96ac5b"
+ }
+}

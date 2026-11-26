@@ -1,0 +1,47 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La revisión del PR #1840 de Lari (\"feat: búsqueda de partners por CUIT\", contra `staging`) encontró un problema bloqueante: una inyección SQL. Todavía no publiqué nada, ni en GitHub ni en la tarea.\n\n**Bloqueante:** `tuqui_core/odoo/partners.py:88` arma la consulta con un f-string, y `cuit` viene del usuario:\n\n```python\nf\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"\n```\n\nHay que pasar `cuit` como parámetro de la consulta. Por ejemplo, si ahí se usa el cursor de Odoo o psycopg:\n\n```python\ncr.execute(\"SELECT id FROM res_partner WHERE vat = %s\", (cuit,))\n```\n\n**Detalles menores:**\n- `test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\n**Alcance:** leí completos `partners.py` y `test_partners.py`. El registro no muestra que haya leído otros archivos del PR (+212 −40). Los checks de CI están todos en verde, pero no corrí los tests en local. Ese verde no descarta la inyección.\n\nSi querés, preparo el comentario para el PR con estos tres puntos y te lo muestro antes de publicarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10381,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 474,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10381,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 474,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10381,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10381
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Borrador para enviar\n\n> **1. Permisos**\n> Hoy Ajustes como Administrador es necesario: el chequeo de conexión lo exige en todas las versiones de Odoo, así que con permisos solo de Ventas, Inventario y Facturación no alcanza. Además de leer la configuración de la base (aplicaciones, empresas y estructura del catálogo), el conector crea en ella un campo técnico de precio en los productos y algunos registros técnicos.\n> La configuración completa es: Administración: Ajustes; Ventas: Administrador; Contabilidad: Facturación; Inventario: Administrador; y en los permisos técnicos, Gestión de Productos y Límite de crédito.\n> Las direcciones IP desde las que se conecta Odumbo las tenemos que confirmar.\n>\n> **2. Kits**\n> Para publicar stock, Odumbo toma lo que Odoo informa de cada producto en la ubicación configurada: la cantidad \"A la mano\" menos la \"Saliente\". No tiene un tratamiento propio para kits, así que antes de confirmarles que su pack de 4 patas se publica bien necesitamos validarlo.\n> Sobre la venta: al confirmarla, Odoo genera la entrega, y el stock se descuenta del publicado aunque no facturen.\n>\n> **3. Cambio desde su módulo actual**\n> Los pasos para no duplicar ventas ni facturas los tenemos que confirmar. Les recomendamos no activar Odumbo en producción mientras no los hayamos definido.\n>\n> **4. Facturación**\n> Pueden facturar a mano y en lote una vez por día. Odumbo no factura: ustedes generan y validan las facturas en Odoo, de a una o en forma masiva, y Odumbo las detecta y las sube a la venta entre 6 y 24 horas después. La subida de facturas es solo para Mercado Libre.\n> Para que la factura salga sola al confirmar la venta recomendamos los tipos de pedido de venta. Les vamos a confirmar con qué módulo se hace en Odoo 17 Enterprise.\n>\n> **5. Datos**\n> Qué datos se guardan además de las credenciales, y qué pasa con ellos si dan de baja el servicio, lo tenemos que confirmar.\n\n## Para vos, antes de enviar (no va al cliente)\n\nEl borrador promete confirmaciones sobre IPs, kits, cambio de módulo, módulo de facturación y datos. Conviene saber quién responde cada una.\n\n- **Permisos:** el chequeo demuestra que el permiso se exige, no que cada operación lo necesite. El campo y los registros técnicos probablemente expliquen el pedido, pero no lo verifiqué.\n- **IPs:** el manual dice que los datos técnicos de la conexión se piden por ticket, pero no dice que incluyan IPs. No mandé al cliente a abrir uno; confirmalo internamente.\n- **Kits:** hay que probarlo en un Odoo 17 con el pack real.\n  - **Si se publica:** el código saltea los productos no almacenables, salvo los \"packs\". No hay nada para `mrp` ni `phantom`, así que no des por hecho que \"pack\" incluya un kit. Revisá cómo lo detecta: un kit no almacenable podría quedar afuera.\n  - **Cantidad:** por lo que sé de Odoo (no está en el material), calcula `qty_available` y `outgoing_qty` del kit a partir de sus componentes. Si redondea cada una por separado, puede haber sobreventa. Con 10 patas a la mano y 3 salientes, daría 2 − 0 = 2 packs, cuando las 7 libres alcanzan para 1. Probá ese caso.\n  - **Descuento de patas:** lo esperable en Odoo es que la entrega de un kit salga por componentes, y que \"A la mano\" baje al validarla. Probalo con una venta que entre por Odumbo; no lo afirmé en el borrador.\n- **Cambio de módulo:** no hay fuente. Como propuesta mía para validar:\n  1. Fijar fecha y hora de corte.\n  2. Averiguar desde qué fecha importa Odumbo y si reconoce ventas ya cargadas por otro módulo.\n  3. Antes de activarlo, apagar en el módulo anterior la importación, la facturación y sus tareas programadas.\n  4. Listar las ventas cercanas al corte y definir cuál sistema toma cada una, incluidas las pendientes de facturar.\n  5. Después del corte, cruzar por número de venta de Mercado Libre para detectar duplicados o faltantes, y revisar qué facturas ya estaban subidas.\n\n  Si Odumbo no reconoce las ventas anteriores, también hay que ver cómo evitar que las importe de nuevo. Con la facturación automática, una venta duplicada podría generar otra factura.\n- **Módulo en Odoo 17:** creo que puede ser `sale_order_type_automation`, de `ingadhoc/sale`, junto con el módulo base de tipos de pedido. Es de memoria: verificá que exista en la rama 17.0 y sus dependencias antes de nombrarlo.\n- **Datos:** que responda quien conozca el almacenamiento y la política de baja, incluidos los plazos de borrado y las copias de respaldo.\n\nUsé solo el material que pegaste. En esta sesión no tengo disponible `tuqui-adhoc`, así que no pude cargar las reglas de comunicación de la empresa; revisalo antes de enviar. Si querés tenerlo disponible, hay que darlo de alta o autenticarlo, y te puedo guiar con `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10686,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4155,
+  "output_tokens_details": {
+   "thinking_tokens": 2191
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10686,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4155,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10686,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10686
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

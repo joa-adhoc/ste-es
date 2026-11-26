@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Tenés que tocar el backend sí o sí**: la migración, la escritura y la lectura de la API van ahí. Lo que depende del uso es **quién elige el idioma**. Si la descripción solo se muestra en la SPA, lo elige el cliente. Si además entra a un prompt, a un mail o sale por el MCP saliente, el backend también tiene que elegirlo.\n\nNo pude revisar el código porque el repo no está en este directorio. Por eso no verifiqué quién usa la descripción, y los ejemplos salen solo de tu guía.\n\n## 0. Antes de empezar\n\n**Fijate si la columna ya existe.** Tu guía cita `0201_platform_connectors_description_i18n.sql`. Por el nombre, `platform_connectors` quizás ya tiene `description_i18n`. Si es así, no crees otra migración y revisá qué falta de los pasos siguientes. Si hablás de otra tabla de conectores, esa migración te sirve de referencia.\n\nDespués buscá quién usa la descripción, desde la raíz del repo:\n\n```bash\ngrep -rn \"description_i18n\" supabase/migrations tuqui_core\ngrep -rniE \"connector.*description|description.*connector\" . --exclude-dir={node_modules,.git,dist}\n```\n\nLa búsqueda es orientativa. Puede no encontrar un `SELECT *` o un objeto que pasa entero a un prompt, así que seguí también las lecturas de la tabla.\n\n## 1. Migración\n\nSi falta la columna (supongo que la tabla es `platform_connectors`):\n\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\n\nDejá `description` como está. Solo si ya existe algo como `description_en` y tenés que pasar esos datos, mirá `0206_features_i18n.sql`.\n\n## 2. API\n\n- **Al escribir:** pasá el mapa por `normalize_i18n_keys`. Deja las claves en dos letras minúsculas y descarta las vacías.\n- **Al leer:** pasá el valor por `decode_i18n`, porque JSONB puede llegar como `str` o como `dict`.\n- **Respuesta:** devolvé `description` y el mapa `description_i18n` completo, sin filtrar por idioma.\n\nLas dos funciones están en `tuqui_core/i18n.py`, así que no las vuelvas a implementar. Revisá también que los modelos de entrada y salida y las consultas incluyan el campo nuevo.\n\n## 3. Front: mostrar la descripción\n\n```ts\nconst description = localizedField(\n  connector.description_i18n,\n  connector.description,\n  i18n.language,\n);\n```\n\nAgregá `description_i18n` al tipo de TypeScript y usá esta función en cada lugar que muestra la descripción. El orden es idioma exacto → `en` → `description`, y no hay que escribirlo a mano.\n\n## 4. Editor del panel de admin\n\nPoné dos campos, ES y EN. Al guardar, mandá solo las claves con texto y copiá `es || en` en `description`. Este fragmento muestra la idea, con `es` y `en` como los valores de esos campos:\n\n```ts\nconst payload = {\n  description_i18n: Object.fromEntries(\n    Object.entries({ es, en }).filter(([, value]) => value.trim()),\n  ),\n  description: es.trim() ? es : en,\n};\n```\n\nUsá `AdminAgentEditorPage.tsx:95-115` como referencia. Al abrir un conector que solo tiene `description`, decidí en qué campo precargarla. Si los dos quedan vacíos, al guardar podés borrar el texto actual. Tu guía no dice en qué idioma está ese texto. Probá también qué pasa al vaciar los dos campos: la API tiene que distinguir «borrar» de «no cambiar».\n\n## 5. Backend: elegir el idioma (solo si aplica)\n\nEsto va si la descripción llega a un prompt, un mail o el MCP saliente:\n\n- Tomá `lang` de `resolve_response_language(workspace_id, user_id)`, no de `Accept-Language`.\n- Aplicá el mismo orden: `lang` → `en` → `description`.\n- Si ya hay una función del backend que lo hace, como la que se use para `agents`, reusala. No verifiqué que exista.\n- La API de la SPA sigue devolviendo el mapa completo, y el front sigue usando `localizedField`.\n\nSi el servidor termina devolviendo a la SPA un texto ya resuelto, el `queryKey` de react-query **tiene** que incluir el idioma. Con el mapa completo y la elección en el cliente, no hace falta por este motivo. Resolver solo para un prompt o un mail tampoco lo exige.\n\n## Qué probar\n\n- Con ES y EN cargados, cambiar el idioma cambia la descripción.\n- Si falta el idioma actual, se muestra `en`.\n- Un conector viejo, sin mapa, muestra `description`.\n- Al guardar y volver a abrir, se conservan los dos textos.\n- Si aplica el paso 5, el prompt, el mail o el MCP reciben el idioma correcto.\n\nSi corrés esto con el repo disponible, puedo confirmar si la columna ya existe y si necesitás el paso 5.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11646,
+  "cache_read_input_tokens": 46254,
+  "output_tokens": 2600,
+  "output_tokens_details": {
+   "thinking_tokens": 622
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11646,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2265,
+    "cache_read_input_tokens": 28744,
+    "cache_creation_input_tokens": 412,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 412
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 2,
+ "is_error": false
+}

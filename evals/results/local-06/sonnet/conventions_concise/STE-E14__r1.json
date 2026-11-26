@@ -1,0 +1,47 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los insights diarios salen de un Context Assembler seguido de tres etapas (Planner, Investigator y Synthesizer con filtros), y el resultado son de 0 a 2 teasers que se guardan con upsert en la tabla de insights. Esto sale solo del material que pegaste; no revisé el código.\n\n## Etapas y qué le pasa cada una a la siguiente\n\n**0. Context Assembler** (`context_assembler.py`)\nCorre 6 consultas en paralelo con los permisos (RLS) del usuario:\n- el perfil del workspace (empresa, rubro, objetivos);\n- el perfil del usuario (rol, preferencias);\n- la memoria, con alcance de workspace y de usuario;\n- los chats de los últimos 7 días (título y último mensaje, sin resumen por LLM);\n- `insight_history` de los últimos 14 días, que sirve de señal para no repetir datos ya mostrados.\n\nLa tabla del material tiene seis filas porque cuenta las dos memorias por separado.\n\n**Entrega al Planner:** un bloque en markdown de unos 2–4K tokens.\n\n**1. Planner** (`planner.py`)\nGemini Flash, con salida JSON estructurada y temperatura 1.0, usa ese contexto para plantear hipótesis. El modelo se configura en `platform_config.insights_planner_model`; por defecto se usa el de la plataforma.\n\n**Entrega al Investigator:** `PlannerOutput(hypotheses, silence_reason)`, con cero o más hipótesis.\n\n**2. Investigator** (`investigator.py`)\nEs un agente de Pydantic AI que investiga cada hipótesis con herramientas de solo lectura, sin las de `approval`. Cuánto puede investigar depende del registro de la hipótesis, es decir, de su tipo:\n\n| Registro | Iteraciones máx. | Llamadas a herramientas máx. | Razonamiento |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | mínimo |\n| `observacion` | 8 | 15 | bajo |\n| `alerta` / `analisis` | 12 | 25 | medio |\n\nInvestiga hasta 3 hipótesis a la vez, y cada una tiene un tiempo de `(watchdog_sec - 30) / n_hipótesis`.\n\n**Entrega al Synthesizer:** `InvestigationFindings`, con los resúmenes de lo investigado.\n\n**3. Synthesizer y filtros** (`synthesizer.py`, `guards.py`)\nUn LLM (JSON estructurado, temperatura 1.0) redacta los teasers a partir de los hallazgos. Después pasan por tres filtros en orden:\n1. **ResponseGuard (regex):** rechaza textos sospechosos o con marcadores sin completar, como \"cliente A\", \"seguramente\" o \"[nombre]\".\n2. **StringGrounding (rapidfuzz):** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado de la investigación, con `partial_ratio >= 75`. Es una coincidencia aproximada, así que no exige que el texto sea idéntico.\n3. **LLM Judge:** el mismo modelo del Synthesizer, a temperatura cero, devuelve `{grounded, reason}` para indicar si el teaser está respaldado.\n\n**Salida:** de 0 a 2 teasers.\n\n## Cuándo no muestra nada\nEl material describe dos casos explícitos:\n- **El Planner no plantea hipótesis:** es un silencio válido y no se generan teasers. La salida tiene un campo `silence_reason` para el motivo.\n- **Los filtros rechazan todos los teasers:** devuelve `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`.\n\nEl rango final de 0–2 también admite que no salga ningún teaser, pero el material no detalla otras causas. Tampoco dice qué pasa si:\n- una hipótesis agota su tiempo, sus iteraciones o sus llamadas;\n- falla una consulta del Context Assembler, el Planner, el Investigator o el Synthesizer;\n- el Synthesizer no genera ningún teaser antes de los filtros;\n- con una lista vacía, se hace igual el upsert o queda algún registro.\n\nLa única falla de infraestructura documentada es la del LLM Judge: en ese caso **el teaser pasa** ese filtro, así que por sí sola no deja al usuario sin insights. La contracara es que ese teaser sale sin la verificación del juez, solo con los dos filtros anteriores. Para cerrar los otros casos habría que revisar el código del pipeline.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11281,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1621,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11281,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1621,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11281,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11281
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

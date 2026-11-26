@@ -1,0 +1,47 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "`replace` pisa el valor completo de cada campo que mandás. `append` conserva lo que ya hay en los campos `html` y `text` y agrega lo nuevo abajo, registro por registro.\n\n**Cuál usar**\n- **`replace`** es el valor por defecto y no lee el valor anterior. En textos largos, como `description` o las notas internas, lo que pisa se pierde sin vuelta atrás: el chatter no guarda el valor anterior.\n- **`append`** es el que va si te piden *agregar* o *completar*. Mandá solo el contenido nuevo; si repetís el actual, queda duplicado. Los campos que no son `html` ni `text` se reemplazan igual que en `replace`.\n\nCon `append`, además:\n- El HTML se concatena crudo, así que se conservan links, clases e imágenes. En campos `text`, lo nuevo queda separado por una línea en blanco.\n- Un rich text vaciado desde la pantalla (`<p><br></p>`) cuenta como vacío. Uno que tiene solo una imagen cuenta como contenido.\n- Si no puede leer el valor actual o el schema, devuelve `append_precheck_failed` y no escribe nada.\n- Un valor que no es texto en un campo `html` o `text` (por ejemplo `{\"description\": false}`) se rechaza con `append_requires_text`. Para vaciar un campo, usá `replace`.\n\n**Si falla a mitad de camino**\n\n`append` hace un write por registro y no es una transacción. Lo que ya se escribió **no se revierte**.\n\n- **Si falla el primer registro**, no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada), y corresponde reintentar la llamada entera.\n- **Si falla uno posterior**, el error es `append_partially_applied` y trae:\n  - `written_ids`: los que ya se escribieron.\n  - `failed_id`: el que falló.\n  - `pending_ids`: los que faltan, **incluido el que falló**.\n\nPor ejemplo, con los registros 10, 20, 30 y 40, si falla el 30:\n\n| Dato | Valor |\n|---|---|\n| `written_ids` | 10, 20 |\n| `failed_id` | 30 |\n| `pending_ids` | 30, 40 |\n\nReintentá **solo con `pending_ids`**, después de resolver la causa del error si sigue presente. Si repetís la llamada entera, el 10 y el 20 reciben el contenido dos veces. Los ids escritos también quedan en `tool_usage_log.write_metadata`, con `partial: true`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11168,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 886,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11168,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 886,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11168,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11168
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

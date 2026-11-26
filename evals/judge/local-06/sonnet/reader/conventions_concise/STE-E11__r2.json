@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y cómo se promueve de `staging` a `main`? Si no tiene el flag y el código nuevo se deploya igual, ¿qué tengo que hacer para que el `DROP` se aplique, y quién lo hace?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de prod en Railway tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo se promueve de `staging` a `main`? Necesito saber si el DROP se aplica solo al llegar a prod o si hay que hacer algún paso manual."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y cómo se promueve de `staging` a `main`? Si no tiene el flag y el código nuevo se deploya igual, ¿qué tengo que hacer para que el `DROP` se aplique, y quién lo hace?",
+ "followup_answer": "**El material no dice si prod tiene el flag, cómo se pasa de `staging` a `main` ni quién puede cambiarlo o deployar.** Tampoco dice que `main` sea prod. Lo di por hecho en la fila \"Prod (deploy de `main`)\" de la tabla, así que tomala como no confirmada.\n\n**Si prod no tiene el flag y el código nuevo se deploya**, el runner saltea la migración sin registrarla y la columna sigue ahí. Revisá si el código nuevo funciona así. Por ejemplo, si la columna es `NOT NULL` sin default y el código nuevo deja de completarla, los `INSERT` van a fallar.\n\n**Para que se aplique el `DROP`**, según el mecanismo que describe el material:\n\n1. Confirmá que ningún servicio que use esa base siga corriendo código que necesite la columna.\n2. Revisá qué otras migraciones destructivas están pendientes en esa base. Con el flag activo, deduzco que el runner también aplicaría esas, no solo la tuya. Para eso, compará los archivos marcados del commit a deployar con la tabla `_migrations`.\n3. Quien tenga permiso tiene que dejar `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en ese environment.\n4. Después hay que deployar desde `main` o `staging`, según la rama de ese servicio, con `RAILWAY_GIT_BRANCH` informada. Cambiar el flag solo no alcanza si no vuelve a correr el runner.\n5. Verificá en los logs del deploy, en `_migrations` y en el esquema que la migración se haya aplicado.\n\nNo haría el `DROP` a mano: el runner no lo registraría y después podría intentar aplicarlo de nuevo. Si el SQL no tolera que la columna ya no exista (por ejemplo, sin `IF EXISTS`), fallaría.\n\n**Para cerrar lo que falta antes de mergear:**\n\n| Duda | Dónde mirar |\n|---|---|\n| Si prod tiene el flag y qué rama deploya | Variables y configuración de ese servicio en Railway |\n| Cómo se pasa de `staging` a `main` | `docs/infra-ci-cd.md` y los workflows de CI. El material solo enlaza una sección de ese documento sobre los previews, así que no sé si explica este paso. |\n| Quién cambia el flag y quién deploya | La persona o el equipo que administra ese environment en Railway. No sé quién es. |\n\nNo actives el flag solo para destrabar tu PR sin acordarlo con esa persona o equipo. Si me pasás el repo, puedo buscar la configuración y el flujo entre ramas. El valor real en prod puede requerir mirar Railway.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11919,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1715,
+  "output_tokens_details": {
+   "thinking_tokens": 769
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11919,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1715,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11919,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11919
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9ad37e9ee2"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Borrador para el cliente:**\n\n> Hola. Van las respuestas; algunos puntos todavía los tenemos que confirmar.\n>\n> **1. Permisos**\n> Hoy Ajustes: Administrador es necesario. El chequeo de conexión lo exige en todas las versiones de Odoo, así que no alcanza con permisos de Ventas, Inventario y Facturación. En Odoo 19, si falta, el chequeo se corta antes de revisar el resto. La lista completa de permisos está en el manual.\n>\n> Ese usuario no se usa solo para leer la configuración: el conector también crea un campo técnico de precio en `product.product` y registros en `ir.model.data`.\n>\n> Las IP desde las que se conecta Odumbo las tenemos que confirmar. Antes de restringir el acceso a su servidor, pidan los datos técnicos de la conexión con un ticket.\n>\n> **2. Kits**\n> Odumbo publica la cantidad \"A la mano\" menos la \"Saliente\" del producto, en la ubicación de stock configurada. No tiene un tratamiento específico para los kits de lista de materiales, y todavía no podemos confirmar que su caso funcione de punta a punta. Además, saltea los productos no almacenables, salvo los packs, y falta confirmar que un kit de Odoo entre en esa excepción.\n>\n> Recomendamos probar con un solo pack antes de habilitar el resto:\n> - Ver en Odoo cuánto stock calcula para el kit en la ubicación configurada y compararlo con el publicado.\n> - Confirmar una venta y revisar que la entrega incluya las patas, en la cantidad correcta.\n> - Revisar que el stock publicado se actualice después.\n>\n> **3. Cambio desde su módulo actual**\n> Todavía no tenemos un procedimiento para recomendarles que evite duplicar ventas o facturas. Lo tenemos que confirmar, y sugerimos no hacer el cambio hasta tenerlo definido. Algo que ya les podemos decir: Odumbo no genera facturas.\n>\n> **4. Facturación**\n> Pueden facturar a mano, de a una o en lote una vez por día. Odumbo detecta las facturas generadas y validadas en Odoo y las sube a la venta entre 6 y 24 horas después. La subida aplica solo a Mercado Libre. Tengan en cuenta que ese plazo se suma al tiempo que pase hasta que facturen.\n>\n> El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n>\n> Para que la factura salga sola al confirmar la venta, el manual recomienda los tipos de pedido de venta. Qué módulo los ofrece en Odoo 17 Enterprise lo tenemos que confirmar.\n>\n> **5. Datos**\n> Qué datos guarda Odumbo además de las credenciales, y qué pasa con ellos si dan de baja el servicio, lo tenemos que confirmar. Preferimos no responderles sin esa confirmación.\n\n**Antes de enviarlo** (esto es para vos):\n- **Pendientes:** IP de salida, procedimiento de cambio, módulo para Odoo 17 y datos (qué se guarda y qué pasa en la baja). No encontraste fuente para ninguno. El borrador promete confirmarlos, así que alguien tiene que quedar a cargo. El material tampoco asegura que el ticket de la pregunta 1 devuelva las IP.\n- **Manual incompleto:** explica Ajustes solo como lectura de la configuración, pero el conector también escribe. Conviene corregirlo. El material no prueba que esa escritura sea el motivo por el que se exige el permiso, por eso el borrador no lo afirma.\n- **Kits:** por lo que sé de Odoo estándar (no lo verifiqué acá), con `mrp` las cantidades del kit se calculan a partir de los componentes, y la entrega de la venta se abre en las patas. La duda principal es si el filtro de \"packs\" del conector incluye estos kits o los saltea por no ser almacenables. Se puede cerrar revisando esa condición en el código o con la prueba del borrador.\n- **Cambio de conector:** como base para validar con el equipo, propongo estos pasos. No son un procedimiento documentado:\n  1. Definir una fecha y hora de corte.\n  2. Desactivar en el módulo actual la importación de ventas, la facturación y la sincronización de stock.\n  3. Listar las ventas ya importadas y facturadas.\n  4. Averiguar si Odumbo importa ventas anteriores a la conexión y cómo reconoce las que ya están en Odoo. Esto incluye si puede volver a subir facturas a Mercado Libre.\n  5. Probar con pocas ventas antes de habilitar todo.\n\n  El paso 4 es el que define si hay riesgo de duplicados. Que Odumbo no facture no lo descarta: si vuelve a crear una venta y hay facturación automática o en lote, se puede facturar dos veces.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11163,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2903,
+  "output_tokens_details": {
+   "thinking_tokens": 1162
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11163,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2903,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11163,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11163
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

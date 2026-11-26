@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés mostrar cómo completar los ID_… con un caso concreto? Decime desde qué pantalla de Odoo saco el identificador externo del cliente o proveedor, del diario, del método de pago y del impuesto de retención (y qué hago si no tienen uno). Mostrame también una fila de recibos.csv ya llena con valores de ejemplo reales."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás desde la pantalla cómo consigo cada ID_… (cliente/proveedor, diario, método de pago e impuesto de retención)? Solo explicaste cómo sacar el de las deudas. Pasame un ejemplo de dónde exportar cada uno y qué hago si el registro no tiene identificador externo, así puedo completar las plantillas y hacer la prueba."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás desde la pantalla cómo consigo cada valor que va en los `ID_…` (cliente o proveedor, diario, método de pago, impuesto de retención y banco)? Solo explicaste cómo sacar el de las deudas. Además, ¿cómo verifico en la pantalla de importación que las columnas de cheques y retenciones sean las correctas (con qué nombre aparece cada una en Odoo) y en qué menú o modelo tengo que importar cada archivo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás desde la pantalla cómo consigo cada ID_… (cliente/proveedor, diario, método de pago e impuesto de retención)? Solo explicaste cómo sacar el de las deudas. Pasame un ejemplo de dónde exportar cada uno y qué hago si el registro no tiene identificador externo, así puedo completar las plantillas y hacer la prueba.",
+ "followup_answer": "Sí. Los menús y el comportamiento al exportar salen de mi conocimiento general de Odoo, no del material, y no los probé en la base del cliente. Los nombres pueden variar según idioma y permisos.\n\n## Cómo exportar\nHacelo **en la misma base donde vas a importar**. Un ID generado en producción puede no existir en una copia de prueba, y al revés.\n\n1. Abrí la **vista de lista**, buscá el registro y tildalo.\n2. Andá a **Acciones (⚙) › Exportar**. Si no aparece, puede que te falte el permiso de exportación.\n3. Tildá la opción para exportar **compatible con importación** («Quiero actualizar datos»).\n4. Agregá campos que te ayuden a reconocerlo (nombre, CUIT, compañía) y exportá.\n5. Copiá el valor completo de la columna `id` (ID externo).\n\n**Si el registro no tiene identificador externo:** no hace falta crearlo a mano. Al exportar la columna `id`, Odoo genera uno, parecido a `__export__.res_partner_1234_ab12cd34`, y lo guarda en la base. Copialo con el prefijo; no lo armes a partir de este ejemplo. Si ya tenía uno, aparece ese.\n\n## Dónde está cada uno\n\n| Reemplazo | Dónde | Qué revisar |\n|---|---|---|\n| `ID_CLIENTE` | Contabilidad › Clientes › Clientes (o Contactos) | Nombre y CUIT, por si hay duplicados. Tiene que corresponder a la deuda elegida. |\n| `ID_PROVEEDOR` | Contabilidad › Proveedores › Proveedores (o Contactos) | Lo mismo. |\n| `ID_DIARIO`, `ID_DIARIO_CHEQUES` | Contabilidad › Configuración › Diarios | Nombre, tipo y compañía. |\n| `ID_METODO`, `ID_METODO_CHEQUES` | Desde la lista de Diarios (ver abajo) | Que sea del diario elegido y del sentido correcto (cobro o pago). |\n| `ID_IMPUESTO_RET…` | Contabilidad › Configuración › Impuestos | Régimen, compañía y si es para cobros o pagos. Si hay nombres parecidos, no elijas solo por el nombre. |\n\nSi la lista de clientes o proveedores se abre en tarjetas, cambiala a lista. Para ver Configuración podés necesitar permisos de administración contable.\n\n### Método de pago\nEn el formulario del diario lo ves en las solapas **Pagos entrantes** y **Pagos salientes**. Para obtener su ID, tildá el diario en la lista y exportá:\n- **Para recibos:** el nombre y el ID de las líneas de método de pago entrantes (`inbound_payment_method_line_ids`).\n- **Para pagos:** lo mismo en las salientes (`outbound_payment_method_line_ids`).\n\nCopiá el ID **de la línea del método**, no el de la columna `id` del diario. Si hay varios métodos, salen en varias filas. Si con la opción compatible no podés desplegar esos subcampos, probá sin tildarla y elegí el «ID externo» de la línea.\n\nPara cheques, usá el mismo diario y método que elegirías al cargar a mano esa operación con **cheques nuevos**. No es lo mismo que el método para entregar cheques de terceros ya recibidos.\n\n## Atajo: partir de un pago que ya exista\nSi hay un recibo cargado a mano parecido al que querés importar (mismo diario, método y retención), exportalo desde la lista de recibos con la opción compatible. Para proveedores, hacé lo mismo desde pagos. Elegí estos campos:\n- `partner_id`, `journal_id` y `payment_method_line_id`\n- el impuesto dentro de `l10n_ar_withholding_line_ids`\n- si es de cheques, los subcampos de `l10n_latam_new_check_ids`\n\nRevisá que las columnas de relación traigan identificadores externos (encabezados terminados en `/id`) y no solo nombres. Esto además te sirve para **comprobar los nombres de subcampos** que en las plantillas quedaron sin verificar.\n\n- La columna `id` de este archivo identifica al pago existente: **no la copies a la plantilla**, porque podrías modificar ese pago en vez de crear otro.\n- Tomá de acá solo los datos que se repiten. Los apuntes de `to_pay_move_line_ids` sacalos de la deuda abierta que querés saldar, como te expliqué antes.\n\n## Para la prueba\n1. Reemplazá todos los `ID_…` de un solo recibo y ajustá fechas, importes y demás datos de ejemplo. Si tiene una sola retención o deuda, sacá las que sobran.\n2. En la lista de recibos, entrá a **Importar registros**, subí el CSV y revisá que cada columna quede asignada al campo correcto.\n3. Usá **Probar** antes de **Importar**. Que pase la validación no asegura que las deudas, retenciones o totales queden bien.\n4. Importá y revisá el borrador antes de confirmar. Después de confirmar, verificá que se haya conciliado contra la factura elegida.\n\nSi podés, hacelo primero en una base de prueba. Si una exportación no te muestra algún campo, pasame una captura del selector de campos, sin datos sensibles del cliente, y lo vemos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12907,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4504,
+  "output_tokens_details": {
+   "thinking_tokens": 2608
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12907,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4504,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12907,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12907
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e982cabb47",
+  "persona": "consultoria"
+ }
+}

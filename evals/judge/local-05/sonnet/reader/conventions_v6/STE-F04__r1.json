@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `store_id`, `account_multi_store`, `perm_read`, `_search`, `fetch()` o `sudo`. Contame en términos de pantalla y de permisos: ¿el usuario de Norte debería poder abrir la factura del punto 22 y usar «Ver asientos», y por qué creés que hoy le da error? Decime también qué tengo que hacer yo (por ejemplo, qué capturar del error) y qué parte le tengo que pasar a alguien de desarrollo, como la prueba en el shell y la revisión del código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `store_id`, `account_multi_store`, `account_journal_security`, `perm_read`, `_search`, `fetch()` ni `sudo`. Necesito saber, en criollo, qué debería poder ver y hacer el usuario de Norte con una factura del punto 22, por qué creés que «Ver asientos» falla aunque en el libro mayor la ve, y qué tengo que hacer yo ahora. Por ejemplo, ¿alcanza con pasarte la captura o el texto completo del error? Y la prueba en el shell y la revisión del código, ¿a quién se las pido?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `store_id`, `account_multi_store`, `account_journal_security`, `perm_read`, `_search`, `fetch()` ni `sudo`. Quiero saber cuál es el criterio esperado (si el usuario de Norte tiene que poder abrir y ver los asientos del punto 22) y por qué creés que una pantalla lo deja y otra no. Decime también qué tengo que hacer o juntar yo (por ejemplo, el error completo del cliente) y qué de las pruebas en shell y código le tengo que pasar a un desarrollador."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `store_id`, `account_multi_store`, `perm_read`, `_search`, `fetch()` o `sudo`. Contame en términos de pantalla y de permisos: ¿el usuario de Norte debería poder abrir la factura del punto 22 y usar «Ver asientos», y por qué creés que hoy le da error? Decime también qué tengo que hacer yo (por ejemplo, qué capturar del error) y qué parte le tengo que pasar a alguien de desarrollo, como la prueba en el shell y la revisión del código.",
+ "followup_answer": "**Según cómo está descripto el permiso, el usuario de Norte debería poder ver la factura del punto 22, pero no publicarla ni modificarla.** Si «Ver asientos» solo muestra información, también debería funcionar. Falta confirmar qué abre ese botón y qué datos consulta.\n\nLa configuración de sucursales dice que alguien de otra sucursal **puede ver** lo registrado en un diario, pero no operar con él. Las reglas de sucursal que vimos sobre diarios, asientos y pagos limitan los cambios, no la lectura. Por eso corrijo la idea de «si solo tiene Norte, no puede ver».\n\n**Por qué creo que da error (todavía es una hipótesis):** además de esas reglas, hay un filtro que oculta los diarios de otras sucursales cuando el sistema los busca. La intención era ocultar el diario Sur sin prohibir su lectura. Pero ese filtro podría estar actuando también cuando una pantalla necesita un dato del diario, como su nombre. Ahí el sistema lo trataría como falta de permiso. El libro mayor podría obtener los datos de otra forma y por eso mostrarlos.\n\nHay algo que todavía no cierra: el error menciona reglas que lo impiden, y la única regla de lectura sobre diarios que vimos separa por **compañía**, no por sucursal. Tampoco sabemos por qué el reporte de seguimiento al principio no muestra todas las facturas, ni cómo eran estos permisos en la 16.\n\n**Lo que tenés que hacer**, de ser posible en una copia de la base:\n\n1. **Capturá el error completo** con el usuario de Norte. Copiá todo el texto, incluidos los nombres del documento y de las reglas, aunque no los entiendas. Si hay un botón para copiar o ver detalles, usalo.\n2. **Anotá el caso:** usuario, compañía seleccionada, número de factura, fecha y hora, y los pasos desde Contactos.\n3. **Compará con el mismo usuario:**\n   - Abrí la misma factura desde el libro mayor de Contabilidad y tocá «Ver asientos». Que la veas en el libro mayor no demuestra que ese botón funcione desde ahí.\n   - Probá el botón con una factura de Norte desde el reporte de seguimiento.\n4. **Pasale a desarrollo** las capturas, esos resultados y el texto de abajo. Lo técnico no necesitás ejecutarlo ni interpretarlo.\n\n```text\nOdoo 18.0 (actualizada desde 16). Usuario \"Encargado Norte\", solo sucursal Norte.\nContactos > contacto > reporte de seguimiento > filtro libro mayor de la empresa >\nfactura del punto 22 (diario \"FACTURA ELECTRONICA SUR\") > \"Ver asientos\": error de lectura.\nDesde el libro mayor de Contabilidad las facturas se ven.\n\nHipótesis sin confirmar: el _search de account.journal en account_multi_store\nbloquea también la lectura, porque fetch() en 18 pasaría por _search.\n\nPedido:\n1. Conseguir el traceback (de los logs o reproduciendo en una copia).\n2. En un shell sobre una copia, con user = Encargado Norte y sin sudo:\n   env.invalidate_all()\n   env['account.journal'].with_user(user).browse(journal_id).read(['name'])\n   Probar con el ID del diario Sur y, por separado, con uno de Norte.\n3. Revisar en la versión desplegada fetch(), ese _search y lo que ejecuta \"Ver asientos\".\n4. Revisar el reporte de seguimiento y el libro mayor: por qué muestran distinto.\n\nSi Sur falla y Norte funciona, esa lectura está bloqueada; falta confirmar\ncon el traceback que es la que dispara el botón.\n```\n\n**Qué resultado buscaría:** que el usuario pueda consultar la factura y sus asientos, sin poder publicar ni modificar los de Sur, y que el diario Sur siga sin ofrecerse para elegir. Si el negocio quiere que Norte **no vea nada** de Sur, es un cambio del criterio actual y habría que aplicarlo en todas las pantallas y reportes. Para destrabarlo, no le agregaría la sucursal Sur al usuario, porque eso también le permitiría operar con sus diarios.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12573,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2692,
+  "output_tokens_details": {
+   "thinking_tokens": 1178
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12573,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2692,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12573,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12573
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c240e4c9fc",
+  "persona": "actualizacion"
+ }
+}

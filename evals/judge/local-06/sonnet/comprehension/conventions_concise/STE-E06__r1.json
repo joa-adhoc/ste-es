@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Los dos worktrees usan la misma DB local, y las migraciones de la rama de tu compañero le cambiaron el esquema. El caso típico, según el material, es una migración destructiva que borra o cambia columnas que tu código todavía lee, y por eso aparece `UndefinedColumnError`. No está comprobado en tu máquina: para confirmarlo, fijate si su rama elimina o renombra la columna que figura en el error.",
+  "No. El lock (`flock`) solo evita que corran dos pytest a la vez. No separa los esquemas, y la DB queda con las migraciones de las dos ramas.",
+  "Dale a tu worktree una DB propia. Creá `tuqui_core/.env.test.local` (está en `.gitignore`) tomando como base `.env.test.local.example`, y apuntalo a una DB local con un nombre propio de este worktree. Copiá del ejemplo o de `.env.test` el nombre de la variable de conexión. Si la DB no existe, puede que tengas que crearla. Después corré `make migrate-reset`, que arma el esquema desde cero y vacía la base a la que apunta. Antes confirmá que toma tu override y apunta a tu DB nueva, no a la compartida, porque el material no dice que `migrate-reset` cargue ese archivo. Volvé a correr los tests. Si el error sigue, revisá a qué DB se conectan y si a tu rama le falta una migración. No uses `npx supabase db reset`, porque aborta por prefijos de migración repetidos."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "04bdff0fc1",
+  "control": "d71584ce60"
+ }
+}

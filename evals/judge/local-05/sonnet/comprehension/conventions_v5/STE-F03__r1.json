@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al reconfirmar, Odoo (el estándar) crea una recepción nueva e intenta borrarla. El texto infiere, sin haberlo reproducido, que quedaría sin movimientos porque las 2 unidades ya figuran recibidas. Como «Recepciones» tiene activado `block_picking_deletion`, `_check_block_picking_deletion` de `stock_ux` lanza el error aunque el traslado esté en borrador. El error deshace toda la operación. El traslado que Odoo intenta borrar no es la 412.",
+  "El texto dice que P00231 se confirmó el 11/11 a las 12:26, que la 412 se validó a las 12:27 con las 2 unidades, que a las 13:26 se canceló la orden y que a las 13:27 volvió a borrador. Después, el error aparece al reconfirmar. No dice qué usuario hizo esas acciones ni para qué se canceló la orden (queda como pregunta abierta).",
+  "Primero, probar en una copia de la base. El procedimiento es: 1) anotar el stock del producto y el estado de la orden, la 412 y la factura; 2) en un momento sin otra operación, desactivar «Bloquear eliminación de traslados» en el tipo de operación «Recepciones»; 3) confirmar P00231; 4) volver a activar la opción enseguida, también si la confirmación falla; 5) comprobar que la orden queda como orden de compra con 2 pedidas, 2 recibidas y 2 facturadas, que la única recepción vinculada sigue siendo la 412 en Hecho, que no hay movimientos nuevos y el stock no cambió, y que BILL/2026/11/0007 sigue contabilizada, sin cambios y vinculada a la línea. En la copia, revisar también si la orden pide aprobación, si se envían avisos y si cambian la fecha de confirmación o los datos del proveedor en el producto. Si aparece otra recepción o cambia alguna cantidad, no aplicarlo en la base del cliente. Esto vale si la compra sigue vigente. Si la cancelación de las 13:26 fue para anular la compra, no hay que reconfirmar sin más y habría que evaluar la devolución y la nota de crédito."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e14b37c1e1",
+  "control": "cf4a8527a9"
+ }
+}

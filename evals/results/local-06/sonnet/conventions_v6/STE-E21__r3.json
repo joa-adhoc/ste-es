@@ -1,0 +1,47 @@
+{
+ "case": "STE-E21",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No, borrar el commit no alcanza: la key ya llegó al remoto, así que **se da por filtrada y hay que rotarla**. GitHub guarda los commits del PR aunque reescribas la historia, y el preview de Railway ya construyó la imagen con ese commit.\n\nHacelo en este orden, según `docs/seguridad.md`:\n\n1. Creá una key nueva en el panel de OpenAI.\n2. Cargala en **Admin › Integraciones**, en staging y en prod. No la pongas en variables de entorno de Railway.\n3. Recién entonces revocá la vieja. Si la revocás antes, lo que la esté usando deja de funcionar.\n4. Limpiá la rama. Sacá la key del commit con `git rebase -i <base>`, marcándolo como `edit` (o `drop` si no tiene nada más que quieras conservar). Si usás `edit`, corregí el archivo y después corré:\n   ```bash\n   git add <archivo>\n   git commit --amend --no-edit\n   git rebase --continue\n   git push --force-with-lease\n   ```\n   Si una persona ya revisó el PR (comentó o aprobó; un bot no cuenta), la convención general es no reescribir la historia. En ese caso, sacá la key con un commit nuevo (donde mezcla la Mergebot, con `--fixup`, que se aplasta al mezclar). La rotación se hace igual.\n5. Avisá en la tarea abierta del proyecto 1526 (Administración Tuqui) qué key rotaste y cuándo. Identificala sin pegar su valor.\n\nLa limpieza de la rama es solo orden: **lo que te protege es revocar la key vieja**, así que no demores los pasos 1 a 3. No revisé tu repo ni el PR; me baso en lo que contaste y en el extracto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10511,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 619,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10511,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 619,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10511,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10511
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "`make worktree-setup`, corrido desde el worktree.",
+  "El texto no fija un único lugar y da dos opciones. Una es instalarla en el clone principal: no hay que reinstalar nada por worktree y los tests siguen corriendo el código del worktree, pero el venv es compartido, así que el cambio alcanza al clone principal y a todos los worktrees linkeados. La otra es borrar solo el link `tuqui_core/.venv` (no el contenido del venv al que apunta) y armar un venv propio en el worktree, lo que aísla la dependencia. En el worktree linkeado no hay que correr `make install`.",
+  "`npm ci` en el worktree, en `web/`. Antes hay que revisar con `ls -ld web/node_modules` y, si sigue siendo un link, sacarlo con `rm web/node_modules` (sin `-r` y sin barra final). El motivo: `web/node_modules` es un link al del clone principal, el material no dice si `npm ci` reemplaza el link o escribe a través de él, y `npm ci` borra `node_modules` antes de instalar. Sacando el link se crea una carpeta propia y no se toca la del clone principal. El texto pone este paso bajo el encabezado `web/package.json`, pero no dice explícitamente por qué hace falta correr `npm ci` antes de `make test-web`."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a204795b40",
+  "control": "f49fe0b54f"
+ }
+}

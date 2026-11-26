@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Lo que leíste de la base no respalda que Encargado Norte no tenga que ver esa factura.** Reprodujiste el error, pero todavía no sabemos qué lo causa, y no lo daría por un bloqueo correcto.\n\n**Qué muestra el material**\n- **Asientos y pagos:** las reglas por sucursal tienen `perm_read` = False, así que no restringen la lectura.\n- **Diario del punto 22:** la regla por sucursal tampoco restringe leer. Las de `account_journal_security` no deberían alcanzarlo, porque no tiene usuarios cargados. De las reglas de `account.journal` que listaste, para leer queda la de compañía.\n- **Diseño declarado:** según la ayuda de `store_id`, alguien de otra sucursal puede ver los registros del diario, pero no publicar ni modificar asientos.\n- **El filtro en `_search`:** oculta los diarios de otras sucursales en las búsquedas, pero no es una regla de registro ni equivale a prohibir la lectura. Por sí solo, no aparecería entre las reglas que nombra el error.\n\nEntonces el criterio que se desprende es **«ve, pero no opera», con los diarios ajenos ocultos en las búsquedas**. «Si no ve, que no vea en ningún lado» sería cambiar ese diseño. Habría que restringir la lectura al menos en asientos y revisar pagos, reportes y diarios. Para los diarios, el comentario del código advierte que eso genera errores en cualquier lugar que use un campo relacionado.\n\n**Una hipótesis, sin verificar:** al tocar «Ver asientos», alguna regla o dominio de otro modelo pasa por `journal_id`, termina usando ese `_search` y deja afuera el diario Sur. Así, un filtro de búsqueda podría terminar en un error de acceso. También puede ser una regla de otro modelo que no está en lo relevado.\n\n**Lo que no se puede afirmar todavía**\n- **La 16:** no leímos su código, así que no sabemos si los permisos se reforzaron.\n- **Los reportes:** tampoco leímos el seguimiento ni el libro mayor. No sabemos por qué muestran cosas distintas, ni si el mayor al que se llega desde el filtro funciona igual que el de Contabilidad. Que falten facturas en el seguimiento puede ser otro problema, distinto del error.\n\n**Cómo cerrarlo**\n1. Repetir el error con el modo desarrollador y copiar el mensaje completo y el traceback. Importan el modelo, la operación, el ID del registro y las reglas. Si el modo desarrollador cambia lo que ve ese usuario, alcanza con el traceback del log.\n2. Con eso, seguir qué abre «Ver asientos» y leer esas reglas y el `_search`. Confirmar también la compañía de la factura y del diario, y las compañías del usuario.\n3. En una copia de la base, sumarle la sucursal Sur y repetir. Si el error desaparece, depende de la sucursal, pero eso solo no dice qué parte falla ni que esté bien bloquear.\n4. Comparar los dos reportes con el mismo contacto, período, compañías y filtros.\n\nAl cliente le diría por ahora: «Reprodujimos el error y estamos revisando por qué el acceso no es igual en todas las pantallas». No le diría todavía que es falta de permisos ni le daría Sur como solución, porque eso también podría habilitarle publicar y modificar en esa sucursal. Si el traceback confirma la hipótesis, lo trataría como una inconsistencia a corregir. Cambiar el criterio de visibilidad es una decisión aparte.\n\nSi me pegás el traceback, sigo desde ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11001,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2965,
+  "output_tokens_details": {
+   "thinking_tokens": 1675
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11001,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2965,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11001,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11001
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

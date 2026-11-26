@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No lo corras así.** `git reset --hard origin/staging` te haría perder esto:\n\n- **Cambios sin commitear** en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`: se pierden y git no los puede recuperar.\n- **Tus 3 commits** (`a1b2c3d`, `d4e5f6a`, `0718293`): no están en `origin/feat/limite-mcp` y salen de la rama. Por un tiempo se pueden recuperar con el reflog.\n- **`supabase/migrations/0420_mcp_limits.sql`**: está sin trackear, así que normalmente el reset no la toca y no quedás de cero. Si `origin/staging` tiene un archivo en esa misma ruta, la pisa.\n\nAdemás, la rama pasaría a apuntar a `origin/staging`. No vi qué diferencia hay entre esa base y tu rama remota. Si ya había commits pusheados, también salen de tu rama local, aunque siguen en `origin/feat/limite-mcp`.\n\nPara empezar de cero sin perder nada, guardá todo y creá una rama nueva:\n\n```bash\ngit stash push -u -m \"limite-mcp wip\"   # incluye la migración sin trackear\ngit branch backup/limite-mcp            # conserva los 3 commits\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 --no-track origin/staging\n```\n\nEl stash no queda dentro de la rama de backup y ninguno de los dos se sube al remoto.\n\nSi querés conservar el nombre `feat/limite-mcp`, en lugar del último comando usá `git reset --hard origin/staging`, después del stash y el backup y estando en esa rama. Para publicarla después probablemente haga falta un `push --force-with-lease`, que reescribe la rama remota. Si alguien ya revisó el PR, no la reescribas.\n\nSi de verdad querés **descartar** todo ese trabajo, confirmámelo, incluyendo qué hacer con la migración.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10249,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 693,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10249,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 693,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10249,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10249
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

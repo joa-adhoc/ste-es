@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Falló el aislamiento entre workspaces:** el workspace B ve 2 filas de `scheduled_runs` del workspace A. La solución es una **migración nueva** que reemplace la policy.\n\n**Causa probable**, según el log y el `grep`:\n1. `0398_scheduled_runs_draft.sql` creó `scheduled_runs_ws` con `USING (true)`, que no filtra por workspace.\n2. `0412_scheduled_runs.sql` crea la policy correcta solo si no existe otra con ese nombre. El `IF NOT EXISTS` mira el nombre, no la condición.\n3. Como el log dice `already exists, skipped`, quedó la policy abierta.\n\n**Qué hacer**\n\nNo edites `0412`: las migraciones se trackean por nombre y no vuelve a correr en las bases donde ya se aplicó. Tampoco alcanza con editar `0398`. Creá un archivo en `supabase/migrations/` con el próximo número libre:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nVerificá que tu runner aplique los dos comandos en una misma transacción. Si no, agregá `BEGIN;` y `COMMIT;`.\n\nDespués aplicá las migraciones y volvé a correr:\n\n```bash\npytest tuqui_core/tests/test_rls.py -q\n```\n\n**Revisá los entornos compartidos, sobre todo producción.** Donde haya quedado la policy de `0398`, puede haber datos expuestos entre workspaces. Como no tiene `FOR`, `TO` ni `WITH CHECK`, vale para todas las operaciones y todos los roles. Si los permisos de la tabla lo dejan, también se podrían modificar, borrar o insertar filas de otro workspace. Consultá cada base:\n\n```sql\nSELECT policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n\nSELECT relrowsecurity, relforcerowsecurity\nFROM pg_class WHERE oid = 'scheduled_runs'::regclass;\n```\n\n- **Otras policies:** las permisivas se combinan con `OR`, así que otra abierta puede mantener la fuga.\n- **RLS:** `relrowsecurity` tiene que estar en `true`. El dueño de la tabla saltea RLS si `relforcerowsecurity` está en `false`. Los superusuarios y los roles con `BYPASSRLS` lo saltean siempre.\n- **Exposición:** si producción tenía la policy abierta, avisá al responsable de seguridad. La consulta muestra el estado actual, no si alguien accedió a datos ajenos.\n\nNo corrí los tests ni las consultas, y no probé la migración: el análisis sale solo de lo que pegaste. El arreglo se confirma si la migración se aplica y el test pasa.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10708,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1539,
+  "output_tokens_details": {
+   "thinking_tokens": 478
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10708,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1539,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10708,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10708
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

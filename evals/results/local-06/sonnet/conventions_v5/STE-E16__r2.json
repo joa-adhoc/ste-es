@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cada `save` sobre un artifact existente crea una versión nueva pero **no la publica**, así que quien tiene el link sigue viendo la versión publicada hasta que alguien haga `publish`.\n\n**Cómo funcionan las versiones**\n- El primer `save` (sin `artifact_id`) crea la v1 y la publica, por eso el link funciona desde el principio.\n- Cada `save` con `artifact_id` crea la v(n+1) y mueve la versión actual (`current_version_id`), no la publicada (`published_version_id`).\n- `publish(version?)` elige qué versión se publica; si no indicás ninguna, toma la última. Para revertir, publicás una anterior.\n\n**Si editás uno ya compartido**\n- Quien entra por el link (la ruta por token) sigue viendo la versión publicada.\n- El resultado del `save` avisa con `unpublished_changes: true`. El viewer interno navega por la versión actual, tiene un selector de versiones y muestra un banner.\n\n**Si solo se refrescan los datos**\n\nCada versión puede traer la página (`content`), los datos en JSON (`data`) o, en el caso de un refresh, solo datos. Para mostrar la versión `n`, se toman por separado el último `content` y el último `data` que existan hasta `n`. Un refresh usa entonces el diseño anterior con los datos nuevos y no puede romper la página en sí. El material ubica estos refreshes en la fase 2 (dashboards regenerables) y no dice si ya están disponibles.\n\n- **Validación:** un `save` con `data` se compara con el `data_schema` guardado (claves requeridas y tipos). Si no coincide, se rechaza antes de escribir.\n- **Límites:** `content` y `data` admiten hasta 1 MB cada uno, y pasarse da error.\n- **Qué ve el del link:** el material no describe una excepción para los refreshes. Si el refresh pasa por un `save` común, crea una versión sin publicar y el link **sigue mostrando los datos viejos** hasta el `publish`. No dice si el refresh de fase 2 publica solo. Para un dashboard compartido, conviene confirmarlo en el código antes de contar con que se actualiza solo.\n\nMe basé solo en el fragmento que pegaste; no revisé el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10886,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 782,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10886,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 782,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10886,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10886
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

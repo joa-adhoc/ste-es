@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Tu reproducción muestra que el error ocurre, pero lo que leímos no respalda que «no puede ver» sea el criterio.** El diseño declarado de `account_multi_store` es **ver sí, publicar y modificar no**:\n\n- La ayuda de `store_id` dice que los usuarios de otras sucursales «solo pueden ver los registros de este diario, pero no pueden publicar ni modificar asientos».\n- Las reglas de `account_multi_store` sobre diarios, asientos y pagos tienen `perm_read` = False. No restringen la lectura.\n- Las dos reglas de `account_journal_security` no aplican al diario del punto 22, porque no tiene usuarios cargados.\n- «Journal multi-company» sí limita la lectura, pero por compañía, no por sucursal.\n\n**Por qué parece contradictorio.** El módulo también modifica `account.journal._search`. A todo usuario que no sea superadmin le oculta de las búsquedas los diarios de otras sucursales. Según el comentario del código, no usaron una regla de lectura porque daría errores donde se use un campo relacionado con el diario.\n\nO sea, «Encargado Norte» puede tener permiso para leer algo del diario Sur y, a la vez, no encontrar ese diario en una búsqueda. Mi hipótesis es que el seguimiento, el libro mayor y «Ver asientos» llegan a los datos por caminos distintos, y no todos pasan por esa búsqueda. No está verificado: no leímos el código de esos reportes. Tampoco sé todavía si ese filtro causa el error, ni por qué el seguimiento no muestra todas las facturas.\n\n**Sobre la 16.** Que antes los permisos fueran más livianos y ahora se hayan reforzado puede ser, pero no lo verificamos. No leímos el código de la 16, así que no se lo diría así al cliente. Para confirmarlo hay que comparar las reglas y el `_search` de las dos versiones.\n\n**Qué criterio unificar:**\n\n| Criterio | Qué implica |\n|---|---|\n| **Ve, pero no opera** | Coincide con la ayuda y las reglas. Habría que corregir el punto que bloquea la lectura, cuando lo identifiquemos. También revisar si el filtro de búsqueda debe afectar a los reportes. |\n| **Si no es su sucursal, no ve en ningún lado** | Cambia el diseño. Habría que restringir la lectura de forma pareja y probar reportes, cuentas corrientes y documentos relacionados. El autor ya advirtió errores si se bloquea la lectura de diarios. Además, podrían quedar saldos o seguimientos parciales de un contacto. |\n\nRecomiendo **«ve, pero no opera»**. Si el cliente necesita aislar la información entre sucursales, lo trataría como un requerimiento nuevo y no como la corrección de este error. Eso no quiere decir que «Ver asientos» tenga que habilitar cambios: la restricción para publicar y modificar se mantiene.\n\n**Lo que falta para cerrar la causa** es el error de tus pasos. El mensaje dice que hay reglas que lo impiden, y las que leímos no explican un bloqueo de lectura por sucursal. Repetilo con el modo desarrollador y copiá el mensaje completo y el traceback. Hay que mirar:\n\n- **Modelo y registro:** qué intenta leer realmente, que puede no ser la factura ni el diario.\n- **Operación:** si confirma que es lectura.\n- **Reglas:** sus nombres exactos. Puede aparecer una que no está entre las relevadas.\n- **Recorrido:** qué método dispara «Ver asientos». Si el diálogo no lo muestra, hay que buscarlo en el log o en el código.\n\nCon eso se puede ver si es una regla que no revisamos, un efecto del `_search` u otra cosa. Hasta entonces no tocaría los permisos ni le asignaría la sucursal Sur al usuario: eso también le podría habilitar operar sobre ella.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11010,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2927,
+  "output_tokens_details": {
+   "thinking_tokens": 1536
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11010,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2927,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11010,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11010
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

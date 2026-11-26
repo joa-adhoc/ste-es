@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Hay dos errores distintos: en el primero corrés `pytest` desde donde no va, y en el segundo faltan comillas.\n\n**1. `pytest` desde la raíz.** No lo corras así. La configuración de la suite está en `tuqui_core/pyproject.toml` (modo asyncio, loop scopes, markers, `testpaths`) y desde la raíz pytest no la lee. Entonces pierde el modo asyncio, junta también `evals/tests` y puede devolver miles de fallas que no son del código (según el material, se midieron 2302 fallidos y 2111 pasados). El `conftest.py` de la raíz corta esa invocación con un mensaje. No me pasaste tu error, así que no puedo confirmar que sea ese.\n\n**2. `make test ARGS=-k a or b`.** Sin comillas, el shell parte la línea en varios argumentos. Según el material, `or` termina leído como un path, y de ahí sale `file or directory not found: or`. Poné la expresión entre comillas así:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nLas comillas de afuera hacen que todo llegue como un solo `ARGS`. Las de adentro se conservan, porque `ARGS` se expande literal en la receta, y así pytest recibe `a or b` como una sola expresión.\n\n**La forma correcta es usar `make` desde la raíz.** `make test` corre el mismo paso de pytest que el job `test` de CI.\n\n```bash\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/ (no los benchmarks)\nmake lint                                     # ruff check + format check\n```\n\n**Si necesitás `pytest` directo**, hacé primero `cd tuqui_core`. Si algún test lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile.\n\nOjo: el `conftest.py` no frena todos los casos. `pytest tuqui_core/tests/test_x.py` desde la raíz toma `tuqui_core` como rootdir y corre igual, pero se saltea el lock que sí aplica `make`. Que funcione no quiere decir que sea la forma correcta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10888,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 815,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10888,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 815,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10888,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10888
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

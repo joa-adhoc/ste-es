@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Una memoria se guarda en su scope, aparece resumida en el prompt de cada turno y se borra cuando es la más vieja de un scope lleno. Esto sale solo del material que pegaste; no revisé el código.\n\n**1. Guardado**\n- La memoria queda en uno de dos scopes: de usuario (personal) o de workspace (compartida con el equipo).\n- Cada scope admite hasta **50 memorias**: 50 por usuario y 50 por workspace.\n\n**2. Entrada al prompt, en cada turno**\n- `_load_chat_setup` (en `tuqui_core/chat/agent.py`) agrega las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto. Van primero las del workspace y después las del usuario.\n- De cada memoria entra solo el **header**: el título más el resumen. Si no tiene resumen, entra el cuerpo, hasta 250 caracteres.\n- Si el cuerpo supera los 250 caracteres y no hay resumen, el header termina en `... [read]`.\n\n**3. Lectura del cuerpo, a demanda**\n- Cuando el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**4. Cuando hay muchas**\nHay dos límites distintos:\n\n- **Cantidad guardada:** al agregar la memoria 51 en un scope, se borra la de `created_at` más antiguo, en la misma transacción de la base de datos. Es FIFO: según el material, cuenta la fecha de creación y no el uso. Por eso una memoria vieja se puede borrar aunque se consulte seguido. El material la llama eliminación \"silenciosa\", pero el modelo se entera por un mensaje en la respuesta de la herramienta. No dice si la persona recibe algún aviso.\n- **Tamaño en el prompt:** si los headers suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual del usuario. Solo entran los N mejores. Según este fragmento, este filtro no borra nada: solo decide qué se inyecta en ese turno. Entonces, una memoria que queda afuera en un turno puede entrar en otro.\n\n**Una cuenta para revisar:** el material dice que la carga progresiva limita el costo a unos 3K tokens con 50 memorias de tamaño máximo. Pero 50 headers con 250 caracteres de cuerpo ya suman 12.500 caracteres, sin contar títulos ni IDs. Además, puede haber 50 de usuario y 50 de workspace, o sea, hasta 100 headers. Con ese tamaño serían más de 25.000 caracteres, el doble del presupuesto. La cifra de 3K podría referirse a un solo scope. Si el presupuesto de 12K abarca los dos juntos, como parece, el filtro se activaría bastante antes de llenarlos.\n\nEl fragmento tampoco aclara:\n- cómo se calcula N;\n- si el filtro compara los dos scopes juntos o cada uno por separado;\n- si una memoria que quedó afuera del prompt se puede encontrar de otra forma en ese turno;\n- qué pasa al editar una memoria, o cuándo decide el modelo guardar una;\n- si el resumen tiene un largo máximo.\n\nPara cerrar estos puntos, hay que revisar `_load_chat_setup` y la implementación de `manage_memory`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10767,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1211,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10767,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1211,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10767,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10767
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

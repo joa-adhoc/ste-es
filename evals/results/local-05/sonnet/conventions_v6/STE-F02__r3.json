@@ -1,0 +1,47 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**No hay una opción nativa que cumpla todo el pedido.** El CC en la plantilla resuelve solo el envío de la factura a Administración. Para el resto hay que ir por personalización, que según la nota interna corresponde a Consultoría.\n\n| Opción | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| **CC en la plantilla** (`email_cc`) | Manda copia a Administración, en envíos manuales y automáticos | No la suma como seguidora, así que las respuestas no le llegan. Tampoco saca a nadie |\n| **«Responder a» en la plantilla** (a probar) | Podría llevar las respuestas al correo de Administración | No cambia seguidores ni otras notificaciones |\n| **Que el usuario Administración reciba por correo** | Donde ya sigue la factura, las notificaciones le llegarían por correo | No la agrega donde falta ni saca a nadie. Afecta todas sus notificaciones |\n| **«Agregar / Quitar seguidores»** | Permite corregir el histórico en forma masiva y, con reglas, los documentos nuevos | Las acciones son nativas, pero configurarlas es personalización |\n| **`mail_autosubscribe` (OCA)** | No aplica | Suscribe contactos de la empresa destinataria |\n\n**Por qué responde a Usuario A:** en la factura de ejemplo, Usuario A la validó, `account_ux` la envió y Odoo suscribe como seguidor al autor del envío, sin opción para apagarlo. El vendedor no es seguidor ahí, así que la explicación del cliente no se cumple en este caso. No la descarta en general: seis vendedores portal siguen unas 4.100 facturas de 2026, y el material no muestra cómo llegaron.\n\n**Para la personalización:**\n- **Orden de las reglas:** quitar seguidores al validar puede no alcanzar si el envío ocurre después, porque vuelve a suscribir al autor. Un reenvío manual también suscribe a quien lo hace. No probé en qué orden se ejecuta; hay que probar validación y reenvío.\n- **Qué «Administración» usar:** hoy usaría el contacto sin usuario (C1). El usuario interno (C2) sigue unas 4.600 facturas, pero está en «Gestionar en Odoo» y no recibe esas notificaciones por correo. Además, el cliente pide excluir usuarios internos, así que hay que confirmar a cuál se refiere.\n- **Código del ticket:** no alcanza, porque solo agrega Administración.\n\n**Antes de derivar, probaría «Responder a»** en una base de prueba: cargar el correo de Administración, validar una factura, revisar a quién va la respuesta y repetir con envío manual. El material no confirma que el envío de facturas en 18 respete ese campo. Si la respuesta va directo a una casilla externa, esperaría que tampoco quede en el historial de la factura, y el cliente tiene que aceptarlo. Aunque funcione, es una solución parcial.\n\n**Preguntas abiertas:**\n- **Copias a vendedores:** ¿de dónde salen? Revisaría los destinatarios de un correo real que haya llegado a un vendedor, y `partner_to` y `email_cc` en las plantillas de los cinco diarios.\n- **Usuario B:** el cliente dice que recibió la notificación, pero no figura entre los seguidores del ejemplo. Habría que ver los destinatarios de la respuesta del 19/10.\n\n**Plazo:** el ticket pedía resolverlo antes del 25/10. Si es de este año, venció hace un mes, así que conviene confirmar la urgencia y avisarle al cliente.\n\nMe basé solo en el material que pegaste: no entré al ticket ni a la base, y no cambié nada. Tampoco pude consultar `tuqui_context`, porque en esta sesión no tengo las herramientas de `tuqui-adhoc`; para darlo de alta está `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11446,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3214,
+  "output_tokens_details": {
+   "thinking_tokens": 1835
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11446,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3214,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11446,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11446
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

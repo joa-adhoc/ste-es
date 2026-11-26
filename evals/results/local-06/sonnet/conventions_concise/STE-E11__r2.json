@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "En el archivo tenés que poner la línea `-- destructive: true` cerca del inicio, porque dropear una columna deja sin poder correr al código anterior. Con esa marca, el runner la aplica solo si se cumplen **las dos** condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` **y** `RAILWAY_GIT_BRANCH` es `staging` o `main`. Si no, la saltea **sin registrarla** en `_migrations`, así un deploy posterior que sí cumpla la aplica.\n\n```sql\n-- destructive: true\nALTER TABLE ... DROP COLUMN ...;\n```\n\nRecorrido de la migración:\n\n| Momento | ¿Se aplica? |\n|---|---|\n| CI del PR (postgres de servicio, stack e2e, base de pytest) | Sí. Son bases efímeras que activan el opt-in. Usan `scripts/apply_migrations.py`. |\n| PR environment de Railway | No. Hereda el flag de staging, pero la rama no es `staging` ni `main`. Si hay marcadores de Railway sin rama, tampoco se aplica. |\n| `make migrate` local | No. No activa el opt-in, porque la base local se comparte entre worktrees. |\n| Deploy de la rama `staging` después del merge | Sí, donde esté el flag. Corre `python -m tuqui_core.db.migrate`, que en staging además aplica `seed.sql`. |\n| Prod (deploy de `main`) | Sí, si ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. El material no dice si prod lo tiene ni cómo se promueve de `staging` a `main`: confirmalo. Sin el flag, se saltea sin registrarse. |\n\n- **El preview comparte la base de staging:** como la migración se saltea, la columna sigue existiendo mientras probás el PR. El preview no te muestra cómo se comporta el esquema sin ella.\n- **Migraciones aditivas:** si el PR también trae alguna, va sin la marca y **sí** se aplica a la base de staging desde el preview. Por eso, no mezcles el `DROP` y cambios aditivos en un mismo archivo: con la marca se saltea todo el archivo. Antes de renombrar uno ya aplicado, leé `docs/infra-ci-cd.md` § \"Un PR preview escribe en la base de staging\", que no está en el material.\n\nEsto sale solo del texto que pegaste; no lo verifiqué contra el código del runner.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10903,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 878,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10903,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 878,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10903,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10903
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

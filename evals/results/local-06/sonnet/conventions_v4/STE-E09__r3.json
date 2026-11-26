@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El usuario autoriza en el provider, el backend canjea el `code` por tokens y después prueba las habilidades. Si algunas no contestan pero al menos una sí, **el usuario queda conectado** y ve un aviso de conexión parcial. Esto sale del material que pegaste; no lo contrasté con el código.\n\n## Antes de conectar\nEl admin registra el server con `auth_type=oauth_per_user`. Carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n## Conexión\n1. **Usuario → front:** entra a `/connectors` y clickea **Connect**.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve el `authorize_url` con un `state`.\n   - El material lo llama \"firmado\" y usa AES-GCM, que cifra y además detecta alteraciones. Vence a los 10 minutos.\n   - Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede sumar `code_verifier` (PKCE) y, en conectores de plataforma, `scope_profile`.\n   - La URL incluye `access_type=offline` y `prompt=consent`. Google necesita los dos para emitir un refresh token: el primero lo pide y el segundo fuerza que lo emita en cada autorización. Así, desconectar y reconectar no te deja sin refresh token. Los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n4. **Front → provider:** redirige al usuario.\n5. **Provider → backend:** redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** el backend valida el `state` y canjea el `code` en `token_url`. Guarda los tokens cifrados en `user_mcp_oauth_tokens`.\n\n## Prueba de humo\nDespués del canje, el callback consulta en paralelo **todas las habilidades habilitadas**.\n\n| Resultado | Tokens | Redirect | Qué ve el usuario |\n|---|---|---|---|\n| Contestan todas | Quedan guardados | `connected={server_id}` (paso 7) | Queda conectado |\n| Contestan algunas | El usuario sigue conectado | Lleva `connect_warning=<habilidades>` | Banner de conexión parcial |\n| No contesta ninguna | Se borran | Lleva `connect_error=<motivo>` | Banner de error en la card |\n\nEl criterio es que una habilidad rota no justifica quitarle al usuario las que sí puede usar. En cambio, si no contesta ninguna, el material considera que el token no sirve.\n\n## Vuelta al front y refresh\n7. **Backend → front:** el destino depende del dueño de la conexión, sin un parámetro `return_to` aparte:\n   - **Usuario:** `/w/{slug}/settings/connectors?connected={server_id}`\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`\n8. **Backend, más adelante:** al construir los toolsets, ejecuta `refresh_if_expired`. Renueva si al token le quedan menos de 60 segundos. \"Proactivo\" acá significa antes del vencimiento, en ese momento; el material no menciona un proceso periódico.\n\n## El parámetro `resource` (RFC 8707)\nVa en la autorización (paso 3), en el canje (paso 6) y en el refresh (paso 8). El discovery lo guarda en `OAuthPerUserConfig.resource` cuando el server declara su URI canónica en la protected-resource metadata.\n\nSe manda **solo si está guardado**. Los conectores anteriores a ese campo siguen funcionando sin él. No conviene adivinarlo: un servidor de autorización que lo valida rechaza los valores que no reconoce. El fragmento tiene un recorte (`[...]`), así que puede faltar algún detalle.\n\n## Lo que el material no aclara\nPara confirmar estos puntos hay que mirar el código o la documentación completa:\n- **Qué es \"no contestar\":** no dice cuál es el timeout, ni si hay reintentos o si un error cuenta igual que el silencio.\n- **Habilidades que fallaron:** no dice si se vuelven a probar, se desactivan o entran igual en los toolsets. Tampoco cómo se va el aviso.\n- **Redirect parcial o con error:** no muestra la URL completa, ni si `connect_warning` viaja junto con `connected`.\n- **Sin habilidades habilitadas:** no dice qué resultado da.\n- **Otras fallas:** no cubre un `state` vencido o inválido, que el usuario rechace el consentimiento, ni un canje o refresh que falle.\n- **Reuso del `state`:** tiene un `nonce`, pero no dice si el backend impide usar el mismo `state` dos veces.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11241,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2098,
+  "output_tokens_details": {
+   "thinking_tokens": 393
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11241,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2098,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11241,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11241
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

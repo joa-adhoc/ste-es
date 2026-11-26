@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**La replicación sirve, pero con lo que leímos no puedo confirmar que el error sea el comportamiento esperado.** El módulo parece apuntar a lo contrario: que el usuario de Norte **vea** lo de Sur y no pueda modificarlo.\n\n- La ayuda de `store_id` dice que los usuarios de otra sucursal «solo pueden ver» los registros del diario, sin publicar ni modificar.\n- Las reglas multi-store de diarios, asientos y pagos tienen `perm_read` = False, así que no restringen la lectura.\n- Las reglas de `account_journal_security` no aplican, porque los diarios de venta no tienen usuarios cargados.\n- Queda la regla multicompañía, que filtra por compañía y no por sucursal.\n\n**Hipótesis principal (no verificada):** el problema está en el `_search` sobrescrito de `account.journal`. No es una regla, pero oculta el diario Sur en las búsquedas. Si recuerdo bien, en Odoo 18 la lectura de campos (`fetch`) también pasa por `_search`, y lo que no vuelve se informa como error de acceso. En ese caso, las reglas que nombra el mensaje podrían no ser la causa. El filtro se puso ahí justamente para evitar errores en campos relacionados con el diario, y en 18 podría estar provocándolos.\n\n**Los dos reportes:** que el libro mayor muestre las facturas es compatible con que los asientos se puedan leer. El error podría aparecer recién cuando una pantalla o acción lee el diario. Todavía no sabemos si son dos criterios de permisos distintos. Tampoco sabemos por qué el seguimiento muestra menos facturas sin el filtro, ni si en la 16 los permisos eran más livianos. Pudo cambiar el módulo o la forma en que Odoo lee los registros.\n\n**Para cerrarlo:**\n1. **Traceback:** muestra el modelo, el registro, las reglas citadas y la llamada que falla. También hay que ver qué ejecuta «Ver asientos».\n2. **Misma acción, otro camino:** con Encargado Norte, abrí esa factura desde el libro mayor de Contabilidad y tocá «Ver asientos». Si ayer solo viste que la factura aparecía ahí, todavía no están comparados los dos caminos.\n3. **Prueba en una copia de la base:** con ese usuario, buscá el diario Sur y después leelo por ID. Luego repetí sin el filtro del `_search`. Si el error desaparece, la hipótesis gana mucho peso.\n4. **Código:** revisá `fetch` en la 18 y el override en la 16 y la 18.\n\n**Criterio:** para unificar, yo tomaría «ve, pero no publica ni modifica», que es lo que describe el módulo. «Si no ve, que no vea en ningún lado» sería cambiar ese diseño: habría que restringir también asientos, apuntes, pagos y reportes, y definir qué pasa con la deuda total de un contacto que compra en varias sucursales. Eso lo tiene que decidir quien sea dueño del criterio funcional. No le sumaría la sucursal Sur al usuario para destrabarlo sin esa decisión, porque probablemente también le permita publicar y modificar ahí.\n\nPor ahora, al cliente no le diría que es un refuerzo de permisos de la 18.\n\nNo vi disponible `tuqui_context` en esta sesión, así que no consulté las reglas de la empresa. Si `tuqui-adhoc` no está registrado o autenticado, `adhoc-way-guide` te guía con el alta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11001,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3109,
+  "output_tokens_details": {
+   "thinking_tokens": 1863
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11001,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3109,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11001,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11001
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

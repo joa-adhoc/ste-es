@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos (qué son «perm_read», «store_id», «_search», «journal_id», «account_journal_security» y el «traceback»)? En concreto: según cómo está pensado el sistema, ¿el usuario de sucursal Norte tendría que poder abrir los asientos de esa factura del punto 22 o no? Y para confirmarlo, ¿qué pasos tengo que hacer yo desde la pantalla, cómo saco el error completo y qué parte le tengo que pasar a alguien técnico?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `perm_read`, `account_journal_security`, `account.journal`, `store_id`, el filtro en `_search` ni `journal_id`. Con la configuración actual, ¿un usuario que solo tiene la sucursal Norte debería poder abrir los asientos de una factura del punto 22, sí o no? ¿Y cómo saco el modo desarrollador y el traceback que me pedís para repetir el error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, en términos de pantallas y permisos? No entiendo qué son «perm_read = False», «account_journal_security», «account.journal», «store_id», «_search» ni «journal_id», ni qué quiere decir que un filtro de búsqueda «no es una regla de registro» y aun así pueda dar un error de acceso. En concreto: según lo configurado hoy, ¿el usuario de la sucursal Norte tendría que poder abrir y ver los asientos de esa factura del punto 22, sí o no? ¿El error sería entonces una falla a corregir? ¿Y qué tengo que hacer yo, paso a paso desde la pantalla, para conseguir el traceback y las otras pruebas, o a quién se las pido?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos (qué son «perm_read», «store_id», «_search», «journal_id», «account_journal_security» y el «traceback»)? En concreto: según cómo está pensado el sistema, ¿el usuario de sucursal Norte tendría que poder abrir los asientos de esa factura del punto 22 o no? Y para confirmarlo, ¿qué pasos tengo que hacer yo desde la pantalla, cómo saco el error completo y qué parte le tengo que pasar a alguien técnico?",
+ "followup_answer": "**Sí: según cómo está pensado, el usuario de Norte tendría que poder abrir y mirar los asientos de esa factura, pero no publicarlos ni modificarlos.** Lo dice la ayuda del campo de sucursal del diario, y las reglas por sucursal que se leyeron no le bloquean la lectura. Así que el error no parece ser el comportamiento buscado, aunque todavía no sabemos qué lo causa. No leímos qué hace «Ver asientos», y puede haber una regla que no relevamos.\n\n**Los nombres, en palabras comunes**\n\n| Nombre | Qué es |\n|---|---|\n| `perm_read` | Indica si una regla de acceso se aplica al **mirar**. Si está apagado, esa regla no limita la lectura. |\n| `store_id` | La **sucursal** cargada en el diario. |\n| `_search` | La parte del programa que **busca** registros. Acá se la cambió para que no aparezcan los diarios de otras sucursales. |\n| `journal_id` | El dato que dice **de qué diario** es, por ejemplo, una factura. |\n| `account_journal_security` | Un agregado que permite limitar un diario a **ciertos usuarios**. Los diarios de venta no tienen ninguno cargado. |\n| `traceback` | El **detalle interno del error**: el recorrido que hizo el programa hasta fallar. |\n\nQue un diario **no aparezca en una búsqueda** no es lo mismo que **tener prohibido abrirlo**. Es como un archivo que no figura en el índice, aunque se pueda leer.\n\n**Pasos desde la pantalla**\n\nSi podés, usá una copia actualizada de la base y confirmá que el error también pasa ahí.\n\n1. En una ventana privada, entrá como Encargado Norte.\n2. Activá el modo desarrollador: agregá `?debug=1` a la dirección (o `&debug=1` si ya tiene un `?`) y apretá Enter.\n3. Repetí el recorrido hasta la factura. Anotá si se abre bien **antes** de tocar «Ver asientos», y qué compañías están marcadas arriba.\n4. Antes del último clic, apretá F12, abrí la pestaña **Red** (Network) y limpiá la lista.\n5. Tocá «Ver asientos». Copiá el texto completo del cartel y sacá una captura.\n6. En la lista de Red, abrí los pedidos nuevos y mirá la **Respuesta** de cada uno hasta encontrar el que tiene `\"error\"`. Puede no aparecer en rojo. Copiá esa respuesta completa.\n\nAntes te pedí copiar el detalle interno sin explicar cómo. El cartel de permisos puede no mostrarlo, por eso conviene buscarlo en Red. Estos pasos salen de cómo funciona Odoo en general; no los probé en esta base. Si en la respuesta no está, pedile a alguien técnico que lo busque en el registro del servidor, con la hora exacta de la prueba. Puede que ahí tampoco quede completo.\n\n**Qué pasarle a la persona técnica**\n- El texto completo del cartel, sobre todo **qué registro** no se puede leer y **qué reglas** nombra.\n- La respuesta completa que copiaste en el paso 6. No mandes la exportación de toda la pestaña Red ni las cabeceras, porque pueden incluir datos de tu sesión. Compartilo solo por un canal interno, ya que puede tener datos del cliente.\n- El recorrido, el usuario, la factura, la fecha y hora, las compañías marcadas y si la factura abrió antes del error.\n- La sucursal del usuario (Norte) y la del diario (Sur).\n\n**Cómo leer el resultado:** repetir el error confirma que pasa, no que esté bien o mal. Para eso hay que ver qué registro y qué regla lo frenan. Si resulta que el filtro de búsqueda termina impidiendo la lectura, contradice el «ve, pero no opera» y habría que corregirlo. Si es una regla que prohíbe leer a propósito, hay dos criterios que chocan y hay que revisarlos.\n\nQue en un reporte vea las facturas y en otro no es algo a comparar aparte. Y si se quiere que Norte **no vea nada de Sur en ningún lado**, eso es cambiar el diseño que describe la ayuda, no solo arreglar este error.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12510,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2745,
+  "output_tokens_details": {
+   "thinking_tokens": 1233
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12510,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2745,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12510,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12510
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b5766e1b0f",
+  "persona": "actualizacion"
+ }
+}

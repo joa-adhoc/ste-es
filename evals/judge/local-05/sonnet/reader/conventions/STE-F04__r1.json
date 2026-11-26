@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son «perm_read = False», «_search sobrescrito en account.journal», «account_journal_security», «account_multi_store», «store_id», «traceback» ni «tuqui_context». Decime en términos de pantalla si el usuario de sucursal Norte debería o no poder ver la factura del punto 22, por qué en el seguimiento no aparece y en el libro mayor sí, y qué pasos concretos tengo que hacer para conseguir el mensaje completo del error y mandártelo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, desde lo que veo en pantalla? No entiendo qué son «perm_read = False», «_search sobrescrito», «store_id», «account_journal_security» ni «account_multi_store». En concreto: según como está pensado el sistema, ¿un usuario que solo tiene la sucursal Norte debería poder ver y abrir las facturas del punto 22, sí o no? ¿El error es una falla que hay que corregir o es lo esperado? Y para conseguir el mensaje completo y el «traceback», ¿qué pasos hago en pantalla y qué te tengo que copiar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son «perm_read = False», «_search sobrescrito en account.journal», «account_journal_security», «account_multi_store», «store_id» ni «tuqui_context». Contame en términos de pantalla y de permisos del usuario qué puede ver y qué no el de sucursal Norte, por qué el seguimiento y el libro mayor muestran cosas distintas y cuál es el criterio esperado. Y decime paso a paso cómo saco el mensaje completo y el traceback para pasártelo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son «perm_read = False», «_search sobrescrito en account.journal», «account_journal_security», «account_multi_store», «store_id», «traceback» ni «tuqui_context». Decime en términos de pantalla si el usuario de sucursal Norte debería o no poder ver la factura del punto 22, por qué en el seguimiento no aparece y en el libro mayor sí, y qué pasos concretos tengo que hacer para conseguir el mensaje completo del error y mandártelo.",
+ "followup_answer": "## ¿El usuario de Norte debería ver la factura del punto 22?\n\n**Según cómo se describe la función de sucursales: sí, verla; no, publicarla ni modificarla.** La ayuda del campo de sucursal, en la configuración del diario, dice que alguien de otra sucursal solo puede ver sus registros. En los permisos que se leyeron sobre diarios, asientos y pagos, la parte de sucursales tampoco le prohíbe ver.\n\nPor eso, tener solo la sucursal Norte **no alcanza para explicar el error**. Puede haber otro permiso o algo en la pantalla «Ver asientos» que todavía no revisamos. El mensaje completo sirve para averiguarlo.\n\nSi la empresa quiere que Norte no vea nada de Sur, es una decisión válida, pero es cambiar el funcionamiento descrito. También habría que definir si en el seguimiento está bien mostrar solo una parte de la deuda del cliente.\n\n## ¿Por qué en un lado aparece y en otro no?\n\n**Todavía no está confirmado.** Sabemos que el sistema tiene dos comportamientos distintos:\n\n- **Buscar el diario:** cuando el sistema busca en la lista de diarios para este usuario, deja afuera el de Sur. Se hizo como un filtro, en vez de prohibirle verlo, para evitar errores en pantallas que muestran datos relacionados con el diario.\n- **Ver sus registros:** los permisos de sucursal que se leyeron no le prohíben ver el diario, sus asientos ni sus pagos.\n\nMi hipótesis es que el seguimiento, como se ve al entrar, depende de esa lista recortada y por eso omite facturas de Sur. El libro mayor las obtendría de otra forma. No revisé cómo arma los datos ninguna de las dos pantallas.\n\nEn tus pasos, las facturas aparecen al elegir el libro mayor **en el filtro del mismo reporte**. Así que la diferencia puede depender de la opción elegida y no solo del menú de entrada. Tampoco sabemos si en la versión 16 los permisos eran más livianos.\n\n## Cómo conseguir el mensaje del error\n\nSi hay una copia de la base donde también falle, usala.\n\n1. Entrá como «Encargado Norte», o como el usuario con el que replicaste el problema.\n2. Activá el modo desarrollador: en la dirección del navegador, dejá el dominio, escribí a continuación `/odoo?debug=1` y apretá Enter.\n3. Andá a **Contactos**, buscá el mismo contacto y abrí su formulario.\n4. Entrá al reporte de seguimiento y elegí en el filtro el libro mayor de la empresa.\n5. Abrí la factura del punto 22.\n6. Apretá `F12` y abrí la pestaña **Red** (o **Network**). Dejala abierta y limpiá la lista.\n7. En la factura, tocá los tres puntitos y **«Ver asientos»**.\n8. Cuando salga el error, copiá todo el texto de la ventana o sacá capturas donde se lea completo. Si hay una opción para ver o copiar detalles, usala.\n9. En **Red**, hacé clic en los pedidos que aparecieron hasta encontrar el que tenga el error en la pestaña **Respuesta** (o **Response**). Puede figurar como correcto en la lista aunque adentro traiga un error. Copiá esa respuesta completa.\n\nMandame:\n- el texto o las capturas de la ventana;\n- la respuesta que copiaste en el paso 9;\n- el número de la factura y si lo probaste en producción o en una copia.\n\nAntes de pegarlo, tapá los datos del cliente que no hagan falta. No mandes contraseñas ni las pestañas de encabezados o *cookies*. Conservá los nombres de los permisos y las líneas del detalle técnico.\n\nSi la ventana no muestra detalles o no encontrás la respuesta, mandame las capturas y empezamos por ahí.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12081,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2200,
+  "output_tokens_details": {
+   "thinking_tokens": 822
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12081,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2200,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12081,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12081
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7a8b52ebd8",
+  "persona": "actualizacion"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo da como lo más probable, sin haberlo verificado en tu entorno: los dos worktrees usan la misma base local y una migración de la rama de tu compañero, que borra o renombra columnas, cambió el esquema. Tu código sigue leyendo la columna vieja y por eso aparece `UndefinedColumnError`. Para confirmarlo, hay que buscar la columna del error en las migraciones de esa rama.",
+  "No. El lock impide que dos corridas de tests se pisen al mismo tiempo, pero el esquema sigue siendo compartido.",
+  "Con una base propia para tu worktree:\n1. Si no tenés `tuqui_core/.env.test.local`, crealo con `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local`.\n2. En ese archivo, apuntá la conexión a una base con un nombre que no use ningún otro worktree. Las variables deberían estar en el ejemplo.\n3. Antes de resetear, confirmá a qué base apunta `make migrate-reset`, porque la vacía. El texto que pasaste dice que los targets de test cargan el `.env.test.local`, pero no que `migrate-reset` también lo haga. Miralo en el `Makefile` y en `scripts/reset_database.py`, o con `make -n migrate-reset` (puede que no muestre la conexión). Que solo toque bases locales no protege la compartida, que también es local.\n4. Con el destino confirmado, corré `make migrate-reset` desde donde esté ese target y después los tests. No se sabe si crea la base cuando no existe; si falla por eso, creala primero.\n\nNo uses `npx supabase db reset`, porque aborta por prefijos de migración repetidos. Repetí el procedimiento en cada worktree nuevo, ya que `.env.test.local` está en `.gitignore`. Con la base propia ya separás el esquema, siempre que ningún otro worktree la use, así que dejá el lock como está. Si además querés correr tests en paralelo, necesitás un `REDIS_URL` con un índice propio, que no sea el 0, el 15 ni el de otro worktree. Recién con base y Redis separados podés usar un `TEST_LOCK` distinto. Si los tests siguen fallando con la base recién armada, comprobá primero que realmente la estén usando. Si es así, la causa puede estar en tu rama o en sus migraciones."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a4656e4ada",
+  "control": "d71584ce60"
+ }
+}

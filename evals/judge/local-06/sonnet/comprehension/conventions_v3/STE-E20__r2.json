@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "`ERROR: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502)`, en la sentencia `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;` (en `0415_terms_acceptance.sql`).",
+  "No. La migración falló, el deploy nuevo no se promovió y el deployment anterior sigue sirviendo. Esto sale del log pegado; no se consultó staging en vivo.",
+  "En dos trenes: en este, sacar el `SET NOT NULL` del deploy y agregar una migración que haga backfill de `accepted_version` en las filas con null; en un tren posterior, otra migración con el `SET NOT NULL`. Juntar ambos no alcanza, porque según el doc fallan si hay filas viejas en null. Antes de escribir el backfill hay que definir qué valor les corresponde a las filas viejas. No conviene poner una versión cualquiera, porque podría registrar una aceptación que nunca ocurrió (suponiendo, por los nombres, que la columna registra qué versión de los términos aceptó cada miembro)."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "4f0f5b1211",
+  "control": "a20a96ac5b"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No está caído, según el log: falló el deploy de staging, pero el nuevo no se promovió y el anterior sigue atendiendo.** No consulté staging en vivo.\n\n**Qué pasó:** la imagen se construyó bien y falló el paso de migración. `0415_terms_acceptance.sql` ejecutó esto:\n\n```sql\nALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;\n```\n\nPostgres lo rechazó porque hay filas con `accepted_version` en null:\n\n```\nERROR: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502)\n```\n\nEl log muestra después el rollback de `0415`.\n\n**Cómo arreglarlo**, según `docs/infra-ci-cd.md`:\n1. En este tren, dejá solo la migración que completa los valores nulos (backfill) y sacá el `SET NOT NULL`.\n2. En un tren posterior, agregá otra migración con el `SET NOT NULL`.\n\nAntes de cambiarlo, revisá estos puntos:\n- **Contenido de `0415`:** no lo vi, así que no sé si ya trae un backfill. Si lo trae, juntarlo con el `SET NOT NULL` va contra la guía. Si además falló por filas viejas, revisá también que el backfill las cubra todas.\n- **Valor del backfill:** por los nombres, la columna parece registrar qué versión de los términos aceptó cada miembro. Si es así, no les asignes la versión actual solo para pasar la migración, porque quedaría registrada una aceptación que quizás no existió. Qué valor corresponde lo tiene que definir quien sea dueño de esa regla.\n- **Código nuevo:** hasta que esté el `SET NOT NULL`, la columna puede seguir recibiendo nulls. Revisá que el código los tolere y si las altas nuevas ya guardan un valor.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10449,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 895,
+  "output_tokens_details": {
+   "thinking_tokens": 239
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10449,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 895,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10449,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10449
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

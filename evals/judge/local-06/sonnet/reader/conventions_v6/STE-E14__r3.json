@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del pipeline y decirme qué pasa si fallan el Context Assembler (alguna consulta), el Planner, el Investigator o el Synthesizer, o si una hipótesis agota su tiempo o sus límites? En cada caso, ¿termina sin mostrar nada, sigue con resultados parciales o corta con error? ¿Hay además otra forma de que el Synthesizer devuelva 0 teasers que no sea el rechazo de los filtros?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código del pipeline y confirmar qué pasa si falla una consulta de contexto, el Planner, el Investigator o el Synthesizer, o si una hipótesis agota su tiempo o sus límites? ¿En esos casos no se muestra nada, se sigue con lo que haya, o hay otra causa por la que el Synthesizer devuelva 0 teasers?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del pipeline y confirmar qué pasa si falla una consulta de contexto, el Planner, el Investigator o el Synthesizer, o si una hipótesis agota su tiempo o sus límites? Quiero la lista completa de casos en los que no se muestra ningún insight, incluido si el Synthesizer puede devolver 0 teasers por otra causa que no sean los filtros."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código del pipeline y decirme qué pasa si fallan el Context Assembler (alguna consulta), el Planner, el Investigator o el Synthesizer, o si una hipótesis agota su tiempo o sus límites? En cada caso, ¿termina sin mostrar nada, sigue con resultados parciales o corta con error? ¿Hay además otra forma de que el Synthesizer devuelva 0 teasers que no sea el rechazo de los filtros?",
+ "followup_answer": "No pude revisar el código: la carpeta de trabajo (`/tmp/ste-es-eval-er6i7kz0`) está vacía. Mi primera búsqueda, que también incluía tu home, no llegó a correr porque pedía aprobación. Después miré solo la carpeta de trabajo, así que no sé si el código está en otro lugar de la máquina o en un repo remoto.\n\nCon el material que pegaste, esto es lo que se puede responder:\n\n| Caso | Qué dice el material | Cómo termina |\n|---|---|---|\n| Falla una consulta del Context Assembler | Solo que son 6 en paralelo | No se sabe |\n| Falla el Planner | Solo describe la respuesta sin hipótesis, que es un silencio válido y no una falla | No se sabe |\n| Falla el Investigator | No dice nada | No se sabe |\n| Una hipótesis agota su tiempo o sus límites | Define el tiempo y los límites, no qué pasa al agotarlos | No se sabe |\n| Falla el Synthesizer | Solo cubre la falla del LLM Judge: el teaser pasa ese filtro | No se sabe para el resto del Synthesizer |\n| 0 teasers sin rechazo de los filtros | El diagrama admite de 0 a 2, sin detallar otra causa | No se sabe |\n\nQue no esté documentado no significa que el pipeline corte con error, ni que siga con lo que tenga.\n\nPara cerrarlo necesito la ruta local del repo, o su nombre y la rama si está en un remoto. Los archivos para empezar son `context_assembler.py`, `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`, además del código que los llama, que el material no nombra. Ahí buscaría:\n- **Consultas en paralelo:** cómo se manejan sus errores. Si usan `asyncio.gather`, por ejemplo, ver si lleva `return_exceptions=True` y qué se hace después con esas excepciones.\n- **Investigator:** qué pasa ante un timeout o un límite agotado, y si la falla de una hipótesis afecta a las demás.\n- **Errores en general:** dónde se capturan en cada etapa, incluida la respuesta con JSON inválido, y si hay reintentos.\n- **Synthesizer:** todos los puntos donde puede devolver `teasers=[]`, por ejemplo si no recibe resultados de la investigación o si el modelo responde con la lista vacía. Son posibilidades a revisar, no comportamientos confirmados.\n- **Watchdog:** qué hace cuando se cumple `watchdog_sec` y si se guarda algo de lo que ya estaba listo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13559,
+  "cache_read_input_tokens": 78744,
+  "output_tokens": 1537,
+  "output_tokens_details": {
+   "thinking_tokens": 259
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13559,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1073,
+    "cache_read_input_tokens": 30787,
+    "cache_creation_input_tokens": 282,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 282
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "14e50ca7ec"
+ }
+}

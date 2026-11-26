@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Depende de qué quieras decir con \"de cero\". `git reset --hard origin/staging` descarta cosas que no se recuperan fácil, y probablemente no haga todo lo que esperás.\n\n**Qué pasa con cada cosa:**\n\n| Qué | Efecto | ¿Se recupera? |\n|---|---|---|\n| Cambios sin commitear en `limits.py` y `test_limits.py` | Se borran | **No.** Git nunca los guardó (si alguna vez hiciste `git add`, se podría rescatar con esfuerzo, pero el status muestra que no están en staging). |\n| 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`) | Salen de la rama | Sí, por un tiempo, con `git reflog`. |\n| `0420_mcp_limits.sql` (sin trackear) | **Queda en el disco**, salvo que `origin/staging` tenga un archivo en esa misma ruta: ahí lo pisa. | Si lo pisa, no. |\n\nAdemás, tu rama pasa a apuntar a `origin/staging`, no a `origin/feat/limite-mcp`. Con lo que pegaste no puedo saber cuánto difieren, ni si la rama remota tiene commits propios que no están en staging. Esos seguirían en `origin/feat/limite-mcp`, pero no en tu rama local. El upstream sigue siendo `origin/feat/limite-mcp`.\n\n**Si querés empezar de cero sin perder nada**, guardá todo y creá una rama nueva:\n\n```bash\ngit stash push -u -m \"limite-mcp: sin commitear\"   # incluye el .sql sin trackear\ngit branch backup/limite-mcp                       # conserva los 3 commits\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 --no-track origin/staging\n```\n\nEl backup y el stash quedan solo en tu máquina. El stash no queda dentro de `backup/limite-mcp`; lo ves con `git stash list`.\n\n**Si querés reusar el nombre `feat/limite-mcp`**, en vez del último comando corré `git reset --hard origin/staging`, parado en esa rama. Hacelo solo después del stash y el backup, y verificá que ambos hayan salido bien. Para subirla después vas a tener que forzar el push, porque la historia deja de coincidir con la remota. Antes mirá qué hay allá, después del fetch:\n\n```bash\ngit log --oneline origin/staging..origin/feat/limite-mcp\n```\n\n**Si en realidad querés descartar todo**, el reset solo no alcanza: el `.sql` va a seguir ahí y tendrías que borrarlo aparte. Confirmá antes que no lo necesitás, porque no está en ningún commit.\n\n¿Querés conservar algo del trabajo actual o tirarlo todo?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10262,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 975,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10262,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 975,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10262,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10262
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

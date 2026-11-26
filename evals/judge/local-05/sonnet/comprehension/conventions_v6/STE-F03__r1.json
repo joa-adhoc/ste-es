@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al confirmar, Odoo estándar crea una recepción nueva y, si queda sin movimientos, intenta borrarla. Como «Recepciones» tiene activado «Bloquear eliminación de traslados», `stock_ux` lo bloquea: `_check_block_picking_deletion` lanza el error y la confirmación no se completa. No intenta borrar la recepción WH/IN/00098 (412). Que la recepción nueva quede vacía porque las 2 unidades ya figuran recibidas es una inferencia que encaja con los datos, pero no está verificada en el código.",
+  "El texto no atribuye estas acciones a un usuario en particular. Dice que el 11/11 la orden se confirmó (12:26), se recibieron las 2 unidades (12:27), se canceló (13:26) y volvió a Solicitud de cotización (13:27), y que luego, al confirmarla de nuevo, se produce el intento de crear y borrar la recepción. No dice quién hizo esas acciones. Por qué se canceló la orden no lo dice: hay que preguntárselo al cliente.",
+  "Antes que nada, preguntar al cliente por qué canceló la orden. Si quería anularla o corregir algo, analizarlo aparte, porque ya hay stock recibido y una factura contabilizada. Si la compra es válida y la quiere confirmada, probar primero en una copia de la base: 1) anotar el stock del producto, las recepciones de la orden, las cantidades (2 pedidas, 2 recibidas, 2 facturadas) y el estado de la factura; 2) desactivar «Bloquear eliminación de traslados» en «Recepciones»; 3) confirmar P00231; 4) volver a activar la opción enseguida; 5) comprobar que la orden quedó como Orden de compra, que su única recepción sigue siendo la 412 y que no cambiaron el stock, las cantidades ni la factura y su vínculo con la orden, y revisar la fecha de confirmación, que puede cambiar. La solución no está probada. Si en la copia queda una recepción nueva o cambia el stock, no repetirlo en producción. En producción, como la opción afecta a todo ese tipo de operación, conviene hacerlo cuando nadie esté operando recepciones. No se recomienda devolver la 412, tocar la factura, duplicar la orden ni cambiar el estado directamente en la base."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "9896bd110f",
+  "control": "cf4a8527a9"
+ }
+}

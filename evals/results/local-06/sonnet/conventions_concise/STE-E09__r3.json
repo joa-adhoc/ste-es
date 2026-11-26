@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El usuario clickea **Connect**, autoriza en el provider y vuelve al backend, que canjea el `code` por tokens y prueba las habilidades. Si solo algunas no contestan, **queda conectado con un aviso**. Todo esto sale del material que pasaste; no lo contrasté con el código.\n\n## Flujo\n\n**0. Alta (admin, una vez por server).** Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Si el discovery encuentra la URI canónica en la protected-resource metadata, la guarda en `OAuthPerUserConfig.resource`.\n\n**1. Inicio (usuario → front → backend).** El usuario abre `/connectors` y clickea **Connect**. El front llama a `GET /api/mcp-oauth/{server_id}/start` y el backend devuelve la `authorize_url` con un `state`:\n- Está protegido con AES-GCM, que cifra y además detecta alteraciones, así que es más que una firma.\n- Vence a los 10 minutos.\n- Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede sumar `code_verifier` (PKCE) y `scope_profile` (platform connectors).\n\nLa URL incluye `access_type=offline` y `prompt=consent`. Google necesita los dos para emitir un refresh token: el primero lo pide y el segundo fuerza que lo vuelva a emitir en cada autorización. Así, desconectar y reconectar no te deja sin refresh token. Los demás providers deberían ignorar los parámetros que no conocen (RFC 6749 §3.1).\n\n**2. Autorización (front → provider).** El front redirige el navegador al provider, y ahí autoriza el usuario.\n\n**3. Callback (provider → backend).** El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**4. Canje (backend ↔ provider).** El backend valida el `state`, canjea el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n\n**5. Prueba de humo (backend → habilidades).** El callback consulta en paralelo **todas** las habilidades habilitadas, antes de devolver el redirect:\n\n| Resultado | Tokens | Estado | En el redirect y la UI |\n|---|---|---|---|\n| Contestan todas | Quedan guardados | Conectado | `connected={server_id}` |\n| Contestan algunas | Quedan guardados | Conectado | `connect_warning=<habilidades>`, banner de conexión parcial |\n| No contesta ninguna | Se borran | No conectado | `connect_error=<motivo>`, banner de error en la card |\n\nEl criterio es que, si ninguna contesta, el token no sirve. Si al menos una funciona, desconectar al usuario por las que fallan sería peor que dejarle usar el resto.\n\n**6. Vuelta al SPA (backend → front).** El destino depende de quién es el dueño de la conexión, no de un `return_to`:\n- **Usuario:** `/w/{slug}/settings/connectors`\n- **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}`\n\nEl parámetro `connected={server_id}` es el del caso exitoso. El material no aclara si en la conexión parcial o fallida va junto con `connect_warning` o `connect_error`, ni a qué ruta vuelve el error.\n\n**7. Uso y renovación (backend ↔ provider).** Al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 s de validez. Es proactivo porque se adelanta al vencimiento, pero el disparador que describe el material es la construcción de los toolsets, no una tarea periódica.\n\n## `resource` (RFC 8707)\n\nSi está guardado, viaja en la autorización (la URL que se arma en el paso 1), en el canje (4) y en el refresh (7). En la numeración de tu material son los pasos 3, 6 y 8.\n\nSi no está guardado, **no se manda ni se adivina**: un authorization server que lo valida rechaza los valores que no reconoce. Por eso los conectores anteriores a este campo siguen funcionando sin él.\n\n## Lo que el material no dice\nPara confirmar esto habría que mirar el código:\n- Qué cuenta como \"no contesta\" (timeout, error de autenticación u otro error) y cuánto espera el callback.\n- Qué pasa si no hay ninguna habilidad habilitada.\n- Si una habilidad que falló se vuelve a probar o queda deshabilitada, y cuánto dura el aviso.\n- Qué pasa si el `state` es inválido o venció, si el usuario rechaza el consentimiento o si falla el canje.\n- Qué pasa si falla el refresh o el provider no emitió un refresh token.\n- Si el `nonce` se controla para que el `state` se use una sola vez. Que esté en el payload no lo garantiza.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11119,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2149,
+  "output_tokens_details": {
+   "thinking_tokens": 419
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11119,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2149,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11119,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11119
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

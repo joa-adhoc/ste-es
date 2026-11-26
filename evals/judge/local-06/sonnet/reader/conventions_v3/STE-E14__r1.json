@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmarme en qué otros casos no se muestra nada? Por ejemplo: si una hipótesis agota su tiempo o sus topes, si el Investigator no encuentra nada, si falla una consulta del contexto o el LLM del Planner, Investigator o Synthesizer, o si el Synthesizer devuelve 0 teasers sin que los filtros rechacen ninguno. En cada caso, decime qué se guarda o se muestra."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar en qué otros casos no se muestra nada? En concreto: qué pasa si una hipótesis agota su tiempo o sus topes, si el Investigator no encuentra nada, si falla una consulta del contexto o el LLM del Planner, Investigator o Synthesizer, y si el Synthesizer puede devolver 0 teasers sin que los filtros rechacen nada."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar qué pasa si una hipótesis agota su tiempo o sus topes, si el Investigator no encuentra nada, si falla una consulta del contexto o el LLM del Planner, Investigator o Synthesizer, y si el Synthesizer puede devolver 0 teasers sin que los filtros rechacen nada? En cada caso, decime si termina sin mostrar nada, si sigue con resultados parciales o si da error."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código y confirmarme en qué otros casos no se muestra nada? Por ejemplo: si una hipótesis agota su tiempo o sus topes, si el Investigator no encuentra nada, si falla una consulta del contexto o el LLM del Planner, Investigator o Synthesizer, o si el Synthesizer devuelve 0 teasers sin que los filtros rechacen ninguno. En cada caso, decime qué se guarda o se muestra.",
+ "followup_answer": "No pude revisar el código, así que **no puedo confirmar ninguno de esos casos**. El directorio de trabajo (`/tmp/ste-es-eval-uy48rci9`) está vacío. Quise buscar los archivos en otras carpetas, pero el comando requería aprobación y no se ejecutó. No sé si hay un clon en esta máquina.\n\nEsto es lo que dice el texto que pegaste, sin verificar contra el código:\n\n| Caso | ¿Qué dice el material? | Qué se guarda o se muestra |\n|---|---|---|\n| Una hipótesis agota su tiempo o sus topes | Da los topes y la fórmula del tiempo, pero no qué pasa al agotarlos. | No lo dice. |\n| El Investigator no encuentra nada | No lo menciona. | No lo dice. |\n| Falla una consulta del contexto | No lo menciona. | No lo dice. |\n| Falla el LLM del Planner, del Investigator o del Synthesizer | No lo menciona. La regla de dejar pasar el teaser es solo para fallas de infraestructura del juez. | No lo dice. |\n| El Synthesizer devuelve 0 teasers sin rechazos de los filtros | La salida admite de 0 a 2 teasers, pero no explica este caso. | No dice qué se guarda, qué `debug_note` queda ni qué se muestra. |\n\nLos dos casos sin teasers que sí describe son estos:\n- **Planner sin hipótesis:** es un silencio válido y no se generan teasers. `PlannerOutput` tiene `silence_reason`, pero el material no dice si ese motivo se guarda.\n- **Todos los teasers rechazados:** el resultado es `SynthesizerOutput(teasers=[], debug_note=\"synth_all_rejected: ...\")`. El material no dice si `debug_note` se guarda.\n\nEn ninguno de los dos aclara qué pasa en la tabla `insights` (si se escribe algo o si quedan los anteriores) ni qué ve el usuario.\n\nPara confirmarlo, pasame la ruta del repo o copiá el código en el directorio de trabajo. También podés aprobar la búsqueda si te la vuelvo a pedir. Necesito `planner.py`, `investigator.py`, `synthesizer.py`, `guards.py` y `context_assembler.py`. También el código que los llama, aplica el watchdog, hace el upsert y muestra los insights, que el material no identifica. En cada caso voy a seguir:\n- cómo se manejan las excepciones y los timeouts;\n- si los hallazgos parciales pasan a la etapa siguiente;\n- qué se escribe en la base y qué lee la interfaz.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13711,
+  "cache_read_input_tokens": 78711,
+  "output_tokens": 1519,
+  "output_tokens_details": {
+   "thinking_tokens": 147
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13711,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 971,
+    "cache_read_input_tokens": 30740,
+    "cache_creation_input_tokens": 481,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 481
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4cdb1a48f5"
+ }
+}

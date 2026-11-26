@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El error del ticket 140512 fue pasajero y se produjo durante la actualización de la base.** Desde las 15:09 hasta las 15:30 UTC del 04/11 no hay errores en el pod nuevo. No veo motivo para cambiar código ni las reglas 507 y 508.\n\n**Qué pasó (UTC, 04/11)**\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A. |\n| 15:07:39 y 15:08:01 | Se actualizan los dos módulos `multicompany_ux`. A las 15:08:01 se reescriben las reglas 507 y 508, que llaman a `_get_branch_stock_root_ids`. |\n| 15:08:36–39 | El pod A recarga el registro y el usuario 31 recibe tres veces el `AttributeError`. |\n| 15:08:40 | En el pod A, un cron falla porque falta otro método, esta vez en `res.company`. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el A. |\n\n**Causa más probable:** el pod A seguía con el código anterior cuando la base ya tenía las reglas nuevas. Recargar el registro toma los cambios de la base, pero no carga el código Python de una imagen nueva. Así, la regla llamaba a un método que ese pod no tenía. El error del cron muestra el mismo patrón.\n\nQue el método esté hoy en el código no contradice esto: no muestra qué tenía el pod A. El material tampoco identifica la imagen de A. Para confirmar la causa, hay que ver cuál era y comprobar que no incluía `_get_branch_stock_root_ids`.\n\n**La hora del ticket no coincide:** informa 15:09:12 (12:09 en Argentina), pero los tres errores del usuario 31 son de las 15:08:37–38. A las 15:09:12 el pod A ya se había apagado, y en el B no figuran errores. Puede ser la hora en que se copió o envió el reporte, pero no lo verifiqué.\n\n**Qué hacer**\n- **Cliente:** pedirle que reintente y que revise si la carga de stock quedó guardada, para no duplicarla. No verifiqué qué operación hacía ni qué llegó a guardarse.\n- **Ticket:** como módulo relacionado corresponde `stock_account_multicompany_ux`. El problema de fondo parece estar en el despliegue, porque el pod anterior siguió atendiendo con la base ya actualizada. Conviene pasárselo a quien mantiene ese proceso, porque podría repetirse en otra actualización.\n\n**Respuesta sugerida para el cliente:**\n> Hola. El error que viste al cargar stock coincide con una actualización del sistema que se estaba aplicando en ese momento. En los registros revisados, de las 12:09 a las 12:30 (hora argentina) del 04/11 no aparecen errores. ¿Podés revisar si la carga quedó guardada? Si no está, probá hacerla de nuevo. Si ya está, no la repitas. Si vuelve a aparecer el error, avisanos con la hora y lo que estabas haciendo.\n\nEl análisis se basa solo en la introspección y los logs que pegaste. No hice consultas nuevas: en esta sesión no tengo disponible `tuqui-adhoc`, así que tampoco pude cargar el contexto de la empresa (para darlo de alta, está `adhoc-way-guide`). Los registros revisados llegan hasta las 15:30 del 04/11, así que no sé si el error volvió después. No modifiqué el ticket ni envié la respuesta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11053,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2392,
+  "output_tokens_details": {
+   "thinking_tokens": 1143
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11053,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2392,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11053,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11053
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

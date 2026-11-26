@@ -1,0 +1,47 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Te dejo un borrador. La 1 y la 4 se pueden contestar en buena parte; la 2 solo en parte, y la 3 y la 5 no tienen fuente.\n\n---\n\n**1. Permisos.** Hoy Ajustes como Administrador es necesario: la verificación de la conexión lo exige en todas las versiones de Odoo, así que no alcanza con Ventas, Inventario y Facturación. Tengan en cuenta que el conector no solo lee la configuración: también crea en su base un campo técnico de precio en los productos y registros de identificadores técnicos.\n\nEl manual pide además Ventas: Administrador; Contabilidad: Facturación; Inventario: Administrador; y, en los permisos técnicos, Gestión de Productos y Límite de crédito.\n\nSobre las IP, todavía no tenemos un dato confirmado para darles. El manual indica pedir por ticket los datos técnicos de la conexión para el firewall. Conviene no restringir el acceso hasta tener las direcciones confirmadas.\n\n**2. Kits.** El stock publicado es la cantidad \"A la mano\" menos la cantidad \"Saliente\" en la ubicación configurada. Todavía no podemos confirmar que ese cálculo funcione bien con kits, así que recomendamos probar un pack antes de publicarlo.\n\nAl confirmar una venta, Odoo genera la entrega y el stock publicado la descuenta aunque no facturen.\n\n**3. Cambio desde su módulo actual.** No tenemos un procedimiento documentado para este cambio. Queda por confirmar antes de fijar la fecha, y recomendamos no activar la conexión en producción hasta tenerlo.\n\n**4. Facturación.** Odumbo no factura: las facturas se generan y validan en Odoo. Si facturan a mano en lote cada día, Odumbo las detecta y las sube a la venta de Mercado Libre entre 6 y 24 horas después. La subida de facturas es solo para Mercado Libre.\n\nPara que la factura salga sola al confirmar la venta, recomendamos los tipos de pedido de venta. Queda por confirmar qué módulo usar en Odoo 17 Enterprise.\n\n**5. Datos.** Todavía no podemos informarles qué datos se guardan además de las credenciales, ni qué pasa con ellos si dan de baja el servicio. Queda por confirmar.\n\n---\n\n**Antes de enviarlo** (esto no va al cliente)\n\nEl borrador no promete plazos. Los \"queda por confirmar\" necesitan que alguien se haga cargo.\n\n- **Manual y código:** el manual presenta Ajustes como permiso para leer la configuración, pero el conector también escribe. Conviene corregirlo. El material tampoco demuestra que esa escritura sea el motivo de la exigencia.\n- **Kits, riesgo de no publicar:** el conector saltea los productos no almacenables, salvo los \"packs\", y no tiene nada específico de kits de `mrp`. Hay que ver qué considera \"pack\". Si no incluye estos kits y el producto no es almacenable, su stock no se publicaría.\n- **Kits, riesgo de publicar de más:** por lo que sé de Odoo estándar (no lo verifiqué acá), `mrp` calcula \"A la mano\" y \"Saliente\" del kit a partir de los componentes, y al confirmar la venta la entrega sale por las patas. El redondeo de \"Saliente\" podría inflar el resultado.\n  - **Prueba:** 20 patas, 3 reservadas en una entrega de patas sueltas y ningún otro movimiento. Quedan 17, así que Odumbo debería publicar 4 packs, no 5.\n  - Después, vender un pack y revisar que la entrega sea de 4 patas y que el stock publicado baje a 3. Para confirmar el descuento físico, validar la entrega.\n- **Cambio de módulo, a confirmar:** si Odumbo importa ventas anteriores a la conexión y desde qué fecha, si reconoce las que ya cargó el otro módulo y qué hace con las que ya tienen factura subida. Como propuesta a validar: fijar una hora de corte, desactivar en el módulo viejo la importación de ventas y la facturación automática antes de activar Odumbo, y después conciliar las ventas cercanas al corte. Hay que prever también las que entren entre un paso y otro.\n- **Módulo para Odoo 17:** creo que los candidatos son `sale_order_type` (OCA) con una automatización como `sale_order_type_automation` (Adhoc). Es de memoria: hay que verificar que existan para la 17, que funcionen en Enterprise y que apliquen a las ventas que crea Odumbo.\n- **IP y datos:** las IP hay que pedirlas a quien maneje la infraestructura. La retención y la baja, a quien sea responsable de privacidad o legales.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11280,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3513,
+  "output_tokens_details": {
+   "thinking_tokens": 1842
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11280,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3513,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11280,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11280
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

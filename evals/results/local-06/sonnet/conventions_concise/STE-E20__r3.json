@@ -1,0 +1,47 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Falló la migración `0415_terms_acceptance.sql`, y según el log staging no está caído:** el deploy nuevo no se promovió y el anterior sigue sirviendo. Eso sale del log; no consulté el entorno.\n\n**Causa:** el `SET NOT NULL` sobre `members.accepted_version` encontró valores en null (SQLSTATE 23502). El build terminó bien y el log muestra el rollback de la 0415.\n\n**Arreglo:** según `docs/infra-ci-cd.md`, hay que separarlo en dos trenes:\n1. **Ahora:** una migración que solo haga el backfill de `accepted_version`. Hay que sacar el `SET NOT NULL` de este tren.\n2. **En un tren posterior:** otra migración con el `SET NOT NULL`.\n\nNo vi el SQL de la 0415, así que no sé si le falta el backfill o si lo trae junto con el `SET NOT NULL`. Antes de escribirlo, también hay que definir qué valor llevan las filas viejas. Como el dato registra la aceptación de términos, no conviene completarlo con una versión que esos miembros quizás nunca aceptaron. Además, revisá que el código nuevo no siga insertando nulls entre un tren y el otro.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10325,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 433,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10325,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 433,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10325,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10325
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

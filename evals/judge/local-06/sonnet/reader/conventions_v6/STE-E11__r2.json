@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama se deploya en prod, y ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene, ¿cómo y cuándo se termina aplicando el drop en prod?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama se deploya en prod y ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Necesito saber si el DROP se aplica solo al llegar a prod o si tengo que hacer algo más, porque si falta el permiso se saltea y la columna queda."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama se deploya en prod y ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Necesito saber si el DROP se aplica solo al llegar a prod o si tengo que hacer algo más, y en qué paso."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué rama se deploya en prod, y ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene, ¿cómo y cuándo se termina aplicando el drop en prod?",
+ "followup_answer": "**No sé qué rama se deploya en prod ni si ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`.** El fragmento no lo dice. Intenté buscar el repo y la CLI de Railway, pero el comando requería aprobación y no se ejecutó. No llegué a ver el código ni la configuración.\n\nPara confirmarlo, mirá en Railway el servicio de prod:\n- **Rama:** qué rama tiene configurada para deployar y qué valor llega en `RAILWAY_GIT_BRANCH`.\n- **Permiso:** si `MIGRATIONS_ALLOW_DESTRUCTIVE` está en `1`.\n\nEsto es lo que pasa en cada caso, según el fragmento y suponiendo que prod usa este runner en Railway:\n\n| Prod | Qué pasa con el drop |\n|---|---|\n| Rama `staging` o `main`, con el permiso | Se aplica cuando el runner corre en el deploy que ya incluye el archivo. |\n| Rama `staging` o `main`, sin el permiso | Se saltea sin registrarse y queda pendiente. |\n| Otra rama, con o sin permiso | Se saltea sin registrarse. Agregar solo el permiso no alcanza. |\n\n**Sin el permiso, el drop no se aplica solo con el tiempo ni por volver a deployar.** Sigue pendiente hasta que el runner corra cumpliendo las dos condiciones. Si prod nunca las cumple, la columna queda. El fragmento no describe ningún otro paso para aplicarlo en prod.\n\nSi la rama es `staging` o `main` y falta el permiso, una salida es activarlo y hacer que el runner corra en un deploy. Eso se deduce de las reglas; no es un procedimiento documentado. Antes, acordalo con quien administra prod:\n- **Otras migraciones:** el permiso habilitaría también otras destructivas que estén pendientes, no solo la tuya.\n- **Código anterior:** confirmá que no quede ninguna instancia que necesite la columna cuando se ejecute el drop.\n- **SQL a mano:** no lo tomaría como atajo. Si no queda registrado en `_migrations`, el runner puede intentar aplicarlo después y fallar porque la columna ya no existe.\n\n**Corrijo mi respuesta anterior:** usé el caso de `0180_chat_ga` como ejemplo de lo que pasa si te olvidás el marker, y el fragmento no dice eso. Lo cita porque un preview heredó el permiso de staging y aplicó esa migración en la base compartida. Por eso ahora el runner controla también la rama. El riesgo de olvidarte el marker existe igual: la migración se trata como aditiva y el preview la aplica en esa base.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12861,
+  "cache_read_input_tokens": 47303,
+  "output_tokens": 1901,
+  "output_tokens_details": {
+   "thinking_tokens": 678
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12861,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1456,
+    "cache_read_input_tokens": 29793,
+    "cache_creation_input_tokens": 578,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 578
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9b651b5029"
+ }
+}

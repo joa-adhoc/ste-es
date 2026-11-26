@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Así solo, no.** `git reset --hard origin/staging` te borra los cambios sin commitear y tampoco te deja de cero.\n\n| Qué tenés | Qué pasa con el reset |\n|---|---|\n| Cambios en `limits.py` y `test_limits.py` | Se pierden. Si nunca les hiciste `git add` ni los guardaste de otra forma, Git no los puede recuperar. |\n| 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`) | Salen de la rama. Los podés recuperar un tiempo con `git reflog`. |\n| `0420_mcp_limits.sql` (sin trackear) | Queda en la carpeta. Si `origin/staging` tiene un archivo en esa misma ruta, lo pisa. |\n| Commits ya pusheados que no estén en staging | También salen de tu rama local. Siguen en `origin/feat/limite-mcp` mientras no la sobrescribas. |\n\nPara empezar de cero sin perder nada, corré esto parado en `feat/limite-mcp`. Antes, confirmá que nadie más (otra sesión) esté trabajando en ese checkout:\n\n```bash\ngit fetch origin &&\ngit branch backup/limite-mcp &&                               # guarda los commits\ngit stash push -u -m \"limite-mcp: antes del reset\" &&         # guarda los cambios y el .sql\ngit reset --hard origin/staging\n```\n\nLa rama de backup no puede existir de antes. Si un paso falla, el `&&` frena los siguientes.\n\n- **Recuperar todo:** el backup y el stash quedan solo en tu máquina. Para volver al estado anterior, con el árbol limpio, corré `git switch backup/limite-mcp` y después `git stash pop --index`.\n- **Push posterior:** la rama va a seguir apuntando a `origin/feat/limite-mcp`, así que un push normal probablemente sea rechazado. Antes de usar `--force-with-lease`, revisá qué hay en la remota y si alguien ya revisó el PR. Si hubo revisión de una persona, no reescribas la historia. Si no querés tocar esa rama, en lugar del reset usá `git switch --no-track -c <rama-nueva> origin/staging`, después del stash.\n- **Migración:** si ya aplicaste `0420_mcp_limits.sql` a alguna base, ni el reset ni el stash la revierten.\n\nNo corrí nada: me baso en la salida que pegaste, que no muestra en qué difiere tu rama de `origin/staging`. Después del `fetch`, lo ves con `git log --oneline origin/staging..HEAD`. Si “de cero” significa descartar todo para siempre, incluido el `.sql`, decímelo; para eso no alcanza con el reset.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10260,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1444,
+  "output_tokens_details": {
+   "thinking_tokens": 485
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10260,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1444,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10260,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10260
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

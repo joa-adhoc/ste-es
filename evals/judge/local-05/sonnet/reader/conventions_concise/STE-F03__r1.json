@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me aclarás el paso 4? No entiendo qué es la «protección por estado» ni cuál es la «regla descrita», porque no aparece explicada. ¿Puede frenar la confirmación aunque desactive «Bloquear eliminación de traslados»? Si pasa eso en la copia, ¿qué hago? Y decime en qué menú está esa opción, explicado sin nombres técnicos como `stock_ux` o `block_picking_deletion`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos y con la ruta en pantalla? No entiendo qué es `stock_ux`, `block_picking_deletion` = True, «el estándar», «el id usado» ni qué son 412, 415 y 416. Tampoco sé desde qué menú entro a «Recepciones» para desactivar «Bloquear eliminación de traslados», ni cómo compruebo en pantalla que los movimientos de la línea de P00231 siguen vinculados a WH/IN/00098."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? ¿Dónde encuentro la opción «Bloquear eliminación de traslados» (menú y pestaña de «Recepciones»), y qué son `stock_ux`, `block_picking_deletion`, `tuqui-adhoc`, `adhoc-way-guide`, los números 412/415/416 y el «id usado»? ¿Alguno de esos puntos cambia lo que tengo que hacer, y quién prepara la copia de la base para probarlo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me aclarás el paso 4? No entiendo qué es la «protección por estado» ni cuál es la «regla descrita», porque no aparece explicada. ¿Puede frenar la confirmación aunque desactive «Bloquear eliminación de traslados»? Si pasa eso en la copia, ¿qué hago? Y decime en qué menú está esa opción, explicado sin nombres técnicos como `stock_ux` o `block_picking_deletion`.",
+ "followup_answer": "**Sí, en teoría la confirmación puede frenarse aun con la opción desactivada, aunque no espero que pase.** \"Regla descrita\" era el control que Adhoc agrega al borrado de traslados, y no lo expliqué. Frena el borrado si se cumple **cualquiera** de estas dos condiciones:\n\n1. El tipo de operación tiene activado «Bloquear eliminación de traslados».\n2. El traslado no está en estado Borrador ni Cancelado. A esto le decía \"protección por estado\".\n\nDesactivar la opción quita solo la primera. La recepción vacía que Odoo intenta borrar debería estar en Borrador, porque no tiene movimientos. Eso lo infiero de cómo funciona Odoo; no está en el material y no lo probé. La prueba en la copia sirve para comprobarlo. El mensaje es el mismo para las dos condiciones, así que no indica cuál frenó el borrado.\n\n**Dónde está la opción:** **Inventario → Configuración → Tipos de operaciones → Recepciones**, casilla «Bloquear eliminación de traslados».\n- La ruta es la habitual de Odoo, pero no la verifiqué en esta base; el nombre del menú puede variar un poco y puede hacer falta un usuario administrador de Inventario.\n- Si hay varios tipos «Recepciones» (por ejemplo, uno por almacén), elegí el que usa P00231. Suele verse en la orden, en el campo «Entregar a».\n\n**Si falla en la copia con la opción desactivada:**\n1. Anotá el mensaje completo y el número de traslado.\n2. Revisá que la casilla haya quedado guardada como desactivada, en el tipo de operación y la compañía de la orden. Si estaba mal, corregilo y repetí la prueba.\n3. Si estaba bien, no sigas probando ni apliques el procedimiento en la base real. Volvé a activar la opción en la copia.\n4. No fuerces estados, no borres traslados por fuera del circuito normal y no toques la 412, el stock ni la factura.\n5. Pasalo a desarrollo. Hay que ver en qué estado está la recepción nueva justo antes del borrado y si interviene otro control. Si el error se repite igual, mirarlo en pantalla no alcanza: al fallar la confirmación, esa recepción no queda guardada.\n\nSi en la copia la confirmación funciona, hacé las verificaciones del paso 5 antes de pasar a la base real. Sigue pendiente confirmar con el cliente por qué canceló la orden: si quería anular la compra, no hay que reconfirmarla sin revisar la devolución y la nota de crédito.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12406,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1753,
+  "output_tokens_details": {
+   "thinking_tokens": 839
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12406,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1753,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12406,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12406
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3c0391f182",
+  "persona": "soporte"
+ }
+}

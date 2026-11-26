@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al volver a confirmar P00231, Odoo crea otra recepción y, si queda sin movimientos, intenta borrarla. `stock_ux` rechaza ese borrado (`_check_block_picking_deletion`) porque «Recepciones» tiene activado «Bloquear eliminación de traslados», y así falla toda la confirmación. El texto infiere, sin haber leído el código que calcula lo pendiente, que la recepción queda vacía porque las 2 unidades ya figuran recibidas por la 412.",
+  "El texto no atribuye el origen a un usuario. Cuenta que el 11/11 la orden se confirmó, se registraron 2 unidades recibidas, después se canceló y volvió a Solicitud de cotización, pero no dice quién hizo esas acciones ni por qué se canceló. Además, ubica la falla en cómo se combinan el bloqueo de `stock_ux` y la limpieza interna de Odoo.",
+  "Antes de reconfirmar la orden, verificar con el cliente que la compra sigue vigente; si querían anularla, el stock y la factura requieren otro análisis. La regularización propuesta, no probada, se hace primero en una copia de la base:\n1. Anotar el stock del producto y los datos de la orden, la 412 y la factura.\n2. Desmarcar «Bloquear eliminación de traslados» en el tipo de operación «Recepciones».\n3. Confirmar P00231.\n4. Volver a marcar la opción enseguida, también si la confirmación falla.\n5. Comprobar que la orden quede en Orden de compra (si queda pendiente de aprobación, revisar ese paso antes de seguir); que la única recepción sea la 412, en Hecho, sin traslados ni movimientos nuevos; que la línea siga con 2 pedidas, 2 recibidas y 2 facturadas; que el stock no haya cambiado; y que BILL/2026/11/0007 siga contabilizada, con el mismo importe y vinculada a la orden.\n\nEn la copia, mirar también si cambia la fecha de confirmación o si se dispara algún aviso o automatización. Conviene hacerlo en un momento sin actividad, porque con la opción desmarcada otras personas podrían borrar traslados en borrador o cancelados de «Recepciones». No hace falta borrar ni devolver la 412, tocar la factura ni cambiar cantidades a mano, y el texto desaconseja duplicar la orden. Antes de responder al cliente u operar su base, revisar las reglas de la empresa, que no se pudieron cargar."
+ ],
+ "grades": [
+  "correct",
+  "not_stated",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "0ea3e56bd0",
+  "control": "cf4a8527a9"
+ }
+}

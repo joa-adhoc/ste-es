@@ -1,0 +1,47 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El 18-nov, `odoo_report` tuvo 37 errores \"timeout after 30s\" en el workspace `pldistribucion`, entre las 13:10 y las 13:40 UTC. En ese período al worker le fue subiendo la memoria hasta que se quedó sin ella. Todavía no sé qué la hizo subir.\n\n**Lo que muestran los registros**\n- **Errores:** la consulta a `tool_usage_log` no muestra ninguno antes ni después de ese período. Solo miré ese workspace y esa tool.\n- **Memoria:** según las métricas de Railway, el worker pasó de 0,9 GB a 2 GB entre las 13:05 y las 13:41.\n- **Caída:** a las 13:41:58 el log dice `Killed: out of memory (container limit 2 GB)`.\n- **Reinicio:** el worker se reinició a las 13:42:10.\n\n**Cómo lo interpreto:** mi hipótesis es que la falta de memoria fue volviendo lento al worker y por eso los reportes pasaron los 30 s. Los horarios coinciden, pero eso no prueba la causa. La caída por memoria es posterior al último período con timeouts, así que por sí sola no los explica. Los datos tampoco muestran si los reportes causaron el aumento de memoria o si también lo sufrieron.\n\n**Lo que falta**\n- **Qué hizo subir la memoria:** no lo encontré, porque el log no tiene el detalle por request. Para saberlo haría falta otra fuente con ese detalle, o registrar la memoria por request por si vuelve a pasar.\n- **Si el cliente volvió a pedir los reportes después de las 13:42:** no lo verifiqué. Se puede revisar en `tool_usage_log` si hay llamadas a `odoo_report` en ese workspace desde esa hora, y cómo terminaron. Que no haya errores después no alcanza para saber si los reportes se generaron.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10321,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 931,
+  "output_tokens_details": {
+   "thinking_tokens": 266
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10321,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 931,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10321,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10321
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

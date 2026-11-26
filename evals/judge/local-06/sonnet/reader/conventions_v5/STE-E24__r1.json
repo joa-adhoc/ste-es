@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR trae el código y el DROP juntos: ¿el tren posterga solo la migración que borra `members.lang` o la corre junto con el código? Si no la posterga, o no se sabe, ¿dónde o con quién lo confirmo antes del jueves a las 9:00?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el script o la config del tren si, con el código y el `DROP` de `members.lang` en el mismo PR, el `DROP` se posterga solo al tren siguiente? Si no se puede saber desde ahí, ¿a quién se lo pregunto y cómo saco el `DROP` de staging antes del jueves a las 9:00?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo confirmo si el tren posterga solo el `DROP` cuando viene en el mismo PR que el código? ¿Dónde lo miro (config o script del tren, docs) o a quién le pregunto? De eso depende si tengo que sacarlo de staging antes del tren del jueves."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Mi PR trae el código y el DROP juntos: ¿el tren posterga solo la migración que borra `members.lang` o la corre junto con el código? Si no la posterga, o no se sabe, ¿dónde o con quién lo confirmo antes del jueves a las 9:00?",
+ "followup_answer": "**Con lo que hay, no se sabe si el tren posterga solo el `DROP`, así que no des por hecho que lo hace.** El extracto dice que la migración destructiva \"va en el tren siguiente\", pero no si el workflow la separa solo o si eso lo tiene que asegurar quien arma el PR. Busqué en mi directorio de trabajo y está vacío: no vi `release-train.yml` ni el doc completo.\n\nConfirmalo en el repo, antes del jueves a las 9:00 (hora argentina):\n\n1. **`release-train.yml`**, en `.github/workflows/` si es un workflow de GitHub Actions. Mirá qué hace además de avanzar `main`, incluidos los scripts que llama. Si solo avanza `main`, seguí el paso de deploy que corre las migraciones. Buscá una regla explícita que detecte o marque las migraciones destructivas y las deje para el tren siguiente.\n2. **`docs/release-train.md` completo**, por si fuera del extracto dice cómo se marca o se separa un `DROP`.\n3. **Si no queda claro, preguntale a quien mantenga el tren.** El extracto no dice quién es. Podés buscarlo en `CODEOWNERS` o en el historial: `git log -- docs/release-train.md '*release-train.yml'`. A jjs el extracto lo nombra solo para aprobar releases manuales de hotfix; no dice que sea responsable del tren.\n\nPodés mandar este mensaje:\n\n> Mi PR ya está en staging y trae el código que usa `members.locale` junto con el `DROP` de `members.lang`. ¿El tren del jueves posterga solo el `DROP` o corre todo junto? Si lo posterga, ¿dónde está esa regla y hay que marcar la migración de alguna forma?\n\n**Si a tiempo no encontrás la regla ni te la confirman, sacá el `DROP` de staging antes del jueves a las 9:00** con un PR aparte, siguiendo el flujo del repo. No reviertas todo tu PR si querés que el código y `locale` salgan el jueves. Revisá que el cambio quite la migración sin romper el CI: si queda rojo, el tren se saltea. Volvé a mergear el `DROP` después de confirmar que el código ya está en prod, para que salga el martes. Si no llegás a sacarlo, avisale antes de las 9:00 a quien mantenga el tren, para que decida si hay que frenarlo.\n\nEn la respuesta anterior marqué que mi sistema da hoy como jueves 26/11/2026, y vos dijiste miércoles. **Chequeá la fecha ya:** si es jueves y pasaron las 9:00, mirá en el CI y en el deploy si el tren corrió y si se ejecutó el `DROP`. Si el tren todavía no corrió o está demorado, no asumas que ya salió ni que estás a tiempo.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11688,
+  "cache_read_input_tokens": 46223,
+  "output_tokens": 1411,
+  "output_tokens_details": {
+   "thinking_tokens": 198
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11688,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 993,
+    "cache_read_input_tokens": 28713,
+    "cache_creation_input_tokens": 485,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 485
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0c587e21af"
+ }
+}

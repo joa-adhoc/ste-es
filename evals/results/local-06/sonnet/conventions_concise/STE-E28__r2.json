@@ -1,0 +1,47 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Encontré un problema bloqueante en el [PR 1840](https://github.com/) de Lari (\"búsqueda de partners por CUIT\", base `staging`, +212 −40): hay una **inyección SQL** en `tuqui_core/odoo/partners.py:88`. La consulta se arma con un f-string, `f\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"`, y `cuit` viene del usuario. Hay que pasarlo como parámetro de la consulta (`WHERE vat = %s`, con `(cuit,)`) o buscar con el ORM.\n\nAdemás, hay dos detalles menores:\n- `test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\nLeí completos `partners.py` y `test_partners.py`. Los checks del CI están en verde, pero no corrí los tests en local. Los checks en verde no descartan la inyección.\n\nTodavía no publiqué nada, ni en GitHub ni en la tarea. Si querés, preparo el comentario de revisión para que lo veas antes de publicarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10372,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 394,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10372,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 394,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10372,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10372
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

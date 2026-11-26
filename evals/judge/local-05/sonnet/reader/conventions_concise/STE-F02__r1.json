@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo pasás en criollo y desde la pantalla? Decime qué tengo que contestar o hacer ahora: qué parte se puede resolver hoy tocando solo la plantilla, qué parte va a Consultoría y qué le pregunto al cliente. Y explicame sin nombres técnicos qué son `email_cc`, `partner_to`, `reply_to`, `account_ux`, `mail_autosubscribe` y \"OCA\", dónde se tocan, si es que se pueden tocar desde Odoo, y a qué contactos te referís con \"C1\" y \"C2\"."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de lo que veo en pantalla? No entiendo qué son `email_cc`, `partner_to`, `reply_to`, `account_ux` ni `mail_autosubscribe`, ni a qué te referís con C1 y C2 (¿cuál es cada «Administración»?). Decime en qué menú o botón se configura cada cosa y cuál es el paso concreto que sigue: qué le respondo al cliente y qué le derivo a Consultoría."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en criollo, sin nombres técnicos (email_cc, partner_to, reply_to, account_ux, mail_autosubscribe, chatter, C1/C2)? Decime qué puedo probar yo desde la pantalla, paso a paso (en qué menú, con qué botón o acción), qué tiene que hacer Consultoría, qué parte del pedido queda sin cubrir y cuál de los dos contactos «Administración» hay que usar."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo pasás en criollo y desde la pantalla? Decime qué tengo que contestar o hacer ahora: qué parte se puede resolver hoy tocando solo la plantilla, qué parte va a Consultoría y qué le pregunto al cliente. Y explicame sin nombres técnicos qué son `email_cc`, `partner_to`, `reply_to`, `account_ux`, `mail_autosubscribe` y \"OCA\", dónde se tocan, si es que se pueden tocar desde Odoo, y a qué contactos te referís con \"C1\" y \"C2\".",
+ "followup_answer": "**Hoy, desde la plantilla, solo podés intentar que Administración reciba copia de las facturas que se envíen desde ahora.** Con eso el ticket no queda resuelto: el resto va a Consultoría. No probé nada en la base, y los nombres de menús y campos son los habituales de Odoo 18, así que confirmalos en pantalla.\n\n## Qué hacer ahora\n1. **Confirmá con el cliente** que quiere este cambio parcial y qué casilla usar (mensaje abajo).\n2. **Ubicá las plantillas.** Mirá cuál usa cada uno de los cinco diarios en Contabilidad → Configuración → Diarios. Revisá también la del envío manual y la de notas de crédito. Se abren con el modo desarrollador, en Ajustes → Técnico → Plantillas de correo electrónico.\n3. **Anotá cómo están \"Para\" y \"CC\"**. Si alguno incluye al vendedor, sacarlo evita que la plantilla lo agregue. No lo evita si le llega por ser seguidor.\n4. **Agregá el correo de Administración en \"CC\"**, sin borrar al cliente de \"Para\". Probalo antes en una base de prueba, con envío manual y al validar. Fijate quién recibe y si otros documentos o compañías usan esa plantilla.\n5. **Derivá el resto a Consultoría.**\n\n| Parte | Dónde va |\n|---|---|\n| Copia de la factura a Administración | Plantilla (falta probar) |\n| Sacar vendedores o usuarios internos que la plantilla incluya | Plantilla, si es que están ahí |\n| Quitar y agregar seguidores automáticamente, también después de cada envío | Consultoría |\n| Corregir las facturas y notas de crédito anteriores | Consultoría |\n| Que las respuestas lleguen a Administración | Pendiente: la copia no alcanza |\n\nSobre las respuestas, se puede probar el campo **\"Responder a\"**. No sé si el envío de facturas lo respeta, ni si la respuesta seguiría quedando en la factura. No lo incluiría en el cambio de hoy.\n\n## Mensaje para el cliente\n> Hola. Revisamos el pedido. Podemos probar que Administración reciba en copia las facturas que se envíen desde ahora. Esto no hace que reciba las respuestas, no quita seguidores ni corrige documentos anteriores. Para el resto no encontramos una solución que alcance solo con la plantilla, y lo vamos a derivar a Consultoría.\n>\n> Para avanzar, necesitamos saber:\n> 1. ¿Quieren que hagamos la prueba de la copia? ¿A qué casilla?\n> 2. Las respuestas, ¿alcanza con que lleguen a esa casilla o también tienen que quedar en la factura?\n> 3. Los vendedores y usuarios internos, ¿no tienen que recibir correos o tampoco figurar como seguidores? ¿Hay alguna excepción?\n> 4. ¿Hay que corregir también los documentos anteriores? ¿Desde qué fecha? Los correos ya enviados no se pueden deshacer.\n> 5. ¿Nos pasan un ejemplo donde un vendedor haya recibido copia? En la factura FA-E 00003-00001234 el vendedor no figura como seguidor. Además, mencionan a dos usuarios internos, pero en nuestra revisión figura uno solo. ¿Nos reenvían lo que recibió cada uno?\n> 6. El pedido era para antes del 25/10. ¿Sigue siendo urgente? ¿Cambió algo desde entonces?\n\n**Nota para Consultoría:** Odoo trae acciones para agregar y quitar seguidores. Odoo vuelve a sumar como seguidor a quien envía la factura, así que hay que probar en qué momento actuar.\n\n## Los nombres, en criollo\n| Nombre | Qué es | ¿Se toca desde Odoo? |\n|---|---|---|\n| `partner_to` | Los contactos a los que va dirigido el correo | Sí, en la plantilla: \"Para (contactos)\" |\n| `email_cc` | Las direcciones que reciben copia. No las convierte en seguidoras | Sí, en la plantilla: \"CC\" |\n| `reply_to` | La dirección propuesta al que aprieta \"Responder\" | Sí, en la plantilla: \"Responder a\". Falta probar su efecto en facturas |\n| `account_ux` | Un agregado a Contabilidad que, en esta base, envía la factura al validarla | La plantilla de cada diario se ve en su configuración. El funcionamiento interno no se edita en la plantilla, y el material no muestra una opción para evitar que quien envía quede como seguidor |\n| `mail_autosubscribe` | Un agregado que suma seguidores automáticamente entre los contactos de la empresa que recibe el documento | No sirve para este caso, porque Administración es un contacto propio. No hay que tocar ni instalar nada |\n| OCA | Odoo Community Association: una comunidad que publica agregados para Odoo | No es una opción ni una pantalla |\n\n**C1 y C2** son etiquetas para distinguir dos registros llamados \"Administración\" con el mismo correo; no hace falta que se llamen así en Odoo:\n- **C1:** el contacto sin usuario. Lo ves en Contactos.\n- **C2:** el contacto del usuario interno \"Administración\". El usuario está en Ajustes → Usuarios, con la notificación \"En Odoo\": los avisos le quedan en la bandeja de Odoo y no le llegan por correo.\n\nPara la copia, escribís la dirección en \"CC\" y no necesitás cambiar la preferencia de C2. Falta ver en la prueba con cuál de los dos contactos la asocia Odoo. Cambiar C2 a correo electrónico afectaría también sus otras notificaciones y no es parte de la plantilla.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no pude cargar el contexto ni las reglas de la empresa (el alta se ve con `adhoc-way-guide`). Revisá el mensaje antes de mandarlo; yo no envié ni cambié nada.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12954,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3876,
+  "output_tokens_details": {
+   "thinking_tokens": 1726
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12954,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3876,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12954,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12954
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "96d92ca18b",
+  "persona": "soporte"
+ }
+}

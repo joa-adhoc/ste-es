@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos (pod, método, recargar el registro, cron, uid 31, res.company)? Necesito saber qué le pasó al usuario, si puede volver a pasar, y qué tengo que revisar yo desde la pantalla de Odoo (y qué le tengo que pedir a otra persona, y a quién) antes de cerrar el ticket y mandar la respuesta al cliente. Por ejemplo, ¿cómo compruebo la recurrencia y que las cotizaciones se hayan actualizado?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos (pod, método, recargar el registro, cron, uid, res.company)? Necesito saber qué le pasó al usuario, si ya está resuelto y qué tengo que hacer yo antes de cerrar el ticket y responderle al cliente. En particular, ¿cómo reviso si volvió a pasar y si las cotizaciones quedaron bien, o a quién se lo pido?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en palabras simples, sin términos técnicos (pod, método, registro, cron, uid 31, res.company, reglas 507 y 508)? Necesito saber qué le pasó al usuario, si ya está resuelto o puede volver a pasar, y qué tengo que hacer yo, paso a paso, antes de cerrar el ticket o responderle al cliente. En particular, cómo reviso si volvió a pasar o a quién se lo pido, porque dijiste que no pudiste consultar el ticket ni los logs en vivo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin términos técnicos (pod, método, recargar el registro, cron, uid 31, res.company)? Necesito saber qué le pasó al usuario, si puede volver a pasar, y qué tengo que revisar yo desde la pantalla de Odoo (y qué le tengo que pedir a otra persona, y a quién) antes de cerrar el ticket y mandar la respuesta al cliente. Por ejemplo, ¿cómo compruebo la recurrencia y que las cotizaciones se hayan actualizado?",
+ "followup_answer": "**Lo más probable es que el usuario se haya cruzado con una actualización a medio terminar.** El sistema ya tenía cambios nuevos, pero la versión que todavía atendía no estaba preparada para usarlos. Es una deducción a partir de los registros del servidor, no algo confirmado.\n\n## Qué le pasó\nAl revisar a qué información de stock podía acceder, Odoo necesitó una función que esa versión no encontró, y mostró un error. A las 12:08 del 04/11 (hora argentina) hubo tres errores así con ese usuario. Después arrancó la versión nueva y se apagó la anterior.\n\nEl cliente informa las **12:09:12**, cuando la versión anterior ya había empezado a apagarse. No sabemos si esa es la hora de uno de esos errores, la del reporte u otra cosa. Tampoco sabemos si su carga de stock se guardó.\n\nEn ese lapso también falló una tarea automática que trae cotizaciones.\n\n## Si puede volver a pasar\nEntre las 12:09 y las 12:30 de ese día, la versión nueva no registró errores. Eso no cubre desde entonces hasta hoy, 26/11. Si la explicación es correcta, no debería repetirse con la versión nueva, pero **en otra actualización podría pasar algo parecido**.\n\n## Qué revisás en Odoo\nEn la base del cliente, solo mirando. No probé estas pantallas, así que los nombres o menús pueden variar.\n\n1. **Carga de stock:** preguntale al cliente qué producto, cantidad y ubicación estaba cargando. En Inventario > Informes > Historial de movimientos, buscá ese producto el 04/11. Si fue un conteo, revisá también la cantidad en Inventario físico. Si no la ves, revisá los filtros y confirmá con el cliente antes de que la cargue de nuevo.\n2. **Tarea de cotizaciones:** con el modo desarrollador y permisos de administración, entrá a Ajustes > Técnico > Acciones planificadas. Abrí «Consolidation: bring currency rates in». Fijate si está activa, cada cuánto corre, cuándo le toca y, si aparece, su última ejecución. Una fecha reciente **no prueba que haya terminado bien**. No uses «Ejecutar manualmente» solo para probar, porque puede modificar datos.\n3. **Cotizaciones:** probá en Contabilidad > Configuración > Monedas, abrí cada moneda que use el cliente y mirá sus tasas. Compará las fechas desde antes del 04/11 hasta hoy, en cada empresa que corresponda. No sé si esta tarea guarda ahí las cotizaciones. Que haya una tasa tampoco prueba que la haya cargado ella, porque pudo entrar a mano o por otro proceso.\n4. **Nuevos avisos:** buscá en este ticket y en otros del cliente si volvieron a informar el error. Que no haya avisos no descarta que haya ocurrido.\n\n## Qué pedir y a quién\nLa recurrencia no la daría por revisada desde la pantalla de Odoo: hacen falta los registros del servidor. Pedíselo a quien administre la instancia y sus actualizaciones; el material no dice quién es. Podés mandarle esto, que lleva los nombres técnicos para que pueda buscar:\n\n> Por el ticket 140512 (04/11), necesito que revises:\n> 1. Si desde el 04/11 15:09 UTC hasta hoy volvió a aparecer `_get_branch_stock_root_ids` en un error. Indicame qué período pudiste revisar.\n> 2. Si «Consolidation: bring currency rates in» terminó bien después de la falla de las 15:08:40 UTC (también si falló por `_cron_update_consolidation_rates`), dónde guarda las cotizaciones y si falta alguna.\n> 3. Qué versión tenía cada pod, quién actualizó los módulos y si el pod anterior atendió pedidos a las 15:09:12 UTC.\n> 4. Cómo evitar que en otra actualización la versión anterior siga atendiendo o ejecutando tareas con la base ya modificada.\n\n## Cuándo cerrar\nCerralo como error de actualización si:\n- confirmaste qué pasó con la carga de stock;\n- no hubo recurrencia en el período revisado;\n- las cotizaciones están completas.\n\nSi los registros no llegan hasta el 04/11, anotá qué período quedó sin revisar. Si el error se repitió o faltan cotizaciones, no lo cierres todavía. La mejora para próximas actualizaciones (punto 4) se puede seguir aparte. El punto 3 sirve para confirmar la explicación; sin esa respuesta, dejala como probable.\n\n## Respuesta al cliente\nMandala solo si se cumplen las tres condiciones. Reemplazá lo que está entre corchetes. Si también faltaron cotizaciones y ya las corrigieron, agregalo.\n\n> Hola. Revisamos el error que informaste al cargar stock el 04/11. Lo más probable es que haya coincidido con una actualización del sistema. [Resultado de la carga: quedó registrada / no quedó registrada y hay que hacerla de nuevo]. En los registros que revisamos, del [desde] al [hasta], no vimos que el error se repitiera después de la actualización. Si te vuelve a aparecer, avisanos con la fecha y la hora.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12801,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3200,
+  "output_tokens_details": {
+   "thinking_tokens": 1324
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12801,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3200,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12801,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12801
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a642c5e97d",
+  "persona": "soporte"
+ }
+}

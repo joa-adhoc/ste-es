@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar en qué otros casos no se muestra nada? En concreto: si el Synthesizer puede devolver 0 teasers por su cuenta, y qué pasa si falla una consulta del Context Assembler, el Planner o el Synthesizer, o si una investigación se queda sin tiempo o llega al límite de iteraciones o de llamadas a herramientas."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar en qué otros casos no se muestra nada? Me interesa qué pasa si falla una consulta de contexto, el Planner o el Synthesizer, si una investigación se queda sin tiempo o llega a un límite, y si el Synthesizer puede devolver 0 teasers por su cuenta. De paso, decime qué campos trae InvestigationFindings y para qué se usa silence_reason."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar todos los casos en que no se muestra nada? En particular: qué pasa si falla alguna de las 6 consultas, el Planner o el Synthesizer; qué pasa si una investigación se queda sin tiempo o llega al límite de iteraciones o de herramientas (¿se descarta o pasan resultados parciales?); si el Synthesizer puede devolver 0 teasers por su cuenta; y cómo se usa `silence_reason`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código y confirmar en qué otros casos no se muestra nada? En concreto: si el Synthesizer puede devolver 0 teasers por su cuenta, y qué pasa si falla una consulta del Context Assembler, el Planner o el Synthesizer, o si una investigación se queda sin tiempo o llega al límite de iteraciones o de llamadas a herramientas.",
+ "followup_answer": "No pude confirmar ninguno de esos casos en el código, porque no llegué a verlo. La carpeta de trabajo (`/tmp/ste-es-eval-cb507yje`) está vacía y no es un repo git. Antes probé un comando que también buscaba los archivos en `/tmp` y `/home/joa`, pero pedía aprobación y no se ejecutó. Después solo listé la carpeta de trabajo, así que no sé si el código está en otro lugar de esta máquina.\n\n| Caso | Qué dice el material | Qué falta ver en el código |\n|---|---|---|\n| El Synthesizer devuelve 0 teasers por su cuenta | El diagrama indica de 0 a 2 al final, sin aclarar si el 0 puede salir antes de los filtros. | En `synthesizer.py`: si el formato de salida y el prompt permiten una lista vacía, y qué pasa en ese caso. |\n| Falla una consulta del Context Assembler | Son 6 en paralelo; no dice nada sobre errores. | En `context_assembler.py`: si el error corta todo o si sigue con el contexto incompleto. |\n| Falla el Planner | Solo describe como silencio válido que no haya hipótesis. | En `planner.py` y en quien lo llama: si hay reintentos, si el error se propaga o si se convierte en una lista vacía. |\n| Falla el Synthesizer | La única falla de infraestructura que describe es la del juez: el teaser pasa. | En `synthesizer.py` y en quien lo llama: lo mismo que con el Planner. No hay que suponer que se comporta como el juez. |\n| Una investigación se queda sin tiempo | Da el tiempo por hipótesis: `(watchdog_sec - 30) / n_hipótesis`. | En `investigator.py`: si descarta esa hipótesis, usa resultados parciales o corta toda la corrida. |\n| Llega al límite de iteraciones o de llamadas | Da los límites por registro, pero no qué pasa al alcanzarlos. | En `investigator.py`: cómo maneja esa situación o la excepción, si la hay. |\n\nPor ahora, los únicos casos sin nada para mostrar que describe el material siguen siendo dos: **el Planner no devuelve hipótesis** o **los filtros rechazan todos los teasers**. Puede haber otros. Tampoco confirmé en el código que esos dos funcionen como están descritos.\n\nPara revisarlo, pasame la ruta del repo en esta máquina o pegá `context_assembler.py`, `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`. Sumá también el código que llama a las etapas y maneja el watchdog (el control del tiempo total): los errores o cortes por tiempo pueden manejarse ahí. Con la ruta, también puedo buscar si hay tests que cubran estos casos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13534,
+  "cache_read_input_tokens": 78751,
+  "output_tokens": 1707,
+  "output_tokens_details": {
+   "thinking_tokens": 394
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13534,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1311,
+    "cache_read_input_tokens": 30770,
+    "cache_creation_input_tokens": 274,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 274
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "effa68d582"
+ }
+}

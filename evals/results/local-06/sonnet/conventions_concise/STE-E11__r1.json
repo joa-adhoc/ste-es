@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "En el archivo va esta línea, cerca del inicio, si al dropear la columna el código anterior deja de poder correr:\n\n```sql\n-- destructive: true\n```\n\nEl runner la aplica solo en algunos lugares:\n\n| Momento / lugar | ¿Se aplica? |\n|---|---|\n| Preview del PR (Railway) | **No.** Hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero su rama no es `staging` ni `main`. La saltea sin registrarla en `_migrations`. |\n| CI (postgres de servicio de cada workflow), stack e2e y pytest | **Sí**, porque son bases efímeras que activan el permiso (en el workflow con la variable; en pytest con `allow_destructive=True` desde el conftest). |\n| Local con `make migrate` | **No.** No activa el permiso, porque la base de desarrollo se comparte entre worktrees. |\n| Deploy de `staging` o `main` después del merge | **Sí**, si además tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Como no quedó registrada antes, se aplica en ese deploy. |\n| Deploy de Railway sin rama en `RAILWAY_GIT_BRANCH` | **No.** Ante la duda, no la aplica. |\n\n- **Sin el marker:** se trata como una migración común. El preview la aplica en la base compartida y rompe el staging que sigue corriendo el código anterior. Ya pasó que un preview aplicara `0180_chat_ga` contra esa base, y por eso ahora también se mira la rama.\n- **Llegada a prod:** el fragmento no dice qué rama despliega prod ni si prod tiene la variable. Si prod sale de `main`, confirmá que tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Sin eso, el runner la saltea.\n\nLo siguiente lo deduzco yo, el fragmento no lo dice:\n- **Preview:** tu código nuevo va a correr con la columna todavía puesta. Tiene que funcionar así; por ejemplo, un `INSERT` falla si la columna es `NOT NULL` sin valor por defecto. En ese caso, que CI pase no alcanza, porque ahí la columna sí se dropea.\n- **Cambios aditivos:** como se saltea el archivo, conviene ponerlos en otra migración sin marker. Si van juntos con el drop, el preview tampoco los va a tener. La migración separada sí se aplica en la base de staging desde el preview. Antes de hacerlo, y sobre todo antes de renombrarla, leé [Un PR preview escribe en la base de staging](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging); ese documento no está en lo que me pasaste.\n\nNo revisé el código del runner ni la configuración de los entornos: la respuesta sale del fragmento que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10900,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1545,
+  "output_tokens_details": {
+   "thinking_tokens": 521
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10900,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1545,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10900,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10900
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

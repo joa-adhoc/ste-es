@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo plantea como lo más probable: los dos worktrees usan la misma base local, y una migración de la rama de tu compañero borró o renombró una columna que tu código todavía lee, de ahí el `UndefinedColumnError`. El `conftest` aplica las migraciones sobre esa base compartida, que queda con la unión de las migraciones de las dos ramas. Para confirmarlo, hay que buscar la columna del error en las migraciones de la otra rama.",
+  "No. El lock (`flock`), que toman `test`, `test-rls`, `test-integration`, `test-all` y `odoo-matrix` y que espera hasta 15 minutos, evita que dos corridas se pisen, pero no separa los esquemas.",
+  "1) Dale a tu worktree su propia base: si no tenés `tuqui_core/.env.test.local`, crealo con `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local` y editalo para que apunte a una base que no use ningún otro worktree, tomando el nombre de la variable del ejemplo. 2) Reconstruí esa base con `make migrate-reset`. Este comando vacía la base, así que antes confirmá en el `Makefile` y en `scripts/reset_database.py` a cuál apunta: el material no aclara si `migrate-reset` carga `.env.test.local`, y si apunta a la compartida podés borrar datos que quizás tu compañero está usando. Que solo toque bases locales no te protege de eso. Tampoco se dice si el comando crea la base cuando no existe. No uses `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido y hoy hay prefijos repetidos. 3) Volvé a correr los tests con los targets de `make`, como `make test`; si alguno sigue fallando con el mismo error, revisá a qué base se conecta. Para que no se repita, usá una base propia en cada worktree; resetear la compartida no alcanza. Si además querés correr tests en paralelo, necesitás base propia, Redis propio (en `REDIS_URL`, un índice que no use otro worktree, ni el `15` ni el `0`) y un `TEST_LOCK` distinto. No cambies `TEST_LOCK` si solo aislaste la base o solo Redis."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "8d970bc979",
+  "control": "d71584ce60"
+ }
+}

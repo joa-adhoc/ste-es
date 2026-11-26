@@ -75,4 +75,20 @@ Against the built-in `Concise` style it ties (44 to 42): in Claude Code, `Concis
 
 On top of adhoc-way's `conventions.md`, the rules beat the conventions alone (56 to 31) but tie with the conventions plus `Concise` (44 to 42), which uses fewer tokens and loses less in the precision cases (the rules lose them 3 to 9). The rules also raise follow-ups against the conventions alone (0.54 to 0.61).
 
+### Functional cases and today's model (2026-11-26)
+
+Eight cases from real follow-ups of support, upgrade, consulting and sales people in Tuqui Work (run `local-05`), and the 29 dev cases again with `claude-sonnet-5-5` (run `local-06`). All arms load adhoc-way's `conventions.md`; `conventions_v4` rewrites rule 2 for someone who does not code.
+
+| | Functional: preference | Functional: follow-ups | Dev: preference against `Concise` | Dev: follow-ups |
+|---|---|---|---|---|
+| `conventions` + `Concise` | — | 100% | — | 37% |
+| `conventions_v3` | 11 to 13 against `Concise` | 100% | 25 to 62 | 37% |
+| `conventions_v4` | 15 to 9 against `Concise` | 88% | 30 to 57 | 31% |
+| `conventions_v5` | 15 to 9 against `Concise` | 92% | 50 to 36 | 32% |
+| `conventions_v6` | 15 to 9 against `Concise` | 100% | 45 to 40 | 36% |
+
+- With today's model, `Concise` beats the rules in the dev cases. On 2026-11-18 they tied (44 to 42); v4 and v3 tie with each other (42 to 44), so the change comes from the model, not from v4.
+- `conventions_v5` writes `Concise` as text, in our words, so it works in any agent, and adds rule 2 for someone who does not code. It beats `Concise` in Claude Code, but in the functional cases it keeps only 57% of the conditions. `conventions_v6` adds one sentence ("lo que no verificaste o no probaste se dice siempre") and keeps 68% of them, like v4, while it still beats `Concise` (45 to 40 in dev, 15 to 9 in functional cases).
+- In the functional cases no arm answers in functional language: answers have about 540 words, keep 73% to 76% of the facts, and the reader asks again almost every time. v4 helps a little.
+
 Limits: one model only, and the judge and the reader are Claude too. Codex and opencode are not measured. Earlier versions and their results are in the git history.

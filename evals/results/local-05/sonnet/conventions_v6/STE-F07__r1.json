@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "No pude crear los archivos porque no tengo permiso de escritura en la carpeta, así que te dejo el contenido: copiá cada bloque en un `.csv` en UTF-8. **Sí se puede indicar qué factura se salda**, con la columna `to_pay_move_line_ids/id`. No probé ninguna importación en la base del cliente.\n\nLos valores en mayúsculas, las fechas y los importes son de ejemplo. En el ejemplo, 97.000 de pago más 3.000 de retenciones saldan 100.000.\n\n### `recibos.csv` (sin cheques)\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,NOMBRE_CLIENTE,2026-11-26,NOMBRE_DIARIO,NOMBRE_METODO_PAGO,97000.00,\"ID_EXTERNO_APUNTE_1,ID_EXTERNO_APUNTE_2\",NOMBRE_RETENCION_1,NRO_CERTIFICADO_1,100000.00,2000.00\n,,,,,,,,NOMBRE_RETENCION_2,NRO_CERTIFICADO_2,100000.00,1000.00\n```\n\n### `pagos_proveedores.csv`\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nsupplier,outbound,NOMBRE_PROVEEDOR,2026-11-26,NOMBRE_DIARIO,NOMBRE_METODO_PAGO,97000.00,ID_EXTERNO_APUNTE_1,NOMBRE_RETENCION_1,,100000.00,2000.00\n,,,,,,,,NOMBRE_RETENCION_2,,100000.00,1000.00\n```\n\n### `recibos_cheques.csv` (sin `amount`: sale de la suma de los cheques)\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,NOMBRE_CLIENTE,2026-11-26,NOMBRE_DIARIO_CHEQUES,NOMBRE_METODO_CHEQUES,ID_EXTERNO_APUNTE_1,NRO_CHEQUE_1,2026-12-15,NOMBRE_BANCO,CUIT_EMISOR,50000.00,NOMBRE_RETENCION_1,NRO_CERTIFICADO_1,100000.00,2000.00\n,,,,,,,NRO_CHEQUE_2,2027-01-15,NOMBRE_BANCO,CUIT_EMISOR,47000.00,NOMBRE_RETENCION_2,NRO_CERTIFICADO_2,100000.00,1000.00\n```\n\n### Cómo completarlos\n- **Obligatorios:** las primeras seis columnas. El talonario se calcula solo.\n- **Varios cheques o retenciones:** van en filas adicionales con los datos del recibo vacíos. Si hay una sola línea, borrá la segunda fila.\n- **Sin retenciones:** dejá vacías sus columnas. En las líneas que cargues, el impuesto es obligatorio.\n- **Cheques:** el monto tiene que ser mayor a 0 y el CUIT se valida. Si dejás banco o CUIT vacíos, salen del cliente.\n- **Pagos a proveedores:** las retenciones se calculan solas según la posición fiscal, y el número lo pone la secuencia al confirmar. Las incluí porque las pediste, pero no sé si al importarlas se respetan, se reemplazan o se duplican. Probá también sin esas columnas y compará.\n- **Pagos con cheques a proveedores:** no armé un archivo. Para cheques nuevos podés probar el de cheques con `supplier`, `outbound` y tu diario y método de pago, revisando las retenciones como arriba. Para entregar cheques de terceros, el material no indica la columna.\n\n### Conciliar contra una factura\n1. En **Contabilidad › Apuntes contables**, filtrá la factura y la cuenta a cobrar (clientes) o a pagar (proveedores).\n2. Exportá con la opción «compatible con importación».\n3. Copiá el identificador externo del apunte, no el de la factura, en `to_pay_move_line_ids/id`. Si son varios, separalos con coma; en el CSV van entre comillas.\n\nEl pago se importa **en borrador**. Al confirmarlo, se concilia contra los apuntes elegidos que alcance a cubrir; los apuntes tienen que ser de cuentas compatibles.\n\n**Antes de confirmar, revisá las deudas de cada pago:**\n- Si cambiás cliente, compañía o tipo en el borrador, la selección se reemplaza por toda la deuda abierta.\n- No dejes la columna de deudas vacía esperando que no concilie nada: podría cargarse toda la deuda abierta. Esto es una inferencia, no lo probé.\n\n### Probalo primero\nUsá una base de prueba y el botón **Probar** del importador, y después importá un solo registro de cada archivo. «Probar» no reemplaza revisar el borrador y confirmarlo. Fijate:\n- **Columnas:** los nombres internos de las columnas de cheques y retenciones (`name`, `payment_date`, `bank_id`, `issuer_vat`, `tax_id`, `base_amount`, etc.) los puse según lo que conozco de Odoo; verificá que el importador los reconozca.\n- **Nombres repetidos:** si un contacto, método de pago o impuesto es ambiguo, usá su identificador externo y agregá `/id` al encabezado (por ejemplo, `payment_method_line_id/id`).\n- **Importes:** que `amount`, o la suma de los cheques, sea el neto sin retenciones. El ejemplo lo supone, pero el material no lo confirma.\n- **Resultado:** que queden bien las deudas, las retenciones y el total antes de confirmar, y el saldo de la factura después.\n\nNo tuve disponible `tuqui-adhoc`, así que me basé en tu material; para darlo de alta podés usar la guía `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 14937,
+  "cache_read_input_tokens": 76210,
+  "output_tokens": 6159,
+  "output_tokens_details": {
+   "thinking_tokens": 1993
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14937,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2691,
+    "cache_read_input_tokens": 30079,
+    "cache_creation_input_tokens": 2368,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 2368
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

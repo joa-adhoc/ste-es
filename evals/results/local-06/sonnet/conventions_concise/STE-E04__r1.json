@@ -1,0 +1,47 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**`replace` pisa el campo y `append` agrega abajo de lo que ya hay.**\n\n- **`replace`** (por defecto): cada campo que mandás en `values` queda con el valor nuevo. No lee el valor anterior. En textos largos, como `description`, lo que había se pierde sin posibilidad de recuperarlo, porque el chatter no guarda el valor anterior.\n- **`append`**: en los campos `html` y `text`, lee el contenido actual de **cada registro** y pone el nuevo abajo. **Los demás tipos de campo se reemplazan igual que en `replace`.** Mandá solo lo que querés agregar: si incluís el texto anterior, queda duplicado.\n\nEntonces, si el pedido es \"agregá\" o \"completá\", va `append`. Para reescribir o vaciar un campo, va `replace`. En un campo `html` o `text`, `append` rechaza un valor que no sea texto, como `false` (`append_requires_text`). Si además no puede leer el valor actual o el schema, no escribe (`append_precheck_failed`).\n\n**Si falla a mitad de camino**\n\n`append` hace un write por registro y no es una transacción, así que **lo que ya se escribió no se revierte**. Por ejemplo, con los registros `[10, 11, 12, 13]`, si falla el 12, recibís `append_partially_applied` con:\n\n| Dato | Valor | Qué significa |\n|---|---|---|\n| `written_ids` | `[10, 11]` | Ya tienen el texto agregado |\n| `failed_id` | `12` | El que falló; no se escribió |\n| `pending_ids` | `[12, 13]` | Los que hay que reintentar, incluido el que falló |\n\n**Reintentá solo con `pending_ids`**, manteniendo `mode=\"append\"`, después de resolver la causa del error si va a volver a pasar. Si repetís la llamada completa, el 10 y el 11 reciben el texto dos veces. Los ids que sí se escribieron quedan registrados en `tool_usage_log.write_metadata`, con `partial: true`.\n\n**Si falla el primero** (el 10), no se escribió ninguno. No recibís `append_partially_applied`, sino un error común de write (`invalid_values` o la excepción original). En ese caso podés reintentar la llamada entera.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11042,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 913,
+  "output_tokens_details": {
+   "thinking_tokens": 127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11042,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 913,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11042,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11042
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

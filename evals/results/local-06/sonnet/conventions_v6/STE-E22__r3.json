@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**No lo corras así:** perdés sin vuelta los cambios sin commitear en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`. Además, no quedás del todo en cero.\n\n| Qué tenés | Qué pasa con `git reset --hard origin/staging` |\n|---|---|\n| Cambios sin commitear en esos 2 archivos | Se pierden. Como no están en staged, no cuentes con recuperarlos desde Git, y el stash está vacío. |\n| 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`) | Salen de la rama. Se pueden recuperar por un tiempo con `git reflog`. |\n| `0420_mcp_limits.sql`, sin trackear | Queda donde está. Si `origin/staging` tiene un archivo en esa misma ruta, lo pisa. |\n| Commits ya pusheados que no estén en `staging` | Salen de tu rama local, pero siguen en `origin/feat/limite-mcp`. |\n\nPara empezar de cero y guardar todo, usá una rama nueva. Corré cada paso solo si el anterior salió bien:\n\n```bash\ngit stash push -u -m \"limite-mcp antes de empezar de cero\"   # los 2 cambios y los archivos sin trackear, incluida la migración\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 --no-track origin/staging\n```\n\nLos 3 commits quedan en `feat/limite-mcp` y lo que no estaba commiteado queda en el stash. Tampoco necesitás un force push para publicar la rama nueva. `-u` guarda todos los archivos sin trackear que no estén ignorados.\n\nSi necesitás **conservar el mismo nombre de rama**, reemplazá el último comando por estos dos, estando en `feat/limite-mcp`:\n\n```bash\ngit branch backup/limite-mcp          # guarda los 3 commits\ngit reset --hard origin/staging\n```\n\nEn ese caso, la rama sigue asociada a `origin/feat/limite-mcp` y va a divergir. Para pisar la remota vas a necesitar `git push --force-with-lease`. Antes fijate si alguien más usa esa rama o si una persona ya revisó su PR, porque ahí no hay que reescribir la historia.\n\nDoy por hecho que `staging` es la base correcta; con este material no lo puedo verificar. Si ya aplicaste la migración en alguna base de datos, ninguno de estos comandos la revierte.\n\nSi en realidad querés **descartar todo**, incluidos los commits locales y la migración, confirmámelo y te paso los pasos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10388,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1619,
+  "output_tokens_details": {
+   "thinking_tokens": 701
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10388,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1619,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10388,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10388
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

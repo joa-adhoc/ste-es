@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Revisá en el código dos cosas. Primero, si un workspace con suscripción activa igual recibe los avisos previos (hito 7 y hito 0) o si también se omiten (mirá `_run_trial_expiry` en `scheduler/billing_cron.py` y el proceso que manda los avisos). Segundo, sin suscripción, qué cuenta exactamente como exceso para quedar en `restricted`, y qué sigue funcionando y qué se corta (asistente, MCP, chat) si el workspace pasa a free sin exceso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y lo que dispara los avisos) y confirmarme dos cosas? Primero, si un workspace con suscripción activa recibe igual el aviso de 7 días y el del día 0. Segundo, qué cuenta como exceso al vencer sin suscripción y qué pierde el workspace si no tiene exceso, en particular si siguen andando el chat, el asistente y el MCP."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar en el código (`_run_trial_expiry` y el proceso de avisos) y confirmarme dos cosas? Primero, si un workspace con suscripción activa recibe igual los avisos de 7 días y del día 0. Segundo, sin suscripción, qué cuenta exactamente como exceso y qué pierde el workspace al pasar a free si no tiene exceso: ¿el asistente y el MCP siguen funcionando, y para quiénes?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Revisá en el código dos cosas. Primero, si un workspace con suscripción activa igual recibe los avisos previos (hito 7 y hito 0) o si también se omiten (mirá `_run_trial_expiry` en `scheduler/billing_cron.py` y el proceso que manda los avisos). Segundo, sin suscripción, qué cuenta exactamente como exceso para quedar en `restricted`, y qué sigue funcionando y qué se corta (asistente, MCP, chat) si el workspace pasa a free sin exceso.",
+ "followup_answer": "No pude revisar el código, así que **las dos preguntas siguen sin verificar**. En el directorio de trabajo (`/tmp/ste-es-eval-5rsojjp8`) no hay archivos. Intenté buscar el repo en otras carpetas de la máquina, pero ese comando pedía aprobación y no se ejecutó. No sé si hay un clon.\n\n**1. Avisos previos con suscripción activa:** el material no lo dice. \"No se manda nada\" está bajo \"Qué pasa al vencer\". El hito 0 sale el día que vence, con la prueba todavía funcionando, así que esa frase no alcanza para saber si se omite. Para cerrarlo hay que ver:\n- en `_run_trial_expiry` (`scheduler/billing_cron.py`) y en el proceso que manda los avisos, si al elegir los workspaces se excluyen los que tienen suscripción activa;\n- si ese filtro está antes de enviar los avisos o solo en la parte del vencimiento;\n- qué cuenta como suscripción \"viva\", por ejemplo qué pasa con una con pago atrasado o con cancelación programada.\n\n**2. Exceso y qué se corta en free:**\n- **Qué dice el material:** `restricted` bloquea el MCP y el chat. Uno de sus motivos al terminar la prueba es `trial_expired_with_excess`.\n- **Qué falta:** no define el exceso. Existe un motivo `free_member_limit_exceeded`, pero eso no prueba que la cantidad de miembros cuente para el exceso al vencer, ni que sea lo único.\n- **Free sin exceso:** no puedo decir si siguen funcionando el asistente, el MCP o el chat. Que el workspace no quede `restricted` no garantiza que conserve el asistente: los avisos y `PlanLapsedBanner` contemplan que se pierda. Con un cliente esperando, yo no le prometería que alguno de los tres sigue disponible.\n- **Dónde mirar:** la evaluación de exceso que llama `_run_trial_expiry`; `billing/plan_summary.py`, de donde sale qué deja de funcionar; y los controles de acceso del asistente, el MCP y el chat, para ver cómo usan `plan`, `billing_tier` y `account_status`.\n\nPara que lo revise, pasame la ruta del clon y aprobá el acceso si te lo pide. También podés pegar `_run_trial_expiry`, las funciones que llama, `plan_summary.py` y esos controles de acceso. `tests/test_trial_notices.py` puede ayudar con la primera pregunta, pero no sé si cubre el caso con suscripción.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13055,
+  "cache_read_input_tokens": 77462,
+  "output_tokens": 1919,
+  "output_tokens_details": {
+   "thinking_tokens": 632
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13055,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1398,
+    "cache_read_input_tokens": 30091,
+    "cache_creation_input_tokens": 474,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 474
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c960f12b0b"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Tenés que poner la línea `-- destructive: true` cerca del inicio del archivo. Un drop de columna la necesita si el código anterior no puede correr sin esa columna.\n\n```sql\n-- destructive: true\nALTER TABLE mi_tabla DROP COLUMN mi_columna;  -- nombres de ejemplo\n```\n\nCon la marca, el runner aplica la migración solo si está habilitada. Si la saltea, **no la registra** en `_migrations`, así que un deploy habilitado puede aplicarla después.\n\n| Dónde | ¿Se aplica? | Condición o motivo |\n|---|---|---|\n| PR env de Railway (usa la base de staging) | No | Hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, pero su rama no es `staging` ni `main`. |\n| CI (postgres de servicio de cada workflow) | Sí | El workflow activa `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. La base es efímera. |\n| Stack e2e (container) | Sí | La base es efímera y activa el opt-in. |\n| pytest | Sí | El conftest pasa `allow_destructive=True`. |\n| `make migrate` local | No | No activa el opt-in, porque tus worktrees comparten esa base. |\n| Deploy de `staging` o `main` después del merge | Sí, si cumple las dos condiciones | Necesita `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y `RAILWAY_GIT_BRANCH` en `staging` o `main`. |\n\n- **Al deployar:** corre `python -m tuqui_core.db.migrate`. En CI y local corre `scripts/apply_migrations.py`, con el mismo contrato.\n- **Si Railway no informa la rama:** cuando hay marcadores de Railway sin rama estampada, el gate falla cerrado y no aplica la migración.\n- **Si te olvidás la marca:** el runner la trata como una migración común. El preview del PR la puede aplicar sobre la base compartida de staging y romper el código anterior que sigue corriendo ahí. Ya pasó que un preview aplicara `0180_chat_ga` contra esa base, porque en ese momento alcanzaba con el flag heredado.\n- **Prod:** el material no dice si el environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, así que no puedo asegurarte que el drop llegue. Revisá esa variable en Railway. Sin ella, el runner saltea la migración aunque el deploy sea de `main`. Tampoco dice qué rama deploya a prod ni cómo se promueve de `staging` a `main`.\n- **Código viejo durante el deploy:** el material no explica cómo se evita que una instancia anterior siga corriendo cuando el deploy real borra la columna. La marca protege contra los deploys no habilitados, como los previews; con este material no puedo asegurar que cubra ese momento.\n\nSi vas a renombrar el archivo, antes leé [`docs/infra-ci-cd.md` § Un PR preview escribe en la base de staging](../infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging). El material remite ahí por las consecuencias de las migraciones aditivas al mergear y renombrar, pero no incluye esa sección. Respondí solo con el texto que pegaste; no revisé el código del runner ni la configuración.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10913,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1638,
+  "output_tokens_details": {
+   "thinking_tokens": 436
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10913,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1638,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10913,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10913
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

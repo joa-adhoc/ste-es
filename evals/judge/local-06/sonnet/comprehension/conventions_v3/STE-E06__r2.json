@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo más probable es que los dos worktrees usen la misma DB local y que una migración de la otra rama haya cambiado el esquema, por ejemplo borrando una columna que tu código todavía lee. El texto aclara que lo deduce del material y que no lo verificó en tu máquina. Para confirmarlo, buscá la columna del error en las migraciones de la otra rama.",
+  "No. El lock (`flock`) impide que dos corridas de tests se pisen al mismo tiempo, pero no separa el esquema: la DB queda con las migraciones de las dos ramas.",
+  "Con una DB propia para tu worktree:\n1. Si no tenés el override, crealo con `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local`.\n2. En ese archivo, apuntá a una base con un nombre exclusivo de este worktree, usando las variables que indica el `.example`. El material no dice si la base se crea sola o si tenés que crearla antes.\n3. Antes del reset, confirmá a qué base apunta, porque `migrate-reset` la vacía. Los targets de test cargan `.env.test.local`, pero no está claro si `migrate-reset` también, así que revisalo en el `Makefile` y en `scripts/reset_database.py`. Si apunta a la base compartida, le borrás los datos a todos los que la usan y podés romperle una corrida a tu compañero.\n4. Con el destino confirmado, corré `make migrate-reset` para armar la base desde cero con las migraciones de tu rama. No uses `npx supabase db reset`.\n5. Volvé a correr `make test` o el target que fallaba. Si el `UndefinedColumnError` sigue con una base propia recién armada, revisá si a tu rama le falta una migración o si el test sigue usando otra base.\n\nPara que no vuelva a pasar, dejá el `.env.test.local` (está en el `.gitignore`) y repetí la configuración en cada worktree nuevo, con una base distinta en cada uno. Pedile a tu compañero que haga lo mismo."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "24df321df1",
+  "control": "d71584ce60"
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿De qué pantalla saco el identificador externo del cliente o proveedor, del método de pago y del impuesto de retención? Solo explicaste cómo exportar el de los apuntes de deuda. Pasame el paso a paso para esos tres, con un ejemplo de cómo se ve una fila ya completa."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar desde la pantalla y confirmarme las plantillas? La primera oración me dice que sí se puede indicar la factura, pero con un nombre técnico (`to_pay_move_line_ids/id`), y pedí los archivos, que arrancan más abajo. No entiendo qué es «el código descripto», «apuntes», «identificador externo», `tuqui-adhoc` ni `adhoc-way-guide`. Necesito una tabla que diga, para cada columna: qué campo de la pantalla es, si es obligatoria y de dónde saco el valor. Aclarame también cuáles son realmente las obligatorias, porque decís «las primeras seis», pero parece que también hace falta `amount` cuando no hay cheques. Por último, en pagos a proveedores con retenciones, ¿dejo vacías las columnas de retención para que se calculen solas o las completo? Si no lo sabés, ¿cómo lo pruebo para que no se dupliquen, y qué importe tengo que poner en el pago?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás paso a paso, desde la pantalla, cómo completo cada valor entre < >? Sé cómo sacar el del apunte, pero no de qué menú saco el identificador externo del cliente o proveedor, del método de pago y del impuesto de retención. Decime también a qué campo de la pantalla corresponde cada columna y cuáles son obligatorias en cada archivo, porque en cheques «las primeras seis» y «sin amount» me confunden. Y en pagos a proveedores con retenciones, ¿cargo las líneas de retención o las dejo vacías para que se calculen solas? No quiero que queden duplicadas. Por último, no entiendo qué son «el código descripto», «tu material», `tuqui-adhoc` y `adhoc-way-guide`, ni si tengo que hacer algo con eso."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar desde la pantalla y confirmarme las plantillas? La primera oración me dice que sí se puede indicar la factura, pero con un nombre técnico (`to_pay_move_line_ids/id`), y pedí los archivos, que arrancan más abajo. No entiendo qué es «el código descripto», «apuntes», «identificador externo», `tuqui-adhoc` ni `adhoc-way-guide`. Necesito una tabla que diga, para cada columna: qué campo de la pantalla es, si es obligatoria y de dónde saco el valor. Aclarame también cuáles son realmente las obligatorias, porque decís «las primeras seis», pero parece que también hace falta `amount` cuando no hay cheques. Por último, en pagos a proveedores con retenciones, ¿dejo vacías las columnas de retención para que se calculen solas o las completo? Si no lo sabés, ¿cómo lo pruebo para que no se dupliquen, y qué importe tengo que poner en el pago?",
+ "followup_answer": "**Sí, al importar un recibo podés indicar qué factura salda**, cargándola en la columna que corresponde al campo **Deudas**. Según la descripción del sistema que me pasaste, al confirmar el recibo se concilia contra esa factura, hasta donde alcance el pago. **No puedo confirmarte las plantillas:** no se probaron en la base del cliente, y los nombres de las columnas de cheques y retenciones los supuse. Tampoco llegué a crear los archivos porque no tuve permiso de escritura, así que hay que copiar los bloques.\n\n## Columnas\nLos nombres de pantalla son orientativos. \"ID externo\" es el código con el que la importación reconoce un registro. Para verlo, seleccioná el registro en su lista, elegí **Exportar** y marcá la opción compatible con importación.\n\n| Columna del archivo | Campo en pantalla | ¿Obligatoria? | De dónde sale el valor |\n|---|---|---|---|\n| `partner_type` | Cliente o proveedor | Sí | `customer` (cliente) o `supplier` (proveedor) |\n| `payment_type` | Cobro o pago | Sí | `inbound` (cobro) o `outbound` (pago) |\n| `partner_id/id` | Cliente / Proveedor | Sí | ID externo del contacto, exportando Contactos |\n| `date` | Fecha | Sí | Formato `2026-11-26` |\n| `journal_id` | Diario | Sí | Nombre exacto del diario |\n| `payment_method_line_id/id` | Método de pago | Sí | ID externo del método de ese diario. Ver cómo obtenerlo más abajo |\n| `amount` | Importe | Sin cheques, cargala. Con cheques, no va | Lo que se cobra o paga, sin las retenciones (supuesto a probar) |\n| `to_pay_move_line_ids/id` | Deudas | No; sí para elegir la factura | **Contabilidad › Apuntes contables** (los renglones contables). Filtrá la factura y la cuenta a cobrar o pagar, y exportá su ID externo |\n| `l10n_ar_withholding_line_ids/tax_id/id` | Retención: impuesto | Sí, si cargás la retención | ID externo del impuesto |\n| `.../name` | Retención: número | No figura como obligatorio | Certificado recibido del cliente. En pagos, lo pone el sistema al confirmar |\n| `.../base_amount` | Retención: base | No figura como obligatorio | Cálculo o certificado de la retención |\n| `.../amount` | Retención: importe | No figura como obligatorio; hace falta para informar cuánto se retuvo | Cálculo o certificado |\n| `l10n_latam_new_check_ids/name` | Cheques: número | Cargalo; el material no aclara si es obligatorio | Cheque |\n| `.../payment_date` | Cheques: fecha de pago | Cargala; tampoco lo aclara | Cheque |\n| `.../bank_id` | Cheques: banco | No | Nombre del banco; vacío, sale del cliente |\n| `.../issuer_vat` | Cheques: CUIT emisor | No | CUIT del cheque; vacío, sale del cliente |\n| `.../amount` | Cheques: importe | Cargalo, mayor a 0 | Cheque |\n\n`...` repite el comienzo de la columna de retención o de cheques de su grupo.\n\n**Obligatorias:** el material marca las primeras seis. `amount` no está en esa lista, pero sin cheques tenés que cargarlo para que el pago tenga el importe correcto. No probé qué pasa si falta. El talonario de recibos se calcula solo.\n\n**Para confirmar los nombres y obtener el método de pago:** en una base de prueba, cargá a mano un recibo con cheque y retención. Después exportalo con la opción compatible con importación, eligiendo los campos de la tabla. Compará los encabezados con las plantillas y copiá de ahí el ID externo del método.\n\n## Retenciones en pagos a proveedores\n**No sé si conviene dejarlas vacías o completarlas al importar.** El sistema las calcula solo en los pagos, pero no está probado cómo actúa al importar. Empezá con ellas vacías.\n\n1. **Sacá la referencia:** en la base de prueba, cargá a mano un pago de esa factura, sin confirmar. Anotá impuesto, base y retención, y después eliminá el borrador.\n2. **Calculá el importe:** deuda a saldar menos retenciones. Por ejemplo, 121.000 − 3.000 = **118.000**. Esto supone que el importe va sin retenciones; en la prueba manual, verificá que el total dé 121.000 y que la retención no cambie al poner 118.000.\n3. **Prueba A:** importá este archivo reemplazando lo que está entre `< >`:\n\n```csv\npartner_type,payment_type,partner_id/id,date,journal_id,payment_method_line_id/id,amount,to_pay_move_line_ids/id\nsupplier,outbound,<ID_PROVEEDOR>,2026-11-26,<DIARIO>,<ID_METODO>,118000.00,<ID_DEUDA>\n```\n\n4. **Revisá el borrador:** usá **Probar** antes de importar, pero no alcanza para ver las retenciones: hay que importar. En el pago, Deudas debe mostrar solo esa factura, cada retención debe aparecer una vez y coincidir con la referencia, y pago más retenciones debe dar la deuda.\n5. **Confirmá en la base de prueba:** verificá que la factura quede saldada, que las retenciones sigan sin duplicarse y que tengan número.\n\nSi A funciona, dejá las columnas de retención vacías. **Si no aparece la retención, no confirmes:** eliminá el borrador y hacé la prueba B con el archivo `pagos_proveedores.csv` de mi respuesta anterior, dejando el número vacío. Ese archivo tiene lugar para dos deudas: dejá solo la de esta factura. Revisá lo mismo. Si se duplica o cambia los valores, no lo uses para la carga masiva.\n\nPara recibos y cheques, usá `recibos.csv` y `recibos_cheques.csv` de la respuesta anterior. Son borradores hasta que compares los encabezados y pruebes un registro de cada uno. En `recibos.csv` también dejá una sola deuda si vas a saldar una sola factura.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13554,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4140,
+  "output_tokens_details": {
+   "thinking_tokens": 1907
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13554,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4140,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13554,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13554
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c2bd5b4ef9",
+  "persona": "consultoria"
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Antes de mandarlo me faltan respuestas: qué datos guarda Odumbo además de las credenciales y qué pasa con ellos si el cliente da de baja el servicio, desde qué IP se conecta y qué módulo se usa en Odoo 17 Enterprise para que la factura salga sola. ¿Me las podés conseguir, o decirme a quién pedirle cada una? Y confirmame en palabras simples si con los kits puedo decirle que funciona o si hay riesgo de que venda packs que no tiene, porque no entendí la nota ni quién tiene que hacer la prueba."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Al cliente le quedan sin respuesta las IP, el módulo de facturación automática para Odoo 17 y la pregunta de datos y baja, y lo de kits no está confirmado. ¿Me podés conseguir esos datos, o decirme a quién exactamente le pido cada uno y cómo hago (o quién hace) la prueba del kit antes de mandar la respuesta? Explicámelo sin nombres técnicos, porque no sé qué son 'ir.model.data', 'tuqui_context' ni 'sale_order_type_automation'."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo dejás listo para mandar y me explicás en criollo qué tengo que resolver antes? No entiendo \"campo técnico de precio\", \"ir.model.data\", \"tipos de pedido de venta\", \"sale_order_type_automation\", \"ingadhoc/sale\", \"tuqui_context\" ni \"adhoc-way-guide\". Tampoco sé si puedo enviar la respuesta de kits sin hacer antes la prueba. Para eso y para lo pendiente (IP, módulo de Odoo 17 y datos y baja), decime a quién le pido cada cosa, qué le pregunto y si el cliente tiene que ver esos términos."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "Antes de mandarlo me faltan respuestas: qué datos guarda Odumbo además de las credenciales y qué pasa con ellos si el cliente da de baja el servicio, desde qué IP se conecta y qué módulo se usa en Odoo 17 Enterprise para que la factura salga sola. ¿Me las podés conseguir, o decirme a quién pedirle cada una? Y confirmame en palabras simples si con los kits puedo decirle que funciona o si hay riesgo de que venda packs que no tiene, porque no entendí la nota ni quién tiene que hacer la prueba.",
+ "followup_answer": "**No pude conseguir ninguna de las respuestas que faltan, y por ahora no le diría al cliente que los kits funcionan.** Esta sesión no tiene herramientas de `tuqui-adhoc`. También intenté listar los archivos locales, buscar el módulo en GitHub y bajar el código de kits de Odoo y el manifiesto del módulo. Esos comandos pedían aprobación y no se ejecutaron.\n\n## A quién pedirle cada una\nEl material no dice quién se ocupa de cada tema. Te indico el área; si no sabés quién es, abrí un ticket al equipo de Odumbo para que lo derive.\n\n| Falta | A quién | Qué preguntar |\n|---|---|---|\n| Datos guardados | Responsable del producto, junto con quien administra su base de datos | \"Además de las credenciales, ¿qué datos del cliente guarda Odumbo (ventas, compradores, facturas, productos, registros técnicos)?\" |\n| Baja del servicio | Responsable del producto y quien vea privacidad o contratos | \"En la baja, ¿qué se borra, qué se conserva, por cuánto tiempo, también en copias de respaldo, y se puede pedir el borrado?\" |\n| IP | Infraestructura de Odumbo | \"¿Desde qué IP salientes se conecta a Odoo? ¿Son fijas? ¿Cómo se avisa si cambian?\" |\n| Módulo en Odoo 17 Enterprise | Un funcional o dev que implemente Odumbo con Odoo 17 | \"¿Qué módulo da los tipos de pedido de venta para facturar al confirmar? ¿En qué repo está, de qué depende y está probado en 17 Enterprise?\" |\n\nPara el módulo, mi pista sigue siendo `sale_order_type_automation`, en `ingadhoc/sale`. Es de memoria: no se la pases al cliente sin confirmarla.\n\n## Kits\n**Puede haber riesgo de que venda packs que no tiene; no está confirmado ni descartado.** Odumbo resta \"A la mano\" menos \"Saliente\", y su código no hace nada especial con los kits.\n\nPor ejemplo, hay 8 patas y 2 ya están vendidas sueltas, sin entregar. Quedan 6, así que alcanza para **1 pack**. Creo que Odoo podría redondear de forma que esa resta dé 2. No lo verifiqué.\n\n**La prueba la tiene que hacer nuestro lado antes de prometerlo:** vos, o un funcional o QA de Odumbo. No se la dejaría al cliente en su operación real. Hace falta una base de prueba con Odoo 17, el kit configurado como el del cliente y una conexión a una publicación de prueba, sin tocar su cuenta real ni emitir facturas reales.\n\n1. Dejá 8 patas en la ubicación configurada, sin otros movimientos pendientes.\n2. Confirmá una venta de 2 patas sueltas y no valides la entrega.\n3. Esperá que Odumbo actualice el stock del pack. Tiene que publicar **1**. Si publica 2 o más, hay sobreventa; si publica 1,5, anotá qué cantidad termina mostrando la publicación. Si no publica nada, tampoco está funcionando.\n4. Vendé 1 pack desde la publicación de prueba. La entrega en Odoo tiene que incluir 4 patas, y después de la actualización el pack tiene que quedar en **0**, porque solo quedan 2 patas libres.\n\nQue pase esta prueba cubre este caso, no todas las configuraciones. Si el cliente usa otras unidades, varios componentes o varias ubicaciones, hay que probarlas también.\n\n## Qué mandar ahora\nSi no podés esperar, mandá el borrador sin las notas y reemplazá estos puntos:\n\n> **2. Kits.** Todavía no podemos confirmar que el stock publicado de los kits sea correcto, ni descartar que se ofrezcan más packs de los disponibles. Tenemos que probarlo, incluyendo el descuento de las patas al vender. Hasta confirmarlo, recomendamos no activar la sincronización de stock de esos packs con Odumbo y verificar que se pueda excluirlos.\n\nEn los puntos 1, 4 y 5, dejá como pendientes las IP, el módulo y los datos. En el 1, el pedido por ticket de los datos técnicos para el firewall puede quedar. El material no dice si se pueden excluir productos de la sincronización: confirmalo también. Si no se puede, el cliente necesita otra forma de evitar la sobreventa antes de activar.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 14593,
+  "cache_read_input_tokens": 79964,
+  "output_tokens": 3179,
+  "output_tokens_details": {
+   "thinking_tokens": 936
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14593,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2243,
+    "cache_read_input_tokens": 31557,
+    "cache_creation_input_tokens": 546,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 546
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d420ebde1c",
+  "persona": "comercial"
+ }
+}

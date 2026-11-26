@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con lo que hay en el material, que Encargado Norte tenga solo la sucursal Norte no explica un error de lectura.** El criterio que declara `account_multi_store` es otro: lo de otra sucursal se ve, pero no se publica ni se modifica. La ayuda de `store_id` lo dice así:\n\n> «los usuarios que no son de esta sucursal solo pueden ver los registros de este diario, pero no pueden publicar ni modificar asientos»\n\nLas reglas coinciden con esa ayuda:\n\n| Qué | Efecto sobre la lectura del diario Sur |\n|---|---|\n| «Journal multi-store» | No la restringe (`perm_read` = False) |\n| Reglas de sucursal sobre asientos y pagos | Tampoco restringen la lectura de esos registros |\n| «Journals modifiable by users» y «restricted to users» | No aplican: los diarios de venta no tienen usuarios cargados |\n| «Journal multi-company» | Sí restringe la lectura, pero por compañía, no por sucursal |\n| `_search` de `account.journal` | Saca el diario Sur de las búsquedas de diarios. No es una regla de registro |\n\nAsí que ver las facturas en el libro mayor es coerente con ese diseño. Lo sospechoso es el error. «Si no ve, que no vea en ningún lado» sería cambiar el criterio del módulo, no corregir un permiso.\n\n**Dónde puede estar la confusión:** el `_search` oculta el diario en las búsquedas, pero por sí solo no bloquea su lectura cuando ya se llega por una factura. El comentario del código dice que lo hicieron así para evitar errores en los campos relacionados con el diario. Eso podría explicar diferencias entre pantallas, pero no leí el código de los reportes. No sé por qué el reporte de seguimiento muestra menos facturas, ni si es la misma causa que la del error.\n\n**Sobre la 16:** que ahora los permisos estén más reforzados no está verificado, porque no se leyó ese código. Yo no se lo diría todavía al cliente.\n\n**Lo que falta es el detalle del error.** Reproducilo con las herramientas del navegador abiertas, en la pestaña Red. En la respuesta de la llamada que falla, copiá `error.data` completo, incluido `debug` (el traceback). El mensaje con modo desarrollador también puede sumar detalle. Fijate en esto:\n\n1. **Modelo y operación:** si es `account.journal` u otro, y si falla al leer. El texto dice «leer», pero necesitamos saber sobre qué.\n2. **Reglas que nombra:**\n   - Si es «Journal multi-company», revisá la compañía del diario, las del usuario y las activas.\n   - Si es una regla que no está en el material, hay que leerla.\n   - Si nombra una de las que la tabla marca como que no restringen o no aplican, hay una contradicción. Habría que revisar su definición y la operación real.\n3. **Método que dispara el error:** muestra qué hace «Ver asientos». Hoy no sabemos si además lee otro modelo o busca el diario.\n\nPara comparar, abrí con el mismo usuario y las mismas compañías activas esa factura desde el libro mayor de Contabilidad. Ahí probá también «Ver asientos». Si falla igual, el problema probablemente está en la acción. Si funciona, compará las llamadas y el contexto de los dos caminos.\n\n**Mi conclusión provisoria:** replicaste el error, pero la causa sigue abierta. No le daría permisos de la sucursal Sur ni tocaría reglas hasta ver el traceback. Darle la sucursal podría habilitarlo también a publicar y modificar ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11012,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2699,
+  "output_tokens_details": {
+   "thinking_tokens": 1423
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11012,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2699,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11012,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11012
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

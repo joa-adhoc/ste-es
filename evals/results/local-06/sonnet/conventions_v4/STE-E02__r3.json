@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Tenés que tocar el backend en cualquier caso**, porque ahí van la columna, la escritura y la API. Lo que depende de quién usa la descripción es si el backend además **elige el idioma**.\n\nNo revisé el código: esto sale de la guía que pegaste.\n\n## 0. Antes de empezar\n\n**Puede que la migración ya exista.** La guía cita `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Por el nombre, agrega este campo en `platform_connectors`. Revisá eso y cuánto del resto ya está hecho:\n\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\ngrep -rnE \"description_i18n|platform_connectors\" --exclude-dir={node_modules,.git,dist} .\n```\n\nDespués buscá quién lee la descripción, también a través de modelos o serializers que quizá no nombren la tabla:\n\n| Quién la usa | Quién elige el idioma |\n|---|---|\n| Solo la SPA (cards, listados, labels) | El cliente |\n| Solo un prompt LLM, un mail o el MCP saliente | El backend |\n| La SPA y alguno de esos tres | Los dos |\n\nLa guía no dice en qué caso están los conectores. Si tenés otros conectores además de los de `platform_connectors`, confirmá cuáles querés traducir.\n\nEn los dos lados, el orden de fallback es **idioma exacto → `en` → columna legacy**.\n\n## 1. Migración\n\nSolo si la columna no existe, creá una migración nueva:\n\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\n\n- Doy por hecho que la columna legacy es `description`; confirmalo.\n- No la borres ni la modifiques en la migración.\n- Si además ya hay una `description_en` con datos, pasalos a la columna nueva. Usá de referencia `0206_features_i18n.sql`.\n\n## 2. API\n\nUsá las funciones de `tuqui_core/i18n.py`, sin reimplementarlas:\n\n- **Al escribir:** `normalize_i18n_keys` deja las claves en dos letras minúsculas y descarta las vacías.\n- **Al leer:** `decode_i18n` cubre que asyncpg devuelva el JSONB como `str` o como dict. Todo lector tiene que tolerar las dos formas.\n\nLa respuesta de la API lleva `description_i18n` **completo**, junto con `description`. No filtres por idioma en el serializer. Revisá también que el esquema de entrada y las consultas de lectura y guardado incluyan el campo nuevo.\n\n## 3. Front\n\nDonde se muestra la descripción:\n\n```ts\nlocalizedField(row.description_i18n, row.description, i18n.language)\n```\n\nNo escribas el fallback a mano.\n\n## 4. Editor\n\nEn el panel de admin, poné dos inputs (ES y EN). La referencia es `AdminAgentEditorPage.tsx:95-115`. Al guardar:\n\n- Mandá en `description_i18n` solo las claves no vacías.\n- Copiá en `description` el valor `es || en`.\n\nAl abrir un registro viejo, `description_i18n` va a estar vacío. Asegurate de que guardar sin completar los inputs no borre la `description` existente. La guía no dice en qué idioma está ese texto, así que revisalo antes de precargarlo en ES o EN. Probá también qué pasa si alguien vacía los dos inputs a propósito.\n\n## 5. Resolución en el backend (solo si hay prompt, mail o MCP saliente)\n\n- Obtené `lang` con `resolve_response_language(workspace_id, user_id)`.\n- No leas `Accept-Language`.\n- Resolvé con `lang → en → description`. Si ya hay un helper para eso, usalo.\n- Aplicalo en cada uno de esos consumidores. La API de la SPA sigue mandando el mapa completo.\n\n**Caché:** que el backend use el idioma en un prompt o un mail no obliga a cambiar react-query. Si una respuesta que consulta la SPA llega **resuelta por el servidor**, el `queryKey` tiene que incluir el idioma.\n\n## Qué probar\n\n- Con ES y EN cargados, cada idioma muestra su texto.\n- Con solo EN, un usuario en español ve el texto en inglés.\n- Con solo ES, un usuario en inglés ve `description`, que tiene la copia en español.\n- Un registro viejo, sin `description_i18n`, muestra `description`.\n- Si aplica el paso 5, el prompt, el mail o el MCP usan el mismo orden.\n\nLa guía menciona un bug de `agents` («ver el bug abajo»), pero esa parte no vino en lo que pegaste. Leela si vas a resolver en los dos lados.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11238,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2419,
+  "output_tokens_details": {
+   "thinking_tokens": 773
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11238,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2419,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11238,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11238
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

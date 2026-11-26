@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en términos de pantalla qué es cada columna (a qué campo de Odoo corresponde), cuáles son obligatorias y cuáles puedo borrar? Mostrame también una fila de ejemplo completa, indicando de dónde saco cada identificador (cliente, diario, método de pago, banco, impuesto de retención). Los nombres que dijiste que no están confirmados, ¿cómo los verifico en la plantilla de importación? Y aclarame qué significan «según el código descripto», «el material» y «tuqui-adhoc», porque no sé a qué te referís."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar con los nombres que veo en pantalla? Para cada columna de los tres archivos, decime a qué campo de Odoo corresponde, si es obligatoria y de dónde saco el identificador que va ahí (cliente o proveedor, diario, método de pago, impuesto, banco y apunte), con una fila de ejemplo completa. Además, decís que algunos nombres de columnas de cheques y retenciones no están confirmados: ¿podés verificarlos, o explicarme paso a paso cómo los compruebo desde la pantalla de importación? Tampoco entiendo a qué te referís con «el código descripto», «el material que pegaste» y «tuqui-adhoc»: yo solo te hice la pregunta. ¿En qué te basaste para decir que al confirmar se concilia contra la factura indicada?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás un ejemplo de recibo completo, con una retención y un cheque, cargado con datos de muestra? Explicame desde qué pantalla de Odoo saco cada identificador externo (cliente o proveedor, diario, método de pago, impuesto de retención y banco), no solo el de la deuda. Decime también qué columnas son obligatorias y cómo se llama cada una en pantalla, ya confirmadas contra la plantilla de importación, porque aclarás que algunos nombres no los pudiste verificar y yo desde los nombres técnicos no puedo hacerlo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me explicás en términos de pantalla qué es cada columna (a qué campo de Odoo corresponde), cuáles son obligatorias y cuáles puedo borrar? Mostrame también una fila de ejemplo completa, indicando de dónde saco cada identificador (cliente, diario, método de pago, banco, impuesto de retención). Los nombres que dijiste que no están confirmados, ¿cómo los verifico en la plantilla de importación? Y aclarame qué significan «según el código descripto», «el material» y «tuqui-adhoc», porque no sé a qué te referís.",
+ "followup_answer": "Las columnas salen de tres CSV. Los pasos de menú y de exportación de abajo son del Odoo 18 estándar. No los probé en la base del cliente, y los nombres pueden cambiar según los módulos y la traducción.\n\n## Columnas\n\n**Obligatoria**: figura así en la información que pegaste. **Se puede borrar**: sacás el encabezado y su dato en todas las filas.\n\n### Datos del pago\n\n| Columna | Campo en pantalla | ¿Obligatoria o se puede borrar? |\n|---|---|---|\n| `partner_type` | Si es de cliente (`customer`) o de proveedor (`supplier`) | Obligatoria |\n| `payment_type` | Si entra plata (`inbound`) o sale (`outbound`) | Obligatoria |\n| `partner_id/id` | Cliente o proveedor | Obligatoria |\n| `date` | Fecha | Obligatoria |\n| `journal_id/id` | Diario | Obligatoria |\n| `payment_method_line_id/id` | Método de pago | Obligatoria |\n| `amount` | Importe | No figura como obligatoria, pero dejala en recibos y pagos sin cheques. En el de cheques no va: sale de la suma |\n| `to_pay_move_line_ids/id` | Deudas a pagar | Opcional, pero **no la borres si querés elegir la factura**: podría quedar toda la deuda abierta y conciliarse contra otras |\n\n### Cheques (solo `recibos_cheques.csv`)\n\nTodas empiezan con `l10n_latam_new_check_ids/`. Para cargar cheques nuevos, no borres número, fecha ni monto.\n\n| Termina en | Campo del cheque | ¿Obligatoria o se puede borrar? |\n|---|---|---|\n| `name` | Número | Dejala; la información no aclara si es obligatoria |\n| `payment_date` | Fecha de pago | Dejala; tampoco lo aclara |\n| `bank_id/id` | Banco | Se puede borrar si corresponde el que sale del cliente |\n| `issuer_vat` | CUIT del emisor | Se puede borrar si corresponde el del cliente |\n| `amount` | Monto | Necesaria; mayor a 0 |\n\n### Retenciones\n\nTodas empiezan con `l10n_ar_withholding_line_ids/`. Si un archivo no lleva retenciones, podés borrar las cuatro. En proveedores se calculan solas, pero falta probar si las importadas se respetan, reemplazan o duplican.\n\n| Termina en | Campo de la retención | Si cargás una retención |\n|---|---|---|\n| `tax_id/id` | Impuesto | Obligatoria |\n| `name` | Número | En recibos, poné el del certificado. En proveedores lo pone la secuencia al confirmar: podés borrarla |\n| `base_amount` | Base | Dejala; no está aclarado si es obligatoria |\n| `amount` | Importe retenido | Dejala; no está aclarado si es obligatoria |\n\n## Fila de ejemplo\n\nEs un recibo con un cheque y una retención. **Todos los datos e identificadores son inventados**, así que no sirve para importarlo tal cual.\n\n```csv\npartner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id/id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,__export__.res_partner_101_ab12,2026-11-26,__export__.account_journal_12_cd34,__export__.account_payment_method_line_25_ef56,__export__.account_move_line_5001_aa11,00012345,2026-12-15,__export__.res_bank_7_bb22,30-12345678-1,97000.00,__export__.account_tax_40_cc33,0001-00000123,100000.00,3000.00\n```\n\n## De dónde sacar cada identificador\n\nEn cada lista, seleccioná el registro, andá a **Acciones › Exportar**, marcá la opción compatible con importación e incluí **ID externo**. Copiá el valor tal como sale, porque no siempre empieza con `__export__`.\n\n| Dato | Dónde buscarlo |\n|---|---|\n| Cliente o proveedor | Contabilidad › Clientes › Clientes, o Proveedores › Proveedores |\n| Diario | Contabilidad › Configuración › Diarios |\n| Método de pago | Desde la exportación del diario, agregá el ID externo de las líneas de métodos de pago **entrantes** (recibos) o **salientes** (pagos). Usá el de esa línea y ese diario, no el del método general |\n| Banco | Contactos › Configuración › Bancos (la ubicación puede variar) |\n| Impuesto de retención | Contabilidad › Configuración › Impuestos; elegí la retención que corresponda |\n| Deuda | Contabilidad › Apuntes contables; filtrá la factura y la cuenta a cobrar o a pagar. Va el ID del **apunte**, no el de la factura. Si hay varios vencimientos, puede haber varios apuntes |\n\n## Cómo verificar los nombres\n\nEn mi respuesta anterior dije que no venían \"todos\" los nombres de cheques y retenciones. En realidad, **no está confirmado ninguno de los nombres que van después de la `/`** en esas columnas, incluido el `/id` de banco e impuesto. Sí figuran `l10n_latam_new_check_ids` y `l10n_ar_withholding_line_ids`.\n\n1. **Por exportación:** en la lista de pagos, seleccioná uno, preferentemente con cheque y retención. En **Exportar**, con la opción compatible con importación, desplegá cheques y retenciones, agregá sus campos y descargá el CSV. Compará los encabezados con los míos. Los ID externos de banco e impuesto tienen que pedirse como subcampos.\n2. **Por importación:** en la misma lista, entrá a **⚙ › Importar registros** y subí el CSV. Revisá que cada columna quede asignada al campo correcto. Si alguna no se reconoce, elegilo en el desplegable. La plantilla descargable, si aparece, puede no traer todos estos subcampos.\n3. **Validación:** con datos reales, tocá **Probar** antes de **Importar**. La prueba no confirma el pago, así que no demuestra la conciliación ni qué pasa después con las retenciones. Para eso, importá un caso en una base de prueba, revisá el borrador, confirmalo y mirá qué factura se concilió.\n\n## Qué quise decir\n\n- **\"Según el código descripto\":** según el resumen del comportamiento del código que pegaste en tu mensaje. Por ejemplo, que al confirmar se concilia contra las deudas elegidas. No es una comprobación mía sobre el código ni una prueba en la base.\n- **\"El material\":** ese bloque de información que pegaste, entre las líneas `---`.\n- **\"tuqui-adhoc\":** la conexión (MCP) con Tuqui, la herramienta de donde el asistente toma información y reglas internas de Adhoc. No es una columna ni algo que tengas que poner en los archivos. Como no la tuve disponible, no pude sumar nada de esa fuente.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13521,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 4840,
+  "output_tokens_details": {
+   "thinking_tokens": 2190
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13521,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4840,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 13521,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13521
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "bd02da0ef9",
+  "persona": "consultoria"
+ }
+}

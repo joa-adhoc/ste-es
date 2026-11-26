@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás cada columna con el nombre que veo en la pantalla de Odoo (por ejemplo, `to_pay_move_line_ids`, `l10n_ar_withholding_line_ids`, `l10n_latam_new_check_ids`, `payment_method_line_id`), cuáles son obligatorias en cada archivo, y de dónde exporto cada ID (cliente, diario, método de pago, impuesto de retención y apunte)? En particular, no sé qué es un \"apunte\" con \"identificador externo\" ni cómo verlo al exportar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me mostrás con un caso concreto, usando los nombres que veo en pantalla, cómo cierran los números? Por ejemplo, una factura de 121.000 cobrada con una retención: qué pongo en el importe del recibo, en la base y en el importe de la retención para que la factura quede saldada. Y decime a qué campo de la pantalla corresponde cada columna del archivo, y de dónde saco el identificador del impuesto de retención y del método de pago."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me podés explicar paso a paso cómo saco los identificadores que van en cada columna en mayúsculas (cliente/proveedor, diario, método de pago y sobre todo el impuesto de retención) y cómo veo en la pantalla de importación los nombres reales de las columnas de cheques y retenciones? En el método de pago y las líneas internas no sé desde qué pantalla exportarlos, y necesito saber cuál es el de cheques para que se abra la solapa."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me explicás cada columna con el nombre que veo en la pantalla de Odoo (por ejemplo, `to_pay_move_line_ids`, `l10n_ar_withholding_line_ids`, `l10n_latam_new_check_ids`, `payment_method_line_id`), cuáles son obligatorias en cada archivo, y de dónde exporto cada ID (cliente, diario, método de pago, impuesto de retención y apunte)? En particular, no sé qué es un \"apunte\" con \"identificador externo\" ni cómo verlo al exportar.",
+ "followup_answer": "Un **apunte** es cada renglón del asiento contable de una factura. Para conciliar necesitás el de la cuenta a cobrar (clientes) o a pagar (proveedores). Su **identificador externo** es un código de texto que identifica ese renglón al importar. No es el número de factura.\n\n**Los nombres de pantalla, y los menús y pasos que no son de apuntes, salen de mi conocimiento de Odoo.** El material no trae las etiquetas, y no los vi en la base del cliente. Pueden cambiar según el idioma, la versión o los permisos.\n\n### Columnas\n**Sí** = obligatoria. **Cond.** = depende del caso. **—** = no está en ese archivo. R = recibos, P = pagos a proveedores, C = recibos con cheques.\n\n| Columna del CSV | En pantalla (aprox.) | R | P | C | Qué va |\n|---|---|---|---|---|---|\n| `id` | ID externo | Cond. | Cond. | Cond. | Un código único que inventás para cada pago. Dejalo: sirve para identificarlo. En C, la fila del segundo cheque lo lleva vacío. |\n| `partner_type` | Tipo de contacto | Sí | Sí | Sí | `customer` en R y C; `supplier` en P |\n| `payment_type` | Tipo de pago | Sí | Sí | Sí | `inbound` (cobro) en R y C; `outbound` (pago) en P |\n| `partner_id/id` | Cliente / Proveedor | Sí | Sí | Sí | ID del contacto |\n| `date` | Fecha | Sí | Sí | Sí | Formato `2026-11-26` |\n| `journal_id/id` | Diario | Sí | Sí | Sí | ID del diario |\n| `payment_method_line_id/id` | Método de pago | Sí | Sí | Sí | ID del método de ese diario |\n| `amount` | Importe | Cond. | Cond. | — | Completalo en R y P. Con cheques es la suma de ellos. |\n| `to_pay_move_line_ids/id` | Deudas / líneas a pagar | Cond. | Cond. | Cond. | IDs de los apuntes. Completala para elegir qué facturas saldar. |\n\nEl material no incluye `amount` ni las deudas en la lista de campos obligatorios.\n\n**Retenciones (`l10n_ar_withholding_line_ids`, «Retenciones»).** Es el grupo de líneas; cada columna agrega su nombre después de `/`. Son para los pagos que tienen retención.\n\n| Termina en | En pantalla (aprox.) | Cuándo completarla |\n|---|---|---|\n| `tax_id/id` | Impuesto | Obligatoria en cada línea de retención |\n| `name` | Número | En R y C, el del certificado. En P, vacío: lo pone la secuencia al confirmar. |\n| `base_amount` | Base | La base de cálculo |\n| `amount` | Importe | El importe retenido |\n\nEn P, las retenciones normalmente se calculan solas. Falta probar si las importadas se conservan, se reemplazan o se duplican.\n\n**Cheques (`l10n_latam_new_check_ids`, «Cheques»; solo en C).**\n\n| Termina en | En pantalla (aprox.) | Cuándo completarla |\n|---|---|---|\n| `name` | Número | El número del cheque |\n| `payment_date` | Fecha de pago | La fecha de pago del cheque |\n| `bank_id/id` | Banco | Puede quedar vacío: sale del cliente |\n| `issuer_vat` | CUIT del emisor | Puede quedar vacío: sale del cliente. Se valida. |\n| `amount` | Importe | Tiene que ser mayor a 0 |\n\nEl material no dice si número y fecha son obligatorios; completalos. Si el cliente no tiene banco o CUIT cargado, no hay de dónde tomarlo.\n\n### Cómo exportar un ID\n1. Abrí la lista y marcá los registros.\n2. Elegí **Acciones (⚙) › Exportar**.\n3. Marcá la opción **compatible con importación**.\n4. Agregá campos para reconocer cada registro, como el nombre, y exportá.\n5. Copiá el valor de la columna `id` (o «ID externo»). Copialo completo, sin armarlo a mano.\n\n| Qué buscás | Dónde |\n|---|---|\n| Cliente o proveedor | **Contabilidad › Clientes › Clientes**, o **Proveedores › Proveedores** |\n| Diario | **Contabilidad › Configuración › Diarios** |\n| Método de pago | En esa lista de diarios, exportá el nombre y el ID externo de **Métodos de pago entrantes** (R y C) o **salientes** (P). No uses la columna `id` principal, que es la del diario. |\n| Impuesto de retención | **Contabilidad › Configuración › Impuestos**. Elegí la retención de cobros o de pagos, según el archivo. |\n| Banco, si lo completás | **Contactos › Configuración › Bancos** |\n| Apunte | **Contabilidad › Apuntes contables** |\n\nSi no encontrás el método de pago, exportá un pago que ya lo use. Agregá el campo **Método de pago › ID externo**.\n\n### Cómo encontrar el apunte\n1. En **Apuntes contables**, buscá el número de la factura.\n2. Dejá el renglón de la **cuenta a cobrar** o **a pagar**, no los de ventas, gastos o impuestos. Si hay cuotas, puede haber varios; elegí los pendientes que quieras saldar.\n3. Exportalo con los pasos anteriores. Agregá asiento, contacto, cuenta, vencimiento e importe residual (pendiente).\n4. Copiá su `id` en `to_pay_move_line_ids/id`.\n\nPor ejemplo, el archivo exportado podría verse así (datos inventados):\n\n| id | Asiento | Cuenta | Importe residual |\n|---|---|---|---|\n| `__export__.account_move_line_4521_a1b2c3d4` | FA-A 00001-00000123 | Deudores por ventas | 121000,00 |\n\nEn el CSV pegás `__export__.account_move_line_4521_a1b2c3d4`. Si son dos, van separados por coma y entre comillas: `\"ID_1,ID_2\"`. Si editás el archivo en una planilla, escribilos sin comillas en la celda; al guardar como CSV se agregan.\n\n**Nada de esto se probó importando en la base del cliente.** Probá primero un pago de cada archivo, idealmente en una base de prueba. En el borrador, revisá que las deudas, los cheques, las retenciones y los importes sean los esperados. Al confirmar, concilia las deudas que figuren ahí hasta donde alcance. Si cambiás cliente, compañía o tipo, se recalculan con toda la deuda abierta.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13572,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4038,
+  "output_tokens_details": {
+   "thinking_tokens": 1654
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13572,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4038,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13572,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13572
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0ebdad0d39",
+  "persona": "consultoria"
+ }
+}

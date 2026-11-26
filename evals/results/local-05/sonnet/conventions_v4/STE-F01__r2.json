@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El ticket 140512 se explica por el despliegue del 04/11: la base ya estaba actualizada y el pod A seguía, según todo indica, con el código anterior.** Con este material no veo un bug en el código actual ni un arreglo para hacer en el módulo.\n\nNo tengo acceso a las tools de `tuqui-adhoc` en esta sesión, así que no pude correr `tuqui_context`. Tampoco consulté el ticket, la base ni los logs en vivo: el análisis sale solo de lo que pegaste. Para conectarlo, pedí el alta con `adhoc-way-guide`.\n\n## Qué pasó (04/11, UTC)\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A, antes de las actualizaciones de módulos. |\n| 15:07:39 | Se actualiza `account_multicompany_ux`. |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro 4 veces y el uid 31 recibe 3 errores. |\n| 15:08:40 | En el pod A falla un cron porque le falta otro método, esta vez en `res.company`. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el A. |\n| 15:09–15:30 | El pod B no registra errores. |\n\n**Causa probable:** las reglas nuevas, guardadas en la base, llamaban a `_get_branch_stock_root_ids`, que el pod A no tenía cargado. Recargar el registro en Odoo no vuelve a importar el Python que el proceso ya tiene en memoria. Infiero que esas recargas le hicieron leer las reglas nuevas.\n\nEl error del cron muestra el mismo patrón. Que el método esté hoy en el código y que el pod B no registre errores también coincide.\n\n## Qué falta confirmar\n- **Código del pod A:** no sé qué imagen tenía. Se confirma si en esa imagen `stock_account_multicompany_ux/models/res_users.py` no tiene el método. La introspección es de hoy y no muestra qué había cargado ese pod.\n- **Quién actualizó los módulos:** el material no dice qué proceso lo hizo mientras el pod A estaba activo. Lo tienen que mostrar los logs del despliegue.\n- **Hora del ticket:** el cliente informa 15:09:12, pero el pod A ya se había apagado y el pod B no registra errores desde las 15:09. Los errores registrados del uid 31 son de 34 a 35 segundos antes. Puede que esa hora sea la del reporte o la de la pantalla, pero no lo sé.\n- **Reintento:** que no haya errores no prueba que el usuario 31 haya vuelto a cargar el stock con éxito. El filtro del pod B llega solo hasta las 15:30.\n\n## Qué haría\n1. **Ticket:** cargaría `stock_account_multicompany_ux` como módulo y el producto que corresponda. Lo trataría como un error transitorio del despliegue.\n2. **Cliente:** le mandaría esta respuesta:\n   > Hola. El error que viste el 04/11 cerca de las 12:08 (hora argentina) coincide con una actualización del sistema. Por lo que revisamos, una parte todavía funcionaba con la versión anterior. En los registros que revisamos, de 12:09 a 12:30, no aparecen errores con la versión nueva. ¿Pudiste completar la carga de stock? Revisá que haya quedado registrada antes de repetirla, para no duplicarla. Si el error vuelve a aparecer, mandanos la hora y qué estabas haciendo.\n3. **Despliegue:** lo derivaría a quien lo mantiene. Hay que revisar por qué el pod A podía atender usuarios y correr crons con la base ya actualizada. Cambiar solo este módulo no evita que se repita con otro. La reescritura de las reglas fue a las 15:08:01 y el apagado empezó a las 15:08:58. En ese lapso hubo riesgo de fallas, aunque los errores que figuran en el material son de 15:08:37 a 15:08:40.\n\nSi el cliente vio el error después del cambio de pod, esta explicación no alcanza. En ese caso hay que buscar el traceback de esa hora y revisar qué pod atendió el pedido.\n\nNo modifiqué el ticket ni le envié nada al cliente.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11036,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3300,
+  "output_tokens_details": {
+   "thinking_tokens": 1742
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11036,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3300,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11036,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11036
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

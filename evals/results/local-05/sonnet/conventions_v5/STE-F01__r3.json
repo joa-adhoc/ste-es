@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El ticket 140512 se explica por la actualización del 04/11: el pod A seguía atendiendo cuando la base ya tenía las reglas nuevas.** Con lo que hay, no parece una falla que siga activa ni hace falta tocar las reglas 507 y 508. En esta sesión no tengo `tuqui-adhoc`, así que no consulté el ticket, la base ni los logs: me baso en lo que pegaste. Para darlo de alta, usá `adhoc-way-guide`.\n\n**Qué pasó (UTC del 04/11)**\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A. |\n| 15:07:39 y 15:08:01 | Se actualizan los dos módulos. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro y el usuario 31 recibe tres errores. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones porque también le falta un método. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el A. |\n\nLa explicación más probable es que el pod A tenía en memoria el código anterior. Recargar el registro toma los cambios de la base, pero no vuelve a importar el código Python. Por eso las reglas nuevas llamaban a `_get_branch_stock_root_ids`, que el pod A no tenía. Que hoy el método esté definido e importado no contradice esto.\n\n**Qué falta confirmar**\n- **Código del pod A:** que usara la imagen anterior es una inferencia. Se confirma mirando su imagen y comprobando que esa versión no tenga el método. Tampoco se ve en estos logs qué proceso actualizó los módulos.\n- **Hora informada:** el cliente indica 15:09:12, pero los errores que figuran son de 15:08:37–38 (12:08 hora argentina). A las 15:09:12 el pod B no registra errores. El pod A había empezado a apagarse a las 15:08:58, y el material no dice si registró algo después. Hay que revisar sus logs desde ese momento. No sé de dónde sale la hora del cliente.\n- **Después del cambio:** que el pod B no tenga errores entre 15:09 y 15:30 no prueba que el usuario 31 haya repetido la carga con éxito.\n- **Cron:** hay que ver si «Consolidation: bring currency rates in» corrió bien después y si quedaron cotizaciones sin traer. Que el método faltante venga de `account_multicompany_ux` también es una inferencia.\n\n**Qué haría con el ticket**\n1. Cargar `stock_account_multicompany_ux` como módulo. El producto no surge del material.\n2. Pedirle al cliente que verifique la carga de stock antes de repetirla, para no duplicarla.\n3. Avisar al equipo responsable de los despliegues. Si se confirma la causa, puede repetirse cuando una versión agregue un método usado por una regla o un cron y la base se actualice mientras sigue atendiendo el código anterior. Conviene revisar ese orden en vez de cambiar las reglas.\n4. Cerrar el ticket cuando el cliente confirme que pudo cargar el stock. Si el error reaparece en el pod nuevo, esta explicación no alcanza y hay que reabrir el análisis.\n\n**Respuesta sugerida para el cliente** (no la envié ni modifiqué el ticket):\n\n> Hola. Revisamos el error que apareció al cargar stock el 04/11. Todo indica que se produjo mientras se actualizaba el sistema, alrededor de las 12:08 (hora argentina). En los registros que revisamos del sistema ya actualizado, entre las 12:09 y las 12:30, no aparecen errores. Antes de repetir la carga, fijate si quedó registrada, para no duplicarla. Si no quedó, probá de nuevo y contanos cómo te fue. Si vuelve a aparecer el error, mandanos la hora y una captura.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11035,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3070,
+  "output_tokens_details": {
+   "thinking_tokens": 1675
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11035,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3070,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11035,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11035
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Ticket 140512: fue un error pasajero durante la actualización\n\nLo más probable es que el pod A, todavía con el código anterior, haya atendido pedidos cuando la base ya tenía las reglas nuevas. **Con este material no veo un bug en `stock_account_multicompany_ux` que haya que corregir.** Me basé solo en la introspección y los logs que pegaste. En esta sesión no tengo `tuqui-adhoc` ni consulté la base, los logs o el código por mi cuenta. Si querés darlo de alta, se hace con `adhoc-way-guide`.\n\n### Secuencia (UTC, 2026-11-04)\n| Hora | Qué pasó |\n|---|---|\n| 15:06:29 | Arranca el pod A. |\n| 15:07:39 | Se actualiza `account_multicompany_ux`. |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro cuatro veces. El uid 31 recibe tres `AttributeError`. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones porque falta un método en `res.company`. |\n| 15:08:53 | Arranca el pod B, con la imagen nueva. |\n| 15:08:58 | El pod A empieza a apagarse. |\n| 15:09–15:30 | El pod B no registra errores. |\n\n### Por qué pasó\n- **Desfasaje:** las reglas se guardan en la base, pero los métodos que llaman viven en el código que carga cada pod. Recargar el registro no necesariamente vuelve a importar el código Python. Así, el pod A pudo tomar los dominios nuevos sin tener `_get_branch_stock_root_ids`.\n- **El método existe hoy:** está definido y su archivo se importa. Esto muestra el estado actual, no qué código tenía el pod A.\n- **Segundo caso:** el cron falló igual, con `_cron_update_consolidation_rates`. Eso apunta a un problema del despliegue más que de las reglas de stock.\n\n### Qué no está confirmado\n- **Código del pod A:** que tuviera la imagen anterior lo deduzco de los errores y de que B figura como el de la imagen nueva. Se confirma viendo el tag de imagen de cada pod. La imagen que informa el ticket no alcanza para saberlo.\n- **Quién actualizó la base:** el material no muestra qué proceso lo hizo a las 15:07:39 y 15:08:01. Habría que ver los logs del job o proceso de actualización.\n- **Hora del ticket:** informa 15:09:12, pero los errores registrados son de 15:08:37–38 y en B no hay errores desde las 15:09. Puede ser la hora en que se copió o informó el error, pero es una hipótesis. Tampoco sé si el filtro de B cubre de 15:08:53 a 15:09:00.\n- **Que el usuario ya pueda operar:** que B no tenga errores no prueba que el uid 31 haya repetido la operación. Se confirma con un pedido suyo sobre stock que haya terminado bien en B, o con su respuesta.\n- **Carga y cron:** no sé si la carga de stock quedó guardada o a medias, ni si el cron de cotizaciones corrió bien después. Hay que revisar los movimientos o cantidades del usuario y la última ejecución del cron.\n\n### Qué haría con el ticket\n- **Clasificación:** cargaría `stock_account_multicompany_ux` como módulo afectado, aclarando que la causa probable es el despliegue. El producto no lo puedo deducir de este material.\n- **Seguimiento interno:** el pod viejo siguió atendiendo y ejecutando crons después de que cambió la base. Puede repetirse cuando una actualización haga que datos como reglas o crons llamen a métodos nuevos. Conviene que lo revise quien maneja los despliegues, aunque el ticket del cliente se pueda cerrar.\n- **Cierre:** lo cerraría cuando el cliente confirme que pudo cargar el stock.\n\n### Borrador de respuesta al cliente\n> Hola. Revisamos el error que nos pasaste. Los registros muestran errores de tu usuario el 4/11 cerca de las 12:08 (hora argentina), mientras se actualizaba el sistema. Creemos que se debió a un desajuste momentáneo durante esa actualización. En los registros que revisamos, de 12:09 a 12:30 no aparecen errores. ¿Podés confirmarnos si después pudiste cargar el stock y si las cantidades quedaron bien? Si el error te vuelve a aparecer, pasanos la fecha y la hora.\n\nNo modifiqué el ticket ni envié la respuesta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10481,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3132,
+  "output_tokens_details": {
+   "thinking_tokens": 1469
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10481,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3132,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10481,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10481
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

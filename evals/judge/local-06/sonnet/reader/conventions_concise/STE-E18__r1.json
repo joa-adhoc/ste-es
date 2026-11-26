@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código qué pasa cuando los encabezados superan _MEMORY_BUDGET_CHARS? Quiero saber cómo se calcula N, si el presupuesto es compartido entre workspace y usuario o va por scope, y si el modelo puede enterarse de que existe una memoria que quedó afuera y leerla."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés contrastarlo con el código y decirme cómo se calcula N, si el tope de 12K es compartido entre los dos scopes, y si una memoria que quedó afuera por presupuesto se puede descubrir y leer de alguna otra forma (por ejemplo, con alguna acción de list o search en manage_memory)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código qué pasa con las memorias que quedan afuera por el presupuesto de 12K? En concreto: cómo se calcula N, si el presupuesto y el puntaje se aplican por scope o sobre las 100 juntas, y si el modelo tiene alguna forma de enterarse de que existen y leerlas (por ejemplo, con un list o search en manage_memory)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar en el código qué pasa cuando los encabezados superan _MEMORY_BUDGET_CHARS? Quiero saber cómo se calcula N, si el presupuesto es compartido entre workspace y usuario o va por scope, y si el modelo puede enterarse de que existe una memoria que quedó afuera y leerla.",
+ "followup_answer": "**No pude revisar el código:** `_MEMORY_BUDGET_CHARS` no aparece en el directorio de trabajo (`/tmp/ste-es-eval-4l7hep0n`). Mi primer intento incluía además una búsqueda de `tuqui_core` en tu home, que requería aprobación y no se ejecutó. No busqué fuera del directorio de trabajo.\n\nSobre tus tres preguntas, esto es lo que dice el material, sin verificar contra el código:\n\n| Pregunta | Qué dice el material | Qué falta confirmar |\n|---|---|---|\n| Cómo se calcula N | rapidfuzz puntúa los encabezados contra el mensaje actual y se queda con los N mejores si el total supera los 12K caracteres. | Si N es fijo o se van sumando encabezados hasta llenar el presupuesto. Tampoco qué función de puntaje usa ni cómo desempata. |\n| Presupuesto compartido o por scope | Habla de \"total header chars\", sin decir total de qué. | Si se suman los dos scopes o se calcula cada uno aparte. Que sea compartido sería solo una inferencia. |\n| Memorias que quedan afuera | `manage_memory(action='read', id=...)` lee por `id`, y el `id` figura en el encabezado. La lectura a demanda está descrita para las marcadas con `[read]`. | Si el prompt avisa que se omitieron memorias, si la tool permite listarlas o buscarlas, y si `read` acepta cualquier `id` del scope. |\n\nCon lo que muestra el material, el modelo no tiene una forma descrita de enterarse de una memoria omitida: al no entrar su encabezado, tampoco recibe su `id` por esa vía. Podría tenerlo de antes en la conversación. Esto no prueba que el código no ofrezca otra forma.\n\nPara cerrarlo, pasame la ruta del repo que tiene `tuqui_core/chat/agent.py`, o pegá estas partes:\n- `_load_chat_setup` y las funciones que llame para armar y filtrar las memorias.\n- La definición de `_MEMORY_BUDGET_CHARS` y sus usos.\n- El handler y el schema de `manage_memory`.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12253,
+  "cache_read_input_tokens": 76240,
+  "output_tokens": 1157,
+  "output_tokens_details": {
+   "thinking_tokens": 59
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12253,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 769,
+    "cache_read_input_tokens": 29493,
+    "cache_creation_input_tokens": 279,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 279
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d9dda01feb"
+ }
+}

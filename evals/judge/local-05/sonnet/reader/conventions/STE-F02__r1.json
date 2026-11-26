@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "¿Me lo resumís sin nombres técnicos? Decime qué parte del pedido puedo resolver hoy desde la pantalla y qué parte no. Explicame en criollo qué son `account_ux`, `mail_autosubscribe`, «vendedores portal», C1 y C2, y cuál de los dos contactos «Administración» tengo que usar. Cerrá con los próximos pasos y qué le tengo que preguntar al cliente."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en criollo, sin nombres técnicos? Primero, en dos líneas, qué pide el cliente (a quién hay que sumar, a quién sacar y en qué documentos). Después, qué son C1 y C2 (los dos son «Administración»: ¿cómo los distingo en pantalla y cuál uso?). También qué es `account_ux`, a qué te referís con «seguimientos de vendedores portal», y dónde se configuran en pantalla las acciones «Agregar seguidores» y «Quitar seguidores» y el Para/CC de la plantilla, con un ejemplo de cómo quedaría la regla y qué parte puedo hacer yo y cuál le toca a Consultoría."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en criollo, sin nombres técnicos? Para cubrir todo lo que pide el cliente (Administración recibe la copia y las respuestas, y se saca a quienes no corresponde), ¿qué hay que configurar desde la pantalla, quién lo hace y qué le puedo contestar hoy? No entiendo qué son `account_ux`, `mail_autosubscribe`, OCA, `partner_to`/`email_cc`/`reply_to` ni C1/C2."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en criollo, sin nombres técnicos? Primero, en dos líneas, qué pide el cliente (a quién hay que sumar, a quién sacar y en qué documentos). Después, qué son C1 y C2 (los dos son «Administración»: ¿cómo los distingo en pantalla y cuál uso?). También qué es `account_ux`, a qué te referís con «seguimientos de vendedores portal», y dónde se configuran en pantalla las acciones «Agregar seguidores» y «Quitar seguidores» y el Para/CC de la plantilla, con un ejemplo de cómo quedaría la regla y qué parte puedo hacer yo y cuál le toca a Consultoría.",
+ "followup_answer": "**Qué pide el cliente**\n**Sumar** a Administración y **sacar** a los vendedores y usuarios internos de los destinatarios, sin sacar al cliente ni a sus contactos.\nVale para **todas las facturas y notas de crédito de clientes**: las nuevas y, según el análisis interno, también las anteriores.\n\n**Los dos «Administración»**\nTienen el mismo correo, así que por nombre y correo no los vas a distinguir.\n\n| | Qué es | Qué pasa cuando le toca un aviso |\n|---|---|---|\n| **C1** | Un contacto común, sin usuario para entrar a Odoo | Si es seguidor, los avisos van por correo |\n| **C2** | La ficha de contacto del usuario interno «Administración» | Quedan en la bandeja de Odoo y no van al correo |\n\n- **Para distinguirlos:** entrá a *Ajustes → Usuarios*, abrí el usuario «Administración» y desde ahí su contacto relacionado. Ese es C2; el otro es C1. Anotá el número de cada ficha, que suele verse en la dirección del navegador.\n- **Cuál usaría:** **C1**, si el cliente confirma que quiere las respuestas en esa casilla y que alguien la lee. Usar C2 por correo obliga a cambiar su preferencia, y eso afecta todos sus avisos. C2 ya sigue muchas facturas, así que hay que decidir si se lo saca; si quedan los dos, el pedido de «sin usuarios internos» no se cumple.\n\n**`account_ux`** es un módulo de Adhoc que agrega funciones a Contabilidad. Acá importa una: al validar la factura, la envía si el diario tiene una plantilla para eso. Quien figura como autor del envío queda como seguidor.\n\n**«Seguimientos de vendedores portal»** son las veces que un vendedor aparece como seguidor de una factura. «Portal» es un usuario con acceso limitado, que no cuenta como interno. En 2026 son unas 4.100 apariciones entre seis vendedores; no lo tomaría como 4.100 facturas distintas. No sabemos cómo se agregaron.\n\n**Dónde se configura**\nSon las rutas habituales de Odoo 18; no las verifiqué en esta base y los nombres pueden variar. Las de *Técnico* requieren el modo desarrollador.\n\n- **Para y CC:** *Ajustes → Técnico → Plantillas de correo electrónico*. Abrí la que usa cada uno de los cinco diarios (puede que compartan) y buscá la pestaña de configuración del correo.\n    - **Para (contactos):** va la referencia al cliente que ya esté y, si se suma por acá, el número de C1. No reemplaces al cliente.\n    - **CC:** va una dirección de correo. Es la otra forma de mandar la copia; no hace falta poner a Administración en los dos campos.\n    - Si no ves esos campos, revisá si está marcada la opción de destinatarios predeterminados. No la cambies en la base real sin probar.\n- **Reglas:** *Ajustes → Técnico → Reglas de automatización*. Dentro de la regla se agregan las acciones y se elige el tipo «Agregar seguidores» o «Quitar seguidores». Si el menú no aparece, puede que la función no esté instalada.\n\n**Ejemplo de regla (borrador para probar)**\n\n| Parte | Valor |\n|---|---|\n| Nombre | Destinatarios de facturas de clientes |\n| Se aplica a | Asientos contables (ahí están las facturas) |\n| Filtro | Tipo: factura de cliente o nota de crédito de cliente |\n| Cuándo | Al pasar el estado a «Publicado» (validada) |\n| Acción 1 | Agregar seguidores: C1 |\n| Acción 2 | Quitar seguidores: una lista acordada de vendedores y usuarios internos, incluido C2 si se decide |\n\n- **Lista para quitar:** la pienso con nombres. No des por hecho que la regla reconoce sola a «todos los internos»; si entra un vendedor nuevo, habría que sumarlo. Revisá que no incluya contactos del cliente.\n- **Momento:** todavía no sabemos si corre antes o después del envío. Antes, el autor podría volver a quedar como seguidor; después, el primer correo ya habría salido con los seguidores sin corregir. Un reenvío posterior no vuelve a validar la factura, así que esta regla sola podría no cubrirlo.\n- **Historial:** la regla del ejemplo es para las validaciones nuevas. Las facturas anteriores necesitan aplicar las dos acciones en forma masiva, primero sobre unas pocas en una base de prueba.\n\n**Quién hace qué**\nEsto supone que estás del lado de Asistencia.\n\n| Vos | Consultoría |\n|---|---|\n| Identificar C1 y C2 | Armar y probar la regla |\n| Confirmar con el cliente la casilla, a quién sacar y si entra el historial | Preparar y ejecutar la corrección masiva |\n| Revisar qué plantilla usa cada diario y cómo está configurada, sin cambiarla | Probar validación, envío automático y manual, reenvío, notas de crédito y respuestas del cliente |\n| Documentar el análisis y derivar | Confirmar si alcanza sin programar |\n\nEl analista anterior ubicó las reglas y acciones fuera del alcance de Asistencia. El material no dice quién puede cambiar las plantillas; confirmalo antes de tocarlas. Cambiar solo el Para o CC **no resuelve las respuestas ni saca seguidores**.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12558,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4349,
+  "output_tokens_details": {
+   "thinking_tokens": 2392
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12558,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4349,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12558,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12558
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "91ac07e92b",
+  "persona": "soporte"
+ }
+}

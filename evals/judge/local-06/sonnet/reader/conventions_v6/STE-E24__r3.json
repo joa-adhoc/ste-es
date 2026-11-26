@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Si mi PR trae juntos la columna nueva, el código y el drop de `lang`, ¿hay algo que difiera el drop solo al tren del martes o sale todo el jueves? Decime de dónde sale que va en el segundo tren, cómo lo verifico antes del jueves a las 9:00 y, si no se difiere, qué tengo que hacer concretamente para sacarlo de `staging`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "No me queda claro lo del drop. Si mi PR trae juntos la columna nueva, el borrado de `lang` y el código que deja de usarla, ¿el borrado sale solo el martes o se va todo en el tren del jueves? Decime cómo lo confirmo (qué archivo, workflow o persona) y, si no se difiere solo, qué tengo que hacer exactamente antes de las 9:00 para sacarlo de `staging`."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Hay algo en el workflow del tren que difiera solo el drop de `members.lang`, o va a prod el jueves junto con el código? Decime dónde lo reviso y, si no se difiere, cómo saco el drop de `staging` antes de las 9:00 sin sacar el resto del PR."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "Si mi PR trae juntos la columna nueva, el código y el drop de `lang`, ¿hay algo que difiera el drop solo al tren del martes o sale todo el jueves? Decime de dónde sale que va en el segundo tren, cómo lo verifico antes del jueves a las 9:00 y, si no se difiere, qué tengo que hacer concretamente para sacarlo de `staging`.",
+ "followup_answer": "**Con este material no puedo asegurar que el drop se difiera solo, ni que salga todo el jueves.** El directorio de trabajo está vacío, así que no pude revisar el workflow, las migraciones ni tu PR.\n\n**Ojo con la hora:** mi sesión marca jueves 26/11/2026. Si mergeaste ayer, el límite es **hoy a las 9:00 ARG (12:00 UTC)**. Si ya pasó, andá al final.\n\n## De dónde sale el segundo tren\nDe esta línea de `docs/release-train.md`: «Una migración destructiva […] no corre en el mismo tren que el código que deja de usar la columna: va en el tren siguiente (expand/contract)». El extracto no dice si eso lo aplica el sistema o lo tiene que cumplir quien arma el PR. Que `release-train.yml` avance `main` desde `staging` tampoco muestra cómo se ejecutan las migraciones.\n\n## Cómo verificarlo\nEn tu repo (supuse que el workflow está en `.github/workflows/`):\n\n```bash\ngit fetch origin\ngit diff --name-status origin/main...origin/staging\ngit show origin/main:.github/workflows/release-train.yml\ngit show origin/staging:.github/workflows/release-train.yml\ngit grep -niE 'migrat|destructive|expand|contract|drop.?column' origin/staging\ngh run list --workflow=release-train.yml --limit 5\ngh run list --branch staging --limit 10\n```\n\nSeguí los scripts o jobs que llame el workflow hasta el que corre las migraciones en prod, que puede estar en otro repo. Para confiar en que se difiere, tenés que ver **qué excluye el drop el jueves aunque venga con el código, y cómo se ejecuta el martes**. No alcanza con la documentación, un comentario o un check que solo avisa. Si no lo podés demostrar a tiempo, tratalo como que no se difiere.\n\n## Cómo sacar solo el drop\n1. Creá una rama:\n   ```bash\n   git switch -c defer-drop-members-lang origin/staging\n   ```\n2. Sacá el drop, sin revertir todo el PR:\n   - Si está en un archivo propio, borralo con `git rm <archivo>`.\n   - Si comparte archivo con el alta de `locale`, borrá solo el drop y dejá el alta.\n   - Revisá el esquema, los snapshots y el registro de migraciones según tu herramienta. El código sigue sin usar `lang`, pero nada debería volver a generar el drop.\n3. Verificá que el código nuevo funcione con `lang` todavía en la base. Por ejemplo, si es `NOT NULL` sin valor por defecto, los inserts que la omitan van a fallar. Resolvelo antes del tren. Si hay datos que conservar, revisá también la copia a `locale` y lo que escriba la versión vieja durante el deploy.\n4. Commiteá, pusheá la rama y abrí un PR **contra `staging`**, sin force-push a `staging`. Tiene que estar mergeado y con el CI verde antes de las 9:00.\n5. Repetí el `fetch` y mirá qué va a salir:\n   ```bash\n   git diff origin/main...origin/staging | grep -niE 'drop|lang'\n   ```\n   No debería quedar ninguna operación que borre `members.lang`. Revisá las coincidencias; si tu herramienta expresa el drop de otra forma, este filtro puede no detectarlo.\n\nSi el drop ya corrió en la base de staging, sacar el archivo no recupera la columna. Revisá el historial de migraciones y cómo restaurarla allí; al reintroducir el drop, asegurate de que vuelva a ejecutarse donde corresponde.\n\n**Si no llegás:** avisá ya a quien pueda frenar el tren; el extracto no explica cómo hacerlo. No cuentes con el CI en curso ni rompas el CI para frenarlo, porque solo está documentado el salto con CI rojo.\n\n## Después\nVolvé a meter el drop con otro PR a `staging` **solo cuando confirmes que el código nuevo está en prod** y ya no queda la versión vieja. Para que salga el martes 1/12, tiene que entrar antes de las 9:00 y con el CI verde. Si el código no salió hoy, no lo mergees todavía.\n\n**Si ya pasaron las 9:00 de hoy:** revisá la ejecución del tren, si tu cambio llegó a `main` y qué migraciones corrieron en prod; que esté en `main` no prueba que haya corrido el drop. Si el tren sigue en curso o el drop corrió, avisá enseguida a quien opera prod. Un release manual es solo para un hotfix y con aprobación de jjs.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11653,
+  "cache_read_input_tokens": 46389,
+  "output_tokens": 3323,
+  "output_tokens_details": {
+   "thinking_tokens": 1533
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11653,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3065,
+    "cache_read_input_tokens": 28879,
+    "cache_creation_input_tokens": 284,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 284
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "6a0abeec59"
+ }
+}

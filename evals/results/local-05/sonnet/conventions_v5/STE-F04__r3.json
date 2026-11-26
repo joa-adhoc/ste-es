@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Con lo que leímos, que el usuario tenga solo la sucursal Norte no explica el error de lectura.** La réplica muestra cuándo falla, pero todavía no por qué. Y el criterio que declara el módulo es el contrario a «si no ve, que no vea en ningún lado».\n\n**Por qué no cierra**\n- **Reglas de sucursal:** las de diarios, asientos y pagos de `account_multi_store` tienen `perm_read` = False. No pueden bloquear una lectura.\n- **`account_journal_security`:** sus reglas solo aplican a diarios con usuarios cargados, y ningún diario de venta los tiene. No deberían frenar la factura del punto 22 por su diario. No sabemos si «Ver asientos» lee además otros diarios.\n- **Criterio del módulo:** la ayuda de `store_id` dice que quien es de otra sucursal puede ver los registros del diario, pero no publicarlos ni modificarlos.\n- **Filtro en `_search`:** sí esconde los diarios de otras sucursales en las búsquedas. El comentario del código dice que no usaron una regla de lectura para evitar errores en los campos relacionados con el diario. Entonces, que un diario no aparezca en una búsqueda no significa que esté prohibido leerlo.\n\nPuede que ese filtro explique parte de la diferencia entre pantallas, por ejemplo qué diarios o facturas aparecen. Es una hipótesis: no leímos el código de ninguno de los dos reportes. Por sí solo, no esperaría que genere un error que nombra reglas, aunque no lo verifiqué en el código de Odoo 18. Tampoco podemos afirmar que en la 16 los permisos fueran más livianos, porque no leímos ese código.\n\n**Qué probar ahora**\n1. **Copiá el error completo y sacá el traceback.** Importan el modelo, los registros, la operación (leer o escribir) y los nombres exactos de las reglas. Si el mensaje no trae ese detalle, repetilo con el modo desarrollador activado.\n2. **Con el mismo usuario y las mismas compañías seleccionadas, abrí esa factura desde el libro mayor de Contabilidad y tocá «Ver asientos».** Contaste que ahí ve las facturas; falta confirmar si esa acción también funciona. Si funciona, hay que comparar qué hace cada camino. Si falla igual, la diferencia no está en el reporte de origen sino probablemente en la factura o en la acción.\n3. **Según lo que nombre el error:**\n\n| Si aparece | Qué revisar |\n|---|---|\n| La regla multicompañía | La compañía del registro y las compañías activas del usuario |\n| Las reglas de `account_journal_security` | Qué diario es el bloqueado y si tiene usuarios cargados; puede no ser el del punto 22 ni uno de venta |\n| La regla de sucursal | Si la operación es escribir, crear o borrar. Si dice leer, contradice la configuración que leímos |\n| Otra regla u otro modelo | Esa regla y de qué módulo viene |\n\n4. Con eso, leé el código de la acción «Ver asientos» y de los dos reportes. El de la 16 hace falta solo si queremos explicar qué cambió con la actualización.\n\n**Sobre unificar:** bloquear la lectura en todos lados no sería solo corregir una inconsistencia. Cambiaría el comportamiento que describe el módulo y podría traer los errores en campos relacionados que su comentario quiso evitar. Si el cliente necesita que una sucursal no vea las facturas de otra, lo trataría como una decisión de producto aparte. Además, en un seguimiento de cobranza hay que definir si quien reclama la deuda tiene que ver todas las facturas del contacto.\n\n**Al cliente, por ahora, le diría:** «Pudimos reproducir el error. Estamos revisando qué lo provoca y por qué el comportamiento cambia según la pantalla. Todavía no podemos confirmar que sea una restricción esperada por sucursal». No le daría más permisos ni le diría que es lo esperado hasta ver el error.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no cargué el contexto de la empresa y me basé solo en tu material. Para darlo de alta, la guía es `adhoc-way-guide`, que tampoco pude cargar desde acá. ¿Me pegás el texto del error?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11120,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3036,
+  "output_tokens_details": {
+   "thinking_tokens": 1501
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11120,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3036,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11120,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11120
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según lo más probable (el texto no lo da por probado), al confirmar, `purchase_stock` crea una recepción para la orden y, si queda sin movimientos, intenta borrarla. En este caso quedaría vacía porque las 2 unidades de la línea ya figuran recibidas y no queda nada pendiente. `stock_ux` frena el borrado porque «Recepciones» tiene `block_picking_deletion` = True. El mensaje junta dos causas posibles, el bloqueo y el estado, pero el bloqueo solo ya alcanza. El error revierte la confirmación. Odoo no intenta borrar la recepción 412 (WH/IN/00098). No se vio el traceback, que confirmaría desde dónde se llama al borrado, ni los movimientos de la 412. Del código estándar se tiene la referencia a que borra la recepción vacía, pero no el cálculo de lo pendiente.",
+  "El 11/11 el mismo usuario confirmó la orden (12:26). Se registraron las 2 unidades recibidas (12:27) y una hora después la orden se canceló (13:26) y volvió a borrador (13:27). La 412 sigue en Hecho. El texto no dice explícitamente quién registró la recepción, canceló la orden o la volvió a borrador. Tampoco se sabe por qué se canceló ni por qué Odoo permitió cancelarla.",
+  "Se propone, sin que esté probado, hacer esto primero en una copia de la base. 1) Revisar que el movimiento de la 412 siga vinculado a la línea de P00231, esté en Hecho y sea por 2 unidades, y que no haya devoluciones ni otros movimientos asociados. Anotar el stock del producto y el estado de la factura y de su vínculo con la línea. 2) Desactivar «Bloquear eliminación de traslados» en «Recepciones». 3) Confirmar P00231. 4) Volver a activar el bloqueo, también si la confirmación falla. Como la desactivación afecta a todo ese tipo de operación, conviene hacerlo en un momento de poco uso. 5) Controlar que la orden quede como Orden de compra, que la 412 sea su única recepción y no aparezcan movimientos nuevos, que la línea siga con 2 pedidas, 2 recibidas y 2 facturadas, que el stock no cambie y que BILL/2026/11/0007 siga contabilizada, con el mismo importe y vinculada a la línea. El chequeo de estado de `stock_ux` sigue activo, así que la recepción temporal tiene que estar en borrador o cancelada. La prueba también tiene que mostrar si la confirmación cambia algo más, como la fecha de confirmación o los avisos que se envían. Para regularizar, se evitaría borrar o devolver la 412, pasar a borrador, anular o rehacer la factura, cambiar la cantidad de la línea y forzar el estado de la orden por base de datos. Si la cancelación buscaba corregir algo, como el precio o el proveedor, o anular la compra, volver a confirmar no lo resuelve y hay que analizarlo aparte."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "fc70532280",
+  "control": "cf4a8527a9"
+ }
+}

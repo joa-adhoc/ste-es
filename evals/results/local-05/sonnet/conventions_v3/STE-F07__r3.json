@@ -1,0 +1,44 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Sí, podés indicar qué factura se salda.** Usá la columna `to_pay_move_line_ids/id`. Al confirmar, el pago se concilia contra esos apuntes, hasta donde alcance el importe. No lo probé importando en la base del cliente.\n\nNo pude crear los archivos porque no tengo permiso de escritura en la carpeta. Copiá cada bloque en un `.csv` (UTF-8, separado por comas). No validé las columnas con ningún programa.\n\n### 1. `recibos.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_001,customer,inbound,ID_CLIENTE,2026-11-26,ID_DIARIO,ID_METODO_PAGO,1000.00,\"ID_APUNTE_1,ID_APUNTE_2\",ID_IMPUESTO_1,NRO_CERTIFICADO_1,1000.00,10.00\n,,,,,,,,,ID_IMPUESTO_2,NRO_CERTIFICADO_2,1000.00,10.00\n```\n\n### 2. `recibos_cheques.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheque_001,customer,inbound,ID_CLIENTE,2026-11-26,ID_DIARIO,ID_METODO_PAGO,\"ID_APUNTE_1,ID_APUNTE_2\",00000001,2026-12-15,,,500.00,ID_IMPUESTO_1,NRO_CERTIFICADO_1,1000.00,10.00\n,,,,,,,,00000002,2026-12-15,,,500.00,ID_IMPUESTO_2,NRO_CERTIFICADO_2,1000.00,10.00\n```\n\n### 3. `pagos_proveedores.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_pago_001,supplier,outbound,ID_PROVEEDOR,2026-11-26,ID_DIARIO,ID_METODO_PAGO,1000.00,\"ID_APUNTE_1,ID_APUNTE_2\",ID_IMPUESTO_1,,1000.00,10.00\n,,,,,,,,,ID_IMPUESTO_2,,1000.00,10.00\n```\n\n### 4. `pagos_proveedores_cheques.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_pago_cheque_001,supplier,outbound,ID_PROVEEDOR,2026-11-26,ID_DIARIO,ID_METODO_PAGO,\"ID_APUNTE_1,ID_APUNTE_2\",00000001,2026-12-15,,,500.00,ID_IMPUESTO_1,,1000.00,10.00\n,,,,,,,,00000002,2026-12-15,,,500.00,ID_IMPUESTO_2,,1000.00,10.00\n```\n\n### Cómo completarlos\n- **Valores de ejemplo:** reemplazá los `ID_…`, números, fechas e importes. Las columnas `/id` llevan identificadores externos.\n- **`id`:** es un identificador propio de cada pago. Usá uno distinto para cada uno.\n- **Varias líneas:** la segunda fila agrega otro cheque u otra retención al mismo pago. Si sobra, borrala o dejá vacías las columnas que no uses.\n- **Cheques:** no incluí `amount` porque sale de la suma de los cheques, que deben ser mayores a 0. Son **cheques nuevos**; estos archivos no sirven para entregar cheques de terceros ya cargados.\n- **Banco y CUIT:** si quedan vacíos, salen del cliente. En cheques a proveedores, revisá en borrador cómo quedan. Cargá los números como texto para no perder los ceros.\n- **Retenciones a proveedores:** el número queda vacío porque lo pone la secuencia al confirmar. Odoo las calcula según la posición fiscal. No sé si al importarlas se duplican o se reemplazan.\n- **Nombres de columnas:** el material no trae los nombres técnicos de los campos dentro de cheques y retenciones. Los puse según lo que conozco de Odoo; verificalos al mapear las columnas.\n\n### Cómo obtener la factura a saldar\n1. Entrá en Contabilidad › Apuntes contables.\n2. Filtrá la factura y la cuenta a cobrar (clientes) o a pagar (proveedores).\n3. Exportá con la opción «compatible con importación».\n4. Copiá el `id` en `to_pay_move_line_ids/id`. Si son varios, por ejemplo varias cuotas, separalos con coma dentro de la misma celda. Si es uno, poné solo ese.\n\n**Antes de la carga masiva:** probá un pago de cada archivo, idealmente en una base de prueba. Los pagos quedan en borrador. Antes de confirmar, revisá:\n- **Deudas:** tienen que estar solo las que indicaste. En borrador, cambiar cliente, compañía o tipo vuelve a cargar **toda la deuda abierta**. Si pasa, la conciliación puede ir contra otras facturas. Tampoco dejes la columna vacía sin probar qué deudas carga. No verifiqué si la importación respeta tu selección o dispara ese recálculo.\n- **Retenciones:** que no estén duplicadas y que impuesto, base e importe sean correctos.\n- **Total:** que el importe y la suma de los cheques sean los esperados.\n\nEn esta sesión tampoco tenía disponible `tuqui-adhoc`, así que no pude consultar el contexto ni las reglas de la empresa. Para darlo de alta, usá la skill `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15118,
+  "cache_read_input_tokens": 77533,
+  "output_tokens": 7261,
+  "output_tokens_details": {
+   "thinking_tokens": 2476
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15118,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3211,
+    "cache_read_input_tokens": 31534,
+    "cache_creation_input_tokens": 1094,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1094
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 3,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al volver a confirmar P00231, Odoo estándar crea una recepción nueva y, si queda sin movimientos, intenta borrarla con `created_receipt.unlink()`. `stock_ux` bloquea ese borrado porque «Recepciones» tiene `block_picking_deletion = True`. Con eso alcanza para que `_check_block_picking_deletion` dé el error, aunque el traslado esté en borrador. El texto infiere, sin haberlo reproducido, que la recepción nueva queda vacía porque las 2 unidades ya figuran recibidas.",
+  "El 11/11, a las 13:26 y 13:27, el mismo usuario canceló la orden P00231 y la volvió a solicitud de cotización. Antes, la orden había pasado a orden de compra y la recepción 412 (WH/IN/00098), con 2 unidades, se había validado a las 12:27. No dice para qué se canceló la orden.",
+  "Primero, en una copia actualizada de la base (la solución no está probada):\n1. Anotar el stock del producto, los movimientos de la 412, las cantidades de la línea y el estado e importe de la factura.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción.\n5. Verificar que:\n- La orden quedó como orden de compra.\n- No quedó ninguna recepción ni movimiento nuevo, pendiente o hecho.\n- La 412 sigue en Hecho y vinculada a la orden.\n- La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n- El stock no cambió.\n- BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la línea.\n\nLa recepción vacía además tiene que estar en borrador o cancelada; se espera que esté en borrador, pero la prueba lo tiene que confirmar. También hay que revisar si al confirmar cambia algo más (como la fecha de confirmación) o si se dispara alguna automatización.\n\nSi todo coincide, repetirlo en producción con el acuerdo del cliente, en un momento sin otras operaciones, porque mientras la opción esté desactivada deja de proteger a todas las recepciones de ese tipo. Hay que reactivarla aunque la confirmación falle. No hacer devoluciones, no validar otra recepción, no tocar la factura y no cambiar el estado de la orden por SQL.\n\nAdemás, preguntar antes de reconfirmar para qué se canceló la orden: si querían cambiar o anular la compra, volver a confirmarla puede no ser lo que necesitan."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "7806b3cac8",
+  "control": "cf4a8527a9"
+ }
+}

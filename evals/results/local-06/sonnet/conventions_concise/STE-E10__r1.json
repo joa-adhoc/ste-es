@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Primero se mira si el workspace permite la operación sobre el modelo. Después se decide entre allow, deny y ask, y solo se ejecuta si da allow o si da ask y se aprueba. Esto sale del material que pegaste; no lo contrasté con el código.\n\n## Orden\n\n1. **`workspace_write_models`** (Settings → Write Models): el admin permite o no la operación por modelo. Si no la permite, se corta ahí y ningún \"allow\" posterior la habilita.\n2. **`evaluate_permission(ctx)`**, donde gana la primera regla que aplica:\n   1. El workspace dice `deny`: **DENY**. Ninguna preferencia personal lo levanta.\n   2. Hay una preferencia del usuario para ese workspace y esa tool: gana esa. En `exposure`, `webhook` y `scheduled` este paso se saltea.\n   3. El workspace dice `allow` o `ask`: se aplica eso.\n   4. No decidió nada de lo anterior: se usa el default de la tool. Si el recurso está en `approval` (`\"ask\"` o `\"always\"`), es **ASK**; si no, **ALLOW**. En tools de conector sin declaración en el REGISTRY, entran la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**: queda auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin en \"ask\", miembro en \"allow\"\n\nEn un canal donde vale la identidad personal, da **ALLOW**, así que no le pregunta (siempre que el paso 1 lo permita). La preferencia del miembro se evalúa antes que el `ask` del workspace.\n\nPor lo tanto, el `ask` del admin **no es un mínimo obligatorio**: cada miembro puede relajarlo para sí en ese workspace. Solo `deny` funciona como piso. Si el admin necesita que nadie ejecute la tool, tiene que usar `deny` o no permitir la operación en Write Models. En el material no aparece una opción para obligar a que siempre pregunte.\n\n## Caso 2: agent por webhook\n\nLa preferencia personal se ignora, aunque el turno corra con la identidad prestada de un miembro. Con el paso 1 permitido:\n\n| Workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `allow` | ALLOW |\n| `ask` | ASK |\n| sin fila | default de la tool |\n\nSi es la misma configuración del caso 1 (workspace en `ask`, miembro en `allow`), por webhook da **ASK**. Lo decide `ChannelProfile.personal_identity_applies`.\n\n**Lo que el material no dice:** qué pasa con un ASK en un webhook, donde puede no haber nadie para responder. No sé si se bloquea, queda pendiente o se resuelve de otra forma. El diagrama solo muestra que se llega a ejecutar con `allow` o `asked-granted`. Para confirmarlo, habría que ver en el código cómo maneja ese canal un ASK, o probarlo con un test.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11039,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1493,
+  "output_tokens_details": {
+   "thinking_tokens": 445
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11039,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1493,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11039,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11039
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

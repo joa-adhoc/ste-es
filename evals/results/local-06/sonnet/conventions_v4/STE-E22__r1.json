@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Todavía no lo corras así:** perderías sin vuelta los cambios sin commitear de `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`.\n\nCon `git reset --hard origin/staging` pasa esto:\n\n| Qué tenés | Qué le pasa |\n|---|---|\n| Los 2 archivos modificados | Se pierden. Como no están commiteados, el reflog no sirve para recuperarlos. Si alguna parte estaba en stage, quizás se rescate a mano, pero no cuentes con eso. |\n| Los 3 commits (`a1b2c3d`, `d4e5f6a`, `0718293`) | Salen de tu rama y no están en `origin/feat/limite-mcp`. Por un tiempo podés recuperarlos con el reflog. |\n| `supabase/migrations/0420_mcp_limits.sql` | Al no estar trackeado, normalmente queda en su lugar, así que no empezás de cero. Si `origin/staging` tiene un archivo en esa misma ruta, lo pisa. |\n\nPara empezar de cero y poder recuperar todo, corré esto, siempre parado en `feat/limite-mcp`. Si algún comando falla, no sigas con el próximo.\n\n```bash\ngit fetch origin\ngit branch backup/limite-mcp                       # guarda los commits\ngit stash push -u -m \"limite-mcp antes del reset\"  # guarda los cambios y los archivos sin trackear\ngit reset --hard origin/staging\n```\n\n- **Para recuperar:** los commits quedan en `backup/limite-mcp`. Los cambios y la migración quedan en el stash. Para aplicarlos sobre su base original, parate en `backup/limite-mcp` con el árbol limpio y corré `git stash pop`.\n- **Alcance del backup:** la rama y el stash son solo locales. No te cubren si perdés este clon.\n- **Rama remota:** el reset no cambia `origin/feat/limite-mcp`. Si esa rama tiene commits que no están en `staging`, también salen de tu rama local. En ese caso, un push normal va a ser rechazado. Antes de forzarlo, revisá qué se borraría y si el PR ya tuvo revisión de una persona: desde ahí no se reescribe la historia. Lo primero lo ves así, después del fetch:\n\n  ```bash\n  git log --oneline origin/staging..origin/feat/limite-mcp\n  ```\n\nSi en realidad querés **descartar todo**, incluida la migración, decímelo y te paso los comandos. El reset solo no alcanza. Solo miré la salida que pegaste; no corrí nada en tu repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10371,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1387,
+  "output_tokens_details": {
+   "thinking_tokens": 471
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10371,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1387,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10371,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10371
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

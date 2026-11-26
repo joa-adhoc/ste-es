@@ -1,0 +1,47 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No, ya no se pide. Mientras iterás y antes de pushear, corré `make test ARGS=<lo que tocaste>` y `make lint`. La suite completa la corre CI.\n\n**Por qué cambió:** la regla anterior suponía que CI no daba el resultado antes que una corrida local. Eso dejó de ser cierto: el job `test` bajó de unos 11 minutos a unos 4, gracias a bcrypt configurable en los tests (PR #829) y a los runners arm64. Además, CI corre en paralelo con tu trabajo, mientras que la suite local te bloquea la máquina.\n\n**Cuándo el material dice que conviene correrla entera:**\n- **Cambios transversales:** si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, se ve arrastrado cerca del 76% de los archivos de test, según el grafo de imports. Ahí correr solo lo que tocaste ya casi no ahorra nada.\n- **Agentes de IA:** una sola vez antes de entregar, no en cada iteración. El motivo es que no tienen el criterio del autor para elegir qué tests correr, e iterar contra CI genera pushes de ruido.\n\nSi algo falla en CI y no sabés por qué, reproducilo local antes de volver a pushear. El material no dice que para eso haga falta la suite completa.\n\n**Ojo con estas excepciones:** chocan con las convenciones de Adhoc que tengo cargadas. Esas dicen que las suites completas las corre CI y no se lanzan en la máquina del dev ni en un workspace de Tuqui Work, tampoco para \"estar seguro\". No hacen salvedad por cambios transversales ni por agentes, así que yo no correría la suite entera solo por este texto. Si un proyecto necesita esas excepciones, tiene que declararlas donde una persona las revise, como `AGENTS.md §Overrides` o un ADR. No revisé si tu repo ya lo hace, ni verifiqué los tiempos, el PR o el porcentaje: salen del material que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10846,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 967,
+  "output_tokens_details": {
+   "thinking_tokens": 250
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10846,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 967,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10846,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10846
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

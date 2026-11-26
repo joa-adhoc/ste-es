@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en `docs/release-train.md` o en `release-train.yml` si el tren deja solo el `DROP COLUMN members.lang` para el siguiente? Si no lo hace, pasame los pasos y comandos concretos para sacarlo de `staging` antes del tren de las 9:00 y volver a mergearlo después. Si mi PR tiene todo junto, ¿qué tengo que revertir exactamente para no sacar también el código y la migración de `locale`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `docs/release-train.md` y `release-train.yml` y confirmarme si el tren posterga solo el `DROP COLUMN` cuando viene en el mismo PR que el resto? Si no lo hace, ¿qué pasos exactos tengo que seguir antes de que salga el próximo tren para sacarlo de `staging` y volver a mergearlo después?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El tren posterga solo el DROP COLUMN al martes o lo tengo que separar yo? Revisá `docs/release-train.md` y `release-train.yml`, y si es manual, pasame los pasos y comandos exactos para sacarlo de `staging` antes del tren del jueves y volver a mergearlo después, incluyendo cómo evitar que el revert afecte la migración que agrega `members.locale`."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar en `docs/release-train.md` o en `release-train.yml` si el tren deja solo el `DROP COLUMN members.lang` para el siguiente? Si no lo hace, pasame los pasos y comandos concretos para sacarlo de `staging` antes del tren de las 9:00 y volver a mergearlo después. Si mi PR tiene todo junto, ¿qué tengo que revertir exactamente para no sacar también el código y la migración de `locale`?",
+ "followup_answer": "**No pude revisar si el tren separa el `DROP`:** en mi carpeta de trabajo (`/tmp/ste-es-eval-wzwd2jk2`) no están `docs/release-train.md` ni `release-train.yml`, y tampoco es un repo. El extracto dice cuándo tiene que correr un borrado, pero no cómo se separa.\n\n**Todavía no reviertas nada.** El reloj de esta máquina marca jueves 26/11 a las 11:30 de Argentina. Si está bien, el tren de las 9:00 ya tendría que haber salido, y sacar el `DROP` de `staging` no frena lo que ya pasó a `main`.\n\n### 1. Mirá el estado y cómo funciona el tren\nCorré esto en tu repo, reemplazando `<PR>`:\n```bash\ngit fetch origin\nSHA=$(gh pr view <PR> --json mergeCommit -q .mergeCommit.oid)\ngit merge-base --is-ancestor \"$SHA\" origin/main; echo $?   # 0: está en main; 1: ese commit no está\ngh run list --workflow=release-train.yml --limit 5\ngit show origin/staging:docs/release-train.md\ngit grep -niE 'drop|destructive|expand|contract|migrat' origin/main origin/staging -- '*release-train*'\ngit show origin/main:.github/workflows/release-train.yml    # ajustá la ruta si es otra\n```\nRevisá también los scripts de deploy o migración que llame el workflow, porque la separación puede estar ahí. Un `1` no alcanza si el tren usa squash o cherry-pick: compará el contenido de `main`.\n\n- **El PR ya está en `main`, o el tren está corriendo:** avisale ya a jjs y revisá en el deploy y en la base de prod si corrió el `DROP`. Un revert en `staging` no cambia prod ni recupera datos borrados. Un release manual de hotfix necesita aprobación de jjs.\n- **No está en `main` y el tren no separa el `DROP`:** seguí con el paso 2 antes del próximo tren que lleve tu PR. Si el del jueves se salteó, es el del martes 1/12 a las 9:00. Si en realidad todavía es miércoles, es el del jueves a las 9:00. Si hay una corrida demorada o alguien puede relanzarla, coordinalo antes con jjs.\n\n### 2. Sacá solo el `DROP`\nNo reviertas el merge ni el PR completo (por ejemplo, con `git revert -m 1`): también sacarías el código y `locale`.\n\n```bash\ngit diff --name-status \"$SHA^1\" \"$SHA\"   # sirve con merge o squash; con rebase, revisá todos los commits del PR\ngit switch -c defer-drop-members-lang origin/staging\n```\n- **El `DROP` tiene su propio archivo:** `git rm <archivo-del-drop>`.\n- **Está junto con el `ADD` de `locale`:** editá el archivo, sacá solo el borrado de `lang` y corré `git add <archivo>`. Si hay una función de rollback, sacá también su parte de `lang`.\n\nEl código y el alta de `locale` quedan. Según tu herramienta, puede que también haya que ajustar el snapshot del esquema o el orden de las migraciones. Si `lang` es `NOT NULL` sin valor por defecto, el código nuevo puede fallar al insertar mientras la columna exista; revisalo, igual que si hay que copiar datos de `lang` a `locale`.\n\n**Ojo con la base de staging:** si la migración ya corrió, editar o borrar el archivo no restaura `lang` ni hace que se vuelva a ejecutar. Confirmá cómo registra tu herramienta las migraciones aplicadas y cómo reparar ese historial y la columna.\n\n```bash\ngit diff --cached\npre-commit run --files <archivos-modificados-que-siguen-existiendo>   # si el repo usa pre-commit\ngit commit -m \"Defer dropping members.lang to the next release train\"\ngit push -u origin defer-drop-members-lang\ngh pr create --base staging\ngh pr checks\n```\nSi tu repo publica las ramas en un espejo, pusheá ahí en vez de `origin`. El cambio sirve solo si este PR **se mergea** antes del tren y el CI de `staging` queda verde.\n\n### 3. Volvé a agregar el borrado\nHacelo recién cuando el código nuevo esté en `main` **y desplegado en prod**, no solo porque pasó la hora. Creá otra rama desde `origin/staging` y **una migración nueva**, con nombre o número nuevo, que solo borre `members.lang`. Usá el generador de tu herramienta y abrí otro PR a `staging`. No reviertas el commit anterior: podría recuperar el identificador viejo o la migración combinada.\n\nPara que salga en el tren siguiente, tiene que estar mergeado antes de ese tren. Si el código sale el martes 1/12, el borrado va el jueves 3/12, siempre que el CI esté verde.\n\nPara darte los archivos y el cambio exactos, necesito la ruta de tu repo y el número del PR.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11624,
+  "cache_read_input_tokens": 46274,
+  "output_tokens": 3160,
+  "output_tokens_details": {
+   "thinking_tokens": 1215
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11624,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2900,
+    "cache_read_input_tokens": 28764,
+    "cache_creation_input_tokens": 370,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 370
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "13e7d0f796"
+ }
+}

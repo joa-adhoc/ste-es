@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Lo más probable es que los dos worktrees usen la misma base local.** El `conftest` aplica las migraciones de cada rama sobre esa base, que queda con la unión de las dos. Si la otra rama borra o renombra una columna que tu código todavía lee, te salta `UndefinedColumnError` en tests que no tocaste. Lo deduzco del material y de lo que contás; no miré tu repo ni tu base.\n\nPara confirmarlo, buscá la columna del error en las migraciones de la otra rama. Tendría que haber una que la borre o la renombre.\n\nEl lock de los tests (`flock`) no te protege de esto. Evita que dos corridas se pisen al mismo tiempo, pero no separa los esquemas.\n\n## Arreglo: una base propia para tu worktree\n\n1. **Creá el override.** Usá de guía el `.env.test.local.example` y no pises el `.env.test.local` si ya existe:\n   ```bash\n   cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n   ```\n2. **Apuntá a una base propia.** En ese archivo, poné un nombre de base que no use ningún otro worktree. El archivo está en el `.gitignore`.\n3. **Revisá el destino antes de resetear.** `make migrate-reset` **vacía la base a la que apunta**. Solo toca bases locales, pero eso incluye la compartida y la de desarrollo. El material dice que los targets de test cargan el override, pero no que `migrate-reset` lo haga. Fijate en el `Makefile` y en `scripts/reset_database.py` qué URL toma. Tampoco dice si el script crea la base cuando no existe.\n4. **Armá el esquema.** Cuando sepas que apunta a tu base nueva, corré esto (tarda unos 3 segundos):\n   ```bash\n   make migrate-reset\n   ```\n5. **Volvé a correr los tests** con `make test`. Si el error sigue, revisá que estén usando la base nueva. Si la usan, la causa puede ser otra, por ejemplo un desajuste entre el código y las migraciones de tu propia rama.\n\nNo uses `npx supabase db reset`: aborta en el primer prefijo de migración repetido, y el material dice que hoy hay 25.\n\n## Para que no te vuelva a pasar\n\n- **Una base por worktree:** repetí estos pasos en cada worktree nuevo. Tu compañero también debería usar una propia si sigue en la compartida. Si resetea la compartida, borra lo que haya ahí para todos los que la usan.\n- **El lock dejalo como está, salvo que quieras correr tests en paralelo.** Para soltarlo con un `TEST_LOCK` distinto necesitás base **y también** Redis propios. En `REDIS_URL` el servidor es el mismo y cambia el índice. No uses el 0 (server de desarrollo) ni el 15 (default compartido de tests), y elegí uno que no use otro worktree.\n\nCon la base propia ya separás los esquemas. Si seguís compartiendo Redis, mantené el lock, porque el cleanup y las corridas simultáneas todavía pueden chocar en los recursos compartidos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11149,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1551,
+  "output_tokens_details": {
+   "thinking_tokens": 459
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11149,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1551,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11149,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11149
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás un ejemplo de un recibo completo con datos como se ven en pantalla (cliente, diario, método de pago, impuesto de retención y la factura), y me explicás paso a paso cómo saco el identificador del apunte de esa factura? Decime también cómo se llama en la pantalla de importación cada columna de los tres archivos, sobre todo las de cheques y retenciones, que según vos no verificaste."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás en términos de pantalla? Para cada columna de los tres archivos, decime a qué campo o solapa de Odoo corresponde (con su etiqueta visible), si es obligatoria u opcional y qué valor va, porque pedí los campos obligatorios y no los veo marcados. En retenciones a proveedores, ¿cargo esas columnas en el archivo o las saco y dejo que Odoo las calcule? Tampoco entiendo a qué te referís con «el material», «tuqui-adhoc» y «adhoc-way-guide», ni si tengo que hacer algo con eso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla y me dejás los tres archivos listos para probar? Para cada columna de los CSV (incluidas `partner_type`, `payment_type`, `to_pay_move_line_ids/id`, `l10n_latam_new_check_ids/...` y `l10n_ar_withholding_line_ids/...`), decime con qué nombre la veo en la pantalla del recibo o pago y en la de importación, si es obligatoria y qué valor va. Aclarame también qué es el «identificador externo del apunte» y en qué columna del Excel exportado lo encuentro. Y sacá lo que no me sirve (`tuqui-adhoc`, `adhoc-way-guide`, la carpeta, «el material») o explicame si tengo que hacer algo con eso."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo aclarás en términos de pantalla? Para cada columna de los tres archivos, decime a qué campo o solapa de Odoo corresponde (con su etiqueta visible), si es obligatoria u opcional y qué valor va, porque pedí los campos obligatorios y no los veo marcados. En retenciones a proveedores, ¿cargo esas columnas en el archivo o las saco y dejo que Odoo las calcule? Tampoco entiendo a qué te referís con «el material», «tuqui-adhoc» y «adhoc-way-guide», ni si tengo que hacer algo con eso.",
+ "followup_answer": "**En pagos a proveedores, sacá las cuatro columnas de retención y dejá que Odoo las calcule** según la posición fiscal. El número lo pone la secuencia al confirmar. No se probó si el cálculo se dispara al importar: probá con un pago y, si en borrador falta la retención o está mal, no lo confirmes. El archivo queda así:\n\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id\nsupplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,98000.00,\"<ID_EXTERNO_APUNTE_1>,<ID_EXTERNO_APUNTE_2>\"\n```\n\nEl importe es de ejemplo: revisalo contra la retención que calcule Odoo. En los recibos, las columnas de retención quedan.\n\nLos nombres en pantalla son los que conozco o una descripción; **no los verifiqué en la base del cliente**. Tampoco están confirmados los nombres técnicos de las columnas de cheques y retenciones. Comparalos en un formulario y en la pantalla de importación.\n\n**Datos del pago**\n\nR = `recibos.csv`, P = `pagos_proveedores.csv`, C = `recibos_cheques.csv`. \"Sin confirmar\" significa que no sé si Odoo la exige; completala igual, salvo que se indique otra cosa.\n\n| Columna | Archivos | Campo en pantalla | ¿Obligatoria? | Valor |\n|---|---|---|---|---|\n| `partner_type` | R, P, C | Tipo de contacto (puede no verse; suele definirlo el menú) | **Sí** | R y C: `customer`; P: `supplier` |\n| `payment_type` | R, P, C | Tipo de pago | **Sí** | R y C: `inbound` (cobro); P: `outbound` (pago) |\n| `partner_id` | R, P, C | Cliente / Proveedor | **Sí** | Nombre del contacto |\n| `date` | R, P, C | Fecha | **Sí** | `AAAA-MM-DD` |\n| `journal_id` | R, P, C | Diario | **Sí** | Nombre del diario |\n| `payment_method_line_id` | R, P, C | Método de pago | **Sí** | Un método disponible en ese diario |\n| `amount` | R, P | Importe | Sin confirmar | Importe del pago. En C no va: se suma desde los cheques |\n| `to_pay_move_line_ids/id` | R, P, C | Deudas seleccionadas para pagar | Opcional; usala para elegir la factura | Identificadores externos de los apuntes, separados por coma |\n\nSi dejás las deudas vacías, no sé qué carga Odoo. Antes de confirmar, revisá que estén solo las que querés saldar.\n\n**Solapa Cheques (solo C)**\n\nTodas empiezan con `l10n_latam_new_check_ids/`.\n\n| Termina en | Campo | ¿Obligatoria? | Valor |\n|---|---|---|---|\n| `name` | Número | Sin confirmar | Número del cheque |\n| `payment_date` | Fecha de pago | Sin confirmar | `AAAA-MM-DD` |\n| `bank_id` | Banco | Opcional | Nombre del banco; vacío, sale del cliente |\n| `issuer_vat` | CUIT del emisor | Opcional | CUIT válido; vacío, sale del cliente |\n| `amount` | Importe | **Sí, mayor a 0** | Importe de ese cheque |\n\n**Retenciones (R y C)**\n\nBuscá la solapa o sección de retenciones. Todas empiezan con `l10n_ar_withholding_line_ids/`. Lo obligatorio vale cuando cargás una retención; si el recibo no tiene, dejá las cuatro vacías.\n\n| Termina en | Campo | ¿Obligatoria? | Valor |\n|---|---|---|---|\n| `tax_id` | Impuesto | **Sí** | Nombre del impuesto de retención |\n| `name` | Número | Sin confirmar | Número del certificado que te dio el cliente |\n| `base_amount` | Base | Sin confirmar | Base de cálculo |\n| `amount` | Importe | Sin confirmar | Importe retenido |\n\nPara un segundo cheque o retención, agregá una fila con las columnas del pago y las deudas vacías, y completá solo ese cheque o retención.\n\n**Los términos que no se entendían**\n- **\"El material\":** la información sobre el código de Odoo que venía con tu pedido.\n- **`tuqui-adhoc`:** una conexión interna de Adhoc que le da contexto al asistente.\n- **`adhoc-way-guide`:** la guía para dar de alta esa conexión.\n\nPara completar e importar estos archivos no tenés que hacer nada con `tuqui-adhoc` ni con la guía. Antes de la carga masiva, probá un registro de cada archivo en una base de prueba: importalo, revisalo, confirmalo y mirá la conciliación.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13544,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3058,
+  "output_tokens_details": {
+   "thinking_tokens": 1291
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13544,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3058,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 13544,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13544
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a8ea7e721d",
+  "persona": "consultoria"
+ }
+}

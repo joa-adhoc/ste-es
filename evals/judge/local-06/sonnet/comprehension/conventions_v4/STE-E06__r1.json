@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque tu worktree comparte la base de tests local con el de tu compañero. Su rama aplicó migraciones ahí (el `conftest` las corre solo) y alguna destructiva dejó el esquema sin columnas que tu código todavía lee. Por eso aparece `UndefinedColumnError`. El texto aclara que esta causa está sin verificar en tu caso, aunque el síntoma coincide.",
+  "No. El lock (`flock`) solo impide dos corridas simultáneas. El esquema queda igual con la unión de las migraciones de las dos ramas.",
+  "Con una base propia para tu worktree:\n1. Creá `tuqui_core/.env.test.local` a partir de `tuqui_core/.env.test.local.example`. Está gitignoreado y pisa a `.env.test`.\n2. Apuntalo a una base con un nombre que no use ningún otro worktree. Sacá las variables exactas del `.example` y mirá en § La base de tests es por worktree si hay que crear la base antes.\n3. Con esa configuración cargada, corré `make migrate-reset`. Esto vacía la base a la que apunta, así que antes confirmá que es la tuya y no la compartida. No está verificado que ese target lea `.env.test.local`, así que revisá en el `Makefile` o en `scripts/reset_database.py` de dónde toma la URL.\n4. Volvé a correr los tests que fallaban. Si el error sigue, revisá que estés usando la base nueva y que la columna no falte por un cambio de tu propia rama.\n\nNo uses `npx supabase db reset`.\n\nPara que no vuelva a pasar, dejá ese `.env.test.local` en cada worktree que uses, también en el de tu compañero si comparten máquina.\n\nCon solo la base propia, mantené el lock porque Redis sigue compartido. Para correr en paralelo necesitás además un `REDIS_URL` con un índice que no sea 0 ni 15 ni el de otro worktree, y un valor distinto de `TEST_LOCK`."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6619af08e4",
+  "control": "d71584ce60"
+ }
+}

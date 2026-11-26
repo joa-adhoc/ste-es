@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**La reproducción muestra el error, pero lo que se leyó de la base todavía no explica por qué sale.** Que el usuario solo tenga la sucursal Norte es una explicación lógica, pero ninguna de las reglas leídas le impide **leer** el diario Sur:\n\n| Regla o mecanismo | ¿Explica que no pueda leer? |\n|---|---|\n| «Journal multi-company» | Solo si el problema es de compañía. No filtra por sucursal. |\n| «Journal multi-store» | No: tiene `perm_read` = False. |\n| Las dos de `account_journal_security` | No: ningún diario de venta tiene usuarios cargados. |\n| Reglas de `account_multi_store` sobre asientos y pagos | No: también tienen `perm_read` = False. |\n| `_search` sobrescrito en `account.journal` | Oculta el diario Sur en las búsquedas, pero no es una regla de registro. Por sí solo no debería generar un mensaje que enumera reglas. |\n\nPuede que la regla que bloquea esté en un modelo o módulo que no se leyó, o que haya algo en el código que cambie este análisis.\n\n**El criterio que declara el módulo**\nLa ayuda de `store_id` dice que quien es de otra sucursal **puede ver** los registros del diario, pero no publicarlos ni modificarlos. Las reglas con `perm_read` = False van en ese sentido. Según esto, ver la factura del punto 22 en el libro mayor es lo esperado, y lo sospechoso es el error al leer.\n\nEl `_search` complica el criterio: no prohíbe leer, pero esconde el diario en las búsquedas. El comentario del código explica que se hizo así para evitar errores en los campos relacionados con el diario. Mi hipótesis es que el reporte de seguimiento arma su filtro buscando diarios y el libro mayor llega a los apuntes por otro camino. Eso explicaría que se vean facturas distintas, pero no leí el código de ninguno de los dos. Tampoco explica todavía el error de «Ver asientos».\n\nSobre la 16, no se leyó su código, así que no podemos afirmar que los permisos se hayan reforzado.\n\n**«Si no ve, que no vea en ningún lado»**\nEs una opción, pero cambia lo que declara el módulo; no es solo corregir una inconsistencia:\n- **Ve pero no modifica:** respeta la ayuda del campo. Habría que corregir lo que dispara el error y revisar el filtro del seguimiento.\n- **No ve en ningún lado:** hay que restringir la lectura y revisar asientos, apuntes, pagos y reportes. Las reglas de registro pueden no alcanzar si algún reporte consulta por SQL. Además, el seguimiento podría mostrar una deuda parcial del cliente.\n\nYo tomaría la primera como referencia, salvo que producto o el cliente definan que cada sucursal no debe ver la información de las otras.\n\n**Qué falta para cerrarlo**\n1. **El mensaje completo y el traceback**, repitiendo tus pasos con el modo desarrollador activo, idealmente en una copia de la base. Hay que ver el modelo, la operación, el registro y las reglas que nombra. El título «Ver asientos» no alcanza para saber qué intenta leer.\n2. **Las reglas de ese modelo**, y la acción que ejecuta «Ver asientos».\n3. **El código del seguimiento y del libro mayor**, para ver cómo filtra cada uno los diarios.\n4. **El código de la 16**, solo si hay que explicarle al cliente qué cambió.\n\nEmpezaría por el 1. Si lo pegás acá, seguimos desde la regla o la línea que muestre. No tuve disponible `tuqui_context` y no consulté la base: el análisis sale solo de tu relato y del material que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10530,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2773,
+  "output_tokens_details": {
+   "thinking_tokens": 1447
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10530,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2773,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10530,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10530
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

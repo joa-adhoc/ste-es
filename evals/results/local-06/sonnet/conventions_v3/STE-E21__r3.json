@@ -1,0 +1,47 @@
+{
+ "case": "STE-E21",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No, borrar el commit no alcanza: la key ya llegó al remoto, así que se da por filtrada y **hay que rotarla**. GitHub guarda los commits de un PR, y el preview de Railway ya construyó la imagen con ese commit.\n\nHacelo en este orden:\n\n1. **Creá una key nueva** en el panel de OpenAI.\n2. **Cargala en Admin › Integraciones, en staging y en prod.** No la pongas en variables de entorno de Railway.\n3. **Revocá la vieja**, recién después de cargar la nueva en los dos ambientes. Hasta ese momento la key filtrada sigue activa, así que hacé estos tres pasos seguidos.\n4. **Limpiá la rama** y sacá la key de todos los commits donde aparezca:\n   ```bash\n   git fetch origin\n   git rebase -i origin/<base>   # \"edit\" para corregir el commit, \"drop\" para descartarlo entero\n   ```\n   Si elegís `edit`, sacá la key del archivo cuando el rebase se detenga y después corré:\n   ```bash\n   git add <archivo>\n   git commit --amend\n   git rebase --continue\n   ```\n   Usá `drop` solo si no necesitás ningún otro cambio de ese commit, porque se pierden todos. Al final, subí la rama:\n   ```bash\n   git push --force-with-lease\n   ```\n   `git push --force` sin lease está bloqueado. Si el push con lease falla, alguien subió algo a la rama: revisá esos cambios antes de reintentar. Si una persona ya revisó el PR (un bot no cuenta), la convención es no reescribir la historia. En ese caso, consultalo antes de hacer el rebase; la rotación no tiene que esperar.\n5. **Avisá en la tarea abierta del proyecto 1526** (Administración Tuqui): qué key rotaste y cuándo. Identificala sin pegar su valor.\n\nLa limpieza de la rama no reemplaza la rotación. Estos pasos salen del extracto de `docs/seguridad.md` que pegaste y de las convenciones de PR. No revisé tu repo ni el PR, y no ejecuté nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10381,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 744,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10381,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 744,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10381,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10381
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

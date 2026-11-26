@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El refresh de datos publica automáticamente la versión que crea (mueve `published_version_id`) o quien tiene el link sigue viendo los datos viejos hasta que alguien haga `publish`? ¿Podés confirmarlo en el código o probando un refresh y abriendo el link?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código si el refresh de datos mueve `published_version_id`? Necesito saber si quien tiene el link ve los datos nuevos automáticamente o si hace falta un `publish`. Si hace falta, y hay cambios de diseño sin publicar, ¿hay forma de publicar solo los datos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el código (o probando con un artifact compartido) si el refresh de datos mueve `published_version_id`, o sea, si quien tiene el link ve los datos nuevos sin que nadie haga `publish`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El refresh de datos publica automáticamente la versión que crea (mueve `published_version_id`) o quien tiene el link sigue viendo los datos viejos hasta que alguien haga `publish`? ¿Podés confirmarlo en el código o probando un refresh y abriendo el link?",
+ "followup_answer": "**No lo puedo confirmar: no sé si el refresh de datos publica la versión que crea.** No pude revisar el código ni probé un refresh.\n\n- **Directorio de trabajo:** `/tmp/ste-es-eval-sd0cwc69` está vacío.\n- **Resto de la máquina:** el primer intento de buscar en `/home/joa` falló por la sintaxis. Al repetirlo, quedó bloqueado: `grep in '/home/joa' was blocked`. La sesión solo permite buscar en el directorio de trabajo.\n- **GitHub:** `gh search code` en `ingadhoc` no se ejecutó porque requiere aprobación.\n- **Link:** no hice el refresh ni abrí ningún link. En esta sesión no usé ninguna herramienta de artifacts.\n\n**Qué se puede inferir del material:** si el refresh pasa por `save` con `artifact_id`, no mueve `published_version_id`. En ese caso, el link sigue con los datos viejos hasta un `publish`. Pero el material no dice que el refresh use `save`. Podría usar otro camino que también publique, o no estar implementado todavía, porque lo ubica en la fase 2.\n\n**Para confirmarlo en el código**, corré esto en la raíz del repo:\n\n```bash\ngrep -rnE \"published_version_id|_effective_version|refresh\" --include='*.py' .\n```\n\nBuscá la función del refresh y seguí sus llamadas. Fijate si asigna `published_version_id` o llama a `publish`, ya sea ahí o en algo que ella invoque.\n\n**Para probarlo**, usá un artifact de prueba, no uno que ya compartiste:\n\n1. Crealo con `save` sin `artifact_id`, con un diseño A y el dato 1. Abrí el link: tiene que mostrar A + 1.\n2. Guardá un diseño B con `save` y no lo publiques. El link debería seguir en A + 1.\n3. Hacé un refresh que deje el dato 2, con el mismo mecanismo que usan los dashboards. Un `save` manual solo probaría el comportamiento de `save`.\n4. Volvé a abrir el link.\n\n| El link muestra | Qué significa |\n|---|---|\n| A + 1 | El refresh no publicó la versión. |\n| B + 2 | El link pasó a la versión nueva y **también publicó el diseño pendiente**. |\n| A + 2 | El link recibe datos nuevos sin publicar el diseño B. La resolución descrita en el material no explica este caso, así que habría que revisar el código. |\n\nEl paso 2 permite detectar un riesgo: según la regla de resolución, publicar la versión del refresh incluye el último diseño anterior, aunque sea un borrador. Si el refresh publica solo, revisá cómo maneja ese caso.\n\nSi me pasás la ruta de un clon y me das acceso, por ejemplo abriendo la sesión ahí, lo reviso en el código. También podés aprobar la búsqueda en GitHub, o pegarme la función del refresh y las que llama.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 13333,
+  "cache_read_input_tokens": 107413,
+  "output_tokens": 2577,
+  "output_tokens_details": {
+   "thinking_tokens": 805
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13333,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1560,
+    "cache_read_input_tokens": 30430,
+    "cache_creation_input_tokens": 413,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 413
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a1f51cd782"
+ }
+}

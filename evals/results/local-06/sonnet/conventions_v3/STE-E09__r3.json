@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El admin carga el server una vez y después cada usuario autoriza su cuenta en el provider. El backend guarda los tokens encriptados de ese usuario. Si después del intercambio solo algunas habilidades no contestan, el usuario **queda conectado** y ve un aviso de conexión parcial.\n\n## Flujo completo\n\n**0. Alta (admin).** El admin registra el server con `auth_type=oauth_per_user`. Carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n**1. Inicio (usuario → front).** El usuario abre `/connectors` y clickea **Connect** en el server.\n\n**2. Armado de la URL (front → backend).** El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con:\n- **`state`:** va firmado con AES-GCM y vence a los 10 minutos. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede sumar `code_verifier` (PKCE) y, en los conectores de plataforma, `scope_profile`.\n- **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir el refresh token. El primero lo pide y el segundo fuerza que lo emita en cada autorización. Así, desconectar y reconectar no te deja sin refresh token. Según el material, los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n- **`resource`:** solo si está guardado (ver abajo).\n\n**3. Autorización (front → provider).** El front redirige al usuario al provider.\n\n**4. Vuelta (provider → backend).** El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**5. Intercambio (backend → provider).** El backend valida el `state` y cambia el `code` por tokens en `token_url`, con `resource` si corresponde. Guarda los tokens encriptados en `user_mcp_oauth_tokens`.\n\n**6. Prueba de humo (backend → habilidades).** Dentro del callback, el backend consulta en paralelo **todas las habilidades habilitadas**. El resultado define qué lleva el redirect.\n\n**7. Redirect final (backend → front).** El destino depende de quién es el dueño del token. No usa un `return_to` aparte.\n\n| Dueño | Destino cuando conecta |\n|---|---|\n| Usuario | `/w/{slug}/settings/connectors?connected={server_id}` |\n| Cuenta de servicio | `/w/{slug}/settings/members/{member_id}?connected=...` |\n\n**8. Refresh (más adelante).** Al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 segundos de validez. También manda `resource` si está guardado.\n\n## Si algunas habilidades no contestan\n\n| Resultado de la prueba | Tokens | Redirect | Qué ve el usuario |\n|---|---|---|---|\n| **No contesta ninguna** | El backend los borra | `connect_error=<motivo>` | Banner de error en la card |\n| **Falla solo una parte** | Se conservan | `connect_warning=<habilidades>` | Banner de conexión parcial; queda conectado |\n\nEl criterio es este: si no contesta ninguna, el material considera que el token no sirve. Si al menos una contesta, desconectar al usuario sería peor, porque perdería lo que sí puede usar.\n\n## Sobre `resource` (RFC 8707)\n\nEl discovery guarda `OAuthPerUserConfig.resource` cuando el server declara su URI canónica en la protected-resource metadata. El backend lo manda al armar la URL, en el intercambio y en el refresh, **solo si está guardado**.\n\nNo hay que adivinarlo: un authorization server que lo valida rechaza cualquier valor que no reconozca. Además, así siguen andando sin `resource` los conectores dados de alta antes de que existiera el campo.\n\n## Lo que el material no dice\n\nEstos puntos habría que confirmarlos en el código, que para esta respuesta no revisé:\n- Si el redirect con `connect_warning` incluye también `connected={server_id}`.\n- A qué ruta exacta va el redirect con `connect_error`.\n- Cuánto espera la prueba de humo a cada habilidad y qué cuenta como \"contestar\".\n- Si las habilidades que fallaron se vuelven a probar o se desactivan.\n- Qué pasa si el `state` es inválido o está vencido, o si falla el intercambio o un refresh.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11124,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2027,
+  "output_tokens_details": {
+   "thinking_tokens": 453
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11124,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2027,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11124,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11124
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

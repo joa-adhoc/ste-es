@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con lo que contás, va como skill.** La tool se puede armar con `odoo_create`, y los defaults se pueden explicar en la skill.\n\n**Criterio:** es tool nativa solo si cumple al menos uno de estos ejes. Si no cumple ninguno, es skill.\n\n| Eje | Cuándo cumple | Tu caso, si es solo create con defaults | ¿Vale en MCP saliente? |\n|---|---|---|---|\n| **(a)** No componible | Ninguna tool existente, sola o combinada, logra lo mismo | No cumple | Sí |\n| **(b1)** Approval o policy propia | Necesita su propia aprobación o identidad de policy | Solo si le hace falta | No |\n| **(b2)** Whitelist más fina | Su permiso es más acotado que el de la tool genérica | Solo si es más acotado que `odoo_create` sobre ese modelo | Sí |\n| **(c)** Procedimiento crítico | Saltear un paso tiene un costo real (compliance dura) | Solo si hay un caso así | No |\n| **(d)** Eficiencia o determinismo | Resuelve en 1 call 3 o más, o un loop no acotado, o un procedimiento con pasos que el LLM saltearía | No cumple si es 1→1 | Sí |\n\nSobre (d): ahorrar tokens de esquema o completar defaults no alcanza, porque un wrapper 1→1 nunca califica por este eje. Cambia solo si antes de crear hay búsquedas o validaciones que sumen 3 o más calls, un loop no acotado o pasos que el LLM saltearía.\n\n**El MCP saliente sí cambia el análisis.** Ahí solo justifican una tool (a), (b2) o (d). El router MCP ignora `requires_approval`, así que (b1) no protege nada. Tampoco hay un turno donde forzar los pasos de (c).\n\nPara tu tool, la salida a revisar es **(b2)**. Un ejemplo sería habilitar esta creación puntual sin habilitar el create genérico sobre el modelo. Los defaults solos no achican permisos. El gate lo tiene que imponer la tool, y conviene revisar que por sus argumentos no se puedan pisar los valores que querés restringir.\n\n**Si solo cumple (b1) o (c),** la regla general de \"al menos un eje\" la admite como nativa por el chat, pero en MCP esos ejes no la justifican. El antecedente va en contra: `odoo_schedule_activity` pasó a system skill. Era componible, su único diferencial era (b1) y ya estaba en `MCP_EXCLUDED_TOOLS`. El fragmento no aclara si todo caso de solo (b1) tiene que terminar igual. Si el tuyo es ese, dejá explícito por qué la aprobación en chat justifica una tool nativa y definí si queda excluida del MCP.\n\nPara cerrar el veredicto: **¿quién tiene que poder usarla, con qué permisos, y qué pasa antes del create?** Me baso solo en el fragmento que pegaste; no revisé el código ni specs#49.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11230,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1568,
+  "output_tokens_details": {
+   "thinking_tokens": 498
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11230,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1568,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11230,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11230
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El orden es: primero el filtro de escritura del admin, después el permiso por tool (ALLOW, DENY o ASK) y al final la ejecución. Esto sale del material que pegaste; no revisé el código.\n\n1. **`workspace_write_models`** (Settings → Write Models): el admin permite o no cada operación sobre un modelo. Si no la permite, se bloquea ahí y no se evalúan las aprobaciones.\n2. **`evaluate_permission`**: decide el primer punto que aplique.\n   1. Si el workspace dice `deny`, el resultado es **DENY**. Ninguna preferencia personal lo cambia.\n   2. Si el canal tiene identidad personal y el usuario tiene una preferencia para esa tool en ese workspace, **gana esa preferencia**.\n   3. Si no, vale el `allow` o `ask` del workspace.\n   4. Si ninguno de los anteriores decidió, se aplica el valor por defecto. Es **ASK** si el recurso está en `approval` (`\"ask\"` o `\"always\"`), y **ALLOW** si no. En las tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las anotaciones MCP.\n3. **`tool.execute()`**: corre si el resultado fue ALLOW, o si fue ASK y se aprobó. Queda auditado en `tool_usage_log` con `permission_action`.\n\n**Admin en `ask`, miembro en `allow`:** en un canal con identidad personal el resultado es **ALLOW**, y no se le pregunta. Solo el `deny` del admin funciona como piso; su `ask` lo puede reemplazar la preferencia del miembro. Si la intención del admin era obligar a confirmar, con `ask` no lo logra. Según este orden, solo puede imponerse con `deny`, que bloquea del todo. El paso 1 se aplica igual: el `allow` del miembro no saltea Write Models.\n\n**Agent por webhook:** primero tiene que pasar Write Models. Después **se ignoran todas las preferencias personales**, también las del miembro cuya identidad usa el turno. Lo mismo pasa en `exposure` y `scheduled`.\n\n| Workspace | Resultado en webhook |\n|---|---|\n| `deny` | DENY |\n| `ask` | ASK |\n| `allow` | ALLOW |\n| sin fila | valor por defecto (punto 2.4) |\n\nEntonces, con el admin en `ask` y el miembro en `allow`, por webhook da **ASK**.\n\nEl material no dice qué pasa con un ASK en un webhook, donde puede no haber nadie que responda: si queda pendiente, se rechaza o falla. No lo des por hecho. Para confirmarlo, habría que ver en el código cómo maneja ese canal un ASK, o probarlo con una tool en `ask`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11037,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1409,
+  "output_tokens_details": {
+   "thinking_tokens": 434
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11037,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1409,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11037,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11037
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

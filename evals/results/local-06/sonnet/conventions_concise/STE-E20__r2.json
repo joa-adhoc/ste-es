@@ -1,0 +1,47 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Staging no está caído, según el log:** el deploy nuevo no se promovió y el anterior sigue sirviendo. No consulté el entorno, así que no verifiqué su estado actual.\n\n**Qué pasó:** el build terminó bien, pero falló la migración `0415_terms_acceptance.sql`. El `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL` dio `23502` porque la columna tiene valores en null. El log muestra el rollback de 0415.\n\n**Cómo arreglarlo:** según el extracto de `docs/infra-ci-cd.md`, hay que separarlo en dos trenes:\n1. Una migración que haga el backfill de `accepted_version` en las filas en null. Sacá el `SET NOT NULL` de este tren.\n2. En un tren posterior, otra migración con el `SET NOT NULL`.\n\nNo vi el SQL de 0415, así que no sé si ya incluía un backfill ni qué otros cambios tiene. Antes de escribirlo, hay que definir qué valor les corresponde a las filas viejas. Como la columna parece registrar una aceptación de términos (lo infiero por los nombres), no conviene completar una versión que esas personas quizás nunca aceptaron. Revisá también que el código que escribe en `members` ya cargue el valor, para que no aparezcan nulls nuevos antes del segundo tren.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10323,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 479,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10323,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 479,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10323,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10323
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

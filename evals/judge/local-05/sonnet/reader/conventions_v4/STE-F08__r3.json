@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás sin tecnicismos la parte \"Para vos\" y qué tengo que hacer yo? No entiendo qué son `mrp`, \"no almacenable\", `product.product`, `ir.model.data`, `sale_order_type`, OCA, `tuqui-adhoc` ni `adhoc-way-guide`. Decime si ya puedo mandarle el borrador al cliente así como está (incluida la parte de los campos técnicos y la advertencia de que podríamos publicar mal el stock de los kits), y a quién le pido cada pendiente y la prueba del kit, porque yo no puedo probarlo en una base ni revisar el código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin tecnicismos? En el punto 1 no entiendo qué es el \"campo técnico de precio (product.product)\" ni los \"identificadores externos (ir.model.data)\". Tampoco sé qué cambia en el servidor del cliente ni si hace falta que lo lea. En el punto 2, ¿qué es un producto \"no almacenable\" y en qué se diferencia un \"pack\" de un kit? Con eso, decime en palabras simples qué le puedo mandar tal cual y a qué área o persona le pido cada pendiente, incluida la prueba del kit, que yo no sé hacer."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés pasar en criollo y decirme qué hago antes de mandarlo? En concreto: (1) ¿puedo enviar el borrador así, con los puntos pendientes, o espero? (2) ¿A quién exactamente (persona o área, y por qué canal) le pido las IPs, los pasos del cambio sin duplicar, el módulo de facturación automática, los datos y la baja, y la prueba del kit? Yo no sé probar en una base ni leer código. (3) ¿Qué quiere decir que el conector 'crea un campo técnico de precio (product.product) y registros de identificadores externos (ir.model.data)', que Odumbo 'saltea los productos no almacenables, salvo los packs' y la nota sobre 'tuqui-adhoc' / 'adhoc-way-guide'? ¿Algo de eso le tiene que llegar al cliente? Si es así, explicámelo en palabras que pueda repetirle."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me explicás sin tecnicismos la parte \"Para vos\" y qué tengo que hacer yo? No entiendo qué son `mrp`, \"no almacenable\", `product.product`, `ir.model.data`, `sale_order_type`, OCA, `tuqui-adhoc` ni `adhoc-way-guide`. Decime si ya puedo mandarle el borrador al cliente así como está (incluida la parte de los campos técnicos y la advertencia de que podríamos publicar mal el stock de los kits), y a quién le pido cada pendiente y la prueba del kit, porque yo no puedo probarlo en una base ni revisar el código.",
+ "followup_answer": "**Podés mandar el borrador como respuesta parcial, pero usá la versión de abajo y no incluyas la parte \"Para vos\".** Cambié dos cosas: saqué los nombres técnicos y aclaré qué pasa con el stock al vender. Antes de enviarlo, asegurate de que alguien siga los pendientes.\n\n- **Campos técnicos:** dejaría el aviso. El código muestra que el conector agrega datos en Odoo, y el cliente tiene que saberlo al dar un permiso tan amplio.\n- **Kits:** el borrador **no dice que podríamos publicar mal el stock**. Dice que no podemos confirmar que sea correcto. La posibilidad de publicar de más es una sospecha mía, sin probar, así que no se la afirmaría al cliente.\n\n## Para mandar al cliente\n\n> Hola. Te respondemos por punto.\n>\n> **1. Permisos**\n> Hoy el usuario necesita Ajustes como Administrador. Con permisos solo de Ventas, Inventario y Facturación, la prueba de conexión no pasa. Esto vale para todas las versiones de Odoo.\n>\n> La configuración completa es:\n> - **Administración:** Ajustes.\n> - **Ventas:** Administrador.\n> - **Contabilidad:** Facturación.\n> - **Inventario:** Administrador.\n> - **Ajustes técnicos (Technical Settings):** Gestión de Productos y Límite de crédito.\n>\n> Con Ajustes, Odumbo lee las aplicaciones instaladas, las empresas y cómo está armado el catálogo. Además, el conector no solo lee: agrega un campo técnico de precio en los productos y registros internos de identificación.\n>\n> Todavía tenemos que confirmar desde qué direcciones IP se conecta Odumbo. Si limitás el acceso antes, podrías bloquear la conexión.\n>\n> **2. Kits**\n> Para cada producto, Odumbo toma la cantidad \"A la mano\" menos la \"Saliente\", en la ubicación de stock configurada. No tiene un cálculo propio para kits. Todavía no podemos confirmarte que publique bien el stock de tu pack, ni cómo se descuentan las patas al venderlo. Odumbo además saltea los productos no almacenables, salvo los packs. Falta confirmar cómo trata en ese caso a un kit de Odoo. Recomendamos probarlo con un producto antes de operar con kits.\n>\n> **3. Cambio desde tu módulo actual**\n> Todavía no tenemos un procedimiento confirmado. Como tu módulo actual trae ventas y factura, te recomendamos no hacer el cambio hasta que te confirmemos cómo evitar duplicados.\n>\n> **4. Facturación**\n> Si facturás a mano en lote cada día, Odumbo sube las facturas igual. Odumbo no factura: vos generás y validás las facturas en Odoo, una por una o en forma masiva. Odumbo las detecta y las sube a la venta de Mercado Libre entre 6 y 24 horas después. La subida de facturas aplica solo a Mercado Libre.\n>\n> El stock publicado resta lo pendiente de entrega. Al confirmar la venta, Odoo genera la entrega, aunque todavía no hayas facturado. En el caso de tu pack, falta la prueba del punto 2.\n>\n> Para que la factura salga sola al confirmar la venta, recomendamos usar tipos de pedido de venta. Falta confirmarte con qué módulo se hace en Odoo 17 Enterprise.\n>\n> **5. Datos**\n> Falta confirmar qué datos guarda Odumbo además de las credenciales, y qué pasa con ellos si das de baja el servicio.\n\n## Qué tenés que hacer\n\nEl material no dice quién se ocupa de cada tema. Los perfiles de la tabla son mi sugerencia. Si no sabés quiénes son, pedile a tu líder que derive cada punto.\n\n| A quién | Qué pedirle |\n|---|---|\n| Quien atiende los tickets de Odumbo | \"¿Desde qué direcciones IP se conecta Odumbo? ¿Son fijas?\" El manual indica un ticket para pedir los datos técnicos de la conexión. |\n| Alguien técnico que conozca el conector | \"¿Cómo se pasa desde otro módulo sin duplicar ventas ni facturas? ¿Odumbo trae ventas anteriores, reconoce las ya cargadas y evita subir otra vez una factura? ¿Cómo apagamos esas funciones en el módulo actual?\" Para esto va a necesitar saber qué módulo usa el cliente. |\n| Alguien técnico que conozca Odoo 17 | \"¿Qué módulo permite que la factura salga sola con tipos de pedido de venta en Enterprise? Revisar como pistas `sale_order_type` y `sale_order_type_automation`.\" |\n| Responsable de privacidad o de los datos de Odumbo | \"¿Qué datos se guardan además de las credenciales? ¿Qué pasa con ellos en la baja y en qué plazos?\" |\n| Alguien técnico con una base de prueba | El pedido del kit que está abajo. |\n\nPodés copiar este pedido:\n\n> Necesito probar un kit en una base **de prueba** con Odoo 17 y el conector, sin tocar publicaciones reales. El pack lleva 4 patas. Hay 10 \"A la mano\" y 3 \"Salientes\" por una venta de patas sueltas.\n> 1. ¿Qué stock publica Odumbo? Quedan 7 patas libres, así que debería ser 1 pack. Sospecho que podría publicar 2.\n> 2. Al vender un pack, ¿la entrega sale por 4 patas? Al validarla, ¿se descuentan?\n> 3. ¿Qué pasa si el kit está configurado como no almacenable? ¿Odumbo lo saltea?\n>\n> Pasame los resultados. Si falla, indicá qué se le puede asegurar al cliente.\n\n## Qué significan los nombres\n\n- **`mrp`:** el módulo de Fabricación de Odoo. Ahí se arma la lista de patas que forman el kit.\n- **No almacenable:** un producto del que Odoo no lleva la cantidad en stock.\n- **`product.product`:** el nombre interno de los productos y sus variantes en Odoo.\n- **`ir.model.data`:** el lugar donde Odoo guarda nombres internos para identificar registros.\n- **`sale_order_type`:** el nombre técnico de un módulo que podría servir para los tipos de pedido. No verifiqué que le sirva a este cliente.\n- **OCA:** Odoo Community Association, una comunidad que publica módulos para Odoo.\n- **`tuqui-adhoc`:** una conexión interna del asistente que aporta, entre otras cosas, las reglas de la empresa. No la tuve disponible, así que no revisé el texto contra esas reglas.\n- **`adhoc-way-guide`:** la guía para configurar esa conexión. Podés pedirme \"ayudame a dar de alta `tuqui-adhoc`\"; en esta sesión no comprobé que la guía esté disponible.\n\nQuedan para uso interno la sospecha sobre los kits y los nombres de módulos sin verificar. También conviene avisar a quien mantiene el manual: explica Ajustes como permiso de lectura, pero el conector además agrega datos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13671,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3808,
+  "output_tokens_details": {
+   "thinking_tokens": 1231
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13671,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3808,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13671,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13671
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fe7d3cd8e8",
+  "persona": "comercial"
+ }
+}

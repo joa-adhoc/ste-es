@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás en términos de pantalla? 1) Explicaste cómo sacar el identificador externo del apunte de la factura, pero ¿de dónde saco los del cliente o proveedor, diario, método de pago, impuesto de retención y banco? 2) ¿Qué columna es cada una, con el nombre que veo en la pantalla de importación? Indicame cuáles son obligatorias y qué va en cada una, sobre todo en las de retención ('name', 'base_amount', 'amount') y de cheques. 3) ¿Qué son 'receiptbook_id', 'tuqui-adhoc', 'adhoc-way-guide' y 'el material' que mencionás? Yo no tengo ningún material. ¿Tengo que hacer algo con eso?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en palabras de pantalla qué es cada columna (con el nombre del campo como lo veo en Odoo), cuáles son realmente obligatorias y de dónde saco el identificador externo de cada REEMPLAZAR_ (cliente/proveedor, diario, método de pago, banco, impuesto de retención y apunte)? En los pasos del apunte contame también qué columna exporto. De paso, ¿qué son `receiptbook_id`, `tuqui-adhoc` y `adhoc-way-guide`, y tengo que hacer algo con eso?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo pasás en criterio de pantalla? Para cada REEMPLAZAR_ (cliente/proveedor, diario, método de pago, impuesto de retención, banco y apunte de la factura), decime desde qué menú saco el identificador externo, con un ejemplo de una fila ya completa. También qué columna de la pantalla de importación corresponde a cada encabezado técnico (por ejemplo, cuál es el número de cheque, la fecha de cobro, la base y el importe de la retención), y cuáles de todos son obligatorios. Aparte, no entiendo qué son `receiptbook_id`, `tuqui-adhoc` y `adhoc-way-guide`, ni qué quiere decir «el material»: ¿me afecta en algo para importar?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo aclarás en términos de pantalla? 1) Explicaste cómo sacar el identificador externo del apunte de la factura, pero ¿de dónde saco los del cliente o proveedor, diario, método de pago, impuesto de retención y banco? 2) ¿Qué columna es cada una, con el nombre que veo en la pantalla de importación? Indicame cuáles son obligatorias y qué va en cada una, sobre todo en las de retención ('name', 'base_amount', 'amount') y de cheques. 3) ¿Qué son 'receiptbook_id', 'tuqui-adhoc', 'adhoc-way-guide' y 'el material' que mencionás? Yo no tengo ningún material. ¿Tengo que hacer algo con eso?",
+ "followup_answer": "## 1) De dónde sacar cada identificador externo\n\nLos pasos son los mismos para todos:\n\n1. Abrí el listado en vista de lista y tildá los registros que necesitás.\n2. Andá a **Acciones (⚙) › Exportar**.\n3. Marcá la opción de exportación **compatible con importación**.\n4. Agregá **Nombre** para reconocer cada registro y exportá.\n5. Copiá el valor de la columna **ID** (`id`, el ID externo) en tu archivo. No uses el nombre ni el número que aparece en la dirección web.\n\nLas rutas son las habituales de Odoo y pueden cambiar según tu versión y tus permisos. No las probé en la base del cliente.\n\n| Dato | Dónde buscarlo |\n|---|---|\n| Cliente | Contabilidad › Clientes › Clientes |\n| Proveedor | Contabilidad › Proveedores › Proveedores |\n| Diario | Contabilidad › Configuración › Diarios |\n| Método de pago | En el mismo listado de Diarios. Al exportar, desplegá **Métodos de pago entrantes** (recibos) o **salientes** (pagos) y agregá su **ID** y **Nombre**. Usá ese ID, no el del diario, y elegí un método del mismo diario de la fila. |\n| Impuesto de retención | Contabilidad › Configuración › Impuestos |\n| Banco | Contactos › Configuración › Bancos (la ubicación puede variar) |\n| Apunte de la factura | Contabilidad › Apuntes contables, filtrando la factura y la cuenta a cobrar o a pagar |\n\n## 2) Columnas y qué va en cada una\n\nLos nombres en pantalla son **orientativos**: no vi tu pantalla de importación. Las columnas de retenciones y cheques aparecen como campos dentro de un grupo. Fijate en el grupo, porque puede haber tres «Importe»: del pago, de la retención y del cheque.\n\nEn «Obligatoria», **Sí** y **No** salen de la información técnica que acompañó tu pedido. **Completar** es mi recomendación cuando esa información no aclara si el sistema lo exige.\n\n### Datos del pago\n\n| Columna del archivo (antes de `/id`) | En pantalla | Obligatoria | Qué va |\n|---|---|---|---|\n| `partner_type` | Tipo de contacto o de socio | Sí | `customer` (cliente) o `supplier` (proveedor) |\n| `payment_type` | Tipo de pago | Sí | `inbound` (cobro) u `outbound` (pago) |\n| `partner_id/id` | Cliente / Proveedor o Contacto | Sí | ID externo del cliente o proveedor |\n| `date` | Fecha | Sí | Fecha del pago, por ejemplo `2026-11-26` |\n| `journal_id/id` | Diario | Sí | ID externo del diario |\n| `payment_method_line_id/id` | Método de pago | Sí | ID externo del método |\n| `amount` | Importe | Completar si no hay cheques | Importe cobrado o pagado, sin las retenciones (supuesto a verificar en el borrador). Con cheques, no pongas la columna. |\n| `to_pay_move_line_ids/id` | Deudas o líneas a pagar | No figura como obligatoria; completala para elegir factura | ID de los apuntes. Si son varios, separados por coma en la misma celda. |\n\n### Retenciones (solo si el pago las tiene)\n\nTodas empiezan con `l10n_ar_withholding_line_ids/`.\n\n| Termina en | En pantalla: grupo Retenciones › | Obligatoria | Qué va |\n|---|---|---|---|\n| `tax_id/id` | Impuesto | Sí | ID externo del impuesto de retención |\n| `name` | Número | Completar en recibos | Número de la retención o certificado que te dio el cliente. En pagos a proveedores va vacío: lo pone la secuencia al confirmar. |\n| `base_amount` | Importe base | Completar | Monto sobre el que se calculó la retención, por ejemplo `100000.00` |\n| `amount` | Importe | Completar | Monto retenido, por ejemplo `2000.00`. No es la base ni el total del pago. |\n\nEn pagos a proveedores, las retenciones se calculan solas según la posición fiscal. Probá que las importadas no queden duplicadas ni reemplazadas.\n\n### Cheques nuevos\n\nTodas empiezan con `l10n_latam_new_check_ids/`. Va un cheque por fila.\n\n| Termina en | En pantalla: grupo Cheques › | Obligatoria | Qué va |\n|---|---|---|---|\n| `name` | Número | Completar | Número del cheque. Revisá que conserve los ceros iniciales. |\n| `payment_date` | Fecha de pago | Completar | Fecha de pago del cheque, que puede ser distinta de la fecha del recibo |\n| `bank_id/id` | Banco | No | ID externo del banco. Vacío, sale del cliente. |\n| `issuer_vat` | CUIT del emisor | No | CUIT de quien emite el cheque; se valida. Vacío, sale del cliente. |\n| `amount` | Importe | Sí, mayor a 0 | Importe de ese cheque |\n\nEn cheques propios a proveedores, revisá banco y CUIT en el borrador: la regla de tomarlos «del cliente» no aclara qué pasa en ese caso.\n\nLos nombres técnicos de los campos dentro de cheques y retenciones siguen **sin verificar**. Al subir el archivo, revisá a qué campo asigna Odoo cada columna y usá **Probar** antes de **Importar**. Esa prueba no reemplaza revisar en el borrador las deudas, retenciones y totales.\n\n## 3) Qué son esos nombres\n\nNo tenés que hacer nada con ninguno para completar los archivos.\n\n- **`receiptbook_id`:** es el talonario de recibos. Se calcula solo, así que no lleva columna.\n- **«El material»:** es el bloque titulado «Material» que vino junto con tu pedido, con notas sobre cómo funcionan esos módulos de Odoo. Si no lo escribiste ni lo ves, no hace falta que lo busques. No es un archivo para importar.\n- **`tuqui-adhoc`:** es la conexión del asistente con la información de Adhoc y de quien lo usa. No es un campo de Odoo.\n- **`adhoc-way-guide`:** es una guía del asistente para configurar esa conexión. Tampoco forma parte de la importación.\n\nPara empezar, probá con **un solo recibo**. Se importa en borrador: antes de confirmarlo, revisá que estén solo las facturas que elegiste, además de las retenciones y los importes. Después de confirmar, verificá contra qué facturas se concilió.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13171,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4463,
+  "output_tokens_details": {
+   "thinking_tokens": 2094
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13171,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4463,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13171,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13171
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "56b90bb9ca",
+  "persona": "consultoria"
+ }
+}

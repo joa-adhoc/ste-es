@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Tenés que tocar el backend sí o sí**, para la migración, la escritura y la API. Lo que depende del caso es si el backend además **elige el idioma**. Si la descripción solo la muestra la SPA, elige el cliente. Si también entra a un prompt, a un mail o sale por MCP, eligen los dos.\n\nEn esta carpeta no encontré código, así que todo sale del material que pegaste.\n\n## 0. Antes de empezar\n**Puede que parte de esto ya esté hecho.** El material cita `0201_platform_connectors_description_i18n.sql`. Por el nombre, esa migración ya agrega este campo, pero no pude abrirla. En tu repo:\n\n```bash\ncat supabase/migrations/0201_platform_connectors_description_i18n.sql\nrg -n \"description_i18n|platform_connectors\" supabase tuqui_core\nrg -n \"platform_connectors|connector.*description\" .\n```\n\nSi la columna ya existe, no crees otra migración y revisá qué falta de los pasos siguientes. Con la última búsqueda, seguí quién usa la descripción, incluso si llega a un prompt o a MCP a través de otras funciones. No sé cuál es el caso de los conectores.\n\n## 1. Migración\nSolo si falta la columna. Supongo, por el nombre del archivo, que la tabla es `platform_connectors`:\n\n```sql\nALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n```\n\nDejá `description` como está, porque es el último fallback. Si además existe un `description_en` con datos para portar, usá de referencia `0206_features_i18n.sql`.\n\n## 2. Backend: guardar y devolver (siempre)\n- **Al escribir:** el endpoint tiene que aceptar `description_i18n` y pasarlo por `normalize_i18n_keys`. Esa función deja las claves en dos letras minúsculas y descarta las vacías.\n- **Al leer:** usá `decode_i18n`, porque asyncpg puede devolver el JSONB como `str` o como dict.\n- **Respuesta:** devolvé `description` y el mapa `description_i18n` entero. El serializer no filtra por idioma.\n\nLas dos funciones ya están en `tuqui_core/i18n.py`; no las reescribas. Revisá también que las queries y los esquemas de la API incluyan el campo nuevo.\n\n## 3. Front: mostrar\n\n```ts\nconst description = localizedField(\n  row.description_i18n,\n  row.description,\n  i18n.language,\n);\n```\n\nLa cadena es **idioma exacto → `en` → `description`**. No la escribas a mano. Aplicalo en cada card, listado o detalle que muestre la descripción, y sumá el campo al tipo TypeScript.\n\n## 4. Editor\nPoné dos inputs, ES y EN, en el panel de admin. Al guardar:\n- Mandá en `description_i18n` solo las claves con texto.\n- Copiá en `description` el valor de `es || en`.\n\nLa referencia es `AdminAgentEditorPage.tsx:95-115`. Al editar un registro viejo que solo tiene `description`, cuidá que guardar con los inputs vacíos no borre ese texto. Probá también qué pasa al vaciar a propósito los dos idiomas.\n\n## 5. Backend: elegir idioma (solo para prompt, mail o MCP)\n- Sacá el idioma de `resolve_response_language(workspace_id, user_id)`, **no** de `Accept-Language`.\n- Aplicá la misma cadena: `lang → en → description`.\n- Hacelo donde se arma el prompt, el mail o la respuesta MCP. La API de la SPA sigue devolviendo el mapa entero.\n\nSi la SPA también muestra la descripción, mantené el paso 3. El material menciona un bug de `agents` sobre este caso, pero esa parte no vino en lo que pegaste.\n\n**Caché:** si una respuesta que consume la SPA llega ya resuelta por el servidor, el `queryKey` de react-query tiene que incluir el idioma. Si recibe el mapa entero y elige el cliente, no hace falta, aunque el backend también elija idioma para un prompt.\n\n## Cómo probarlo\nSon casos para verificar; no corrí ninguno.\n\n| Datos | Usuario | Debería ver |\n|---|---|---|\n| ES y EN | `es` | el texto en español |\n| ES y EN | `en` | el texto en inglés |\n| Solo EN | `es` | el texto en inglés |\n| Sin mapa (registro viejo) | `es` o `en` | `description` |\n| Solo ES | `en` | `description` |\n\nEn el último caso, si guardaste desde el editor nuevo, `description` tiene el texto en español por el `es || en`. Si `i18n.language` puede venir como `es-AR`, comprobá que `localizedField` lo resuelva como `es`.\n\nSi aparece un consumidor en el backend, probá los mismos casos en esa salida.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11556,
+  "cache_read_input_tokens": 46143,
+  "output_tokens": 2660,
+  "output_tokens_details": {
+   "thinking_tokens": 723
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11556,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2242,
+    "cache_read_input_tokens": 28633,
+    "cache_creation_input_tokens": 433,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 433
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 2,
+ "is_error": false
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Odoo no intenta borrar la recepción 412 (WH/IN/00098). Todo indica que intenta borrar una recepción nueva y vacía, que él mismo crea al confirmar.** Es una inferencia a partir del material: no vi el traceback ni lo reproduje.\n\n## Qué pasa\n1. El 11/11 la orden se confirmó (12:26) y se registraron las 2 unidades recibidas (12:27). Después se canceló (13:26) y volvió a borrador (13:27).\n2. Al confirmar de nuevo, `purchase_stock` crea una recepción. Como las 2 unidades ya figuran recibidas, no quedaría nada pendiente y la recepción quedaría sin movimientos.\n3. Odoo entonces la borra con `created_receipt.unlink()`.\n4. `stock_ux` frena ese borrado porque «Recepciones» tiene `block_picking_deletion` = True. El mensaje junta dos causas; con esa opción activa, alcanza para bloquear aunque el traslado esté en borrador.\n5. El error deshace la operación. Por eso 415 y 416 no existen. El número cambia porque cada intento crea un registro nuevo y la secuencia de IDs de PostgreSQL no retrocede.\n\n## Cómo regularizar\nPrimero en una copia de la base:\n\n1. **Revisar antes:** los movimientos de 412 tienen que estar en Hecho, sumar 2 y seguir vinculados a la línea de P00231. Hay que ver también si hubo devoluciones. Anotar el stock del producto y los datos de la factura.\n2. **Confirmar la causa:** el traceback tiene que pasar por `created_receipt.unlink()`.\n3. **Probar:** desactivar «Bloquear eliminación de traslados» en «Recepciones», confirmar P00231 y volver a activarlo.\n4. **Verificar:**\n   - la orden queda confirmada, con 2 recibidas y 2 facturadas;\n   - 412 sigue vinculada y en Hecho;\n   - no quedan recepciones ni movimientos nuevos;\n   - el stock no cambia;\n   - BILL/2026/11/0007 sigue igual y vinculada.\n\nSi todo da bien, repetirlo en producción con autorización del cliente y en un momento de poco uso. La opción vale para todo el tipo de operación, así que mientras esté desactivada se pierde esa protección en todas las recepciones. Confirmar también puede pedir aprobación o disparar automatizaciones, y puede cambiar la fecha de confirmación: hay que mirarlo en la prueba.\n\nSi en la prueba queda una recepción pendiente o cambia el stock, no se aplica en producción. Para esta regularización no hace falta borrar ni devolver 412, tocar la factura, recibir de nuevo ni forzar el estado por base de datos.\n\n## Posible bug en `stock_ux`\nEl bloqueo también alcanza la limpieza interna que hace Odoo de una recepción vacía. Si se reproduce, propondría permitir ese caso puntual y mantener el bloqueo para el borrado de los demás traslados. Desactivar la opción sirve para destrabar esta orden, pero no corrige el problema.\n\n## Preguntas abiertas\n- **¿Cómo se pudo cancelar la orden con una recepción en Hecho?** No se leyó el código que lo decide, así que no sé si es el comportamiento estándar, una personalización o un error.\n- **¿Para qué se canceló?** Si el usuario quería corregir precio, cantidad o proveedor, o anular la compra, confirmar de nuevo puede no alcanzar. Hay que preguntarlo antes de tocar producción.\n- **¿Cuándo se contabilizó la factura?** El material no lo dice, y ayuda a entender la secuencia.\n\n## Respuesta sugerida al cliente (sin enviar)\n> Revisamos el caso de P00231. Según el análisis, el traslado del error no es la recepción WH/IN/00098: sería una recepción vacía que Odoo crea al confirmar e intenta borrar, y una protección del tipo de operación «Recepciones» lo impide. Vamos a probar la solución en una copia de la base, controlando que no cambien el stock ni la factura. Mientras tanto, les pedimos no hacer devoluciones, recepciones nuevas ni cambios en la factura. ¿Nos cuentan para qué cancelaron la orden el 11/11?\n\nTrabajé solo con el material que pegaste. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no cargué las reglas de la empresa (`tuqui_context`) ni consulté Odoo. Para darlo de alta está la guía `adhoc-way-guide`. Revisá la respuesta sugerida antes de enviarla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10939,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3053,
+  "output_tokens_details": {
+   "thinking_tokens": 1395
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10939,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3053,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10939,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10939
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

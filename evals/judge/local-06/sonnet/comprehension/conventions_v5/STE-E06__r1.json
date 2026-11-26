@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Casi seguro es por la base de tests compartida: la rama de tu compañero tiene una migración destructiva (borra o renombra columnas), se aplicó sobre esa base y tu código todavía lee esas columnas. El texto aclara que lo deduce del material y del síntoma, sin haber revisado tu base ni las ramas.",
+  "No. El lock de `flock` impide dos corridas a la vez, pero no aísla el esquema, así que la base queda con la unión de las migraciones de las dos ramas.",
+  "Dándole a tu worktree una base propia: (1) Creá `tuqui_core/.env.test.local` (está en el `.gitignore`) a partir de `tuqui_core/.env.test.local.example`, apuntando a una base local con un nombre que no use otro worktree y tomando del ejemplo el nombre de la variable de conexión. Si la base no existe, puede que tengas que crearla antes. (2) Antes del reset, confirmá que el override apunta a tu base nueva y que `make migrate-reset` lo toma, porque el reset vacía la base y, si apunta a la compartida, le borrás los datos y el esquema a tu compañero. (3) Corré `make migrate-reset`, que arma la base desde cero con las migraciones de tu rama en unos 3 segundos. No uses `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido. (4) Volvé a correr los tests que fallaban. Si el error sigue con una base limpia y propia, revisá las migraciones y el código de tu rama."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "7fff4c07c8",
+  "control": "d71584ce60"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al agregar la memoria 51 a un scope, se borra la más vieja según `created_at`, en la misma transacción de la base. El criterio es FIFO por fecha de creación, no por uso, así que puede borrarse aunque se lea todo el tiempo. El modelo se entera por un mensaje en la respuesta de la tool. El material llama a la eliminación \"silenciosa\" y no menciona ningún aviso a la persona.",
+  "En cada turno entra al system prompt solo el encabezado de cada memoria, sujeto al filtro cuando hay muchas. Van primero las del workspace y después las del usuario, después del bloque `CURRENT USER` y antes del bloque del proyecto. Cada encabezado lleva el título y el `summary`, si existe, o si no, el cuerpo hasta 250 caracteres. Si el cuerpo pasa los 250 caracteres y no hay `summary`, el encabezado termina en `... [read]`. El cuerpo completo se lee cuando hace falta: para una memoria marcada con `[read]`, el modelo llama a `manage_memory(action='read', id=...)`.",
+  "Si los encabezados suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual y entran solo los N mejores. El texto no dice cuánto vale N ni si el modelo se entera de que quedaron memorias afuera. Según lo descrito, este filtro no borra nada y, como depende del mensaje, una memoria que queda afuera en un turno puede entrar en otro. El texto infiere además que podría dejar afuera una memoria relevante escrita con otras palabras."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "4c0ca2cece",
+  "control": "2fefeeffdf"
+ }
+}

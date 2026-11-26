@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los dos errores tienen explicación: `pytest` no va desde la raíz del repo, y la expresión de `-k` tiene que ir entre comillas.\n\n**1. `pytest` desde la raíz.** La configuración de la suite está en `tuqui_core/pyproject.toml` y desde la raíz pytest no la ve. Entonces pierde el modo asyncio, junta también `evals/tests` y da miles de fallas que no son de tu código (el material reporta 2302 fallidos y 2111 pasados). El `conftest.py` de la raíz frena esa invocación con un mensaje, así que puede ser el \"error raro\" que viste. No lo puedo confirmar sin el texto.\n\n**2. `-k a or b`.** Sin comillas, el shell separa la expresión en tres palabras y pytest toma `or` como un path. Va así:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\n`ARGS` se expande literal en la receta, por eso las comillas internas funcionan.\n\n**La forma correcta** es correr `make` desde la raíz. `make test` ejecuta el mismo paso de pytest que el job `test` de CI:\n\n```bash\nmake test                                     # tests unitarios\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\n```\n\nSi necesitás `pytest` directo, hacé antes `cd tuqui_core`. Para lo que lea `os.environ` directo, cargá `.env.test` como hace el Makefile.\n\nOjo con `pytest tuqui_core/tests/test_x.py` desde la raíz: el `conftest.py` no lo frena y corre igual, pero se saltea el lock que aplica `make`.\n\nEsto sale del material que pegaste; no corrí los comandos ni revisé el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10904,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 619,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10904,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 619,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10904,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10904
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

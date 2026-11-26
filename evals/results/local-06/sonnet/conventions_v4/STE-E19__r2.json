@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El test falló porque quedó activa la policy del borrador, `USING (true)`, que no filtra por workspace.** Por eso el workspace B ve 2 filas del A. Es una falla real de aislamiento que el test detectó bien.\n\n1. `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`.\n2. `0412_scheduled_runs.sql` solo crea la policy correcta si no existe otra con ese nombre. No compara el contenido.\n3. Como el nombre ya existe, la saltea. El log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\n**Qué hacer:** creá una migración nueva, por ejemplo `supabase/migrations/0413_fix_scheduled_runs_rls.sql` (usá el siguiente número libre):\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nNo edites `0398` ni `0412`. Según `AGENTS.md`, una migración ya aplicada no vuelve a correr, porque el tracking es por nombre de archivo. No agregues otro `IF NOT EXISTS` por nombre, porque volvería a saltear el arreglo. Si tu runner no envuelve cada migración en una transacción, hacelo para que el reemplazo sea atómico.\n\nDespués aplicá la migración y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`.\n\n**Revisá los entornos compartidos, sobre todo producción.** Si alguno tiene la policy del borrador, un workspace puede estar viendo filas de otro. Como el SQL del borrador no limita la operación con `FOR`, también podría insertarlas, modificarlas o borrarlas, si el rol tiene esos permisos. Esta consulta muestra qué hay en cada base:\n\n```sql\nSELECT policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n```\n\n- **Si `scheduled_runs_ws` tiene `qual = true`:** esa base tiene la policy abierta. El filtro no aplica a los roles que saltean RLS, así que revisá también con qué rol se conecta la app. Si es producción, avisá al equipo y no esperes al ciclo normal para llevar el arreglo.\n- **Si aparecen otras policies:** revisalas. Las permisivas se combinan con `OR`, así que otra abierta mantendría la fuga aunque corrijas esta. Tu `grep` buscó solo el nombre `scheduled_runs_ws` y no las descarta.\n\nNo corrí el SQL ni los tests: el diagnóstico sale de la salida y el `grep` que pegaste. Tampoco sé en qué entornos se aplicaron estas migraciones.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10710,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1692,
+  "output_tokens_details": {
+   "thinking_tokens": 655
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10710,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1692,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10710,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10710
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

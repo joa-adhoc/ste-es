@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod y ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si prod no tiene el flag, ¿qué hay que hacer para que la columna se dropee ahí? Confirmalo en la config del deploy."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod y ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Revisalo en la configuración del deploy o en la doc de infra y confirmame si la columna se va a dropear en prod, en qué paso, y si no, qué tengo que hacer para que se aplique."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod y ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Buscalo en la config del deploy o en la documentación y decime si mi columna se va a dropear ahí. Si no se dropea, ¿cómo y cuándo hay que aplicarla?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué rama despliega a prod y ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si prod no tiene el flag, ¿qué hay que hacer para que la columna se dropee ahí? Confirmalo en la config del deploy.",
+ "followup_answer": "**No pude confirmar ninguna de las dos cosas: no tengo la configuración del deploy.** La carpeta de trabajo (`/tmp/ste-es-eval-azl_iajt`) está vacía, así que no hay código ni archivos de deploy. El fragmento que pegaste no dice qué rama despliega a prod ni si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. No verifiqué ninguna de las dos, y tampoco consulté Railway.\n\nPara cerrarlo, mirá en Railway, en el servicio y environment de prod:\n1. **Rama:** qué rama tiene configurada para desplegar, y con qué valor llega `RAILWAY_GIT_BRANCH` en el último deploy.\n2. **Flag:** si entre sus variables está `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Miralo en prod, no lo deduzcas de staging.\n3. **Runner:** que ese deploy ejecute `python -m tuqui_core.db.migrate`.\n\n**Si falta el flag**, según el fragmento el runner saltea la migración y no la registra en `_migrations`, así que queda pendiente. Para que se aplique, un deploy de prod tiene que correr el runner cumpliendo las dos condiciones:\n- **La rama es `main` o `staging`:** habría que agregar el flag en prod, con el OK de quien administre ese environment, y volver a desplegar. Según el fragmento, el runner corre al deployar, así que no alcanza con asumir que guardar la variable la aplica. Antes, revisá si hay otras migraciones destructivas pendientes, porque el flag también las habilita. Confirmá además si el flag debe quedar fijo o no, y si algún otro environment hereda las variables de prod.\n- **La rama es otra:** el flag solo no alcanza. Habría que revisar con el equipo cómo se despliega prod o cambiar la regla del runner por PR. No pisaría `RAILWAY_GIT_BRANCH` a mano para pasar el control, porque es lo que protege las bases compartidas.\n\nNo saques la marca `-- destructive: true` para forzar que se aplique: el preview del PR podría dropear la columna en la base de staging.\n\n**Corrijo mi respuesta anterior:** relacioné mal `0180_chat_ga` con la falta de la marca. El fragmento lo explica por otra causa: el preview heredó el flag de staging y así aplicó la migración contra la base compartida. Por eso ahora el runner también controla la rama.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12365,
+  "cache_read_input_tokens": 47069,
+  "output_tokens": 1577,
+  "output_tokens_details": {
+   "thinking_tokens": 508
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12365,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1348,
+    "cache_read_input_tokens": 29559,
+    "cache_creation_input_tokens": 316,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 316
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "7b9b5bc9a2"
+ }
+}

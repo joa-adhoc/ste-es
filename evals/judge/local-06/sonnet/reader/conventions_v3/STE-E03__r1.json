@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el comando exacto para la dependencia de Python en cada opción? Necesito saber cómo instalar solo el paquete nuevo en el venv compartido sin repuntar el editable install, o cómo crear un venv propio en el worktree después de borrar el link. ¿`make install` sirve en ese caso?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el comando exacto para sumar la dependencia de Python sin romper nada? Si conviene un venv propio en el worktree, pasame los pasos para crearlo después de borrar el link y confirmame si `make install` sirve para eso. Si conviene instalar solo el paquete en el venv del clone principal, pasame ese comando."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cuál es el comando exacto para la dependencia de Python en el worktree? Prefiero un venv propio para no afectar a los otros worktrees: después de `rm tuqui_core/.venv`, ¿`make install` crea el venv ahí e instala la dependencia nueva, o hay que correr otros comandos? Revisalo en el Makefile y pasame los pasos. Si conviene instalarla en el venv compartido, pasame el comando para instalar solo ese paquete."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cuál es el comando exacto para la dependencia de Python en cada opción? Necesito saber cómo instalar solo el paquete nuevo en el venv compartido sin repuntar el editable install, o cómo crear un venv propio en el worktree después de borrar el link. ¿`make install` sirve en ese caso?",
+ "followup_answer": "El material no trae ninguno de esos dos comandos, y tampoco puedo sacarlos del repo: busqué en mi directorio de trabajo y está vacío. Lo que sigue es una **propuesta sin verificar**.\n\n**Antes que nada:** en el worktree, revisá el target y cómo se declaran las dependencias.\n```bash\nmake -n install                       # muestra los comandos sin ejecutarlos\ngrep -n -A20 '^install:' Makefile     # muestra el target y su chequeo del link\nls tuqui_core/pyproject.toml tuqui_core/requirements*.txt tuqui_core/uv.lock 2>/dev/null\n```\n`make -n` puede ejecutar igual las líneas que invocan `$(MAKE)` o empiezan con `+`. Por eso, en el worktree linkeado, leé también el target con `grep`.\n\n**Opción A: sumar solo el paquete al venv compartido**\n```bash\n# <clone-principal> y <paquete><versión> son para completar\n<clone-principal>/tuqui_core/.venv/bin/python -m pip install '<paquete><versión>'\n```\n- **Editable install:** este comando instala el paquete que nombrás y sus dependencias. Como no le pasás `-e` ni la ruta del proyecto, no debería repuntar el editable install.\n- **Efecto en otras ramas:** pip puede actualizar o bajar paquetes que ya usan. Para ver antes qué instalaría, corré el mismo comando con `--dry-run` (requiere un pip reciente).\n- **Si no hay `pip`:** puede pasar si el venv se creó con `uv`. El equivalente es `uv pip install --python <clone-principal>/tuqui_core/.venv/bin/python '<paquete><versión>'`.\n- **Declaración:** esto no agrega la dependencia al proyecto. Sumala también en el archivo de dependencias de tu branch, y en el lockfile si hay.\n\n**Opción B: venv propio**\n```bash\n# desde la raíz del worktree\ntest -L tuqui_core/.venv && rm tuqui_core/.venv   # borra solo si es un link\nmake install\n```\n**No puedo confirmar que `make install` sirva acá.** El material dice que el target se niega en un worktree linkeado y sugiere armar un venv propio. No dice qué chequea para negarse, ni si crea el venv cuando no existe.\n\nAntes de correrlo, confirmá en el target estas tres cosas:\n- **Chequeo:** si mira solo el link del `.venv` o también otros, como `node_modules`. En el segundo caso, podría seguir negándose.\n- **Venv:** si lo crea en `tuqui_core/.venv` o espera que ya exista.\n- **Otros pasos:** si además instala dependencias de frontend. Con `web/node_modules` todavía linkeado, eso podría afectar al clone principal.\n\nNo te doy una secuencia manual con `python -m venv` porque no sé qué versión de Python, qué instalador ni qué extras de desarrollo usa el proyecto. Si me pegás el target `install` (y `worktree-setup`), te confirmo los comandos.\n\nDespués de la opción B, no vuelvas a correr `make worktree-setup` sin revisar qué hace con un `.venv` que ya existe: el material no lo dice.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12297,
+  "cache_read_input_tokens": 46804,
+  "output_tokens": 1580,
+  "output_tokens_details": {
+   "thinking_tokens": 219
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12297,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1134,
+    "cache_read_input_tokens": 29294,
+    "cache_creation_input_tokens": 513,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 513
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f34a12f5db"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Fueron dos errores distintos: corriste `pytest` desde la raíz y pasaste la expresión de `-k` sin comillas. La forma correcta es usar `make` desde la raíz del repo:\n\n```bash\nmake test                          # unit, el mismo paso de pytest que corre CI\nmake test ARGS='-k \"a or b\"'       # filtrar con una expresión\nmake test ARGS=\"tests/test_rls.py -k policy\"   # un subconjunto\n```\n\nLos paths que pongas en `ARGS` son relativos a `tuqui_core/`.\n\n**El error de `or`:** `ARGS` se copia tal cual en la receta. En `make test ARGS=-k a or b` no hay comillas, así que el shell corta el comando en los espacios y pytest termina leyendo `or` como un path: `ERROR: file or directory not found: or`. Tenés que usar comillas por fuera, para el shell, y por dentro, para la expresión: `ARGS='-k \"a or b\"'`.\n\n**El error raro de `pytest`:** no me pasaste el mensaje. Si lo corriste sin argumentos, lo esperable es que el `conftest.py` de la raíz lo haya cortado a propósito. La configuración de los tests está en `tuqui_core/pyproject.toml`, y desde la raíz pytest no la lee. En ese caso pierde el modo asyncio, también junta los tests de `evals/tests` y da miles de fallas que no vienen del código (se midieron 2302 fallidos y 2111 que pasaron).\n\nEse corte no cubre todos los casos. `pytest tuqui_core/tests/test_x.py` desde la raíz corre igual, pero se saltea el lock que tiene la ejecución por `make`. Si necesitás `pytest` directo, hacé `cd tuqui_core`. Si algo lee variables de entorno directamente (`os.environ`), cargá también `.env.test`, como hace el Makefile.\n\nMe baso en el texto que pegaste; no corrí los comandos ni revisé el repo. Si el error de `pytest` no era ese corte, pasame el mensaje completo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10887,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 718,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10887,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 718,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10887,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10887
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

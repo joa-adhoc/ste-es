@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La migración se saltea en el preview del PR y se aplica recién en un deploy de `staging` o `main` que tenga el flag. Para eso, el archivo tiene que llevar esta línea cerca del inicio:\n\n```sql\n-- destructive: true\n```\n\nHace falta si el código anterior no puede correr sin esa columna. El marker existe porque los PR environments comparten la base con staging, que sigue corriendo el código viejo.\n\nEl runner (`python -m tuqui_core.db.migrate` al deployar) aplica una migración destructiva solo si se cumplen las dos condiciones:\n- `MIGRATIONS_ALLOW_DESTRUCTIVE=1`\n- `RAILWAY_GIT_BRANCH` es `staging` o `main`\n\nSi no se cumplen, la saltea **sin registrarla** en `_migrations`, así que un deploy posterior la puede aplicar.\n\n| Etapa o lugar | ¿Se aplica? |\n|---|---|\n| PR env de Railway | No. Aunque hereda el flag de staging, la rama no es `staging` ni `main`. |\n| Deploy con marcadores de Railway pero sin rama estampada | No. El control falla cerrado. |\n| Deploy de `staging` o `main` después del merge | Sí, si ese environment tiene el flag. |\n| CI (postgres de servicio de cada workflow), con `scripts/apply_migrations.py` | Sí. El workflow activa `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. |\n| Container del stack e2e | Sí. Es una base efímera que activa el opt-in. |\n| Base de pytest | Sí, con `allow_destructive=True` desde el conftest. |\n| `make migrate` (base de desarrollo local) | No. No activa el opt-in porque los worktrees comparten esa base. |\n\n**Camino a prod:** el fragmento permite aplicarla en deploys de `main` o `staging` con el flag. No dice qué rama despliega prod, en qué orden se llega ni si prod tiene el flag configurado. Antes de darlo por hecho, revisá la configuración de ese environment. Si falta el flag, el runner saltea la migración.\n\n**Sin el marker**, el runner la trata como las aditivas. El preview del PR la aplicaría contra la base de staging y rompería el código viejo para todos. Ya pasó algo parecido con `0180_chat_ga`: un preview la aplicó contra la base compartida porque había heredado el flag. Por eso ahora también se controla la rama.\n\nSobre las migraciones aditivas, el fragmento remite a `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\", por lo que pasa al mergear o renombrar archivos. Esa sección no está en lo que me pasaste. Respondí solo con tu fragmento; no revisé el código del runner.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10915,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 989,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10915,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 989,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10915,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10915
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

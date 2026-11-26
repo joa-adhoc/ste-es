@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo consigo desde la pantalla los identificadores externos del diario, del método de pago (o del método de cheques) y del impuesto de retención? Solo explicaste cómo sacar el del apunte. Decime en qué menú entro en cada caso y qué exporto, o si en esas columnas puedo poner directamente el nombre tal como lo veo en Odoo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me podés pasar un caso completo con los nombres como los veo en pantalla? Para cada columna, decime a qué campo de la pantalla de recibo, cheques o retenciones corresponde y cuál es obligatoria. Explicame también paso a paso de dónde saco cada ID_EXT (diario, método de pago, impuesto de retención y apunte de la factura) y cómo se calcula el importe con las retenciones. Por ejemplo, para una factura de 10.000, ¿qué pongo en importe, base y retención?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás un caso completo con datos realistas de un recibo, por ejemplo una factura concreta con sus retenciones y cheques? Quiero ver de dónde saco cada identificador externo (diario, método de pago, impuesto de retención y apunte de la factura) desde la pantalla, y cómo se calcula el importe: si va el neto cobrado o el total de la deuda, y cómo cierra la suma de cheques más retenciones contra la factura."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "ejemplo",
+ "followup": "¿Me podés pasar un caso completo con los nombres como los veo en pantalla? Para cada columna, decime a qué campo de la pantalla de recibo, cheques o retenciones corresponde y cuál es obligatoria. Explicame también paso a paso de dónde saco cada ID_EXT (diario, método de pago, impuesto de retención y apunte de la factura) y cómo se calcula el importe con las retenciones. Por ejemplo, para una factura de 10.000, ¿qué pongo en importe, base y retención?",
+ "followup_answer": "**Para una factura de $10.000 con una retención de $200, va importe 9.800 y retención 200.** La base es 10.000 solo si ese impuesto se calcula sobre los 10.000. **Mis ejemplos anteriores estaban mal, no los importes:** tenían $9.800 más dos retenciones de $200, o sea $10.200 para una factura de $10.000. El de cheques tenía el mismo error. Abajo va una sola retención.\n\nNo pude revisar las pantallas: la búsqueda del código en disco y la lectura en GitHub pedían aprobación y no corrieron. **Los nombres en pantalla, las rutas de menú y los nombres de las columnas de cheques y retenciones son de memoria.** Confirmalos en la base del cliente.\n\n## Cálculo\n`Retención = base × alícuota` (caso simple)\n`Importe = lo que se cancela − suma de retenciones`\n\nQue el importe va neto de retenciones también es de memoria; revisá los totales en el borrador. El 2% es inventado:\n\n| Caso, con factura total de $10.000 | Base | Retención | Importe |\n|---|---|---|---|\n| El impuesto se calcula sobre el total | 10000.00 | 200.00 | 9800.00 |\n| Se calcula sobre el neto, con IVA 21% incluido en los 10.000 | 8264.46 | 165.29 | 9834.71 |\n\nLa base y la alícuota reales dependen del impuesto; puede haber mínimos o acumulados. En un recibo, copialas del certificado del cliente. En un pago a proveedor, comparalas con el cálculo automático.\n\n## Caso completo: recibo con dos cheques\nFactura de $10.000, retención de $200 y cheques de $5.000 y $4.800.\n\n`recibos_cheques.csv`:\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheques_001,customer,inbound,NOMBRE DEL CLIENTE,2026-11-26,ID_EXT_DIARIO,ID_EXT_METODO,ID_EXT_APUNTE,00000001,2026-12-15,NOMBRE DEL BANCO,CUIT_EMISOR,5000.00,ID_EXT_IMPUESTO,NRO_CERTIFICADO,10000.00,200.00\n,,,,,,,,00000002,2027-01-15,NOMBRE DEL BANCO,CUIT_EMISOR,4800.00,,,,\n```\nLa segunda fila es el segundo cheque del mismo recibo. Reemplazá los textos en mayúsculas y los datos de ejemplo.\n\n## Columnas\n\"Sí\" en cabecera sale del material. \"Cargar\" significa que el caso lo necesita, aunque el material no confirma que el sistema lo exija.\n\n| Columna | En pantalla | ¿Obligatoria? |\n|---|---|---|\n| `id` | No se ve; identifica la fila importada | Usala para este archivo |\n| `partner_type` | Cliente o proveedor; suele venir dado por el menú | Sí |\n| `payment_type` | Tipo de pago: Recibir / Enviar | Sí |\n| `partner_id` | Cliente / Proveedor | Sí |\n| `date` | Fecha | Sí |\n| `journal_id/id` | Diario | Sí |\n| `payment_method_line_id/id` | Método de pago | Sí |\n| `to_pay_move_line_ids/id` | Deudas a pagar | Para elegir la factura |\n| `l10n_latam_new_check_ids/name` | Cheques › Número | Cargar |\n| `.../payment_date` | Cheques › Fecha de pago | Cargar |\n| `.../bank_id` | Cheques › Banco | No; sale del cliente |\n| `.../issuer_vat` | Cheques › CUIT del emisor | No; sale del cliente |\n| `.../amount` | Cheques › Importe | Cargar, mayor a 0 |\n| `l10n_ar_withholding_line_ids/tax_id/id` | Retenciones › Impuesto | Sí, en cada retención |\n| `.../name` | Retenciones › Número | Recibo: cargá el certificado. Proveedor: vacío |\n| `.../base_amount` | Retenciones › Base | Cargar |\n| `.../amount` | Retenciones › Importe | Cargar |\n\nEn la tabla, `.../` repite el prefijo de cheques o retenciones; en el archivo va completo. El talonario se calcula solo.\n\n**Sin cheques:** quitá las cinco columnas de cheques y la segunda fila, agregá `amount` (el **Importe** de la cabecera) con `9800.00` y usá el diario y método que correspondan.\n\n**Pago a proveedor sin cheques:** además usá `supplier` y `outbound`, el proveedor, su apunte a pagar y el número de retención vacío. Las retenciones se calculan solas: verificá que las importadas no queden duplicadas ni reemplazadas por otro valor.\n\n## De dónde sale cada ID_EXT\nExportá desde la misma base donde vas a importar. En cada lista:\n1. Marcá el registro.\n2. Entrá en **Acciones (⚙) › Exportar**.\n3. Marcá la opción de exportación compatible con importación.\n4. Incluí **ID externo** y el nombre, exportá y copiá el valor de la columna `id` tal cual.\n\n| Valor | Dónde buscar |\n|---|---|\n| `ID_EXT_DIARIO` | **Contabilidad › Configuración › Diarios** |\n| `ID_EXT_METODO` | En la exportación del diario, desplegá **Métodos de pago entrantes** (recibos) o **salientes** (proveedores) y agregá su ID externo y nombre. Tiene que ser el de la línea de ese diario, no el del diario. No verifiqué que el modo compatible permita desplegarlo; si no, probá la exportación común y sumá el ID externo de la línea |\n| `ID_EXT_IMPUESTO` | **Contabilidad › Configuración › Impuestos**; elegí el impuesto de retención que corresponde a cobro o a pago |\n| `ID_EXT_APUNTE` | **Contabilidad › Contabilidad › Apuntes contables**; filtrá la factura y la cuenta a cobrar o a pagar |\n\nEn el apunte, copiá el ID de esa línea, no el de la factura. Si hay varias cuotas, hay varios apuntes: poné los que quieras saldar, separados por coma y todos entre comillas.\n\n## Antes de confirmar\nNada de esto se probó importando. Empezá con un recibo; queda en borrador. Verificá:\n- **Deudas:** que esté solo la factura elegida. El sistema puede recalcular y cargar toda la deuda abierta.\n- **Totales:** 9.800 en cheques + 200 de retención = 10.000.\n- **Líneas:** dos cheques y una retención, sin duplicados.\n\nNo reimportes el archivo sin probar qué pasa: las líneas de cheques y retenciones se podrían repetir.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 14674,
+  "cache_read_input_tokens": 80576,
+  "output_tokens": 4909,
+  "output_tokens_details": {
+   "thinking_tokens": 1821
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14674,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4088,
+    "cache_read_input_tokens": 31856,
+    "cache_creation_input_tokens": 328,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 328
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9694ce93c3",
+  "persona": "consultoria"
+ }
+}

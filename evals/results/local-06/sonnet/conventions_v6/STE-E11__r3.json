@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Con el marker puesto, el preview de tu PR no dropea la columna. Se aplica en las bases efímeras y en los deploys de `staging` o `main` que tengan el permiso. En el archivo, cerca del inicio, va esta línea:\n\n```sql\n-- destructive: true\n```\n\nVa si el drop deja al código anterior sin poder correr. En el caso que cubre el material, una columna que ese código todavía usa, corresponde ponerla.\n\nEl runner solo aplica una migración marcada en un deploy si se cumplen **las dos** condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y `RAILWAY_GIT_BRANCH` igual a `staging` o `main`.\n\n| Momento o lugar | ¿Se aplica? |\n|---|---|\n| CI del PR (postgres de servicio del workflow, stack e2e) y base de pytest | Sí, en las bases efímeras que activan el permiso (en pytest, con `allow_destructive=True`). Nadie más las comparte. |\n| PR environment de Railway | No. Hereda el permiso de staging, pero la rama no es `staging` ni `main`. |\n| `make migrate` en local | No, porque no activa el permiso. Esa base se comparte entre worktrees. |\n| Deploy de `staging` | Sí, si tiene el permiso. |\n| Deploy de `main` | Sí, si tiene el permiso. |\n\n- **Cuando la saltea:** el runner no la registra en `_migrations`, así que queda pendiente y un deploy habilitado posterior al merge la puede aplicar.\n- **Si te olvidás el marker:** se trata como una migración común. El preview la aplica sobre la base que comparte con staging, y eso rompe el servicio de staging, que sigue con el código anterior. Ya pasó que un preview aplicara `0180_chat_ga` contra esa base, porque heredaba el permiso; por eso ahora también se mira la rama.\n- **Si hay marcadores de Railway pero falta la rama:** el gate falla cerrado y no habilita la migración destructiva.\n- **Al probar el preview:** la columna va a seguir existiendo, así que el preview no prueba cómo anda tu código con el drop ya hecho en esa base.\n\nEl fragmento no confirma si el deploy de `main` tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en prod, así que revisalo antes de dar por hecho que el drop llega. Tampoco describe cómo se pasa de `staging` a `main`. No verifiqué nada contra el código ni contra Railway: la respuesta sale solo del texto que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11043,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1302,
+  "output_tokens_details": {
+   "thinking_tokens": 390
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11043,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1302,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11043,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11043
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**El traslado que Odoo intenta borrar es una recepción vacía que crea en ese mismo intento de confirmar. No es la 412.** `stock_ux` impide ese borrado, así que la confirmación falla. Sale de cruzar los datos con el código citado, pero no lo reproduje.\n\n**Qué pasa**\n1. P00231 se confirmó el 11/11 a las 12:26 y la 412 se validó a las 12:27 con las 2 unidades. A las 13:26 se canceló la orden y a las 13:27 volvió a borrador.\n2. Al reconfirmar, el estándar crea otra recepción. Como las 2 unidades ya figuran recibidas, quedaría sin movimientos. Esto es una inferencia: en el material no está el código que calcula los movimientos.\n3. El estándar intenta borrarla (`created_receipt.unlink()`).\n4. «Recepciones» tiene `block_picking_deletion` activado, y eso alcanza para que `_check_block_picking_deletion` lance el error, aunque el traslado esté en borrador.\n5. El error deshace toda la operación, así que el traslado nuevo no queda guardado. El número usado no se reutiliza: por eso se ve 415, después 416, y ninguno existe.\n\n**Cómo regularizar (probar primero en una copia de la base)**\n1. Anotar el stock del producto y el estado de la orden, la 412 y la factura.\n2. En un momento sin otra operación, desactivar «Bloquear eliminación de traslados» en el tipo de operación «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción enseguida, también si la confirmación falla. Mientras esté desactivada, otros usuarios pueden borrar traslados de ese tipo en borrador o cancelados.\n5. Comprobar:\n   - La orden queda como orden de compra, con 2 pedidas, 2 recibidas y 2 facturadas.\n   - La única recepción vinculada sigue siendo la 412, en Hecho.\n   - No hay movimientos nuevos y el stock no cambió.\n   - BILL/2026/11/0007 sigue contabilizada, sin cambios y vinculada a la línea.\n\nEspero que la recepción vacía se borre y que no se toquen el stock ni la factura, pero falta probarlo. En la copia, revisen también si la orden pide aprobación, si se envían avisos y si cambian la fecha de confirmación o los datos del proveedor en el producto. Si aparece otra recepción o cambia alguna cantidad, no lo apliquen en la base del cliente.\n\nPara regularizarla así, no hace falta cancelar ni devolver la 412, rehacer la factura ni cambiar estados por base de datos. Esto vale si la compra sigue vigente. **Si la cancelación de las 13:26 fue porque querían anularla, no hay que reconfirmar sin más:** habría que evaluar la devolución y la nota de crédito.\n\n**Corrección en `stock_ux`**\nEl control no distingue entre un borrado pedido por un usuario y la limpieza que hace Odoo de su recepción vacía. Propongo permitir solo esa limpieza, limitada a este flujo y a un traslado en borrador sin movimientos. El resto del bloqueo quedaría igual. La prueba sería reconfirmar, con el bloqueo activado, una orden ya recibida por completo. No revisé si alguna versión más nueva del módulo ya lo resuelve.\n\n**Preguntas abiertas**\n- ¿Para qué se canceló la orden? Define si corresponde reconfirmarla.\n- ¿Cómo se pudo cancelar con la recepción en Hecho y una factura asociada? No se leyó ese código, y el historial tampoco dice cuándo se contabilizó la factura. No lo daría por error ni por comportamiento esperado sin revisarlo. Es un tema aparte del error al confirmar.\n\n**Respuesta sugerida al cliente**\n> El traslado que menciona el error no es su recepción WH/IN/00098. Según nuestro análisis, es una recepción nueva que Odoo intenta crear y descartar al confirmar, y un bloqueo configurado en «Recepciones» no se lo permite. Por eso el número cambia en cada intento. Antes de regularizar la orden, ¿nos confirman si la compra sigue vigente y por qué se canceló el 11/11? Vamos a probar la solución en una copia de la base antes de aplicarla. Mientras tanto, les pedimos no devolver la recepción ni modificar la factura por este error.\n\nTrabajé solo con el material que pegaste: no entré a la base ni modifiqué nada. Tampoco pude cargar el contexto de la empresa, porque en esta sesión no están las herramientas de `tuqui-adhoc`. Para darlo de alta, se puede usar la skill `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11054,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3116,
+  "output_tokens_details": {
+   "thinking_tokens": 1441
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11054,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3116,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11054,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11054
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

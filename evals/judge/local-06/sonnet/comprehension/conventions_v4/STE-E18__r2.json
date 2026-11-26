@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja según `created_at` (FIFO: cuenta la antigüedad de creación, no el uso), en la misma transacción de base de datos. El tope es de 50 por scope: por usuario en el de usuario y por workspace en el de workspace. El material llama al borrado \"silencioso\", pero aclara que el modelo recibe un aviso en la respuesta de la tool. El texto no dice que se avise a la persona.",
+  "En cada turno entra al system prompt un encabezado corto por memoria, en dos secciones (workspace y personal), después del bloque `CURRENT USER` y antes del bloque del proyecto. Cada encabezado tiene el título más el resumen, si existe. Si no hay resumen, lleva el cuerpo hasta 250 caracteres y, si el cuerpo es más largo, termina en `... [read]`. En el ejemplo, cada línea incluye además el `id`. Si los encabezados superan el presupuesto, entran solo los N mejores. El cuerpo completo se pide cuando hace falta: si el modelo necesita el contenido de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.",
+  "Si el total de encabezados supera `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), al armar el prompt `rapidfuzz` los puntúa contra el mensaje actual y deja los N mejores. Según el material, este recorte solo decide qué entra al prompt y no menciona que borre nada. Una memoria puede seguir guardada y quedar afuera en un turno, y la selección puede cambiar de un turno a otro. El texto infiere que una memoria relevante escrita con otras palabras podría quedar afuera. No dice cómo se calcula N ni si los dos scopes compiten por el mismo presupuesto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "f6518cff66",
+  "control": "2fefeeffdf"
+ }
+}

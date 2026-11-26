@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cuando un owner conecta su Odoo, Tuqui valida las credenciales, las guarda en el workspace y, solo si corresponde, vincula al que conecta con un usuario de Odoo. Todo esto sale del fragmento de la spec `0093_workspace_owns_odoo_credentials` que pegaste. No lo contrasté con el código.\n\nLas credenciales (`odoo_login`, `odoo_uid`, `odoo_api_key`) son del **workspace**. El rol `owner` es administrativo de Tuqui: no necesita usuario en Odoo y puede haber varios owners.\n\n## Recorrido de `connect_odoo`\n\nEl pedido entra por `POST /workspaces/{slug}/odoo`, requiere auth de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autentica en Odoo.** `_authenticate_odoo(url, db, login, api_key)` usa `JsonRpcTransport.authenticate` y obtiene `admin_uid`.\n2. **Verifica permisos en Odoo.** `_verify_odoo_admin_group` consulta `res.users.has_group(uid, 'base.group_system')`. Si el usuario no es admin de sistema, lanza `ValueError`.\n3. **Detecta la versión.** `get_version(url)` devuelve, por ejemplo, `\"18\"`. Lanza `ValueError` si la detección falla o si la versión mayor es menor que `MIN_SUPPORTED`.\n4. **Decide el vínculo.** Lo hace `_resolve_link_mode` (detalle abajo).\n5. **Guarda la conexión.** Actualiza en `workspaces` `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace queda \"conectado\" y el rol `owner` no cambia. Si otro workspace ya tiene el mismo `database.uuid`, responde `409 Conflict`. Lo garantiza el índice único parcial `workspaces_odoo_database_uuid_unique` (migración 0134).\n6. **Limpia vínculos si cambió la URL.**\n7. **Vincula al que conecta.** Solo en modo `auto` o `manual`, guarda `odoo_user_id` en su fila de `workspace_members`. Después lanza `sync_user_api_key(ws_id, linked_member_id, linked_uid)` con `asyncio.create_task`.\n8. **Responde** con `WorkspaceConnectOdooResult`, que extiende `WorkspaceRead` y suma:\n   - `members_invalidated`: es 0 salvo que haya cambiado la URL.\n   - `warning`: mensaje legible que muestra la UI, o `None`.\n   - `link_status`: `auto`, `manual` o `none`.\n   - `linked_odoo_user_id`: un entero o `None`.\n\nComo la sincronización de la API key usa `create_task`, el flujo no la espera. Por eso, un `link_status` exitoso no confirma que la key se haya sincronizado.\n\n## A qué usuario de Odoo te vincula\n\n| Modo | Cuándo se usa | Resultado |\n|---|---|---|\n| `auto` | Por defecto si `current_user.email == odoo_login` | Te vincula a `admin_uid`, el usuario de las credenciales |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y te vincula a él |\n| `none` | Por defecto si el email y el login no coinciden | No asigna `odoo_user_id` |\n\nEl vínculo se aplica solo al miembro que está conectando (`current_user_id`). En `manual`, la única verificación que figura es que el usuario exista. El fragmento no dice si controla que esté activo, que coincida el email o que no esté vinculado a otro miembro.\n\n## Si cambia la URL\n\n- **Limpieza:** borra `odoo_user_id` y `odoo_api_key` de **todos** los miembros, incluido el owner. El motivo es que esas identidades pueden ser de otra instancia.\n- **Nuevo vínculo:** en `auto` o `manual`, vuelve a vincular solo al que conecta. En `none`, el flujo no vuelve a vincular a nadie. El fragmento no muestra que se restauren los vínculos de los demás.\n- **Credenciales del workspace:** quedan las nuevas, porque la limpieza es sobre los miembros.\n- **Respuesta:** `members_invalidated` informa la invalidación.\n\n**Si la URL no cambia**, esa limpieza no corre. Deduzco que en modo `none` conservarías un vínculo anterior, porque el pseudocódigo no lo borra. En ese caso, `link_status='none'` no significaría necesariamente que no tenés ningún vínculo. Conviene confirmarlo en el código.\n\n## Preguntas abiertas\n\nEl fragmento no responde esto:\n- **Cambio de base:** ¿`url_changed` contempla un cambio de `odoo_db` con la misma URL? Si solo compara la URL, los miembros conservarían IDs que pueden ser de otra base.\n- **Comparación de URLs:** ¿las normaliza (por ejemplo, la barra final)? ¿La primera conexión cuenta como cambio?\n- **Modo explícito:** ¿se puede forzar `none` si los emails coinciden, o `auto` si no coinciden?\n- **`database.uuid`:** no se ve dónde se obtiene ni dónde se guarda; no está entre las columnas del `UPDATE`.\n- **Fallas parciales:** ¿el guardado, la limpieza y el vínculo van en una sola transacción? ¿Qué pasa si falla `sync_user_api_key`?\n- **Errores:** ¿qué código HTTP devuelve cada `ValueError`?\n\nPara cerrarlas, hay que revisar `connect_odoo` y `_resolve_link_mode` en `workspaces.service`, y sus tests.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11196,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2888,
+  "output_tokens_details": {
+   "thinking_tokens": 797
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11196,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2888,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11196,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11196
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Primero filtra `workspace_write_models` y después decide el evaluator, donde gana la primera regla que aplica.** En tus casos, con admin en `ask`: el `allow` del miembro gana en un chat con identidad personal, pero en webhook se ignora. Esto sale del material que pegaste; no revisé el código.\n\n## Orden de decisión\n\n1. **`workspace_write_models`** (whitelist del admin por modelo): si no permite la operación sobre ese modelo, se corta ahí y no se llega al paso siguiente.\n2. **`evaluate_permission(ctx)`**, en este orden:\n   1. Si el workspace dice `deny`, da **DENY**. Ninguna preferencia personal lo levanta.\n   2. Si hay fila en `user_tool_approvals` para ese usuario, workspace y tool, gana esa acción. En `exposure`, `webhook` y `scheduled` este paso se saltea.\n   3. Si el workspace dice `allow` o `ask`, se aplica eso.\n   4. Si ninguna regla anterior decidió, se usa el default de la tool:\n      - Si el recurso está en `approval` (`\"ask\"` o `\"always\"`), da **ASK**.\n      - Si no, da **ALLOW**.\n      - En tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP. El material no detalla qué resultado da cada una.\n3. **`tool.execute()`**: corre si el resultado es ALLOW, o si fue ASK y se concedió. Queda auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin en `ask`, miembro en `allow`\n\n**Da ALLOW, sin preguntar**, si se cumple todo esto:\n- `workspace_write_models` permite la operación.\n- El canal tiene identidad personal.\n- La fila `allow` es de ese usuario, en ese workspace y para esa tool.\n\nLa fila personal (2.2) se evalúa antes que el `ask` del workspace (2.3). **El `ask` del admin no es un piso; solo `deny` lo es.** Con las reglas actuales, si el admin quiere que el miembro no pueda saltearlo, el material solo muestra `deny` como opción. Eso bloquea la tool en vez de preguntar.\n\n## Caso 2: agent que corre por webhook\n\n**Con el admin en `ask`, da ASK**, siempre que pase el paso 1. Aunque el turno corra con la identidad prestada de un miembro, su `allow` no cuenta. `ChannelProfile.personal_identity_applies` define esto, y en este canal la política es la grilla del workspace:\n\n| Grilla del workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `allow` | ALLOW |\n| `ask` | ASK |\n| sin fila | default de la tool (2.4) |\n\n## Lo que el material no aclara\n- **ASK en webhook:** no dice quién responde la pregunta, ni si el turno espera, falla o se rechaza. No asumas que termina bloqueado. Para confirmarlo, revisá cómo maneja el canal `webhook` un ASK, o probalo con una tool en `ask` y mirá qué pasa.\n- **`\"ask\"` y `\"always\"`:** como default, los dos dan ASK, y el material no explica en qué se diferencian. Si `\"always\"` tiene que imponerse sobre un `allow` guardado, ese orden no lo muestra. Se puede confirmar en `tuqui_core/chat/permissions.py`.\n\nEl diagrama resume el orden del paso 2, pero no menciona que los canales sin identidad personal saltean `user_tool_approvals`. Para tu caso de webhook, guiate por la sección «Evaluator».",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11048,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1760,
+  "output_tokens_details": {
+   "thinking_tokens": 471
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1760,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11048,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11048
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

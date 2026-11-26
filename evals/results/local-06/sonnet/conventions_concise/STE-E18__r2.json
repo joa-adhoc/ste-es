@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Una memoria se guarda en un scope, entra a cada turno como un encabezado corto y se borra cuando su scope se llena y es la más vieja. Me baso solo en el material que pegaste; no revisé el código.\n\n**1. Guardado.** La memoria queda en uno de dos scopes: usuario (personal) o workspace (compartida con el equipo). El material no explica cómo la guarda el modelo: qué acción usa, qué valida ni cómo elige el scope.\n\n**2. Entrada al prompt.** En cada turno, `_load_chat_setup` (`tuqui_core/chat/agent.py`) agrega las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las del workspace y después las del usuario. De cada una va solo un encabezado, con el título y:\n- el resumen, si tiene;\n- si no, el cuerpo hasta 250 caracteres. Si el cuerpo es más largo, se marca con `[read]`.\n\n**3. Lectura completa.** Si el modelo necesita todo el contenido de una memoria marcada con `[read]`, lo pide con `manage_memory(action='read', id=...)`. Según el material, una memoria con resumen no lleva esa marca, aunque su cuerpo sea largo.\n\n**4. Cuando hay muchas** actúan dos límites distintos:\n\n| | Tope por scope | Presupuesto del prompt |\n|---|---|---|\n| Se activa | al agregar la memoria 51 en un scope | cuando los encabezados superan `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens) |\n| Qué hace | borra la más vieja según `created_at`, en la misma transacción | rapidfuzz puntúa los encabezados contra el mensaje actual y deja los mejores N |\n| Efecto | la memoria se borra | el resto queda afuera del prompt de ese turno; el filtro no implica borrarlas |\n\n- **Borrado:** es FIFO, no depende del uso. Se ordena por fecha de creación, así que una memoria vieja puede borrarse aunque sea muy útil. El material lo llama \"silent eviction\", pero aclara que el modelo se entera por un mensaje en la respuesta de la tool. No dice si la persona recibe algún aviso.\n- **Selección por turno:** como depende del mensaje actual, las memorias visibles pueden cambiar de un turno a otro. rapidfuzz compara similitud de texto, no significado, así que puede dejar afuera una memoria relevante escrita con otras palabras.\n\n**Una salvedad sobre los números:** el material estima unos 3K tokens para 50 memorias de tamaño máximo. Pero el tope es por scope, y en un chat entran el del usuario y el del workspace, o sea hasta 100 memorias. Solo con 250 caracteres de cuerpo, 50 ya suman 12.500, más que el presupuesto de 12K, sin contar títulos ni ids. Por eso el filtro puede activarse incluso con un solo scope lleno, si las memorias son largas. Los 3K tokens se entienden mejor como el presupuesto aproximado que como el máximo que resulta del tope de 50.\n\nEl material tampoco dice si el modelo puede encontrar o leer una memoria que el filtro dejó afuera, ni si editar una memoria cambia su `created_at`. Para confirmarlo, y también cómo se guardan, habría que mirar el código de `manage_memory` y del filtro.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10639,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1542,
+  "output_tokens_details": {
+   "thinking_tokens": 348
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10639,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1542,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10639,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10639
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

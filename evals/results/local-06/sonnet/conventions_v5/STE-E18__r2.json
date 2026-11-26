@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El modelo guarda una memoria con una tool, desde ahí entra resumida al system prompt en cada turno, y el texto completo se lee solo si hace falta. Esto sale del material que pegaste; no lo contrasté con el código.\n\n1. **Guardado.** La memoria queda en un scope: de usuario (personal) o de workspace (compartida con el equipo). El material no detalla la llamada que la crea.\n\n2. **Entrada al prompt.** En cada turno, `_load_chat_setup` (en `tuqui_core/chat/agent.py`) inyecta las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto. Van primero las de workspace y después las de usuario. De cada una entra un encabezado con el título y:\n   - el resumen, si tiene;\n   - si no tiene, el cuerpo hasta 250 caracteres. Si el cuerpo es más largo, el encabezado termina en `[read]`.\n\n3. **Lectura completa.** Si el modelo necesita todo el contenido de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**Cuando hay muchas**, actúan dos límites distintos:\n\n- **Cuántas se guardan:** hasta 50 por usuario y 50 por workspace. Al agregar la 51, en la misma transacción se borra la más vieja por `created_at`. Es FIFO: no mira cuánto se usa, así que una memoria vieja pero útil se puede perder. El material la llama eliminación silenciosa (\"silent eviction\"), pero aclara que el modelo se entera por un mensaje en la respuesta de la tool. No dice que se le avise a la persona.\n- **Cuántas entran en un turno:** si los encabezados suman más de 12K caracteres (`_MEMORY_BUDGET_CHARS`, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual y entran solo los mejores. Las que quedan afuera no se borran, y la selección puede cambiar con cada mensaje. Como compara por similitud de texto, infiero que podría dejar afuera una memoria relevante escrita con otras palabras.\n\nEl material también dice que 50 memorias de tamaño máximo cuestan unos 3K tokens por turno. No aclara si eso es por scope o en total; con los dos scopes llenos puede haber hasta 100. Tampoco dice cuántas son las \"top-N\" ni si los dos scopes comparten los 12K.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10758,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 851,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10758,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 851,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10758,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10758
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

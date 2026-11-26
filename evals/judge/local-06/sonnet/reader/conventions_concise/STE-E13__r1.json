@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y el envío de los avisos previos) y confirmarme dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos de 7 días y del día 0. Segundo, qué cuenta exactamente como exceso al vencer (cuáles son los límites de Free) y en qué casos el workspace queda en `restricted`, con MCP y chat bloqueados, o sigue funcionando en Free."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código (`_run_trial_expiry` y el envío de avisos previos en `scheduler/billing_cron.py`) y confirmarme dos cosas? Primero, si con una suscripción viva igual salen los avisos de 7 días y del día 0. Segundo, qué cuenta exactamente como exceso al pasar a Free (cuáles son los límites), cuándo el workspace queda en `restricted` y qué sigue funcionando en ese estado además de MCP y chat bloqueados."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `_run_trial_expiry` y el código de los avisos en `scheduler/billing_cron.py` y confirmarme dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos de 7 días y del día 0. Segundo, qué cuenta exactamente como exceso al pasar a Free (con los límites concretos) y cuándo ese exceso deja el workspace en `restricted`, es decir, si pasa el mismo día del vencimiento y qué se bloquea."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Podés revisar el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y el envío de los avisos previos) y confirmarme dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos de 7 días y del día 0. Segundo, qué cuenta exactamente como exceso al vencer (cuáles son los límites de Free) y en qué casos el workspace queda en `restricted`, con MCP y chat bloqueados, o sigue funcionando en Free.",
+ "followup_answer": "**No pude confirmar ninguna de las dos cosas en el código, porque no lo revisé.** El directorio de trabajo (`/tmp/ste-es-eval-9zxs3bd9`) está vacío. Antes intenté buscar los archivos también en el home, pero ese comando pedía aprobación y no se ejecutó. No sé si el repo está en otra parte de la máquina.\n\n**1. Avisos de 7 días y del día 0 con suscripción viva: sin confirmar.**\n- El material dice que los hitos por defecto son `{7, 0}`. El \"no se manda nada\" aparece solo bajo \"Qué pasa al vencer\".\n- No dice si el cron excluye a los workspaces con suscripción antes de los avisos previos. Tampoco aclara si con suscripción se omite el aviso del día 0, que sale el día del vencimiento con el workspace todavía funcionando. No des por hecho que reciben esos avisos ni que no.\n- **Para cerrarlo:** en `_run_trial_expiry` y en lo que llame, hay que ver si la consulta o el envío de avisos filtra por suscripción viva, y si ese filtro vale para los dos hitos. Conviene ver si `tests/test_trial_notices.py` cubre ese caso.\n\n**2. Exceso y límites de Free: el material no alcanza.**\n- **Lo que dice:** sin suscripción viva, el workspace pasa a `plan='free'` y se evalúa el exceso. Existe el motivo `trial_expired_with_excess`, y `restricted` bloquea MCP y chat.\n- **Otras causas de `restricted`:** la tabla incluye el vencimiento de la prueba, el cron de período de gracia, el downgrade con exceso y los límites de Free. Entre los motivos figuran además `free_member_limit_exceeded` y `monthly_recheck`.\n- **Lo que no dice:** cuáles son los límites ni sus valores, cómo se calcula el exceso, ni si hay otra condición para pasar a `restricted`. El nombre `free_member_limit_exceeded` sugiere un límite de miembros, pero es una inferencia y no prueba que sea el único ni que se aplique al vencer la prueba.\n- **Sin exceso:** que siga funcionando en Free es lo esperable, pero el material no lo dice expresamente. Tampoco detalla qué funciones se pierden al pasar a Free.\n- **Para cerrarlo:** hay que seguir la evaluación de exceso desde `_run_trial_expiry` hasta donde se definen los límites y se escriben `account_status` y `account_status_reason`.\n\nSi me pasás la ruta del repo, o pegás `_run_trial_expiry` junto con la función que evalúa el exceso y la definición de los límites, lo reviso. Si esas funciones llaman a otras para filtrar o enviar, puede que también las necesite.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12831,
+  "cache_read_input_tokens": 77364,
+  "output_tokens": 1561,
+  "output_tokens_details": {
+   "thinking_tokens": 319
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12831,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1232,
+    "cache_read_input_tokens": 30069,
+    "cache_creation_input_tokens": 281,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 281
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3e032ddf94"
+ }
+}

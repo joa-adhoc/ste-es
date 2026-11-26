@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**El ticket 140512 parece ser un error pasajero de la actualización del 04/11: la base ya tenía las reglas nuevas, pero el pod A seguía respondiendo con el código anterior.** Que el pod A tuviera ese código lo deduzco de los logs; no vi qué imagen corría. Me basé solo en tu material, porque en esta sesión no tengo `tuqui-adhoc` para consultar el ticket, la base o los logs (el alta se puede ver con `adhoc-way-guide`).\n\n| UTC, 04/11 | Qué pasó |\n|---|---|\n| 15:06:29–15:06:58 | Arranca el pod A. |\n| 15:07:39 y 15:08:01 | Se actualizan los dos módulos. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–15:08:39 | El pod A recarga el registro y el uid 31 recibe tres errores. |\n| 15:08:40 | En el pod A, el cron de cotizaciones falla porque tampoco encuentra un método. |\n| 15:08:53–15:08:58 | Arranca el pod B con la imagen nueva y se apaga el A. |\n| 15:09–15:30 | El pod B no registra errores. |\n\n- **Causa probable:** recargar el registro toma los cambios de la base, pero no vuelve a importar el código Python que el proceso ya tiene en memoria. Así, las reglas llamaban a `_get_branch_stock_root_ids` y el pod A no lo tenía. El cron muestra el mismo patrón con otro método.\n- **Código actual:** el método existe y `res_users` está importado. No veo motivo para corregir el módulo ni las reglas. La introspección es de hoy y no prueba qué código tenía el pod A. Para confirmarlo, hay que ver la imagen de ese pod y comprobar en el historial del repo si el método no estaba en esa versión.\n- **Hora que informa el cliente:** a las 15:09:12 el pod A ya se había apagado y el B no registra errores. Puede ser la hora en que vio o copió el mensaje, pero no está verificado. Si fuera hora argentina, serían las 18:09 UTC, fuera del período de logs que tenemos.\n- **Alcance:** que no haya errores hasta las 15:30 no prueba que el usuario haya vuelto a cargar stock, ni que no haya fallado más tarde. Para cerrarlo, falta su confirmación o una prueba de esa operación con el usuario 31.\n\n**Qué haría**\n1. **Cliente:** pedirle que confirme si ya puede cargar stock y si la carga de ese momento quedó bien. Si el error sigue, revisar los logs de esa nueva hora.\n2. **Despliegue:** avisar a quien lo mantiene que, según estas horas, la base se actualizó mientras el pod A seguía activo. Puede volver a pasar en otra actualización si se repite esa secuencia. No sé qué proceso actualizó los módulos ni si esa superposición es esperada.\n3. **Ticket:** si hay que cargar un módulo, el relacionado con el método y las reglas del material es `stock_account_multicompany_ux`. Eso no significa que la falla esté en su código.\n\n**Borrador para el cliente** (no lo envié ni modifiqué el ticket):\n\n> Hola. Revisamos el error que te apareció al cargar stock el 04/11. Por lo que vemos, coincidió con una actualización del sistema, mientras una parte todavía funcionaba con la versión anterior. En los registros que revisamos, de 12:09 a 12:30 (hora argentina) no aparecen errores. ¿Nos confirmás si ya podés cargar stock y si la carga que estabas haciendo quedó bien? Si te vuelve a aparecer el error, pasanos la fecha, la hora y qué estabas haciendo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11057,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2780,
+  "output_tokens_details": {
+   "thinking_tokens": 1446
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11057,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2780,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11057,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11057
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

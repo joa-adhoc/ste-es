@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés verificar en el repo y en Railway si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, de qué rama se despliega y cómo pasa el cambio de `staging` a `main`? También necesito saber si la versión anterior sigue atendiendo mientras corre la migración. Si es así, ¿tengo que separar el cambio y mergear primero el código que deja de usar la columna, y el drop en un PR posterior?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés verificar en Railway y en el repo si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, de qué rama se despliega y cómo pasa el cambio de `staging` a `main`? Si prod no tiene el flag y la migración se saltea, ¿qué hay que hacer para que se aplique? Y durante el deploy, ¿la versión anterior sigue atendiendo mientras corre el drop? Si sigue, ¿hay que sacar primero el uso de la columna en un PR y dropearla en otro?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el repo y en Railway cómo llega esto a prod? Necesito saber si prod se despliega desde `main`, cómo pasa el cambio de `staging` a `main`, si el environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y si la versión anterior sigue atendiendo mientras corre la migración. Si sigue atendiendo, ¿tengo que sacar primero el uso de la columna en un PR y dropearla en otro?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés verificar en el repo y en Railway si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, de qué rama se despliega y cómo pasa el cambio de `staging` a `main`? También necesito saber si la versión anterior sigue atendiendo mientras corre la migración. Si es así, ¿tengo que separar el cambio y mergear primero el código que deja de usar la columna, y el drop en un PR posterior?",
+ "followup_answer": "**No pude verificar ninguno de los cuatro puntos.** El directorio de trabajo está vacío. El comando para buscar un clon y las herramientas pedía aprobación y no se ejecutó, y lo mismo pasó con `command -v gh railway`. No llegué a consultar el repo ni Railway, así que no sé si desde acá hay acceso. Tampoco veo herramientas de `tuqui-adhoc` en esta sesión.\n\n**Sobre separar el cambio:** si la versión anterior sigue atendiendo y usa la columna, sí, separalo. Mientras no lo confirmes, yo lo separaría igual: cuesta un PR más y evita depender de ese dato.\n\n1. **PR 1:** el código deja de usar la columna, tanto en lecturas como en escrituras. Revisá también los `SELECT *` que dependan de ella, los modelos del ORM, los jobs y los scripts. Si es `NOT NULL` sin valor por defecto, los `INSERT` que la omitan van a fallar. En ese caso, este PR necesita una migración que quite la restricción o defina ese valor. Confirmá que sea compatible con el código anterior: su preview la puede aplicar en la base de staging.\n2. **Esperá el deploy:** el PR 1 tiene que estar corriendo en staging **y en prod**, sin instancias de la versión anterior.\n3. **PR 2:** va el drop, con `-- destructive: true`. Dejá la marca aunque el código desplegado ya no use la columna. Sin ella, el preview la borra de la base de staging antes del merge, y otros previews todavía pueden usarla.\n\n**Cuidado con el pase a prod:** si los dos PRs llegan a `main` en el mismo deploy, separarlos no protege a prod. Además, después del drop, volver a una versión que use la columna va a fallar. Revertir el código no recupera la columna ni sus datos.\n\n**Para cerrar los cuatro puntos**, corré esto en el clon del repo:\n\n```bash\ngit grep -nE 'MIGRATIONS_ALLOW_DESTRUCTIVE|RAILWAY_GIT_BRANCH|db[./]migrate|preDeployCommand|overlapSeconds'\ngit log --oneline --merges -20 origin/main\ngh pr list --base main --state merged --limit 10 --json url,title,headRefName\n```\n\n| Dato | Dónde confirmarlo |\n|---|---|\n| Flag en prod | Variables del servicio en el environment de prod, en Railway. Mirá también las compartidas que use. Alcanza con esa variable; no pegues el resto, porque puede haber secretos. |\n| Rama de prod | La rama de origen en la configuración de ese servicio. Contrastala con el último deploy. |\n| Pase de `staging` a `main` | Los workflows y el historial de PRs hacia `main`. El historial muestra la práctica reciente, no necesariamente la regla. |\n| Convivencia de versiones | Desde dónde se llama a `migrate` (pre-deploy, arranque u otro paso), la configuración del servicio y los logs de un deploy. |\n\nSegún mi conocimiento general de Railway, sin verificar acá, la versión anterior sigue atendiendo mientras corre un comando de pre-deploy. No sé si este repo usa ese paso. Que la migración corra al arrancar tampoco asegura que la versión anterior ya esté apagada.\n\nSi me pasás la ruta del clon y aprobás las consultas de lectura, reviso la parte del repo. Para Railway necesito además un acceso autenticado, o que me pases la rama, el valor de esa variable y los logs sin secretos.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 13512,
+  "cache_read_input_tokens": 108483,
+  "output_tokens": 3311,
+  "output_tokens_details": {
+   "thinking_tokens": 1448
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13512,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2420,
+    "cache_read_input_tokens": 30747,
+    "cache_creation_input_tokens": 275,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 275
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "45fff1b57d"
+ }
+}

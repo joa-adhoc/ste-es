@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de `main` en prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo y cuándo pasa el cambio de `staging` a `main`? Necesito saber si el drop llega solo a prod o si tengo que hacer algo más."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de `main` en prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? ¿Y cómo pasa el cambio de `staging` a `main`? Necesito saber en qué paso se dropea la columna en prod y, si falta el permiso, qué tengo que hacer para que no quede pendiente."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El deploy de `main` en prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo se pasa de `staging` a `main`? Necesito saber si el drop llega solo a prod al promover o si tengo que hacer algo más."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El deploy de `main` en prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo y cuándo pasa el cambio de `staging` a `main`? Necesito saber si el drop llega solo a prod o si tengo que hacer algo más.",
+ "followup_answer": "No lo sé: el fragmento no dice ninguna de las dos cosas, así que **no des por hecho que el drop llega solo a prod**. El directorio de trabajo está vacío, así que desde ahí no pude revisar el código ni la documentación, y tampoco consulté Railway.\n\nEl fragmento solo dice que una migración marcada se aplica si el deploy es de `staging` o `main` y además tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. No dice que `main` sea lo que corre en prod, que prod tenga esa variable ni cómo se pasa de `staging` a `main`.\n\nPara cerrarlo antes de mergear:\n\n1. **Cómo y cuándo llega a `main`:** desde la raíz del repo, leé `docs/infra-ci-cd.md` y corré esta búsqueda. Si no aparece la promoción, preguntale a quien maneja los releases.\n   ```bash\n   git grep -nE 'MIGRATIONS_ALLOW_DESTRUCTIVE|RAILWAY_GIT_BRANCH|tuqui_core\\.db\\.migrate|staging' -- docs .github Makefile 'railway*' scripts tuqui_core/db\n   ```\n2. **Configuración de prod:** en Railway, en el servicio de prod, confirmá qué rama despliega, que ejecute `python -m tuqui_core.db.migrate` al deployar y que tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Que la variable figure en el repo o en staging no prueba que esté en prod.\n3. **Después del deploy:** revisá que tu archivo figure en `_migrations` en la base de prod y que la columna ya no exista. No te quedes solo con que el deploy salió bien: si el runner saltea la migración, no la registra, y el fragmento no dice si el deploy falla o avisa.\n\n- **Si el paso 2 se cumple:** según el fragmento, el runner puede aplicar el drop en el deploy de `main`, sin otro cambio en el archivo. Cuándo ocurre ese deploy depende del paso 1.\n- **Si falta la variable:** el drop no se aplica en ese deploy. Antes de agregarla, hablalo con quien administra prod. Puede habilitar también otras migraciones marcadas que estén pendientes.\n\nTambién revisá que el código que sigue activo mientras corre la migración ya no use la columna. El fragmento explica ese riesgo para staging, pero no cómo se reemplaza el código en un deploy de prod.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12462,
+  "cache_read_input_tokens": 47113,
+  "output_tokens": 1654,
+  "output_tokens_details": {
+   "thinking_tokens": 545
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12462,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1300,
+    "cache_read_input_tokens": 29603,
+    "cache_creation_input_tokens": 369,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 369
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "09d889d637"
+ }
+}

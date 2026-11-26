@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Si no tiene una suscripción viva, con la configuración por defecto salen dos avisos: uno **7 días antes** y otro **el día que vence**, cuando todavía funciona. Al vencer, el workspace pasa a `plan='free'`.\n\n**Cuándo salen**\n- El proceso `_run_trial_expiry` (en `scheduler/billing_cron.py`) corre todos los días a las **12:00 UTC** (9 h en Argentina).\n- Los días de aviso salen de `platform_config.billing_trial_warning_days_list`. El valor por defecto es `{7, 0}`, pero la configuración real puede ser otra.\n- Si vence la semana que viene, el aviso de 7 días puede haber salido ya o estar por salir, según la fecha exacta. El material no dice qué pasa si ese día se saltea.\n- Si se extiende la prueba, vuelve a avisar para la nueva fecha.\n\nCada aviso indica qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar.\n\n**A quién le llegan**\n\nEsto vale para los avisos de prueba por vencer y vencida:\n- **Owners y admins:** siempre, aunque no tengan asiento.\n- **Resto del equipo:** todos los que tengan asiento (`billing_tier <> 'none'`).\n\nAdemás, quien pierde el asistente ve en el chat el aviso `PlanLapsedBanner`, arriba del cuadro de mensaje.\n\n**El día que vence, sin suscripción viva**\n1. El workspace pasa a `plan='free'`.\n2. El sistema evalúa si excede los límites.\n3. Sale el mail de prueba vencida.\n\nSi hay exceso, corresponde `account_status='restricted'` con motivo `trial_expired_with_excess`. En ese estado **se bloquean el MCP y el chat**.\n\nEl material no dice claramente cómo queda un workspace sin exceso. La tabla menciona el vencimiento de la prueba como causa de `restricted`, y el único motivo específico de la prueba que lista es el de exceso. También dice, al justificar los destinatarios, que el asistente deja de responder para todo el equipo. Por eso, no des por hecho que sin exceso todo sigue funcionando.\n\n**Con una suscripción viva, sí cambia**\n- Al vencer, el sistema solo limpia las marcas de prueba y **no manda nada**. El motivo es que el owner no ve ningún cambio.\n- El cobro se avisa con su propio recibo, que les llega a los owners.\n- El material no aclara si con suscripción también se omiten los avisos previos, el de 7 días y el del día del vencimiento. El \"no se manda nada\" aparece al describir qué pasa al vencer.\n\nMe basé solo en el material que pegaste; no revisé el código ni la configuración. Para cerrar las dos dudas, mirá `_run_trial_expiry`: cómo filtra las suscripciones, qué hace con un aviso salteado y qué `account_status` deja cuando no hay exceso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11179,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1713,
+  "output_tokens_details": {
+   "thinking_tokens": 674
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11179,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1713,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11179,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11179
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

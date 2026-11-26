@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `perm_read`, `_search`, `fetch`, `account.journal`, `store_id`, `account_journal_security` ni `AccessError`. Decime en criollo qué creés que está fallando y si en la 18 un usuario de Norte debería poder abrir «Ver asientos» de una factura de Sur. También decime qué tengo que probar o juntar yo desde la pantalla (por ejemplo, cómo saco el traceback) y qué parte, como el script de `odoo shell`, le tengo que pasar a alguien técnico."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin tecnicismos? No entiendo qué es el «_search de account.journal», «fetch», «perm_read», «store_id» ni «account_journal_security». En concreto: ¿creés que el error viene de la actualización a la 18 y no de los permisos del usuario? Y para confirmarlo, ¿hay algo que pueda probar desde la pantalla? No sé usar «odoo shell», así que si no se puede, decime a quién le paso ese script, qué le pido y dónde saco el traceback completo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin términos de código? No entiendo qué es «perm_read = False», el «_search de account.journal», «fetch», «store_id», «account_journal_security» ni «AccessError». En criollo: ¿por qué pensás que el usuario de Norte debería poder ver esa factura del punto 22, y qué habría cambiado de la 16 a la 18? Y para confirmarlo, ¿qué puedo probar yo desde la pantalla, o a quién le paso ese script y de dónde saco el traceback? El script no sé correrlo. Además, no sé si «Encargado Norte» y «FACTURA ELECTRONICA SUR» son los nombres reales que hay que usar."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `perm_read`, `_search`, `fetch`, `account.journal`, `store_id`, `account_journal_security` ni `AccessError`. Decime en criollo qué creés que está fallando y si en la 18 un usuario de Norte debería poder abrir «Ver asientos» de una factura de Sur. También decime qué tengo que probar o juntar yo desde la pantalla (por ejemplo, cómo saco el traceback) y qué parte, como el script de `odoo shell`, le tengo que pasar a alguien técnico.",
+ "followup_answer": "**Creo que Odoo 18 está bloqueando algo que, según el propio módulo de sucursales, tendría que dejar ver.** Es una hipótesis: no leí el código que lo confirmaría ni vi el error completo.\n\n## Qué creo que falla\n\nEl módulo de sucursales hace dos cosas:\n\n- **Permisos:** para asientos, pagos y diarios de otra sucursal, sus reglas limitan los cambios, no la lectura.\n- **Filtro:** además, oculta los diarios de otras sucursales cuando el sistema los busca.\n\nSospecho que en la 18 ese filtro no solo saca el diario de Sur de las búsquedas. También impediría leer sus datos al abrir algo que lo usa, como «Ver asientos». De memoria, creo que esto cambió respecto de la 16, pero no lo verifiqué. Tampoco sé si en la 16 el filtro era igual. Por eso no daría por hecho que alguien reforzó los permisos a propósito.\n\n## ¿Norte debería poder abrirlo?\n\n**Según lo que declara el módulo, sí: debería poder verlo, pero no publicarlo ni modificarlo.** Su ayuda dice que los usuarios de otras sucursales «solo pueden ver los registros». Falta descartar que otro permiso, por ejemplo el de compañía, lo esté impidiendo.\n\nSi el cliente quiere que Norte **no vea nada de Sur en ningún lado**, es otro criterio. Hay que decidirlo y revisar facturas, asientos, pagos y reportes.\n\nSobre el libro mayor, todavía no sé por qué un camino funciona y el otro no. Puede que mostrar los renglones no pida los mismos datos que «Ver asientos».\n\n## Qué podés hacer vos\n\nSi podés, usá una copia de la base, siempre con el usuario de Norte y la misma factura.\n\n1. **Copiá el mensaje completo.** Sacá también una captura. Lo más importante son **los nombres de las reglas** que dice que lo impiden. Si aparece «Journal multi-company», hay que revisar las compañías del usuario y del diario. Si aparece otra, anotala tal cual. El nombre solo no confirma la causa.\n2. **Compará con Contabilidad.** Entrá al libro mayor, abrí esa factura y tocá los tres puntitos → «Ver asientos». Anotá si abre o da error. Ver el renglón en el reporte no alcanza como prueba.\n3. **Juntá el traceback**, que es el detalle interno de dónde falló. En los errores de permiso, la ventana de Odoo normalmente no lo muestra. En Chrome probá así (no lo verifiqué en esta base):\n   - Quedate en la factura, antes de tocar «Ver asientos».\n   - Apretá F12 y abrí la pestaña **Network** (o **Red**).\n   - Elegí el filtro **Fetch/XHR** y limpiá la lista con el ícono 🚫.\n   - Tocá «Ver asientos» y esperá el error.\n   - Abrí cada pedido nuevo y mirá **Response** (o **Respuesta**), hasta encontrar uno que diga `\"error\"`. Puede no aparecer en rojo.\n   - Dentro de `\"error\"`, buscá `\"data\"` y copiá completo el texto de `\"debug\"`.\n\n   Pegá en el ticket solo la respuesta con el error, que puede tener datos del cliente. No mandes los encabezados, las cookies ni un archivo con toda la actividad de red (HAR). Si no lo encontrás, pedile a alguien técnico el error del registro del servidor, con la hora en que lo reprodujiste.\n\nSi el mensaje no muestra las reglas, probá activar el modo desarrollador agregando `?debug=1` a la dirección, antes de cualquier `#`. Si la dirección ya tiene un `?`, agregá `&debug=1`. Después recargá y repetí.\n\nQue el reporte de seguimiento no muestre todas las facturas al principio lo investigaría aparte.\n\n## Para pasarle a alguien técnico\n\nNo hace falta que entiendas este bloque; copialo junto con el mensaje, el traceback y el resultado de la comparación.\n\n> Hipótesis sin verificar: en 18, el filtro que `account_multi_store` agrega en `account.journal._search` afecta también la lectura directa (`fetch`) y provoca el `AccessError`. Correr en `odoo shell` **sobre una copia de la base**:\n>\n> ```python\n> u = env['res.users'].search([('name', '=', 'Encargado Norte')])\n> j = env['account.journal'].sudo().search([('name', '=', 'FACTURA ELECTRONICA SUR')])\n> print(u, j)  # tiene que haber un solo usuario y un solo diario\n> env.invalidate_all()\n> print(env['account.journal'].with_user(u).browse(j.ids).read(['name']))\n> ```\n>\n> - Si da `AccessError`: guardar el error completo. Para aislar la causa, repetir en la copia sin el filtro de `_search`. Si así lee, apunta al filtro.\n> - Si lee bien: la hipótesis pierde fuerza. Ver en el traceback qué modelo, registro y operación fallan.\n> - Revisar además el código de ese filtro en 16 y 18, y cómo leen los datos Odoo en cada versión, el reporte de seguimiento y el libro mayor.\n\n**Al cliente, por ahora, le diría:** «Pudimos reproducir el error. Estamos revisando la causa y por qué el acceso se comporta distinto según el camino». Todavía no le diría que es por permisos nuevos de la 18.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12846,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3894,
+  "output_tokens_details": {
+   "thinking_tokens": 1936
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12846,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3894,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12846,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12846
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0c601f5729",
+  "persona": "actualizacion"
+ }
+}

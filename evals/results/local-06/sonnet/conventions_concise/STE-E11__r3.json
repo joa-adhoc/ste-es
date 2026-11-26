@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Con el marker, la migración **no se aplica en el preview del PR**. Sí se aplica en las bases efímeras de CI y, después del merge, en un deploy de `staging` o `main` que tenga el opt-in.\n\nPoné esta línea cerca del inicio del archivo:\n\n```sql\n-- destructive: true\n```\n\n| Etapa | ¿Se aplica? | Por qué |\n|---|---|---|\n| PR env de Railway | No | Hereda `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero `RAILWAY_GIT_BRANCH` no es `staging` ni `main`. |\n| CI (postgres de cada workflow, stack e2e, pytest) | Sí, donde se activa el opt-in | Son bases efímeras que nadie más comparte. Se activa con la variable en el workflow o con `allow_destructive=True` en el conftest. |\n| Local con `make migrate` | No | No activa el opt-in, porque la base de desarrollo se comparte entre worktrees. |\n| Deploy de `staging` después del merge | Sí, si tiene la variable en `1` | Se cumplen las dos condiciones. |\n| Deploy de `main` (prod) | Sí, si tiene la variable en `1` | Misma regla. |\n\nCuando el runner la saltea por este control, **no la registra en `_migrations`**. Por eso un deploy habilitado la puede aplicar más adelante. En Railway, si hay marcadores de Railway pero falta la rama, tampoco la aplica.\n\n**Sin el marker**, el runner la trata como cualquier otra: el preview la aplica sobre la base compartida de staging y rompe el servicio de staging, que sigue con el código anterior. El criterio para marcarla es que el código anterior no pueda correr después de la migración.\n\nDos cosas que el fragmento no responde:\n- **Prod:** no confirma que el servicio de prod tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, ni cómo se promueve un cambio de `staging` a `main`. Revisá la variable antes de contar con el drop: sin ella, el runner la saltea.\n- **Renombrar el archivo:** el efecto de los previews sobre el renombre y el merge está en `docs/infra-ci-cd.md`, § \"Un PR preview escribe en la base de staging\". Esa sección no vino en el material. El fragmento la menciona al hablar de las migraciones aditivas.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10900,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1226,
+  "output_tokens_details": {
+   "thinking_tokens": 377
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10900,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1226,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10900,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10900
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

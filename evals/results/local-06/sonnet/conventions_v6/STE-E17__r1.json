@@ -1,0 +1,47 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Camino de un error\n\n1. **La tool falla** dentro de `_wrap_tool` (`agent.py`), que captura la excepción:\n   - Si ya es un `ToolError`, la usa directamente. Trae `error_class`, `message` y `retry_after_seconds`.\n   - Si es cualquier otra, `classify_unknown(exc)` le asigna una `ErrorClass` a las excepciones de Python y httpx.\n2. **No llega como excepción al modelo:** `_wrap_tool` devuelve como resultado de la tool el texto de `for_llm()`:\n   ```\n   [TOOL_ERROR class=X]: message\n   ```\n   Reemplaza al string genérico que se devolvía antes. Según el formato, el modelo ve la clase y el mensaje; `retry_after_seconds` no figura en él.\n\nLas clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. Dos se parecen pero dicen cosas distintas:\n- **`CONNECTION`:** Odoo está caído porque falla el transporte.\n- **`ODOO_NOT_CONNECTED`:** nadie conectó Odoo para este run, porque no hay credenciales (`require_adapter` en `tools/base.py`). Así, a quien no conectó su Odoo no se le dice que la conexión está caída.\n\n## Corte de reintentos\n\n`DoomLoopGuard` (`guards.py`) registra las llamadas con `record(tool_name, args, ok, error_class)`:\n- Cuenta los fallos con la clave `\"{tool_name}|{hash(args)}|{error_class}\"`. Si cambia la tool, los argumentos o la clase de error, es otro contador.\n- Cuando un contador llega a **3** (`THRESHOLD`), `record` devuelve `True`. Entonces `_wrap_tool` devuelve un `FATAL` e impide más llamadas idénticas.\n- **Un éxito limpia todos los contadores**, no solo el de esa llamada. Por eso, los 3 fallos no tienen que ser seguidos, pero no puede haber ningún éxito en el medio. De esto se deduce que un loop que intercale cualquier llamada exitosa no llegaría al umbral por esta vía.\n\nAparte, el guard también corta `CONNECTION` y `ODOO_NOT_CONNECTED` **entre tools**, cada una con su propio aviso. El material no dice con qué umbral ni con qué clave lo hace, y la clave de arriba incluye el nombre de la tool, así que sola no explica ese corte.\n\nEsto sale solo del material que pegaste; no revisé el código. Tampoco queda claro cómo se bloquea la llamada siguiente (si la tool llega a ejecutarse o no) ni el texto del `FATAL`. Para confirmarlo hay que mirar `guards.py` y `_wrap_tool`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10860,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1065,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10860,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1065,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10860,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10860
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

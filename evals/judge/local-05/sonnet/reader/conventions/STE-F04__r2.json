@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla y el proceso del cliente? No entiendo qué son `store_id`, `perm_read`, `account_journal_security`, `_search`, `fetch` ni `account_multi_store`. Tampoco sé qué es ese «diario Sur» ni qué tiene que ver con la factura del punto 22. Decime en simple si el usuario de Norte debería poder ver esa factura, por qué creés que en la 18 le salta el error y en la 16 no, y qué tengo que hacer yo. De los pasos para cerrarlo, indicame cuáles puedo hacer desde la pantalla (por ejemplo, de dónde saco el traceback), cuáles tengo que pasarle a un desarrollador y qué le pongo en el ticket."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos (`store_id`, `perm_read`, `account_journal_security`, `_search`, `fetch`, «traceback»)? Quiero saber qué debería poder ver y hacer en la 18 un usuario de Norte con una factura de Sur, y por qué creés que el error puede venir de la actualización y no de un refuerzo de permisos. Decime también qué puedo comprobar yo desde la pantalla (por ejemplo, abrir la misma factura desde el libro mayor de Contabilidad y tocar «Ver asientos», y de dónde saco el detalle completo del error), qué tengo que pedirle a un desarrollador y qué pongo en el ticket en palabras simples."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `store_id`, `perm_read`, `account_journal_security`, `_search`, `fetch` o `account_multi_store`. Quiero saber qué debería poder ver y hacer el usuario de Norte con una factura del punto 22, por qué creés que ahora le da error si en la 16 no pasaba, y qué tengo que hacer yo para confirmarlo. De los pasos para cerrarlo, decime cuáles puedo hacer desde la pantalla (por ejemplo, cómo consigo el traceback y qué tengo que mirar ahí) y cuáles le tengo que pasar a un desarrollador."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla y el proceso del cliente? No entiendo qué son `store_id`, `perm_read`, `account_journal_security`, `_search`, `fetch` ni `account_multi_store`. Tampoco sé qué es ese «diario Sur» ni qué tiene que ver con la factura del punto 22. Decime en simple si el usuario de Norte debería poder ver esa factura, por qué creés que en la 18 le salta el error y en la 16 no, y qué tengo que hacer yo. De los pasos para cerrarlo, indicame cuáles puedo hacer desde la pantalla (por ejemplo, de dónde saco el traceback), cuáles tengo que pasarle a un desarrollador y qué le pongo en el ticket.",
+ "followup_answer": "## ¿Norte debería poder ver esa factura?\n**Sí, según cómo se describe la función de sucursales instalada en esta base:** un usuario de otra sucursal puede ver, pero no confirmar ni modificar. Eso es lo previsto por el sistema. Falta saber si el cliente quiere lo mismo.\n\nEn Odoo, un **diario** es como un talonario o registro donde se cargan comprobantes. Las facturas del punto 22 van al diario «FACTURA ELECTRONICA SUR», que pertenece a la sucursal Sur. Tu usuario de prueba, «Encargado Norte», es de Norte. Por eso abre un comprobante de otra sucursal.\n\n## ¿Por qué podría fallar en la 18 y no en la 16?\n**Es una sospecha, no está comprobada.** Para mostrar una factura, Odoo también puede necesitar datos de su diario, como el nombre.\n\nLa función de sucursales tiene un filtro para que a Norte no le aparezca el diario de Sur cuando se buscan diarios. Creo que en la 18 ese filtro podría actuar también cuando Odoo quiere **mostrar los datos** de un diario ya cargado en una factura. En la 16 solo habría afectado las búsquedas.\n\nNo comparé el código de las dos versiones, ni confirmé que la 16 de este cliente tuviera el mismo filtro. Por eso tampoco podemos afirmar que en la 18 hayan querido reforzar los permisos.\n\nNo sabemos todavía por qué en el libro mayor de Contabilidad sí ve. Tampoco sabemos si «Ver asientos» falla por el diario o por otra cosa.\n\n## Qué podés hacer desde la pantalla\nUsá siempre «Encargado Norte» y la misma factura. Para estas pruebas no confirmes ni modifiques nada, y no cambies permisos.\n\n1. **Copiá el error completo.** Activá el modo desarrollador (se puede agregar `?debug=1` después de `/odoo` en la dirección) y repetí el recorrido. Guardá una captura y el texto: qué quiso leer, sobre qué registro y qué reglas nombra, si aparecen.\n2. **Probá por el libro mayor de Contabilidad.** Abrí esa factura y tocá «⋮ → Ver asientos». Anotá en qué paso funciona o falla. Ver una línea en el reporte no alcanza para comparar.\n3. **Preguntale al cliente:** «¿Norte tiene que poder consultar las facturas de Sur sin modificarlas, o no tiene que verlas?».\n\n**Sobre el traceback:** es el detalle técnico de por dónde pasó el sistema hasta fallar. En un error de permisos, lo esperable es que la pantalla muestre solo el mensaje, aun con el modo desarrollador. No hace falta que lo consigas para pasar el caso.\n\n## Qué pasarle a un desarrollador\n- Buscar el detalle técnico en los registros del servidor. Si no quedó, obtenerlo reproduciendo el caso en una copia de la base.\n- Comparar cómo funcionan la 16 y la 18, incluido el filtro de sucursales.\n- Probar en la copia, con el mismo usuario, si el error desaparece al quitar ese filtro. Es una prueba, no la solución definitiva.\n- Revisar por qué el seguimiento y el libro mayor se comportan distinto.\n- Si se confirma la causa, corregirla sin permitir que Norte confirme o modifique comprobantes de Sur.\n\n## Qué poner en el ticket\nCompletá los corchetes después de las pruebas. Si querés pasarlo antes, poné «pendiente».\n\n> **Reproducido** con el usuario Encargado Norte (sucursal Norte).\n> **Pasos:** Contactos → buscar el contacto → abrir su ficha → reporte de seguimiento → elegir en el filtro el libro mayor de la empresa → abrir una factura del punto 22 (sucursal Sur) → ⋮ → Ver asientos.\n> **Resultado:** error de permiso de lectura. [Pegar mensaje completo y captura]\n> **Por Contabilidad:** en el libro mayor, el usuario puede ver. Misma factura y «Ver asientos»: [funciona / falla / pendiente].\n> **Esperado según la función de sucursales:** poder consultar, sin confirmar ni modificar. Falta confirmar qué quiere el cliente.\n> **Causa:** sin confirmar. Hipótesis: después del paso a la 18, el filtro de sucursales también estaría impidiendo leer datos necesarios.\n> **Pendiente de desarrollo:** obtener el detalle técnico, comparar 16 y 18, probar el filtro en una copia y revisar la diferencia entre reportes.\n\nSi el cliente responde que Norte **no tiene que ver nada de Sur**, aclaralo en el ticket. Habría que definir ese cambio en todas las pantallas y reportes, teniendo en cuenta que el seguimiento de un contacto podría mostrar solo una parte de su deuda.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12334,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2884,
+  "output_tokens_details": {
+   "thinking_tokens": 1123
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12334,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2884,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12334,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12334
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "054163d960",
+  "persona": "actualizacion"
+ }
+}

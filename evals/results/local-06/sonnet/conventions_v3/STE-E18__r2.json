@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Una memoria se guarda en un scope (usuario o workspace). En cada turno entra al system prompt solo su encabezado, y el cuerpo completo se lee cuando hace falta. Si hay muchas, actúan dos límites: uno **borra** memorias y el otro solo **filtra** las que entran al prompt. Esto sale del material que pegaste; no lo contrasté con el código.\n\n**1. Guardado**\n\nLa memoria queda en el scope del usuario (personal) o del workspace (compartida con el equipo). El material no explica cómo es la llamada para guardarla ni qué decide el scope.\n\nCada scope admite 50. Al agregar la número 51, se borra la más vieja según `created_at`, en la misma transacción de la base. El modelo se entera por un mensaje en la respuesta de la tool. El material la llama eliminación \"silenciosa\" y no menciona ningún aviso a la persona.\n\nEl criterio es FIFO por fecha de creación, no por uso. Una memoria vieja se borra aunque se lea todo el tiempo.\n\n**2. Entrada al prompt, en cada turno**\n\n`_load_chat_setup` (`tuqui_core/chat/agent.py`) inyecta las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto. Van primero las del workspace y después las del usuario, como en este ejemplo:\n\n```\n# Workspace memory (shared with team)\n- [process:billing / default_due] Billing due end of month (not day 10). [read] (id=def-...)\n\n# User memory (personal)\n- [general] Sonnet preferred for long queries. (id=ghi-...)\n```\n\nCada encabezado lleva el título y una de estas dos cosas:\n- el `summary`, si existe;\n- si no, el cuerpo, hasta 250 caracteres.\n\nSi el cuerpo pasa los 250 caracteres y no hay `summary`, el encabezado termina en `... [read]`.\n\n**3. Lectura a demanda**\n\nCuando el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**4. Cuando hay muchas**\n\nSi los encabezados suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual. Entran solo los N mejores. El material no dice cuánto vale N ni si el modelo se entera de que quedaron memorias afuera.\n\nSegún lo descrito, este filtro no borra nada. Como depende del mensaje, una memoria que queda afuera en un turno puede entrar en otro. Al comparar texto por similitud, infiero que podría dejar afuera una memoria relevante escrita con otras palabras.\n\n**Para revisar en el diseño**\n- **Estimación de ~3K tokens:** el material la da para 50 memorias de tamaño máximo. Pero 50 cuerpos de 250 caracteres ya son 12.500, sin contar títulos ni ids. Con los dos scopes llenos puede haber 100 memorias. El tope de 50 por scope, entonces, no garantiza ese costo. Si el costo por turno tiene un límite, lo tiene que poner el filtro de 12K.\n- **Largo del `summary`:** el material no indica un máximo.\n- **`summary` con cuerpo largo:** según la regla, ese encabezado no lleva `[read]`. El modelo podría no saber que hay más contenido para leer.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10652,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1665,
+  "output_tokens_details": {
+   "thinking_tokens": 469
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10652,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1665,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10652,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10652
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

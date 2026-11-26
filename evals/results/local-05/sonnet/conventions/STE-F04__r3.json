@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Que hayas podido replicarlo ayuda mucho, pero **todavía no daría por correcto el error**. Según el material, el criterio de `account_multi_store` es «ve, pero no publica ni modifica»:\n\n- La ayuda de `store_id` dice que los usuarios de otra sucursal pueden ver los registros del diario.\n- Las reglas multi-store de diarios que viste, y las de asientos y pagos, no restringen la lectura (`perm_read` = False).\n- Las reglas de `account_journal_security` no aplican a los diarios de venta, porque no tienen usuarios cargados.\n\nQue Encargado Norte tenga solo la sucursal Norte no alcanza para explicar que no pueda **leer** algo de Sur.\n\n**La excepción es el `_search` de `account.journal`.** Oculta de las búsquedas los diarios de otras sucursales. El comentario del código dice que lo hicieron así, y no con una regla, para evitar errores en los campos relacionados con el diario.\n\nMi hipótesis es que ese filtro igual termina provocando un error de lectura. Por lo que sé de Odoo 18, al cargar campos guardados de un registro, el ORM usa `_search`. Si el registro existe pero el filtro lo deja afuera, lanza un error de acceso. «Ver asientos» podría estar cargando datos del diario del punto 22. No lo verifiqué en el código del cliente, y tampoco sé si el error es sobre el diario o sobre otro modelo. Además, ese mensaje no prueba que una de las reglas de arriba sea la causa.\n\n**La diferencia con el libro mayor** todavía no se puede explicar. Puede que ver las líneas ahí no cargue los mismos datos que «Ver asientos», pero no leímos ese código. También hay que separar dos síntomas: que al principio el seguimiento no muestre todas las facturas, y que falle la acción. Pueden tener causas distintas. Y que en la 16 los permisos fueran más livianos tampoco está confirmado, porque no leímos esa versión.\n\n**Para cerrarlo:**\n1. **Error completo:** el traceback y el mensaje en modo desarrollador. Hay que ver modelo, registro, operación y reglas que nombra.\n2. **Misma acción por los dos caminos:** con el mismo usuario y la misma factura, entrar desde el libro mayor de Contabilidad y tocar «Ver asientos». Si ahí también falla, la diferencia no está entre los reportes. Si funciona, hay que comparar qué contexto y qué llamadas usa cada camino.\n3. **Prueba de la sucursal:** en una copia de la base, no en producción, sumarle Sur al usuario y repetir. Si el error desaparece, la sucursal influye, aunque eso solo no prueba que la causa sea el `_search`.\n4. **Código:** seguir el traceback hasta el `_search` y la acción, y comparar `account_multi_store` con la versión 16.\n\n**Sobre unificar:** coincido en que el criterio tiene que ser coherente, pero «si no ve, que no vea en ningún lado» no es el que declara el módulo. Si se confirma que falla una lectura por el filtro de sucursal, yo lo trataría como un error: habría que permitir la consulta y mantener bloqueado publicar y modificar.\n\nOcultar todo lo de otras sucursales sería un cambio de diseño. Habría que definirlo para asientos, pagos y reportes, y un libro mayor o un seguimiento filtrado así podría mostrar un saldo parcial del cliente.\n\nAl cliente hoy le diría esto: «Pudimos reproducir el error. Estamos revisando si la restricción corresponde, porque el acceso no se comporta igual en todo el recorrido». Todavía no le diría que es por los permisos reforzados en la 18.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no cargué el contexto de la empresa; el análisis sale solo de tu relato, el material y lo que sé de Odoo. Para darlo de alta, te puede guiar `adhoc-way-guide`. Si me pasás el traceback, sigo desde ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10528,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3562,
+  "output_tokens_details": {
+   "thinking_tokens": 2127
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10528,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3562,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10528,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10528
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

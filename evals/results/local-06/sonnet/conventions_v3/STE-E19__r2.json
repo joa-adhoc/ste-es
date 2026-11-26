@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Falló el aislamiento entre workspaces porque la policy correcta de `0412` no se creó en el setup del test. `0398_scheduled_runs_draft.sql` ya había creado `scheduled_runs_ws` con `USING (true)`, que deja ver todas las filas. Como `0412` solo la crea si no existe una con ese nombre, la salteó. El log lo confirma (`policy \"scheduled_runs_ws\" already exists, skipped`), y por eso B ve 2 filas de A. El test está detectando un problema real.\n\n**Qué hacer:** agregá una migración nueva que reemplace la policy. Usá el próximo número libre; supongo que es `0413`, por ejemplo `supabase/migrations/0413_fix_scheduled_runs_rls.sql`:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\n\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nNo edites `0412` ni `0398`. Según `AGENTS.md`, las migraciones se registran por nombre de archivo, así que donde ya se aplicaron no vuelven a correr. Verificá que tu runner aplique los dos statements en una misma transacción. Si no, envolvelos en `BEGIN; … COMMIT;`.\n\nDespués corré de nuevo:\n\n```bash\npytest tuqui_core/tests/test_rls.py -q\n```\n\n**Aviso de seguridad:** en cualquier base donde esté la policy de `0398`, un workspace puede ver filas de otro. Si la policy aplica a todos los comandos y roles (el default, como muestra esa línea) y los permisos de la tabla lo permiten, también puede modificarlas, borrarlas o insertarlas. El material no muestra si `0398` llegó a staging o producción. Revisalo en cada base:\n\n```sql\nSELECT policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies\nWHERE tablename = 'scheduled_runs';\n```\n\nSi aparece `qual = true` en un entorno con datos reales, el fix es urgente. Avisá al equipo: haber estado expuesto no prueba que alguien haya accedido a datos ajenos.\n\nLa misma consulta sirve para detectar otras policies en la tabla. Las permisivas se combinan con `OR`, así que otra demasiado amplia mantendría la fuga. Mi `grep` de referencia es el tuyo, que solo buscó `scheduled_runs_ws`.\n\nNo corrí el fix, así que **no está verificado**. Si el test sigue fallando, revisá que la tabla tenga `ENABLE ROW LEVEL SECURITY`. Revisá también con qué rol se conecta el test. Los superusuarios y los roles con `BYPASSRLS` saltean RLS. El dueño de la tabla también, salvo que tenga `FORCE ROW LEVEL SECURITY`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10595,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1512,
+  "output_tokens_details": {
+   "thinking_tokens": 473
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10595,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1512,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10595,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10595
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

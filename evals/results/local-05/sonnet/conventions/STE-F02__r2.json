@@ -1,0 +1,44 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "# Ticket 138210: no encontré una opción nativa que cumpla todo el pedido\n\nEl CC en la plantilla resuelve una sola parte. Me baso en el material que pegaste: no consulté Odoo ni el código, y desde esta sesión no tengo `tuqui-adhoc`.\n\n**Ojo con la fecha:** el pedido era para antes del 25/10 y hoy es 26/11. Conviene confirmar si sigue la urgencia y qué pasó con las facturas desde entonces.\n\n## Qué cubre cada opción\n\n| Opción | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| **`email_cc` en la plantilla** | Administración recibe copia de la factura, en envío manual y automático | No la suma como seguidora, así que las respuestas no le llegan por esa vía. No saca a nadie ni corrige el histórico |\n| **`partner_to` en la plantilla** | Define destinatarios del envío | No quita seguidores ni impide que se suscriba el autor del envío |\n| **Pasar el usuario «Administración» (C2) a notificaciones por correo** | Le llegan por correo las notificaciones que hoy quedan en la bandeja de Odoo | Solo sirve donde corresponde que se le notifique, por ejemplo como seguidor. En la factura de ejemplo no lo es. Afecta todas sus notificaciones, no solo las de facturas |\n| **Quitar seguidores a mano** | Corrige documentos puntuales | No sirve para el volumen, y un nuevo envío vuelve a suscribir a su autor |\n| **Acciones «Agregar / Quitar seguidores»** | Permiten corregir en masa y automatizar | Son funciones nativas, pero configurarlas para esto es personalización por interfaz (Consultoría) |\n\n`mail_autosubscribe` (OCA) no aplica.\n\n## Qué explica el ejemplo\nLa factura la creó el cron y Usuario A la validó el 01/10. `account_ux` la envía al validar, y Odoo suscribe como seguidor al autor del envío, sin opción para apagarlo. Eso explica que Usuario A sea seguidor y reciba las respuestas.\n\nHay dos cosas que no cierran:\n- **Vendedores:** en este ejemplo el vendedor no es seguidor. Pero seis vendedores portal siguen unas 4.100 facturas de 2026, así que el problema que describe el cliente no se puede descartar. Falta saber cómo se agregan y revisar un correo en el que hayan recibido copia.\n- **Usuario B:** según el ticket recibió la respuesta, pero no figura entre los seguidores. Hay que revisar las notificaciones de ese mensaje. Hasta entonces, no daría por hecho que limpiar seguidores alcanza.\n\n## Una alternativa a probar: «Responder a»\nLas plantillas tienen el campo `reply_to`. Si apunta a la casilla de Administración y el envío de facturas lo respeta, las respuestas irían directo ahí sin tocar seguidores.\n\n**No está verificado:** el material solo confirma que el envío toma `partner_to` y `email_cc`. Además, si la casilla es externa a Odoo, esperaría que las respuestas no queden en el chatter. Tampoco saca a los vendedores de los envíos, y quien responda a otra dirección o a otro correo puede saltearlo.\n\nPara probarlo, en una copia de la base: configurar el campo, validar una factura para que salga el envío automático, responder desde un correo de prueba y mirar a quién llega y qué queda en el chatter. Repetirlo con el envío manual y con una nota de crédito.\n\n## Qué haría\n1. **Respuesta a la revisión técnica:** no hay una opción nativa confirmada que cumpla el resultado esperado. Derivaría a Consultoría, como recomendó el análisis anterior. En principio se puede encarar con reglas y acciones por interfaz, sin asumir todavía que hace falta código. El código propuesto en el ticket no alcanza, porque solo agrega.\n2. **Paliativo:** `email_cc` en todas las plantillas que usen facturas y notas de crédito, aclarando al cliente que es solo una copia del envío.\n3. **A validar en el diseño:**\n   - **Momento de la regla:** si corre antes de que el envío suscriba al autor, no lo va a sacar. Si corre después, el correo ya pudo haberle llegado a un vendedor. También tiene que cubrir los envíos posteriores.\n   - **Qué «Administración» usar:** C1 y C2 comparten correo. Hay que elegir uno y probar que no haya duplicados. Si es C2, revisar su preferencia de notificación; con C1, las respuestas no quedan asociadas a ese usuario interno.\n   - **A quién sacar:** el pedido dice «usuarios internos», pero los vendedores son usuarios portal y C2 es interno. Hace falta una regla explícita de quién se saca y quién se queda.\n   - **Histórico:** probar la corrección masiva con pocos documentos y conservar al cliente, sus contactos y la Administración elegida.\n\nSi querés, te redacto la nota interna para el ticket con esta conclusión.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10868,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3938,
+  "output_tokens_details": {
+   "thinking_tokens": 2138
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10868,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3938,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10868,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10868
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

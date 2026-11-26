@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? Primero, el importe del pago (o la suma de los cheques), ¿va neto o con las retenciones incluidas? Confirmalo, porque en el ejemplo lo suponés. Segundo, en pagos a proveedores, ¿cargo las líneas de retención o las dejo vacías para que Odoo las calcule? Necesito saberlo para que no queden duplicadas. Tercero, ¿a qué campo de la pantalla del recibo o pago corresponde cada columna del CSV, cuáles son obligatorias (decís «las primeras seis», pero `amount` queda afuera) y cómo verifico que los nombres de las columnas de cheques y retenciones sean los correctos? ¿Qué son además «el material», `tuqui-adhoc` y `adhoc-way-guide`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás qué es cada columna con el nombre del campo como lo veo en la pantalla de Odoo, cuáles son obligatorias y qué valor va en cada una (por ejemplo, si `customer`/`inbound` se dejan tal cual)? Aclarame también qué son `tuqui-adhoc` y `adhoc-way-guide` que mencionás al final, y si tengo que hacer algo con eso."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Antes de importar, ¿me aclarás algunos puntos? 1) ¿'amount' (o la suma de los cheques) va neto o con las retenciones incluidas? En el ejemplo de 97.000 + 3.000, ¿Odoo va a saldar los 100.000 de la factura? 2) En pagos a proveedores, ¿cargo las columnas de retención o las dejo vacías para que Odoo las calcule solo? ¿Cómo me doy cuenta en el borrador de si se duplicaron? 3) ¿Podés confirmar que las columnas de cheques y retenciones existen con esos nombres, y decirme a qué campo de la pantalla corresponde cada una y cuáles son obligatorias? 4) ¿Qué son 'tuqui-adhoc', 'adhoc-way-guide' y 'el material' que mencionás? ¿Tengo que hacer algo con eso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en términos de pantalla? Primero, el importe del pago (o la suma de los cheques), ¿va neto o con las retenciones incluidas? Confirmalo, porque en el ejemplo lo suponés. Segundo, en pagos a proveedores, ¿cargo las líneas de retención o las dejo vacías para que Odoo las calcule? Necesito saberlo para que no queden duplicadas. Tercero, ¿a qué campo de la pantalla del recibo o pago corresponde cada columna del CSV, cuáles son obligatorias (decís «las primeras seis», pero `amount` queda afuera) y cómo verifico que los nombres de las columnas de cheques y retenciones sean los correctos? ¿Qué son además «el material», `tuqui-adhoc` y `adhoc-way-guide`?",
+ "followup_answer": "**No puedo confirmarte si el importe va neto: en el ejemplo lo supuse.** Mis notas no lo dicen, e intenté buscar el código en el disco y en GitHub, pero esos comandos quedaron sin ejecutar porque requerían aprobación.\n\n## 1. ¿Importe neto o con retenciones?\nPara comprobarlo, en una base de prueba cargá a mano un pago en borrador contra una factura de 100.000, con una retención de 3.000 e importe 97.000. Mirá el total y el saldo pendiente de deuda:\n- **Total 100.000 y nada pendiente:** el importe (o la suma de los cheques) va **neto**.\n- **Cualquier otro resultado:** no importes con esos importes. Revisá cómo se calcula el total.\n\nProbalo en un recibo y en un pago a proveedor. No confirmé cómo se llaman esos totales en tu pantalla.\n\n## 2. Retenciones en pagos a proveedores\n**Dejalas fuera del archivo.** Odoo las calcula solas según la posición fiscal, y el número se asigna al confirmar. Esto reemplaza mi ejemplo anterior, que las incluía. Vale también para pagos con cheques.\n\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id\nsupplier,outbound,NOMBRE_PROVEEDOR,2026-11-26,NOMBRE_DIARIO,NOMBRE_METODO_PAGO,97000.00,ID_EXTERNO_APUNTE_1\n```\n\nNo probé que el cálculo se dispare al importar. Antes de confirmar, abrí el borrador y revisá las retenciones y el total. Si faltan o no coinciden, no lo confirmes. El 97.000 supone importe neto y 3.000 de retención.\n\nEn los **recibos de clientes** dejé las líneas en el archivo, para cargar las retenciones que te hizo el cliente.\n\n## 3. Columnas y pantalla\nLos nombres de la segunda columna son **orientativos**: no vi tu pantalla. \"Obligatorio\" se refiere a lo que indican mis notas.\n\n| Columna | En pantalla | ¿Obligatoria? |\n|---|---|---|\n| `partner_type` | Cliente o proveedor; suele depender del menú | Sí |\n| `payment_type` | Cobro (`inbound`) o pago (`outbound`) | Sí |\n| `partner_id` | Cliente / Proveedor | Sí |\n| `date` | Fecha | Sí |\n| `journal_id` | Diario | Sí |\n| `payment_method_line_id` | Método de pago | Sí |\n| `amount` | Importe | No figura como obligatoria |\n| `to_pay_move_line_ids/id` | Deudas a pagar | No figura como obligatoria; usala para elegir la factura |\n\nLas seis obligatorias son las primeras seis. `amount` es la séptima: completala en pagos sin cheques para indicar el importe; con cheques se calcula con su suma.\n\nLas siguientes empiezan con `l10n_latam_new_check_ids/`, en las líneas de **cheques**:\n\n| Termina en | En pantalla | Condición |\n|---|---|---|\n| `name` | Número | No sé si es obligatoria |\n| `payment_date` | Fecha de pago | No sé si es obligatoria |\n| `bank_id` | Banco | Puede quedar vacía; sale del cliente |\n| `issuer_vat` | CUIT del emisor | Puede quedar vacía; sale del cliente. Se valida |\n| `amount` | Importe del cheque | Mayor a 0 |\n\nEstas empiezan con `l10n_ar_withholding_line_ids/`, en las líneas de **retenciones**:\n\n| Termina en | En pantalla | Condición |\n|---|---|---|\n| `tax_id` | Impuesto | Obligatoria en cada línea |\n| `name` | Número de retención o certificado | En proveedores lo asigna Odoo al confirmar |\n| `base_amount` | Base | No sé si es obligatoria |\n| `amount` | Importe retenido | No sé si es obligatoria |\n\n### Cómo verificar los nombres\n1. Buscá o cargá en la base de prueba un recibo con cheques y retenciones.\n2. Desde la lista, seleccionalo y andá a **Acción › Exportar**.\n3. Marcá la opción de exportación compatible con importación, agregá los campos de cheques y retenciones por su nombre en pantalla y exportá en CSV.\n4. Compará los encabezados con los de mi archivo. Si difieren, usá los de la exportación.\n5. Pasá solo los encabezados a tu archivo de datos nuevos. **No reimportes la exportación con su `id`**, porque podrías modificar el recibo existente.\n6. En el importador, revisá a qué campo quedó asignada cada columna y tocá **Probar**. Después importá un registro y revisá el borrador: «Probar» no garantiza que los cálculos sean correctos.\n\n## Los términos\n- **«El material»:** las notas sobre los módulos que venían con tu pedido: campos, cálculos y conciliación. Aclaran que no se probó importar en la base del cliente.\n- **`tuqui-adhoc`:** la conexión del asistente con Tuqui de Adhoc, que le da tu identidad, reglas de la empresa e instrucciones.\n- **`adhoc-way-guide`:** la guía del asistente para dar de alta esa conexión.\n\nNo necesitás ninguna de las dos últimas para importar los archivos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15195,
+  "cache_read_input_tokens": 81522,
+  "output_tokens": 4186,
+  "output_tokens_details": {
+   "thinking_tokens": 1598
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15195,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3146,
+    "cache_read_input_tokens": 32559,
+    "cache_creation_input_tokens": 146,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 146
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fd32cadcef",
+  "persona": "consultoria"
+ }
+}

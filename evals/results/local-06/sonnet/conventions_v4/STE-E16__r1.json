@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Si editás un artifact que ya compartiste, quien tiene el link sigue viendo la versión publicada.** No ve tu cambio hasta que lo publiques. Esto sale solo del material que pegaste; no revisé el código.\n\n**Cómo funcionan las versiones**\n\nCada artifact tiene dos partes:\n- **`content`:** la plantilla, o sea la página completa.\n- **`data`:** una foto de los datos en JSON. Es opcional.\n\nUna versión puede traer cambios en una sola de las dos. Para mostrar la versión `n`, el sistema busca por separado el último `content` y el último `data` que haya hasta `n`. Por ejemplo:\n\n| Versión | Qué guarda | Qué se ve |\n|---|---|---|\n| v1 | plantilla A y datos X | A con X |\n| v2 | solo datos Y | A con Y |\n| v3 | solo plantilla B | B con Y |\n\n**Qué pasa al guardar y publicar**\n\n- **Primer guardado (sin `artifact_id`):** crea la v1 y la publica, así que el link funciona desde el principio.\n- **Edición (con `artifact_id`):** crea una versión nueva y la deja como actual (`current_version_id`). La publicada (`published_version_id`) no cambia. El resultado avisa con `unpublished_changes: true` y el viewer muestra un banner.\n- **`publish(version?)`:** cambia cuál es la versión publicada. Si no indicás una, publica la última.\n- **Volver atrás:** publicás una versión anterior.\n\nEl viewer interno navega por la versión actual y tiene un selector de versiones. El link con token muestra siempre la publicada.\n\n**Cuando solo se refrescan los datos**\n\nEl refresco crea una versión que trae solo `data`. La plantilla se toma de la anterior, por eso el refresco no puede romper el diseño. El material lo ubica en la fase 2 (dashboards regenerables) y no dice si ya está implementado.\n\n**El material tampoco dice si ese refresco se publica solo.** Si no mueve la versión publicada, quien tiene el link sigue viendo los datos viejos. Los datos nuevos son de una versión posterior, y la publicada solo toma lo que hay hasta su número.\n\nDe la regla de búsqueda deduzco además un caso para cuidar:\n1. La v1 está publicada.\n2. Editás la plantilla y queda la v2 sin publicar.\n3. Un refresco de datos crea la v3.\n\nLa v3 usa la plantilla de la v2. Si se publica la v3, también sale tu edición pendiente. Si el refresco fuera a publicarse solo, habría que confirmar cómo trata este caso.\n\n**Límites al guardar**\n\n- Si guardás sobre un artifact existente, `data` se valida contra el `data_schema` almacenado. La validación cubre las claves obligatorias y los tipos de las propiedades. Si la forma no es compatible, el guardado se rechaza antes de escribir.\n- `content` admite hasta 1 MB y `data` serializada, otro 1 MB. Si te pasás, falla con un error explícito.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10887,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1525,
+  "output_tokens_details": {
+   "thinking_tokens": 463
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10887,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1525,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10887,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10887
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

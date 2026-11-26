@@ -1,0 +1,47 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No, ya no se pide: hoy corrés local solo lo que tocaste (`make test ARGS=<lo que tocaste>` + `make lint`), mientras iterás y antes de pushear. La suite completa la corre CI, en paralelo con tu trabajo.\n\n**Por qué cambió:** la regla anterior se apoyaba en que CI no devolvía el resultado antes de lo que tardaba una corrida local. Eso dejó de ser cierto: el job de `test` bajó de unos 11 min a unos 4 (bcrypt configurable en tests, PR #829, y runners arm64). Además, la corrida local completa te bloquea la máquina.\n\n**Cuándo sí conviene correrla entera en local:**\n- **Cambios transversales:** si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`. Eso arrastra cerca del 76% de los archivos de test (medido sobre el grafo de imports), así que correr \"lo que tocaste\" ya no achica mucho.\n- **Agentes de IA:** una sola vez antes de entregar, no en cada iteración. El agente no tiene el criterio del autor para elegir qué tests correr, e iterar contra CI genera pushes de ruido.\n\nEn todos los casos, si algo falla en CI y no sabés por qué, reproducilo en local antes de volver a pushear, en vez de pushear a ciegas varias veces.\n\nEsto sale del texto que pegaste; no lo contrasté con el repo ni con CI. La excepción para agentes además choca con mis convenciones de Adhoc, que dejan las suites completas a CI y no las corren en la máquina del dev ni en el workspace de Tuqui Work. Si ese texto es la guía de un repo, conviene que una persona revise que el apartamiento esté declarado donde corresponde, por ejemplo en `AGENTS.md §Overrides`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10868,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 649,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10868,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 649,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10868,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10868
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

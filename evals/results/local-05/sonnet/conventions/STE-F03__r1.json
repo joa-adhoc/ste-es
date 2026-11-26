@@ -1,0 +1,44 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "## Ticket 139447: revisión\n\nOdoo no intenta borrar la recepción 412. Todo indica que intenta borrar una **recepción nueva y vacía** que él mismo crea al confirmar P00231, y que `stock_ux` se lo impide.\n\n### Qué pasa al confirmar\n1. Odoo estándar crea una recepción para la orden.\n2. La recepción queda sin movimientos. La explicación probable es que las 2 unidades ya están cubiertas por la recepción 412, pero no se leyó el código que genera los movimientos.\n3. Como está vacía, Odoo la borra (`created_receipt.unlink()`).\n4. «Recepciones» tiene `block_picking_deletion` = True, así que `_check_block_picking_deletion` lanza el error. Alcanza con esa opción, aunque el mensaje mencione también el estado.\n5. El error deshace la confirmación: la orden sigue en borrador y la recepción nueva no se guarda.\n\nEsto explica que 415 y 416 no existan. PostgreSQL no devuelve los números de secuencia cuando se deshace una transacción, así que cada intento puede mostrar un id nuevo.\n\n### Cómo se llegó a esto\nEl 11/11 la orden se confirmó (12:26) y se registraron las 2 unidades recibidas (12:27). Después se canceló (13:26) y volvió a Solicitud de cotización (13:27), todo con el mismo usuario. La 412 sigue en Hecho. Como no se leyó el código que permite o impide esa cancelación, no puedo decir si fue un comportamiento esperado o una falla. El historial tampoco muestra por qué se canceló.\n\n### Cómo regularizarla\nPropongo probar esto **primero en una copia de la base**:\n\n1. Anotar el stock del producto, los movimientos de P00231, las cantidades de la línea y los datos de la factura.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción, también si la confirmación falla.\n5. Comprobar que:\n   - la orden quedó como Orden de compra;\n   - la única recepción es la 412, en Hecho, y no quedó otra pendiente;\n   - no cambiaron el stock ni los movimientos;\n   - la línea sigue con 2 pedidas, 2 recibidas y 2 facturadas;\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSi todo coincide, repetirlo en producción, en un momento de poco uso. Mientras la opción esté desactivada, se van a poder borrar traslados en borrador o cancelados de ese tipo de operación. Según la condición descrita, los demás estados siguen protegidos.\n\nSi aparece una recepción nueva con movimientos, la hipótesis del paso 2 no se cumple: no hay que validarla ni pasar el cambio a producción. En la copia conviene revisar también los efectos propios de confirmar, como la fecha de confirmación, una posible aprobación pendiente o los avisos automáticos (cuidando que la copia no envíe correos).\n\nPara regularizar no hace falta devolver ni tocar la 412, anular la factura ni crear otra orden. Tampoco recomiendo cambiar el estado directo en la base, porque saltea la lógica de confirmación.\n\n### Corrección de fondo\nHay un choque entre `stock_ux` y la limpieza interna de Odoo: según el código descrito, si al confirmar la recepción queda vacía y su tipo de operación tiene el bloqueo, va a salir este error. Conviene tratarlo aparte de la regularización. Una opción es que el bloqueo deje pasar esa limpieza interna sin habilitar el borrado manual. Permitir borrar cualquier traslado vacío en borrador es más simple, pero afloja la protección. Esa decisión le corresponde a quien mantiene el módulo.\n\n### Preguntas abiertas\n- ¿El movimiento de la 412 sigue vinculado a la línea de P00231? Las 2 unidades recibidas lo sugieren, pero hay que revisarlo en el paso 1.\n- ¿Por qué se canceló la orden? Si querían anular la compra o corregir algo, volver a confirmarla puede no ser lo que necesitan. Hay que preguntarlo antes de tocar producción.\n- ¿Qué código decide si se puede cancelar una orden con recepciones hechas?\n\n### Borrador de respuesta al cliente\n> Revisamos el caso de P00231. Por lo que vimos, el traslado del mensaje (415 o 416) no es la recepción WH/IN/00098. Sería una recepción nueva que Odoo crea al confirmar y que intenta borrar al quedar vacía. El bloqueo de eliminación de «Recepciones» lo impide, y por eso no llega a guardarse. Antes de tocar la base vamos a probar la solución en una copia, controlando que no cambien el stock ni la factura. ¿Nos confirman por qué cancelaron la orden el 11/11 y si la compra sigue vigente?\n\n**Alcance de la revisión:** me basé solo en el material que pasaste. No entré a la base, no leí el código completo ni probé la solución, así que la causa y la regularización siguen sin verificar. En esta sesión tampoco tuve disponible `tuqui-adhoc`, por lo que no pude consultar las reglas de la empresa con `tuqui_context`. Revisalo contra esas reglas antes de enviar la respuesta o tocar la base, y registrá el MCP (te guía `adhoc-way-guide`). No envié ni modifiqué nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10464,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3552,
+  "output_tokens_details": {
+   "thinking_tokens": 1594
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10464,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3552,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10464,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10464
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

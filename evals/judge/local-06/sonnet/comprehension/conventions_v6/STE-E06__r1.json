@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo más probable es que la rama de tu compañero haya aplicado una migración destructiva en la base de tests que comparten los dos worktrees, y que tu código siga leyendo columnas que ya no existen. Esto vale si los dos worktrees están en la misma máquina y usan la misma base. El `conftest` aplica las migraciones al correr los tests, así que la base queda con la mezcla de las dos ramas. El texto aclara que no lo verificó en tu entorno. Para confirmarlo, fijate si la columna del error la borra o renombra una migración de esa rama.",
+  "No. El lock (`flock`) solo evita que dos corridas se ejecuten a la vez; no separa el esquema.",
+  "1) En tu worktree, creá `tuqui_core/.env.test.local` a partir de `.env.test.local.example` y apuntalo a una base propia. El texto no dice cómo se llama la variable de la base ni si hay que crear la base a mano; indica mirarlo en el ejemplo y en la sección «La base de tests es por worktree». 2) Antes de resetear, confirmá que `make migrate-reset` toma esa base, porque no está aclarado si carga el `.env.test.local`. El reset vacía la base: si apunta a la compartida, borrás sus datos y podés romperle los tests a tu compañero. Tampoco lo corras sobre una base en uso. 3) Corré `make migrate-reset` y después `make test`. No uses `npx supabase db reset`, porque aborta por prefijos de migración repetidos. Cada worktree con migraciones distintas necesita su propia base. Opcionalmente, para correr tests en paralelo necesitás las tres cosas: base propia, Redis propio (un `REDIS_URL` con otro índice en `.env.test.local`, que no sea el 15, el 0 ni el que use otro worktree) y un `TEST_LOCK` distinto. No cambies `TEST_LOCK` si solo separaste la base. Si con una base propia y recién armada sigue el `UndefinedColumnError`, el cruce con la otra rama deja de ser la explicación más probable; en ese caso, pasá el error completo para revisar si a tu rama le falta una migración o si el código consulta una columna equivocada."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "068bbe0f89",
+  "control": "d71584ce60"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E21",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No, borrar el commit no alcanza: una key que llegó al remoto se da por filtrada y **hay que rotarla**. GitHub guarda los commits del PR, y el preview de Railway ya construyó la imagen con ese commit.\n\nHacé esto, en este orden:\n\n1. **Creá una key nueva** en el panel de OpenAI.\n2. **Cargala en Admin › Integraciones, en staging y en prod.** No la pongas en variables de entorno de Railway.\n3. **Revocá la key vieja**, recién cuando la nueva esté cargada en los dos entornos. Si la revocás antes, lo que todavía la use deja de funcionar.\n4. **Limpiá la rama:** sacá la key con `git rebase -i origin/<base>`, marcando ese commit con `edit` (o `drop`, si no tiene nada más que quieras conservar). Después subí con `git push --force-with-lease`; el `--force` sin lease está bloqueado. Si la key se agregó en un commit y se borró en otro posterior, corregí el commit que la agregó. Esto limpia la rama, pero no reemplaza la rotación. Si una persona ya revisó el PR (comentó o aprobó), por la convención de Adhoc la historia ya no se reescribe: sacá la key con un commit nuevo.\n5. **Avisá en la tarea abierta del proyecto 1526 (Administración Tuqui)** qué key rotaste y cuándo. Identificala sin pegar su valor.\n\nNo toqué la rama ni la key: los pasos salen del extracto de `docs/seguridad.md` que pegaste y, para la excepción del paso 4, de la convención de PRs. La rotación es lo urgente; la limpieza puede esperar a que termines los pasos 1 a 3.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10489,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 605,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10489,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 605,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10489,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10489
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

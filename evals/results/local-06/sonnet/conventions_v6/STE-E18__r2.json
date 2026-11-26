@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Una memoria se guarda en un alcance (usuario o workspace), en cada turno entra al system prompt en versión corta, y el texto completo se lee solo si hace falta. Esto sale del fragmento que pegaste; no lo verifiqué contra el código.\n\n**1. Guardado**\n- La memoria queda en el alcance del usuario (personal) o del workspace (compartida con el equipo).\n- Cada alcance admite 50: 50 por usuario y 50 por workspace.\n- Al agregar la número 51, en la misma transacción se borra la más vieja según `created_at` (FIFO). El modelo se entera por un mensaje en la respuesta de la tool. El material lo llama \"silent eviction\", pero no aclara si la persona recibe algún aviso.\n\n**2. Entrada al prompt, en cada turno**\n\n`_load_chat_setup` (en `tuqui_core/chat/agent.py`) inserta las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las del workspace y después las del usuario. De cada una va un encabezado con el título y:\n- el resumen, si tiene;\n- si no, el cuerpo hasta 250 caracteres. Si el cuerpo es más largo, termina en `[read]`.\n\nEl ejemplo muestra además la categoría o clave (`[process:billing / default_due]`) y el `id`.\n\n**3. Lectura completa**\n\nSi el modelo necesita el contenido entero de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**4. Cuando hay muchas**\n\nHay dos límites distintos:\n\n| Límite | Cuándo actúa | Criterio | Efecto |\n|---|---|---|---|\n| 50 por alcance | Al guardar | Antigüedad | La memoria se borra |\n| `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens) | Al armar el prompt | Parecido con el mensaje actual (rapidfuzz) | Entran las mejor puntuadas; por lo que se describe, el resto queda afuera en ese turno, sin borrarse |\n\n**Qué tener en cuenta**\n- **El recorte puede activarse seguido:** el material habla de unos 3K tokens para 50 memorias de tamaño máximo. Pero 50 × 250 ya son 12.500 caracteres sin contar los títulos, apenas más que el presupuesto. Con los dos alcances llenos puede haber 100 memorias, unos 25.000 caracteres solo de texto si todas usan los 250. El tamaño real depende del largo de cada una, y el fragmento tampoco dice si los resúmenes tienen un máximo.\n- **Puede quedar afuera algo relevante:** rapidfuzz compara texto, no significado. Una memoria útil escrita con otras palabras o en otro idioma que el mensaje puede puntuar bajo. Una regla general (\"respondé siempre en inglés\") también, aunque aplique a todos los turnos.\n- **El borrado no mira el uso:** una memoria vieja que se consulta todo el tiempo se borra antes que una nueva que no se usa. En el workspace, lo que agrega una persona puede desplazar algo que usa todo el equipo.\n\nEl fragmento no explica cuándo decide el modelo guardar algo, quién escribe el resumen ni cómo se editan o borran memorias a mano. Tampoco dice si editar una cambia su `created_at`, si el presupuesto es conjunto o por alcance (el \"total\" sugiere conjunto) ni qué valor tiene N en \"top-N\". Para cerrar esos puntos habría que mirar la implementación de `manage_memory` y de `_load_chat_setup`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10776,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1591,
+  "output_tokens_details": {
+   "thinking_tokens": 315
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10776,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1591,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10776,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10776
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

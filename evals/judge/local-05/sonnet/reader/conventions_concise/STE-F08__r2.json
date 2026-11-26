@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en palabras simples y me decís qué puedo mandarle ya al cliente y qué tengo que pedirle a otra persona? No entiendo qué son `product.product`, `ir.model.data`, `mrp`, «Technical Settings», «productos no almacenables», OCA ni `sale_order_type_automation`. Tampoco sé hacer la prueba de los kits en Odoo. Para cada [COMPLETAR] y cada prueba, decime a quién se lo pido (soporte técnico, infraestructura, legales) y pasame el mensaje listo para enviarle. Aclarame también si, mientras tanto, puedo asegurarle al cliente que los kits funcionan o si no tengo que prometer nada sobre eso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me pasás los datos que faltan en los [COMPLETAR] para poder mandarle la respuesta al cliente: las IP de Odumbo (si son fijas y cómo avisan los cambios), el resultado de la prueba del pack de 4 patas, los pasos validados para cambiar de módulo sin duplicar ventas ni facturas, qué módulo se usa en Odoo 17 Enterprise para la factura automática, y qué datos guarda Odumbo, para qué los usa y qué pasa con ellos (y en qué plazos) si el cliente se da de baja?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "No puedo completar los [COMPLETAR] ni hacer la prueba de los kits porque no conozco Odoo por dentro. ¿Me decís, en palabras simples, a quién le pido cada dato pendiente y qué le pregunto exactamente? ¿Y puedo mandarle ya algo al cliente? Si se puede, pasame una versión lista para enviar que diga qué queda por confirmar, incluida la parte de kits y la propuesta para el cambio de módulo (si es seguro compartirla). Explicame también qué son 'product.product', 'ir.model.data', 'mrp', 'OCA' y los nombres de los módulos, o sacalos si el cliente no los necesita."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en palabras simples y me decís qué puedo mandarle ya al cliente y qué tengo que pedirle a otra persona? No entiendo qué son `product.product`, `ir.model.data`, `mrp`, «Technical Settings», «productos no almacenables», OCA ni `sale_order_type_automation`. Tampoco sé hacer la prueba de los kits en Odoo. Para cada [COMPLETAR] y cada prueba, decime a quién se lo pido (soporte técnico, infraestructura, legales) y pasame el mensaje listo para enviarle. Aclarame también si, mientras tanto, puedo asegurarle al cliente que los kits funcionan o si no tengo que prometer nada sobre eso.",
+ "followup_answer": "**Hoy podés mandar los permisos y la facturación manual. Sobre los kits, no prometas que funcionan:** no está probado y el material no lo confirma. En mi respuesta anterior, el texto para el cliente decía cómo calcula Odoo los kits. Eso salía de lo que sé de Odoo, no del material, así que lo saqué. También corrijo \"no tiene lógica propia para kits\": el código no menciona los kits de Odoo, pero sí trata aparte a algo que llama \"packs\", y no sé si es lo mismo.\n\n## Los términos\n- **`product.product`:** la tabla interna de Odoo donde están los productos y sus variantes.\n- **`ir.model.data`:** una tabla interna donde Odoo guarda identificadores de sus registros. En resumen, el conector no solo lee: también escribe en la base.\n- **`mrp`:** el módulo de Fabricación, que incluye las listas de materiales. `phantom` es el nombre interno del tipo \"kit\".\n- **Technical Settings:** un grupo de permisos técnicos en la configuración del usuario.\n- **Productos no almacenables:** productos para los que Odoo no lleva stock, como un servicio.\n- **OCA:** Odoo Community Association, una comunidad que publica módulos para Odoo.\n- **`sale_order_type_automation`:** el nombre de un módulo que puede servir para automatizar la factura. No está confirmado que sirva en este caso.\n\n## Para mandar ya al cliente\n\n> Hola, les adelanto lo que ya podemos responder.\n>\n> **Permisos:** con Ventas, Inventario y Facturación no alcanza. La conexión exige además *Ajustes: Administrador*. La configuración completa es: Administración: Ajustes; Ventas: Administrador; Inventario: Administrador; Contabilidad: Facturación; y en Technical Settings, Gestión de Productos y Límite de crédito. El permiso de Ajustes se usa para leer la configuración de la base, pero tengan en cuenta que el conector no solo lee: también crea un campo técnico de precio en los productos y algunos registros internos.\n>\n> **Facturación:** Odumbo no factura. Pueden facturar a mano y en lote cada día: generan y validan las facturas en Odoo, y Odumbo las detecta y las sube a la venta entre 6 y 24 horas después. La subida es solo para Mercado Libre. El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n>\n> **Pendiente:** las IP, los kits, el cambio desde su módulo actual, el módulo para facturar automáticamente y el tratamiento de sus datos. Todavía no podemos confirmar cómo funcionan los kits. Les sugerimos no hacer el cambio hasta que revisemos los pasos.\n\n## Para pedir a otras personas\nLa prueba de los kits no la tenés que hacer vos.\n\n**1. Soporte técnico: prueba de kits**\n> Hola. Un cliente con Odoo 17 vende un pack de 4 patas armado como kit (lista de materiales tipo kit). ¿Podés probarlo en una base de prueba, con una publicación que no afecte ventas reales, usando el mismo tipo de producto que usa el cliente (preguntar cuál es si hace falta)?\n> 1. Dejar 10 patas a la mano y 3 salientes por una venta de patas sueltas, en la ubicación configurada en Odumbo.\n> 2. Anotar \"A la mano\" y \"Saliente\" del pack, y el stock que publica Odumbo. Quedan 7 patas libres, así que esperamos 1 pack. Mi sospecha, sin probar, es que por el redondeo podría publicar 2.\n> 3. Vender 1 pack. Revisar que la entrega incluya 4 patas, y anotar el stock de las patas y del pack al confirmar la venta y al validar la entrega.\n>\n> El conector saltea los productos no almacenables, salvo los packs: ¿el kit se sincroniza o queda afuera? Pasame resultados y capturas.\n\n**2. Soporte técnico: cambio desde el módulo actual**\n> Hola. Un cliente va a pasar a Odumbo desde un módulo que hoy trae las ventas y factura. ¿Qué pasos recomendás para no duplicar ventas ni facturas? Necesito saber: desde qué fecha importa ventas Odumbo; si reconoce las ya cargadas por otro módulo; en qué orden apagar y activar la importación, la facturación y el stock; qué hacer con las ventas pendientes; si puede volver a subir facturas ya cargadas; y cómo probarlo sin afectar datos reales.\n\n**3. Soporte técnico: facturación automática**\n> Hola. El manual recomienda tipos de pedido de venta para que la factura salga sola al confirmar la venta. ¿Qué módulo o módulos se usan en Odoo 17 Enterprise y cómo se configuran? Como pista sin confirmar, tengo `sale_order_type` (OCA) y `sale_order_type_automation` (`ingadhoc/sale`).\n\n**4. Infraestructura: IP**\n> Hola. Un cliente quiere limitar por IP el acceso a su servidor Odoo. ¿Desde qué IP de salida se conecta Odumbo? ¿Son fijas? Si cambian, ¿cómo y con cuánta anticipación se avisa? ¿Se pueden compartir con el cliente?\n\n**5. Legales: datos**\n> Hola. Un cliente pregunta: 1) qué datos suyos guarda Odumbo además de las credenciales; 2) para qué se usan; y 3) qué pasa con ellos si da de baja el servicio, incluidos los plazos de conservación y borrado, también en copias de respaldo. ¿Qué podemos responderle? Si para el punto 1 hace falta información técnica, ¿me decís a quién pedírsela?\n\n## Sobre los kits, mientras tanto\nSi el cliente insiste, podés decirle:\n\n> Todavía no podemos confirmar que los kits funcionen correctamente, tanto en el stock publicado como en el descuento de las patas. Hace falta probarlo.\n\nQue la prueba salga bien en otra base no garantiza que funcione igual en la del cliente. Cuando tengas el resultado, revisá con soporte técnico si la versión y la configuración probadas coinciden con las suyas.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13185,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3236,
+  "output_tokens_details": {
+   "thinking_tokens": 1015
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13185,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3236,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 13185,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13185
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1bffb2e544",
+  "persona": "comercial"
+ }
+}

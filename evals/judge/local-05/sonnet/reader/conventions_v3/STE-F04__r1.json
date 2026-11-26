@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que veo en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `_search` ni `account.journal`, ni qué hace cada regla de la tabla. En concreto: según cómo está pensado el sistema, ¿un usuario que solo tiene la sucursal Norte debería poder abrir y ver los asientos de una factura del punto 22 (Sur)? ¿Qué le digo al cliente por ahora, y qué pasos tengo que seguir para sacar el detalle del error y pasarlo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar en términos de pantalla y sin nombres técnicos? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `_search` ni `account.journal`, ni qué significa la tabla de reglas. Concretamente: según cómo está pensado el sistema, ¿un usuario que solo tiene la sucursal Norte debería poder ver las facturas del punto 22 y usar «Ver asientos», sí o no? ¿Qué le puedo decir hoy al cliente? Y si tengo que sacar el detalle del error, ¿me das los pasos uno por uno (cómo abrir las herramientas del navegador, qué copiar) y a quién se lo paso para que lo interprete?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que veo en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `_search` ni `account.journal`, ni la tabla de reglas, y tampoco quién es «Encargado Norte». Decime en simple si un usuario que solo tiene la sucursal Norte debería poder ver las facturas y asientos del punto 22 (¿es el diario Sur?). Y para conseguir el detalle del error, ¿me das el paso a paso (cómo abrir la pestaña Red, qué llamada elegir y qué copiar) y a quién se lo paso para que lo interprete?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que veo en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `_search` ni `account.journal`, ni qué hace cada regla de la tabla. En concreto: según cómo está pensado el sistema, ¿un usuario que solo tiene la sucursal Norte debería poder abrir y ver los asientos de una factura del punto 22 (Sur)? ¿Qué le digo al cliente por ahora, y qué pasos tengo que seguir para sacar el detalle del error y pasarlo?",
+ "followup_answer": "**Sí: según cómo está pensado, Encargado Norte debería poder ver esa factura de Sur y sus asientos. Lo que no debería poder es publicar ni modificar nada de Sur.** Lo dice la ayuda del campo de sucursal en los diarios:\n\n> «los usuarios que no son de esta sucursal solo pueden ver los registros de este diario, pero no pueden publicar ni modificar asientos»\n\nEsto vale para la sucursal, y supone que el usuario tiene acceso a la compañía de la factura. Lo saqué de esa ayuda y de la configuración de permisos, no de una prueba. Tampoco sé qué hace por dentro «Ver asientos». Así que el error no coincide con lo esperado, pero todavía no sé por qué sale.\n\nEntonces el criterio no es «si no ve, que no vea en ningún lado», sino **«ve, pero no toca»**.\n\n**Qué hace cada control**\n\nUn *diario* es donde se registran las operaciones; por ejemplo, el de factura electrónica del punto 22, que es de Sur.\n\n| Control | Qué hace | ¿Explica que no pueda ver? |\n|---|---|---|\n| Por compañía | Limita qué diarios ve y modifica según la compañía | Por sucursal, no. Podría influir si hay un problema de compañía |\n| Por sucursal, en diarios | Impide crear, modificar o borrar diarios de otra sucursal | No limita la lectura |\n| Por sucursal, en asientos y pagos | Limita cambios sobre registros de otra sucursal | No limita la lectura |\n| Por usuarios asignados al diario (son dos) | Actúan solo si el diario tiene usuarios cargados | No: los diarios de venta no tienen |\n| Filtro en las búsquedas de diarios | Al buscar diarios, muestra los que no tienen sucursal y los de tus sucursales | Oculta el diario Sur en esas búsquedas, pero por sí solo no impide abrirlo desde una factura |\n\nNo sé si ese último filtro tiene que ver con el error. Tampoco sé por qué el seguimiento muestra menos facturas que el libro mayor.\n\n**Qué decirle al cliente por ahora**\n\n> «Pudimos reproducir el error al usar “Ver asientos” en una factura de la sucursal Sur, entrando desde el seguimiento del contacto. Estamos analizando la causa. Todavía no podemos confirmar a qué se debe. Les avisamos cuando tengamos el detalle.»\n\nNo le diría que es por falta de permiso ni que en la versión 16 los controles eran más livianos.\n\n**Cómo sacar el detalle del error** (en Chrome)\n\n1. Con Encargado Norte, repetí el recorrido hasta la factura, sin tocar todavía «Ver asientos».\n2. Apretá F12, abrí la pestaña **Red** (*Network*) y elegí el filtro **Fetch/XHR**.\n3. Limpiá la lista y activá **Conservar registro** (*Preserve log*).\n4. Tocá los tres puntitos y «Ver asientos», hasta que salga el error.\n5. Hacé clic en cada pedido nuevo y mirá su **Respuesta** (*Response*), hasta encontrar la que tiene `\"error\"`. Puede no aparecer en rojo.\n6. Copiá la respuesta completa, sobre todo lo que está dentro de `\"data\"`, incluido `\"debug\"`. Ese texto largo muestra dónde falló.\n7. Pasámelo junto con el texto del error en pantalla y las compañías que estaban seleccionadas.\n\nPuede traer datos del cliente, así que compartilo solo por los canales internos que correspondan. No mandes el archivo HAR ni uses «Copiar como cURL»: pueden incluir los datos de la sesión.\n\n**Una prueba más:** con el mismo usuario y las mismas compañías, abrí esa factura desde el libro mayor de Contabilidad y tocá «Ver asientos». Anotá si funciona; si falla, copiá el detalle de la misma forma. Eso ayuda a saber si el problema depende del camino. Por ahora no cambiaría permisos ni le asignaría la sucursal Sur, porque eso podría dejarle también publicar y modificar ahí.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12534,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2155,
+  "output_tokens_details": {
+   "thinking_tokens": 680
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12534,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2155,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12534,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12534
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "59dca4ad6b",
+  "persona": "actualizacion"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que ser admin de sistema. Se verifica con `res.users.has_group(uid, 'base.group_system')` y, si no lo es, se lanza `ValueError`. Antes de eso, el flujo autentica en Odoo con las credenciales.",
+  "Vincula en modo `auto` por defecto si `current_user.email == odoo_login`: vincula al que conecta con `admin_uid`, el usuario de las credenciales. Deja sin asignar `odoo_user_id` en modo `none`, que es el modo por defecto si el email y el login no coinciden. También existe el modo `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, se verifica que ese `res.users` exista y se vincula al que conecta con él. El vínculo se aplica solo al miembro que está conectando. No dice si se puede forzar `none` cuando los emails coinciden o `auto` cuando no coinciden. Si la URL no cambia, el texto deduce que en `none` se conservaría un vínculo anterior, porque el pseudocódigo no lo borra, y aclara que conviene confirmarlo en el código.",
+  "Se borran `odoo_user_id` y `odoo_api_key` de todos los miembros, incluido el owner, porque esas identidades pueden ser de otra instancia. En modo `auto` o `manual` se vuelve a vincular solo al que conecta; en `none` no se vuelve a vincular a nadie. El fragmento no muestra que se restauren los vínculos de los demás. Las credenciales del workspace quedan siendo las nuevas, porque la limpieza es sobre los miembros. La respuesta informa la invalidación en `members_invalidated`. No dice si un cambio de `odoo_db` con la misma URL cuenta como cambio, si las URLs se normalizan ni si la primera conexión cuenta como cambio."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "c7021ac373",
+  "control": "d70443294a"
+ }
+}

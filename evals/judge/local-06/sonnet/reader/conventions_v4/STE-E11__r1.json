@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo se promueve de `staging` a `main`? Si no lo tiene y la migración se saltea, ¿dónde lo verifico, y qué hago para que se aplique sin romper las instancias que todavía usan la columna?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo lo verifico? ¿Cómo se promueve de `staging` a `main`? Si en prod falta el flag y la migración queda salteada, ¿cómo y cuándo se aplica después?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El environment de producción tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? ¿Dónde lo verifico, y cómo se promueve el cambio de `staging` a `main` hasta llegar a prod? Si falta el flag y la migración se saltea, quiero saber cómo me entero y cómo se aplica después."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, y cómo se promueve de `staging` a `main`? Si no lo tiene y la migración se saltea, ¿dónde lo verifico, y qué hago para que se aplique sin romper las instancias que todavía usan la columna?",
+ "followup_answer": "**No sé si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` ni cómo se promueve de `staging` a `main`.** El material no lo dice y no revisé el repo ni la configuración. Buscá la promoción en `docs/infra-ci-cd.md` y en los workflows de CI, o preguntale a quien maneja los deploys. Que el runner acepte las ramas `staging` y `main` no prueba cuál va a prod ni cómo se pasa de una a otra.\n\n**Cómo verificarlo**\n1. **Flag y rama:** mirá las variables del servicio de prod donde esté configurado (si es Railway, en ese environment). Confirmá el flag y que el deploy tenga `RAILWAY_GIT_BRANCH` en `staging` o `main`.\n2. **Registro:** en la base de prod, con acceso de lectura, buscá el nombre de tu archivo en `_migrations`:\n   ```sql\n   SELECT * FROM _migrations;\n   ```\n3. **Columna:** comprobá si todavía existe:\n   ```sql\n   SELECT table_schema, column_name, is_nullable, column_default\n   FROM information_schema.columns\n   WHERE table_name = '<tabla>' AND column_name = '<columna>';\n   ```\n\nQue el archivo no figure en `_migrations` no prueba que falte el flag. También puede que el deploy no haya llegado, que haya fallado antes o que la rama no cumpla. Revisá el log del deploy; no sé qué mensaje deja el runner cuando saltea un archivo.\n\n**Cómo dropear sin romper instancias**\n\nSeparalo en dos entregas. La marca controla dónde se aplica el archivo, pero el material no dice que espere a que se apaguen las instancias viejas.\n\n1. **Primer PR, sin el drop:** sacá todo uso de la columna: lecturas, escrituras, consultas, jobs y scripts. Revisá también los `SELECT *` y los modelos que la declaren.\n   - Si es `NOT NULL` sin valor por defecto, los `INSERT` fallan cuando el código deja de escribirla. En ese caso, sumá una migración que le ponga un valor por defecto o quite el `NOT NULL`, según lo que admitan los datos y el código viejo.\n   - Si esa migración es compatible con el código viejo, va sin marca. Eso significa que el preview la aplica en la base de staging.\n2. **Entre los dos:** desplegá el primer PR en staging y prod. Confirmá que no queden instancias, workers ni crons con código viejo. Tené en cuenta los PR envs con ramas que todavía usen la columna, y que un rollback a una versión anterior dejaría de funcionar después del drop.\n3. **Segundo PR:** agregá el drop con `-- destructive: true`. Mantené la marca porque en la base compartida todavía puede haber código que use la columna. La marca evita que el preview la aplique, pero el deploy de `staging` sí puede hacerlo, así que esas ramas tienen que estar resueltas antes de mergear.\n\nSi tu PR actual junta el cambio de código y el drop, sacá el drop y dejalo para el segundo.\n\n**Si falta el flag en prod,** no lo actives hasta completar el paso 2, y coordinalo con quien administra prod. Por el contrato descripto, habilita todas las migraciones destructivas pendientes, no solo la tuya, así que revisalas antes. Después hace falta correr el runner mediante un deploy que cumpla la condición de rama. No apliques el SQL a mano como atajo: el drop podría quedar hecho sin su registro en `_migrations`.\n\nSi el drop **ya está mergeado**, no des por hecho que sigue pendiente: verificá el registro y la columna antes del próximo deploy. Si sigue pendiente en prod pero el flag está activo, frená la promoción hasta completar los pasos 1 y 2. Si el primer cambio todavía no está en prod, asegurate de que pueda llegar sin arrastrar el drop.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12317,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2332,
+  "output_tokens_details": {
+   "thinking_tokens": 938
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12317,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2332,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12317,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12317
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "27d8461915"
+ }
+}

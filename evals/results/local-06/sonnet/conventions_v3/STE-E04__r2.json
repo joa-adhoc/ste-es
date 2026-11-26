@@ -1,0 +1,47 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "`replace` (el modo por defecto) pisa el valor completo de cada campo que mandás. `append` conserva lo que hay en los campos `html` y `text` y agrega lo nuevo abajo, registro por registro; los demás tipos de campo se reemplazan igual en los dos modos.\n\nSi te piden *agregar* o *completar*, va `append` con **solo el contenido nuevo**:\n\n```\nodoo_write(..., values={\"description\": \"<p>Texto nuevo</p>\"}, mode=\"append\")\n```\n\nCon `replace`, ese mismo pedido borraría lo que escribió una persona. En prosa larga (`description`, `task_description`, notas internas) no se recupera, porque el chatter no guarda el valor anterior.\n\nSobre `append`:\n- **HTML:** concatena el HTML crudo, así que se conservan los links a registros, las clases y las imágenes embebidas. En campos `text`, separa con una línea en blanco.\n- **Campos vacíos:** un `<p><br></p>` cuenta como vacío, y un campo con solo una imagen cuenta como contenido.\n- **Lectura previa:** antes de escribir, lee el valor actual. Si falla esa lectura o no puede resolver el schema, devuelve `append_precheck_failed` y no escribe. `replace` no hace esta lectura.\n- **Valores que no son texto:** `{\"description\": false}` en un campo `html` o `text` se rechaza con `append_requires_text`. Para vaciar el campo, usá `replace`.\n\n**Si falla a mitad de camino:** `append` hace un write por registro, no una transacción, así que lo ya escrito **no se revierte**. Depende de dónde falla:\n\n- **En el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción propagada), y podés reintentar la llamada entera.\n- **Después de haber escrito alguno:** devuelve `append_partially_applied` con:\n  - `written_ids`: ya escritos. No los reintentes, porque duplicarías el contenido.\n  - `failed_id`: el que falló. No se escribió.\n  - `pending_ids`: los que tenés que reintentar. **Ya incluye `failed_id`**.\n\nPor ejemplo, con los ids `[10, 11, 12, 13]` y una falla en `12`, tenés `written_ids=[10, 11]`, `failed_id=12` y `pending_ids=[12, 13]`. Reintentás solo con `[12, 13]`, después de corregir la causa del error si hace falta.\n\nEn un parcial, los ids escritos también quedan registrados en `tool_usage_log.write_metadata`, con `partial: true`, para poder auditarlo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11047,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 921,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11047,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 921,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11047,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11047
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según una deducción del material, que no se reprodujo ni se verificó en la base: al volver a confirmar P00231, Odoo estándar crea una recepción nueva. Como las 2 unidades de la línea ya figuran recibidas, no quedaría nada pendiente y la recepción quedaría sin movimientos. Odoo intenta borrarla con `created_receipt.unlink()`. «Recepciones» tiene `block_picking_deletion` = True, así que `stock_ux` (`_check_block_picking_deletion`) lanza el error aunque el traslado esté en borrador. La confirmación falla. El traslado que se intenta borrar no sería la recepción 412.",
+  "El texto no dice quién lo hizo. Relata que el 11/11 la orden se confirmó, figuró con 2 unidades recibidas y se validó la recepción 412. Después se canceló y volvió a borrador, y la 412 siguió en Hecho. Al confirmar de nuevo se daría la falla. No dice para qué se canceló; sugiere preguntárselo al cliente.",
+  "Probar primero en una copia de la base, porque la solución no está probada. Antes de confirmar, revisar que la línea siga en 2 unidades, que no haya líneas nuevas y que el movimiento hecho de la 412 siga vinculado a esa línea; anotar el stock del producto y las cantidades recibidas y facturadas. Desactivar «Bloquear eliminación de traslados» en «Recepciones» en un momento de poco uso, porque afecta a todo ese tipo de operación. Confirmar P00231 y, si queda pendiente de aprobación, aprobarla con el bloqueo todavía desactivado. Volver a activar el bloqueo, también si la confirmación falla. Verificar que la orden quedó como Orden de compra; que la única recepción vinculada es la 412, sigue en Hecho y no apareció otra; que la línea sigue con 2 recibidas y 2 facturadas y el stock no cambió; y que BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden. Si en la copia queda una recepción nueva con movimientos, no aplicarlo en producción, porque validarla podría duplicar el stock. En la copia, mirar también qué más cambia al confirmar, como la fecha de confirmación o los avisos enviados. No tocar la 412 ni la factura, no hacer devoluciones ni notas de crédito, no duplicar la orden y no cambiar el estado por SQL. Además, el texto indica revisar las reglas de la empresa antes de operar la base o responderle al cliente, y no recomienda volver a cancelar la orden hasta revisar aparte por qué se pudo cancelar con una recepción hecha. Conviene preguntar al cliente para qué se canceló, porque si quería corregir precio, cantidad o anular la compra, confirmar la orden tal como está puede no alcanzar."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d3fdd1b74e",
+  "control": "cf4a8527a9"
+ }
+}

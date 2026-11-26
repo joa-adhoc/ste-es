@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline separa solo el DROP COLUMN y lo manda en el tren siguiente, o si mi PR tiene todo junto sale el jueves? La tabla da por hecho que el borrado sale el martes, pero después decís que \"el extracto\" no lo aclara. ¿Dónde lo verifico (archivo o config del pipeline, o a quién le pregunto) antes del tren de mañana a las 9? Si no lo separa, ¿cómo saco solo esa migración de staging?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline posterga solo el `DROP COLUMN` al tren siguiente, o si mi PR queda como está sale junto con el código el jueves a las 9:00? Si no lo sabés, ¿dónde o con quién lo confirmo antes de que salga ese tren?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline posterga solo el `DROP COLUMN` al tren del martes, o va a salir el jueves junto con el código? Si no se sabe, ¿dónde o con quién lo confirmo antes de mañana a las 9? La tabla y la primera oración dan por hecho que se posterga, pero después decís que «el extracto» no lo dice, y yo no sé qué extracto es."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El pipeline separa solo el DROP COLUMN y lo manda en el tren siguiente, o si mi PR tiene todo junto sale el jueves? La tabla da por hecho que el borrado sale el martes, pero después decís que \"el extracto\" no lo aclara. ¿Dónde lo verifico (archivo o config del pipeline, o a quién le pregunto) antes del tren de mañana a las 9? Si no lo separa, ¿cómo saco solo esa migración de staging?",
+ "followup_answer": "**No sé si el pipeline separa el `DROP COLUMN`, así que no cuentes con eso.** Mi tabla estuvo mal al dar el borrado el martes como un hecho. El extracto dice que el borrado debe ir en el tren siguiente, pero no quién lo garantiza: el pipeline o el autor del PR. El directorio de trabajo está vacío, así que no pude revisar el pipeline. Hasta confirmarlo, asumí que todo junto puede salir mañana a las 9:00.\n\n## Dónde verificarlo\nCorré esto en tu repo. La ruta `.github/workflows/` la supongo porque el extracto menciona `workflow_dispatch`.\n\n```bash\ngit fetch origin\ngit show origin/main:.github/workflows/release-train.yml\ngit show origin/staging:.github/workflows/release-train.yml\ngit grep -niE 'drop.?column|destructive|contract|migrat' origin/staging -- .github scripts docs\n```\n\nSeguí los scripts que llame el workflow. Para confiar en la separación, tenés que ver **la lógica que posterga el `DROP`**, no solo un comentario o la regla escrita. Si no la encontrás, preguntale a quien mantenga el pipeline. El extracto no dice quién es; jjs figura solo como quien aprueba releases manuales, pero podés pedirle que te derive.\n\n## Si no lo separa o no llegás a confirmarlo\nAntes de las 9:00, sacá el `DROP` con un PR nuevo, sin reescribir la historia de `staging`:\n\n```bash\ngit switch -c fix-postergar-drop-lang origin/staging\n# editá la migración: sacá solo el borrado de members.lang\n```\n\n- **Qué se queda:** el alta de `locale` y el código que deja de usar `lang`. Si hay una copia de datos de `lang` a `locale`, también se queda. Revisá además que la versión vieja y la nueva funcionen mientras conviven, por ejemplo si la vieja sigue escribiendo solo en `lang`.\n- **Cómo editar:** si el `DROP` está en un archivo propio, sacá ese archivo. Si comparte archivo con el alta, sacá solo esa operación. Revisá también snapshots, metadata o rollback que genere tu herramienta de migraciones.\n- **Si ya corrió en staging:** editar o hacer revert del código no recupera la columna ni sus datos en esa base. Cambiar una migración aplicada también puede romper el historial o los checksums. Consultá cómo lo maneja tu herramienta antes de mergear.\n- **Plazo:** el PR tiene que estar mergeado en `staging`, con el CI verde, antes de las 9:00.\n\n**Si no llegás con ese arreglo**, hacé un PR que revierta tu PR completo (`git revert <sha>`, o `git revert -m 1 <sha>` si es un merge commit estándar). Si se mergeó con varios commits y sin merge commit, revertilos todos. Vale la misma advertencia sobre migraciones aplicadas. Si tampoco llegás con el revert, avisá antes del tren a quien mantenga el pipeline para que lo frene. No cuentes con un CI rojo como solución: solo posterga el tren, y en el siguiente puede salir todo junto.\n\n## El borrado, después\nSi sacaste solo el `DROP`, volvé a agregarlo en otro PR **después de comprobar que el código nuevo está desplegado en prod**. No alcanza con que sean más de las 9:00. Usá una migración nueva si tu herramienta no ejecutaría la anterior. Si entra a `staging` antes del martes a las 9:00, con el CI verde, puede salir en ese tren.\n\nSobre la fecha, mi sesión sigue marcando jueves 26/11. Antes de hacer nada, confirmá en el historial de ejecuciones del workflow que el tren del jueves todavía no salió.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11499,
+  "cache_read_input_tokens": 46272,
+  "output_tokens": 2524,
+  "output_tokens_details": {
+   "thinking_tokens": 1021
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11499,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2283,
+    "cache_read_input_tokens": 28762,
+    "cache_creation_input_tokens": 247,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 247
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2b5026a67f"
+ }
+}

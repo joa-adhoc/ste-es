@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en palabras simples las notas de \"Antes de enviarlo\" y qué tengo que hacer antes de mandar el borrador? No entiendo qué son \"mrp\", \"producto no almacenable\", los \"packs\" del conector, el \"redondeo de Saliente\", \"OCA\", \"sale_order_type\" ni \"sale_order_type_automation\". Decime para cada pendiente a quién se lo pido, quién hace la prueba del kit y si puedo enviar el texto al cliente así como está. En particular, el borrador recomienda los tipos de pedido sin saber con qué módulo se hacen y dice que al vender se descuenta el stock publicado, aunque las notas avisan que con kits podría no publicarse o publicarse de más."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en palabras simples las notas de \"Antes de enviarlo\"? No entiendo qué es `mrp`, un producto \"no almacenable\", `sale_order_type` ni `sale_order_type_automation`, ni por qué el redondeo de \"Saliente\" daría 5 packs en vez de 4. Decime también si el borrador se puede enviar así al cliente o qué tengo que confirmar antes, y a quién se lo pido. En particular, ¿el riesgo con los kits (que no se publique el stock o que se publique de más) cambia lo que le digo al cliente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en palabras simples las notas de \"Antes de enviarlo\"? No entiendo qué es \"mrp\", qué es un producto \"no almacenable\" o un \"pack\" para el conector, qué son \"sale_order_type\", \"sale_order_type_automation\", OCA y Adhoc, ni cómo el redondeo de \"Saliente\" haría publicar 5 packs en vez de 4. Decime qué tengo que resolver antes de mandarle el borrador al cliente, a quién le pido cada cosa y si las respuestas 2 y 4 se pueden enviar así. En particular, la 4 dice que \"recomendamos los tipos de pedido de venta\" sin saber todavía con qué módulo se hace."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás en palabras simples las notas de \"Antes de enviarlo\" y qué tengo que hacer antes de mandar el borrador? No entiendo qué son \"mrp\", \"producto no almacenable\", los \"packs\" del conector, el \"redondeo de Saliente\", \"OCA\", \"sale_order_type\" ni \"sale_order_type_automation\". Decime para cada pendiente a quién se lo pido, quién hace la prueba del kit y si puedo enviar el texto al cliente así como está. En particular, el borrador recomienda los tipos de pedido sin saber con qué módulo se hacen y dice que al vender se descuenta el stock publicado, aunque las notas avisan que con kits podría no publicarse o publicarse de más.",
+ "followup_answer": "**No mandes el borrador así como está.** El punto 2 da por válido para los packs un descuento de stock que no está confirmado, y el 4 recomienda una automatización sin saber con qué módulo se hace. Con los cambios de abajo podés mandar una respuesta parcial, que diga qué falta confirmar.\n\n## Las notas en palabras simples\n\n- **mrp:** es el nombre técnico de Fabricación en Odoo. Ahí se define el kit: \"1 pack = 4 patas\".\n- **Producto no almacenable:** es un producto al que Odoo no le lleva stock propio. Un pack puede estar cargado así, porque lo que se guarda son las patas.\n- **\"Packs\" del conector:** el conector saltea los productos no almacenables, pero hace una excepción con lo que llama \"packs\". El material no dice si un kit de Odoo entra ahí. Si no entra y tu pack es no almacenable, su stock no se publicaría.\n- **Redondeo de Saliente:** es un riesgo que planteo de memoria, sin verificar. \"A la mano\" es lo que hay, y \"Saliente\", lo que está por salir. Si Odoo convierte cada número a packs por separado y redondea para abajo:\n  - Hay 20 patas, que son 5 packs.\n  - Están por salir 3 patas, que dan 0 packs completos.\n  - La resta da 5 packs, pero quedan 17 patas y solo se pueden armar 4.\n- **OCA:** Odoo Community Association, una comunidad que publica módulos para Odoo.\n- **sale_order_type y sale_order_type_automation:** son nombres de posibles módulos. El primero agregaría tipos de pedido de venta, y el segundo, acciones automáticas según el tipo. No verifiqué que sirvan para tu caso, así que no se los nombres al cliente.\n- **Manual y código:** el manual explica el permiso de Ajustes como lectura, pero el conector también crea cosas en la base. Hay que corregir el manual.\n\n## Pendientes\n\nEl material no dice quién se ocupa de cada tema; estos son los perfiles que buscaría.\n\n| Pendiente | A quién pedírselo | Qué pedirle |\n|---|---|---|\n| IP | Infraestructura de Odumbo | Desde qué direcciones se conecta, si son fijas y cómo se avisan los cambios |\n| Kits | Quien mantiene el conector | Qué considera \"pack\" y si incluye un kit de Odoo |\n| Cambio de módulo | Implementación o soporte de Odumbo, con alguien que conozca el módulo actual del cliente | Pasos para el corte, desde qué fecha importa ventas y cómo evita duplicar ventas y facturas |\n| Módulo de Odoo 17 | Un funcional o dev que conozca Odoo 17 Enterprise | Qué módulos usar y probar que funcionen con las ventas de Odumbo |\n| Datos y baja | Responsable de privacidad o legales, con ayuda técnica | Qué se guarda, para qué, cuánto tiempo y qué pasa en la baja |\n| Manual | Quien lo mantiene | Aclarar que el conector también crea cosas en la base; no frena la respuesta |\n\n## Prueba del kit\n\nTe propongo que la coordines vos y la haga un dev o funcional con acceso a una base de prueba con Odumbo conectado. No la haría el cliente ni en producción, porque se puede publicar stock equivocado. Si la publicación de Mercado Libre es real, el riesgo existe aunque la base sea de prueba.\n\n1. Armar un pack de 4 patas, cargado como el del cliente, con 20 patas en la ubicación configurada y sin otros movimientos.\n2. Confirmar una entrega de 3 patas sueltas, sin validarla. Odumbo debería publicar **4 packs**.\n3. Vender 1 pack y confirmar la venta. La entrega debería ser de 4 patas y Odumbo debería publicar **3 packs**.\n4. Validar solo la entrega de ese pack. Deberían quedar 16 patas a la mano y seguir publicados 3 packs.\n\nSi no publica nada o aparece otro número, pasale el resultado a quien mantiene el conector.\n\n## Cambios antes de enviar\n\n**En el punto 1**, reemplazá el párrafo de las IP por:\n\n> Todavía no tenemos confirmadas las direcciones IP desde las que se conecta Odumbo. El manual indica que los datos técnicos para el firewall se piden con un ticket.\n\nSaqué el consejo de no restringir el acceso: no tiene respaldo, y esa decisión de seguridad es del cliente.\n\n**Reemplazá todo el punto 2 por:**\n\n> **2. Kits.** Todavía no podemos confirmar cómo funciona Odumbo con kits: si publica su stock, si la cantidad es correcta ni cómo cambia al vender un pack. Hasta probarlo, recomendamos no depender de Odumbo para el stock de sus packs.\n\n**En el punto 4**, reemplazá el último párrafo por:\n\n> El manual recomienda los tipos de pedido de venta para que la factura salga al confirmar la venta. Todavía no tenemos confirmado qué módulo se necesita en Odoo 17 Enterprise, así que no cuenten por ahora con esa automatización.\n\nCopiá solo los puntos 1 a 5 con estos cambios, sin mi introducción ni \"Antes de enviarlo\". No hace falta cerrar los pendientes para mandar esta versión parcial, pero sí antes de darlos por resueltos. No agregué una fecha ni la promesa de volver con las respuestas; sumalas solo si alguien se hace cargo.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13233,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3686,
+  "output_tokens_details": {
+   "thinking_tokens": 1723
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13233,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3686,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13233,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13233
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c4f31fa0d3",
+  "persona": "comercial"
+ }
+}

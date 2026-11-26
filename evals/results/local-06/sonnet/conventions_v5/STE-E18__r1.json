@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El modelo guarda una memoria con la tool `manage_memory`. Desde ahí, su título y un resumen (o el comienzo del texto) se inyectan en el system prompt de cada turno. Esto sale solo del material que pegaste; no lo contrasté con el código.\n\n1. **Guardado y alcance:** la memoria queda en un alcance (*scope*), que puede ser del usuario (personal) o del workspace (compartida con el equipo).\n\n2. **Entrada al prompt:** en `_load_chat_setup` (`tuqui_core/chat/agent.py`), las memorias van después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las del workspace y después las personales. De cada una entra un encabezado: el título más el resumen o, si no tiene, hasta 250 caracteres del cuerpo. Cada línea lleva además una etiqueta, como `[general]`, y el id.\n\n3. **Lectura completa:** si no hay resumen y el cuerpo pasa los 250 caracteres, el encabezado termina en `[read]`. Cuando el modelo necesita todo el contenido, lo pide con `manage_memory(action='read', id=...)`.\n\nCuando hay muchas, actúan dos límites distintos:\n\n- **Cantidad guardada:** el máximo es de 50 por alcance, es decir, 50 por usuario y 50 por workspace. Al agregar la número 51, se borra en la misma transacción la más vieja según `created_at`. Es un FIFO: lo que cuenta es cuándo se creó, no cuánto se usa. El material lo llama borrado silencioso, aunque aclara que el modelo recibe un aviso en la respuesta de la tool. No dice que se le avise a la persona.\n- **Tamaño en el prompt:** si los encabezados suman más de `_MEMORY_BUDGET_CHARS` (12.000 caracteres, unos 3.000 tokens), `rapidfuzz` los puntúa contra el mensaje actual y entran solo los mejores N. Según el material, quedar afuera por esto no borra la memoria: el filtro actúa sobre lo que se inyecta, así que con otro mensaje puede entrar. Como la comparación es por similitud de texto, infiero que una memoria relevante pero escrita con otras palabras podría quedar afuera.\n\nEl material estima unos 3.000 tokens por turno para 50 memorias de tamaño máximo. Pero el tope de 50 es por alcance, y un chat puede cargar las del usuario y las del workspace, hasta 100. No aclara si esa estimación ni el límite de 12.000 caracteres se aplican a cada alcance o al total. Tampoco dice cómo se define N, si el resumen tiene un largo máximo, ni si editar una memoria cambia su lugar en la cola de borrado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10758,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 964,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10758,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 964,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10758,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10758
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

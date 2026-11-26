@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Sí, podés indicar la factura en el recibo con la columna `to_pay_move_line_ids/id`. Según el código descripto, al confirmar se concilia contra esos apuntes hasta donde alcance lo que cubre el pago. No se probó importando en la base del cliente.\n\nNo pude crear los archivos porque no se otorgó el permiso de escritura. Copiá cada bloque en un `.csv` (UTF-8, separado por comas) y reemplazá todo lo que está entre `< >`. Los importes, fechas y números de cheque son de ejemplo.\n\n**`recibos.csv`**\n```csv\npartner_type,payment_type,partner_id/id,date,journal_id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,<ID_CLIENTE>,2026-11-26,<DIARIO>,<ID_METODO>,118000.00,\"<ID_APUNTE_1>,<ID_APUNTE_2>\",<ID_IMPUESTO_RET>,<NRO_CERTIFICADO>,100000.00,3000.00\n```\n\n**`pagos_proveedores.csv`**\n```csv\npartner_type,payment_type,partner_id/id,date,journal_id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nsupplier,outbound,<ID_PROVEEDOR>,2026-11-26,<DIARIO>,<ID_METODO>,118000.00,\"<ID_APUNTE_1>,<ID_APUNTE_2>\",<ID_IMPUESTO_RET>,,100000.00,3000.00\n```\n\n**`recibos_cheques.csv`** (un recibo con dos cheques)\n```csv\npartner_type,payment_type,partner_id/id,date,journal_id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount\ncustomer,inbound,<ID_CLIENTE>,2026-11-26,<DIARIO_CHEQUES>,<ID_METODO_CHEQUES>,<ID_APUNTE_1>,<ID_IMPUESTO_RET>,<NRO_CERTIFICADO>,100000.00,3000.00,00000001,2026-12-15,,,60000.00\n,,,,,,,,,,,00000002,2027-01-15,,,58000.00\n```\n\n**Cómo completarlos**\n- **Obligatorios:** las primeras seis columnas. El talonario se calcula solo. Con cheques no va `amount`, porque es la suma de los cheques; cada cheque tiene que ser mayor a 0.\n- **Más cheques o retenciones:** agregá una fila debajo y completá solo las columnas de esa línea. Si no hay retención, dejá sus cuatro columnas vacías.\n- **Banco y CUIT:** si quedan vacíos, salen del cliente. Si el cheque es de un tercero, completalos.\n- **Identificadores:** contacto, método e impuesto van con su identificador externo. En el diario va el nombre exacto.\n- **Deudas:** en Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (o a pagar) y exportá con la opción «compatible con importación». Usá el identificador del apunte, no el de la factura. Si hay varios, van separados por coma y entre comillas. Las cuentas tienen que ser compatibles.\n- **Retenciones en pagos:** se calculan solas según la posición fiscal, y el número se asigna al confirmar. No sé si la importación respeta, reemplaza o duplica la línea cargada.\n\n**Antes de importar todo**\n- Los nombres de las columnas internas de cheques y retenciones (lo que sigue a la primera `/`, como `base_amount` o `issuer_vat`) no figuran en el material: los puse según lo que conozco de Odoo. Confirmalos en la pantalla de importación y usá **Probar**.\n- Probá con un registro de cada archivo, idealmente en una base de prueba. Quedan en borrador.\n- Antes de confirmar, revisá que en Deudas esté **solo la factura elegida**. En borrador, cambiar cliente, compañía o tipo recalcula con toda la deuda abierta, y falta comprobar que la importación respete tu selección. No dejes esa columna vacía si querés saldar una factura puntual.\n- Revisá también retenciones y totales. En el ejemplo supuse que 118.000 de pago o cheques más 3.000 de retención cubren una deuda de 121.000.\n\nEl archivo de cheques es para cobros a clientes. Para pagar con cheques propios nuevos se usan las mismas columnas de cheques, con `supplier`, `outbound` y el diario y método que correspondan; revisá en ese caso qué banco y CUIT quedan. Estas plantillas no cubren la entrega a proveedores de cheques de terceros ya recibidos.\n\nNo tuve disponible `tuqui-adhoc`, así que me basé en tu material y no consulté tu identidad ni las reglas de la empresa. Para darlo de alta, la guía es `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15517,
+  "cache_read_input_tokens": 77733,
+  "output_tokens": 6407,
+  "output_tokens_details": {
+   "thinking_tokens": 2116
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15517,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2244,
+    "cache_read_input_tokens": 31626,
+    "cache_creation_input_tokens": 1401,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1401
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

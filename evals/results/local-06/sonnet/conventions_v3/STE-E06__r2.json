@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Lo más probable es que los dos worktrees usen la misma DB local y una migración de la otra rama haya cambiado el esquema, por ejemplo borrando una columna que tu código todavía lee. Por eso fallan tests que no tocaste. Lo deduzco del material, pero no lo verifiqué en tu máquina. Para confirmarlo, buscá la columna del error en las migraciones de la otra rama.\n\nEl lock (`flock`) no evita esto. Impide que dos corridas de tests se pisen al mismo tiempo, pero no separa el esquema: la DB queda con las migraciones de las dos ramas.\n\n## Arreglo: una DB propia para tu worktree\n\n1. Si no tenés el archivo de override, crealo a partir del ejemplo. `-n` evita pisar uno existente:\n   ```bash\n   cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local\n   ```\n2. En `tuqui_core/.env.test.local`, apuntá a una base con un nombre exclusivo de este worktree. Usá las variables que indica el `.example`. El material no dice si la base se crea sola o si tenés que crearla antes.\n3. **Antes del reset, confirmá a qué base apunta, porque `migrate-reset` la vacía.** El material dice que los *targets de test* cargan `.env.test.local`, pero no aclara si `migrate-reset` también. Revisalo en el `Makefile` y en `scripts/reset_database.py`. Si apunta a la base compartida, le borrás los datos a todo el que la use y podés romperle una corrida a tu compañero.\n4. Con el destino confirmado, armá la base desde cero con las migraciones de tu rama (tarda unos 3 segundos):\n   ```bash\n   make migrate-reset\n   ```\n5. Volvé a correr los tests con `make test`, o con el target que te fallaba. Si el `UndefinedColumnError` sigue con una base propia recién armada, revisá si a tu rama le falta una migración o si el test sigue usando otra base.\n\nNo uses `npx supabase db reset`: aborta en el primer prefijo de migración repetido, y hoy hay 25. `make migrate-reset` usa el mismo runner que CI y deploy, y solo toca bases locales.\n\n## Para que no te vuelva a pasar\n\nDejá el `.env.test.local` (está en el `.gitignore`) y repetí esta configuración en cada worktree nuevo, **con una base distinta en cada uno**. Pedile a tu compañero que haga lo mismo. Si copiás el archivo entre worktrees sin cambiar el nombre de la base, vuelven a compartirla.\n\n## Opcional: correr tests en paralelo\n\nCon la DB propia resolvés el choque de esquemas, pero las corridas siguen esperando el lock. **Dejalo así salvo que necesites correrlas en paralelo.** En ese caso, necesitás las tres cosas:\n\n- **DB propia.**\n- **Redis propio:** en `REDIS_URL`, usá un índice que no tenga otro worktree. No uses el 0 (server de desarrollo) ni el 15 (default compartido de `.env.test`).\n- **`TEST_LOCK` distinto:** cambialo solo cuando la DB y Redis ya estén separados. El cleanup borra filas globales como `users` y `workspaces`, y Redis también se comparte.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11034,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1641,
+  "output_tokens_details": {
+   "thinking_tokens": 481
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11034,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1641,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11034,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11034
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

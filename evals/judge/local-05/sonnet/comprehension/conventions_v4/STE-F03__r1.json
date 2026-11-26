@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al confirmar de nuevo P00231, Odoo crea otra recepción e intenta borrarla (`created_receipt.unlink()`). El texto infiere que queda sin movimientos porque las 2 unidades ya figuran recibidas. `stock_ux` impide el borrado porque el tipo de operación «Recepciones» tiene activado `block_picking_deletion`, y eso alcanza para dar el error sea cual sea el estado del traslado. No intenta borrar la 412 (WH/IN/00098). El texto aclara que esta explicación sale de cruzar los datos con el código descrito y que no se reprodujo.",
+  "El 11/11 la orden se confirmó (12:26) y se registraron las 2 unidades recibidas (12:27). El mismo usuario la canceló (13:26) y la volvió a solicitud de cotización (13:27), mientras la 412 seguía en Hecho. El error se explica al confirmarla de nuevo. El texto no dice por qué se canceló y propone preguntárselo al cliente. Tampoco dice por qué se pudo cancelar una orden con una recepción hecha.",
+  "El texto no nombra a un analista, pero propone estos pasos, primero en una copia neutralizada de la base: 1) Confirmar con el cliente por qué canceló la orden y si corresponde confirmarla tal como está. 2) Anotar el stock del producto, las recepciones y movimientos de la orden, las cantidades de la línea y los datos de la factura. 3) Desactivar «Bloquear eliminación de traslados» en el tipo de operación «Recepciones». 4) Confirmar P00231. 5) Volver a activar la opción, también si la confirmación falla. 6) Comparar con lo anotado: la orden queda confirmada (si queda pendiente de aprobación, todavía falta ese paso); la 412 sigue en Hecho y no aparecen recepciones ni movimientos nuevos; el stock no cambia; la línea sigue con 2 pedidas, 2 recibidas y 2 facturadas; BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la línea. La fecha de confirmación puede cambiar, así que hay que revisar si afecta algún reporte. La prueba puede fallar, porque sin el bloqueo `stock_ux` todavía impide borrar traslados que no estén en borrador o cancelados. Si falla o algo no coincide, no se aplica en producción. En producción hay que hacerlo en un momento de poca actividad, porque mientras la opción esté desactivada otros usuarios pueden borrar traslados en borrador o cancelados de «Recepciones». Para regularizar, el texto indica evitar borrar o devolver la 412, anular la factura o cargar otra orden por la misma compra. Quien lo escribe agrega que tampoco cambiaría las cantidades ni forzaría estados por SQL."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "5bd35f691c",
+  "control": "cf4a8527a9"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que quedar en `supabase/migrations/`, con el nombre `NNNN_descripcion.sql`. Se crea con `supabase migration new <nombre>`, y hay que revisar el nombre generado antes de abrir el PR.",
+  "Según el texto, la tabla lleva `workspace_id`. La migración tiene que habilitar RLS con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y tener una policy con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, dentro de un bloque `DO $$` que la crea solo si no existe. RLS es la defensa principal, así que el aislamiento no debe quedar solo en un filtro por `workspace_id` en la aplicación. Si la tabla no lleva `workspace_id`, es una excepción y hay que discutirlo antes de crearla.",
+  "Porque el preview del PR corre las migraciones sobre la misma base de staging, no sobre una copia, usando el `DATABASE_ADMIN_URL` de staging. La migración se aplica ahí al abrir el PR. Como el tracking es por nombre de archivo, si se renombra la migración se vuelve a aplicar, y todo tiene que poder correr varias veces sin error. Además, volver a correrla no actualiza una tabla, un índice ni una policy que ya existen. Por eso, editar esas sentencias no alcanza para cambiar staging, aunque no dé error, y conviene cerrar el diseño antes de abrir el PR."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "9f317734cc",
+  "control": "cb1718959b"
+ }
+}

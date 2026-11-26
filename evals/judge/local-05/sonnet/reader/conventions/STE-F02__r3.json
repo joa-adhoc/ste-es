@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? No entiendo qué son `account_ux`, `mail_autosubscribe` (ni por qué \"no lo incluirías\"), \"el que propone el ticket\", ni la diferencia entre \"Administración\" como C1 y como C2. Decime también desde qué menú se configuran el CC, el \"Responder a\", la preferencia de notificación y \"Agregar/Quitar seguidores\", y cuáles de esas cosas puedo hacer yo y cuáles tienen que pasar por Consultoría."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_ux`, `mail_autosubscribe` ni «el código que propone el ticket». Tampoco qué son «C1» y «C2»: ¿son el contacto y el usuario de Administración? Y decime en concreto, desde qué menú, cómo pongo el CC en las plantillas de los cinco diarios y cómo cambio la notificación de Administración, así sé qué puedo probar yo y qué va a Consultoría."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_ux` y `mail_autosubscribe` (¿hay que instalar o tocar algo?) ni a qué te referís con «Administración» C1 y C2 (¿un contacto y un usuario con el mismo correo?). Tampoco sé qué son las «reglas con acciones nativas» que «Agregan/Quitan seguidores»: ¿se pueden armar desde la pantalla o las tiene que hacer Consultoría, y por qué cuentan como personalización?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en términos de pantalla? No entiendo qué son `account_ux`, `mail_autosubscribe` (ni por qué \"no lo incluirías\"), \"el que propone el ticket\", ni la diferencia entre \"Administración\" como C1 y como C2. Decime también desde qué menú se configuran el CC, el \"Responder a\", la preferencia de notificación y \"Agregar/Quitar seguidores\", y cuáles de esas cosas puedo hacer yo y cuáles tienen que pasar por Consultoría.",
+ "followup_answer": "Los menús salen de lo que sé de Odoo estándar. **No los verifiqué en esta base**, y los nombres pueden variar según la traducción.\n\n## Qué es cada cosa\n\n**`account_ux`:** un módulo que agrega funciones a Contabilidad. Acá importa una: si el diario tiene plantilla de envío automático, al **confirmar (validar)** la factura el correo sale solo. Odoo además suma como **seguidor** al autor del envío, abajo o al costado de la factura, en el chatter. En el ejemplo, Usuario A la validó, y esa es la explicación más probable de por qué la sigue.\n\n**`mail_autosubscribe`:** un módulo de la comunidad (OCA) que agrega como seguidores a contactos de la **empresa que recibe** el documento. En una factura a «Cliente SA», serían contactos de Cliente SA. No lo propondría porque «Administración» no es uno de ellos, y agregar esos contactos no saca a vendedores ni a internos.\n\n**«El código que propone el ticket»:** la solución con programación que viene en el ticket. No vi el código; según el análisis anterior, sumaría a «Administración» como seguidora, pero Usuario A y los vendedores que ya estén **seguirían en la lista**.\n\n**Las dos «Administración»:** tienen el mismo correo, pero son registros distintos.\n\n| | C1 | C2 |\n|---|---|---|\n| Qué es | Un contacto, sin acceso a Odoo | El contacto del usuario interno «Administración» |\n| Dónde se ve | App Contactos | Ajustes → Usuarios (el usuario) y su contacto |\n| Si sigue la factura y hay una respuesta del cliente | Le corresponde recibir un correo | El aviso le queda en la bandeja de Odoo (Conversaciones) |\n| Facturas de 2026 que sigue (aprox.) | 500 | 4.600 |\n\nLo de recibir avisos supone que está suscripta a «Debates». En la lista de seguidores pueden verse con el mismo nombre, así que conviene abrir la ficha y confirmar cuál es.\n\n## Dónde se configura y quién lo hace\n\n| Qué | Dónde | ¿Consultoría? |\n|---|---|---|\n| **CC** y **Responder a** | Con modo desarrollador: Ajustes → Técnico → Correo electrónico → Plantillas de correo → abrir la plantilla → pestaña de configuración del correo | El material no lo indica |\n| **Tu preferencia de notificación** | Tu avatar, arriba a la derecha → Mi perfil o Preferencias → Notificación | El material no lo indica |\n| **Preferencia de C2** | Ajustes → Usuarios y compañías → Usuarios → «Administración» → Preferencias → Notificación: «Gestionar por correos» | El material no lo indica |\n| **Agregar/Quitar seguidores** como acción de servidor | Con modo desarrollador: Ajustes → Técnico → Acciones → Acciones de servidor | **Sí** |\n| Lo mismo en forma automática | Con modo desarrollador: Ajustes → Técnico → Automatización → Reglas de automatización (si está disponible en la base) | **Sí** |\n\n- **Qué podés hacer vos:** las acciones y reglas van por Consultoría. Para CC, «Responder a» y la preferencia de C2, no puedo confirmar que te correspondan: no conozco tu rol, tus permisos ni la política completa de Asistencia. Que el material no los mande a Consultoría no es una autorización. Antes de tocar producción, probalos en una copia (cuidando que no salgan correos a destinatarios reales) y acordá el cambio con el cliente.\n- **Qué plantilla abrir:** mirá cuál tiene cada uno de los cinco diarios en Contabilidad → Configuración → Diarios. No confirmé la pestaña ni el nombre del campo. Falta identificar también la de notas de crédito. Si la plantilla usa «destinatarios predeterminados», revisá si el campo CC se muestra y se aplica.\n- **«Responder a»:** sigue pendiente probar que el envío de facturas lo respete.\n- **Seguidores de una sola factura:** no hace falta crear una acción. Desde el ícono de seguidores del chatter se pueden agregar o quitar a mano, si tenés permiso. Sirve para un caso puntual o una prueba, pero no resuelve las facturas nuevas ni el histórico, y un envío posterior puede volver a sumar al autor.\n- **Para Consultoría:** las acciones sobre facturas se crean en el modelo de asientos contables (`account.move`), que incluye otros comprobantes. Hay que filtrarlas para que alcancen solo **facturas y notas de crédito de clientes**.\n\nLa recomendación no cambia: **derivar el pedido completo a Consultoría**. El CC puede servir mientras tanto para que Administración reciba copia de la factura, pero no hace que le lleguen las respuestas ni saca a nadie.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12646,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3938,
+  "output_tokens_details": {
+   "thinking_tokens": 2197
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12646,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3938,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12646,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12646
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1bd16e8ab5",
+  "persona": "soporte"
+ }
+}

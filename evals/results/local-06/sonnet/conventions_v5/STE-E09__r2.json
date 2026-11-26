@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El usuario conecta desde `/connectors`, el backend arma la autorización, el provider devuelve un `code` y el backend lo cambia por tokens. Si después algunas habilidades no contestan pero al menos una sí, el usuario **queda conectado** con un aviso de conexión parcial. Esto sale del material que pegaste; no lo contrasté con el código.\n\n### Alta previa (admin)\nEl admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n### Conexión (usuario)\n\n1. **Usuario → front:** abre `/connectors` y hace clic en **Connect** en el server.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve el `authorize_url`, que lleva un `state`.\n   - El `state` va protegido con AES-GCM y vence a los 10 minutos. El material lo llama \"firmado\".\n   - Contiene `server_id`, `user_id`, `issued_at` y `nonce`. Opcionalmente suma el `code_verifier` de PKCE y, en los conectores de plataforma, `scope_profile`.\n   - La URL incluye `access_type=offline` y `prompt=consent`. Google necesita los dos para emitir un refresh token: el primero lo pide y el segundo fuerza que lo emita en cada autorización. Así, desconectar y reconectar no deja al usuario sin refresh token. Según el material, los otros providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n4. **Front → provider:** redirige al usuario.\n5. **Provider → backend:** redirige el navegador a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** el backend valida el `state`, cambia el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n7. **Backend:** prueba las habilidades (ver la sección siguiente).\n8. **Backend → front:** redirige a la SPA, a `/w/{slug}/settings/connectors?connected={server_id}`. Si el dueño de la conexión es una cuenta de servicio, va a `/w/{slug}/settings/members/{member_id}?connected=...`. El destino depende del dueño; no hay un parámetro `return_to`.\n\n### Si algunas habilidades no contestan\nDespués del intercambio, el callback consulta en paralelo **todas las habilidades habilitadas**, como prueba de humo:\n\n| Resultado | Tokens | Qué ve el usuario |\n|---|---|---|\n| No contesta ninguna | Se borran | El redirect lleva `connect_error=<motivo>` y la card muestra un banner de error. |\n| Contesta al menos una, pero no todas | La conexión se mantiene | El redirect lleva `connect_warning=<habilidades>` y se muestra un banner de conexión parcial. |\n\nEl criterio es que, si ninguna contesta, el token no sirve. Si alguna funciona, desconectar al usuario sería peor que dejarle usar esa parte.\n\nEl material no dice si las habilidades que fallaron se vuelven a probar, ni cómo se quita el aviso. Tampoco dice si un redirect parcial lleva además `connected`.\n\n### Después: refresh\nAl construir los toolsets, si al token le quedan menos de 60 segundos de validez, se ejecuta `refresh_if_expired`. Se dispara en ese momento; el material no describe un proceso periódico que renueve tokens en segundo plano.\n\n### El parámetro `resource` (RFC 8707)\nEs la URI canónica del server. El discovery la toma de la protected-resource metadata y la guarda en `OAuthPerUserConfig.resource`. Se envía al armar la autorización (paso 3), al cambiar el `code` (paso 6) y en el refresh.\n\nSe manda **solo si está guardado**. Los conectores anteriores a ese campo siguen funcionando sin él. No conviene adivinarlo, porque un servidor de autorización que lo valida rechaza cualquier valor que no reconozca.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11234,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1450,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11234,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1450,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11234,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11234
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/` y se crea con `supabase migration new <nombre>`. El nombre del archivo tiene que quedar `NNNN_descripcion.sql`. El texto aclara que, según entiende quien lo escribió, la CLI usa un prefijo de fecha y hora, así que hay que revisar el archivo generado y compararlo con las migraciones existentes.",
+  "La tabla lleva `workspace_id` y `ENABLE ROW LEVEL SECURITY`, que ya es idempotente. Además, necesita una policy que filtre por `app.current_workspace_id`, dentro de un bloque `DO $$ ... IF NOT EXISTS`. Se puede filtrar por `workspace_id` en la aplicación, pero nunca como única protección, porque la defensa principal es RLS. Una tabla sin `workspace_id` es la excepción y hay que discutirla antes.",
+  "Porque al abrir el PR, el preview corre la migración en la misma base de staging, no en una copia. Si se ejecuta de nuevo no puede dar error, y si se renombra el archivo se vuelve a aplicar porque el tracking es por nombre. El texto también advierte que idempotente no significa que se actualice: `IF NOT EXISTS` saltea una tabla, un índice o una policy que ya existen, aunque su definición sea otra."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ae01e875be",
+  "control": "cb1718959b"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Este es el borrador. Lo que no tiene fuente quedó como «a confirmar», así que cerrá esos puntos antes de prometer plazos.\n\n---\n\n**1. Permisos e IPs**\nHoy Ajustes como Administrador es necesario: el chequeo de conexión lo exige en todas las versiones de Odoo. Con permisos de Ventas, Inventario y Facturación solamente, no se cumple ese requisito. La lista completa es:\n- Administración: Ajustes.\n- Ventas: Administrador.\n- Inventario: Administrador.\n- Contabilidad: Facturación.\n- En Technical Settings: Gestión de Productos y Límite de crédito.\n\nTengan en cuenta que el conector no solo lee: en el chequeo de conexión también crea en su Odoo un campo técnico de precio en los productos (`product.product`) y registros en `ir.model.data`.\n\nSobre las IPs, el manual no publica ninguna. Indica pedir por ticket los datos técnicos de la conexión para configurar el firewall o la lista de IPs permitidas. Les recomendamos no restringir el acceso hasta tener esos datos confirmados.\n\n**2. Kits**\nOdumbo publica la cantidad «A la mano» menos la cantidad «Saliente» de cada producto, en la ubicación de stock configurada. No tiene un tratamiento específico para kits. Todavía no podemos confirmar que el número publicado para su pack sea el correcto. Tampoco podemos confirmar cómo se descuentan las patas al venderlo. Les proponemos probarlo antes de activar la publicación de esos productos.\n\n**3. Cambio desde su módulo actual**\nVamos a confirmarles el procedimiento para no duplicar ventas ni facturas. Hasta entonces, les recomendamos no activar la conexión en producción mientras el módulo actual siga funcionando.\n\n**4. Facturación**\nSí, pueden facturar a mano en lote cada día. Odumbo no factura: las facturas se generan y validan en Odoo, en forma individual o masiva. Odumbo las detecta y las sube a la venta de Mercado Libre entre 6 y 24 horas después. La subida de facturas aplica solo a Mercado Libre.\n\nPara que la factura salga sola al confirmar la venta, se recomiendan los tipos de pedido de venta. Les vamos a confirmar qué módulo los provee en Odoo 17 Enterprise.\n\nEl stock publicado se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n\n**5. Datos**\nLes vamos a confirmar qué datos guarda Odumbo además de las credenciales y qué pasa con ellos si dan de baja el servicio.\n\n---\n\n## Notas internas (no enviar)\n\n**Manual y código no coinciden (puntos 1 y 2)**\n- El manual dice que Ajustes sirve para «leer la configuración», pero el código además crea el campo y los registros. Conviene corregir el manual.\n- En Odoo 19, si falta Ajustes, el chequeo corta antes de revisar el resto. No probé si la sincronización funcionaría sin ese permiso una vez pasado o salteado el chequeo.\n\n**Riesgo con kits: puede publicar stock de más**\nEsto sale de mi conocimiento de Odoo estándar (`mrp`), no del material, y no lo verifiqué en la 17. Odoo calcula por separado el «A la mano» y el «Saliente» del kit a partir de los componentes, redondeando hacia abajo. La resta puede no dar el disponible real.\n\nPrueba en una base de test, con la lista de materiales de tipo kit y sin otros movimientos:\n1. Cargá 20 patas. El pack debería publicar 5.\n2. Confirmá una venta de 6 patas sueltas sin validar la entrega.\n3. Quedan 14 libres, o sea 3 packs. Si mi lectura es correcta, la fórmula da 5 − 1 = **4**.\n4. Vendé un pack. Revisá que la entrega salga por 4 patas y cómo cambia lo publicado.\n\nEn kits con varios componentes distintos el desvío podría ser mayor. Probá también cómo está configurado el producto pack: el conector saltea los no almacenables, salvo «los packs». Como no detecta `mrp` ni `phantom`, no des por hecho que un kit de Odoo cuente como pack.\n\n**Qué confirmar antes de cerrar**\n- **IPs:** preguntá a infraestructura cuáles son las de salida, si son fijas y cómo se avisan los cambios.\n- **Cambio de conector:** hace falta saber si Odumbo importa ventas anteriores a la conexión y cómo reconoce las que ya cargó el otro módulo. También si detecta facturas ya subidas a Mercado Libre. Como plan a validar, no como procedimiento oficial:\n  1. Probar en una copia de la base.\n  2. Fijar fecha y hora de corte.\n  3. Apagar en el módulo actual la importación de ventas, la facturación, la subida de facturas y la sincronización de stock.\n  4. Conciliar las ventas y facturas pendientes.\n  5. Activar Odumbo y controlar duplicados por número de venta de Mercado Libre.\n- **Módulo para Odoo 17:** por lo que recuerdo, los candidatos son `sale_order_type` (OCA) para los tipos y `sale_order_type_automation` (`ingadhoc/sale`) para facturar solo. Revisá que existan en la rama 17.0, qué dependencias tienen y si el cliente puede instalarlos (en Odoo Online no se instalan módulos de terceros).\n- **Datos:** lo tiene que responder quien maneje privacidad o legales en Odumbo. Pedí qué datos se guardan (por ejemplo, si hay datos de compradores), por cuánto tiempo, y si se borran en la baja. Preguntá también qué pasa con las copias de respaldo.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no pude cargar el contexto ni las reglas de comunicación de la empresa. Para darlo de alta, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11174,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4331,
+  "output_tokens_details": {
+   "thinking_tokens": 2187
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11174,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4331,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11174,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11174
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

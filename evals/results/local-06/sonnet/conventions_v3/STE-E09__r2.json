@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Si solo **algunas** habilidades no contestan, el usuario **queda conectado** y ve un aviso de conexión parcial. Si **no contesta ninguna**, el backend borra el token y la card muestra un error. Todo lo que sigue sale del material que pasaste; no lo contrasté con el código.\n\n## Configuración (una vez, el admin)\n\nEl admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\nEl discovery puede guardar además `OAuthPerUserConfig.resource`. Es la URI canónica que el server declara en su protected-resource metadata.\n\n## Conexión (cada usuario)\n\n**1. Usuario → front.** El usuario abre `/connectors` y clickea **Connect** en el server.\n\n**2. Front → backend.** El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con:\n- **`state`:** va con AES-GCM y vence a los 10 minutos. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Según el caso, suma `code_verifier` (PKCE) y `scope_profile` (platform connectors).\n- **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir el refresh token. El primero lo pide y el segundo fuerza que lo vuelva a emitir en cada autorización. Así, desconectar y reconectar no te deja sin refresh token. Los demás providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n- **`resource`:** solo si está guardado.\n\n**3. Front → provider.** El front redirige el navegador al provider.\n\n**4. Provider → backend.** El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**5. Backend ↔ provider.** El backend valida el `state`. Después cambia el `code` por tokens en `token_url`, con `resource` si está guardado. Guarda los tokens encriptados en `user_mcp_oauth_tokens`.\n\n**6. Prueba de humo.** Dentro del callback, el backend introspecta en paralelo **todas las habilidades habilitadas**.\n\n| Resultado | Token | Parámetro del redirect | Qué ve el usuario |\n|---|---|---|---|\n| Contestan todas | Queda guardado | `connected={server_id}` | Queda conectado |\n| Contestan algunas | Queda guardado | `connect_warning=<habilidades>` | Banner de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>` | Banner de error en la card |\n\nEn el caso parcial no se desconecta al usuario porque todavía puede usar una parte. Perder todo por una habilidad rota sería peor.\n\n**7. Backend → front.** El backend redirige al SPA, y el destino depende del dueño del token:\n- **Caso general:** `/w/{slug}/settings/connectors`.\n- **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}`.\n\nNo hay un `return_to` aparte. Los ejemplos de ambas rutas usan `?connected=...`.\n\n## Uso posterior\n\n**8. Refresh proactivo.** Al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 segundos de validez. El material lo describe como un chequeo en ese momento, no como una tarea en segundo plano.\n\n## Sobre `resource` (RFC 8707)\n\nViaja en la URL de autorización, en el intercambio y en el refresh (pasos 3, 6 y 8 de tu material). Se manda **solo si está guardado**:\n- Los conectores anteriores a ese campo siguen funcionando sin él.\n- No conviene adivinarlo: un authorization server que lo valida rechaza cualquier valor que no reconozca.\n\nTu material tiene un recorte (`[...]`) en esta parte, así que puede faltar algún detalle.\n\n## Preguntas abiertas\n\nEl material no aclara estos puntos, que conviene revisar en el código:\n- **Parámetros y destino:** con conexión parcial, ¿`connect_warning` va junto con `connected` o lo reemplaza? ¿`connect_warning` y `connect_error` usan las mismas rutas del paso 7?\n- **Qué es \"no contestar\":** no se define el timeout, ni si un error cuenta igual que la falta de respuesta, ni si hay reintentos.\n- **Después del aviso:** no dice si las habilidades que fallaron quedan deshabilitadas, se vuelven a probar más tarde o se recuperan solas.\n- **Otras fallas:** no cubre un `state` inválido o vencido, un rechazo del usuario en el provider, un error en el intercambio ni un refresh que falla.\n- **Cero habilidades habilitadas:** no dice qué resultado da la prueba de humo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11128,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2057,
+  "output_tokens_details": {
+   "thinking_tokens": 345
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11128,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2057,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11128,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11128
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

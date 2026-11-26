@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cuando un owner o admin conecta Odoo, Tuqui valida las credenciales y las guarda en el workspace. Vincular a quien conecta con un usuario de Odoo es un paso aparte y opcional, y no cambia su rol. Esto sale solo del material que pasaste (spec `0093`); no lo contrasté con el código.\n\n## Recorrido de `connect_odoo`\n\nLa entrada es `POST /workspaces/{slug}/odoo`, que exige permisos de owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autenticación:** prueba URL, base, login y API key contra Odoo, y obtiene `admin_uid`.\n2. **Permisos:** consulta `has_group(uid, 'base.group_system')`. Si ese usuario no es administrador de sistema en Odoo, lanza `ValueError`.\n3. **Versión:** la detecta (por ejemplo, `\"18\"`). Si no puede, o si es menor que `MIN_SUPPORTED`, lanza `ValueError`.\n4. **Modo de vínculo:** `_resolve_link_mode` decide cómo vincular a quien conecta.\n5. **Guardado:** actualiza en `workspaces` los campos `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace queda conectado. Si otro ya tiene el mismo `database.uuid`, un índice único parcial hace que responda `409 Conflict`.\n6. **Limpieza:** si cambió la URL, borra los vínculos y las API keys de los miembros.\n7. **Vínculo:** en modo `auto` o `manual`, guarda `odoo_user_id` en el miembro actual y lanza `sync_user_api_key` en segundo plano.\n\n## A qué usuario de Odoo te vincula\n\n| Modo | Cuándo | Resultado |\n|---|---|---|\n| `auto` | Por defecto, si tu email es igual a `odoo_login` | Te vincula a `admin_uid`, el usuario de las credenciales |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y te vincula a él |\n| `none` | Por defecto, si los emails no coinciden | No te asigna un `odoo_user_id` en esta operación |\n\nLas credenciales del workspace y tu identidad son cosas distintas. En `manual`, el workspace guarda el `odoo_uid` del administrador, pero vos podés quedar vinculado a otro usuario. En ese modo, el material solo menciona que se verifica que el usuario exista, no que sea la misma persona que conecta.\n\nCon `none`, si la URL no cambió, el paso 7 no corre, así que el recorrido no muestra que se borre un vínculo anterior.\n\n## Si cambia la URL\n\n- Se limpian `odoo_user_id` y `odoo_api_key` de **todos los miembros**, incluido el owner, porque esas identidades pueden ser de otra instancia. Las credenciales nuevas del workspace quedan guardadas.\n- Después, en `auto` o `manual`, se vuelve a vincular **solo a quien conecta**. En `none`, tampoco esa persona queda vinculada.\n- El material no dice cómo recuperan el vínculo los demás miembros.\n\n## Qué devuelve\n\nDevuelve los datos del workspace (`WorkspaceConnectOdooResult` extiende `WorkspaceRead`) y además:\n- `members_invalidated`: es 0 si la URL no cambió.\n- `warning`: un mensaje opcional que se muestra en la interfaz.\n- `link_status`: `auto`, `manual` o `none`.\n- `linked_odoo_user_id`: el usuario vinculado, o `None`.\n\nComo `sync_user_api_key` se lanza con `asyncio.create_task` y la conexión no lo espera, un `link_status` exitoso no confirma que la API key del miembro ya esté sincronizada.\n\n## Lo que el material no aclara\n\nPara cerrar estos puntos habría que mirar el código y sus tests:\n- **Cambio de base con la misma URL:** la limpieza depende solo de `url_changed`. Si el código es así, al cambiar `odoo_db` podrían quedar vínculos y keys de la base anterior. Es el punto que primero revisaría.\n- **Comparaciones:** no dice si las URL se normalizan antes de compararlas (por ejemplo, la barra final), ni si la comparación de email y login distingue mayúsculas.\n- **Modo explícito:** no dice qué pasa si se pide `auto` y los emails no coinciden.\n- **Fallos:** no dice si la actualización, la limpieza y el vínculo van en una misma transacción, ni qué pasa si falla `sync_user_api_key`. Tampoco qué respuesta HTTP produce cada `ValueError`, o el fallo de autenticación.\n- **Detalles:** no muestra dónde se obtiene `database.uuid`, ni si `members_invalidated` cuenta a quien se vuelve a vincular enseguida.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11324,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2518,
+  "output_tokens_details": {
+   "thinking_tokens": 732
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11324,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2518,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11324,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11324
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

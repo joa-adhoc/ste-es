@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Una memoria se guarda en uno de dos ámbitos, personal (por usuario) o compartido (por workspace). En cada turno entra al prompt una versión corta, y el texto completo se pide solo si hace falta. Esto sale del fragmento que pegaste; no lo comparé con el código.\n\n1. **Guardado:** cada ámbito admite hasta 50 memorias. Al agregar la 51, en la misma transacción se borra la más vieja de ese ámbito según `created_at`. El modelo se entera por un mensaje en la respuesta de la tool.\n\n2. **Entrada al prompt:** en cada turno, `_load_chat_setup` (`tuqui_core/chat/agent.py`) arma el system prompt. Las memorias van después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las del workspace y después las personales. De cada una se inyecta un encabezado con el título y:\n   - el resumen, si tiene;\n   - si no, el cuerpo hasta 250 caracteres. Si es más largo, se corta y se marca con `[read]`.\n\n   En el ejemplo, cada línea muestra además la categoría y el `id`.\n\n3. **Lectura completa:** si el modelo necesita todo el contenido de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**Cuando hay muchas** actúan dos límites distintos:\n\n| Límite | Cuándo actúa | Qué hace | ¿Se borra algo? |\n|---|---|---|---|\n| 50 por ámbito | Al guardar | Elimina la más vieja (FIFO) | Sí |\n| `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens) | Si los encabezados superan ese total | Los puntúa con rapidfuzz contra el mensaje actual y deja los N mejores | No, solo quedan fuera del prompt |\n\nEsto tiene algunas consecuencias, que deduzco del diseño:\n- **Uso:** el borrado mira la antigüedad, así que una memoria vieja pero muy usada se pierde antes que una nueva que nadie usa.\n- **Relevancia:** rapidfuzz compara texto parecido, no significado. Una memoria útil escrita con otras palabras, o en otro idioma, puede quedar afuera justo cuando hacía falta.\n- **Tamaño:** el texto dice que 50 memorias de tamaño máximo cuestan unos 3K tokens. Pero 50 × 250 ya son 12.500 caracteres, sin contar títulos ni IDs, y con los dos ámbitos llenos puede haber 100 encabezados. El recorte por presupuesto puede entonces activarse bastante antes de lo que sugiere esa frase.\n- **Borrado \"silencioso\":** el texto lo llama así, pero aclara que al modelo se le avisa. No dice si la persona se entera, y en el ámbito compartido eso importa porque la memoria borrada puede ser de interés para todo el equipo.\n\nEl fragmento no explica cómo decide el modelo que algo merece guardarse. Tampoco dice si editar una memoria cambia su `created_at`, si el resumen tiene un largo máximo o si el modelo sabe que quedaron memorias fuera del prompt. Para cerrar esos puntos habría que mirar el código o el resto del diseño.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10782,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1604,
+  "output_tokens_details": {
+   "thinking_tokens": 445
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10782,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1604,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10782,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10782
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

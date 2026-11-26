@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Sí, se puede indicar qué factura salda cada recibo, con la columna `to_pay_move_line_ids/id`: al confirmar, el pago se concilia contra esos apuntes hasta donde alcance el importe. Esto sale del material que me pasaste y no lo probé importando en la base.\n\nNo se guardaron los archivos porque no tuve permiso para escribirlos. Copiá cada bloque en un archivo `.csv` (UTF-8) con el nombre indicado. Revisé a mano que las columnas coincidan. Los nombres que van después de la `/` en cheques y retenciones (salvo `to_pay_move_line_ids/id`) no están en el material: los puse según lo que conozco de Odoo. Confirmalos en la pantalla de importación, al asignar las columnas.\n\n**`recibos.csv`**\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,<CLIENTE>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,<IMPORTE>,<ID_EXTERNO_APUNTE>,<IMPUESTO_RETENCION>,<NUMERO_RETENCION>,<BASE>,<IMPORTE_RETENIDO>\n```\n\n**`pagos_proveedores.csv`**\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nsupplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,<IMPORTE>,<ID_EXTERNO_APUNTE>,<IMPUESTO_RETENCION>,<BASE>,<IMPORTE_RETENIDO>\n```\n\n**`recibos_cheques.csv`** (un recibo con 2 cheques, 1 retención y 2 apuntes de deuda)\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,<CLIENTE>,2026-11-26,<DIARIO_CHEQUES>,<METODO_CHEQUES>,\"<ID_EXTERNO_APUNTE_1>,<ID_EXTERNO_APUNTE_2>\",<NUMERO_CHEQUE_1>,<FECHA_PAGO_1>,<BANCO_1>,<CUIT_EMISOR_1>,<MONTO_CHEQUE_1>,<IMPUESTO_RETENCION>,<NUMERO_RETENCION>,<BASE>,<IMPORTE_RETENIDO>\n,,,,,,,<NUMERO_CHEQUE_2>,<FECHA_PAGO_2>,<BANCO_2>,<CUIT_EMISOR_2>,<MONTO_CHEQUE_2>,,,,\n```\n\n**Cómo completarlos**\n- Reemplazá todo lo que está entre `< >` y cambiá la fecha de ejemplo (formato AAAA-MM-DD). El talonario de recibos se calcula solo.\n- Cada cheque o retención adicional va en una fila debajo, con los datos del pago vacíos. Sin retención, dejá vacías sus columnas.\n- El archivo de cheques no lleva `amount` porque se calcula sumando los cheques, que tienen que ser mayores a 0. Si dejás vacíos el banco o el CUIT, salen del cliente.\n- El método de pago tiene que ser el de cheques del diario elegido. Si el nombre se repite entre diarios, usá `payment_method_line_id/id` con su identificador externo.\n- Para cheques nuevos a proveedores, usá `supplier` y `outbound`. Este formato no cubre la entrega de cheques de terceros.\n- En pagos a proveedores no incluí el número de retención porque lo pone la secuencia al confirmar.\n\n**Para conseguir el identificador de la deuda:** en Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (o a pagar, para proveedores) y exportá con la opción «compatible con importación». Si hay varios apuntes, van separados por coma y entre comillas en el CSV. Tienen que ser de cuentas compatibles con el pago.\n\n**Probá primero con un solo pago de cada tipo.** Quedan en borrador, así que revisalos antes de confirmar:\n- **Deudas:** tienen que figurar solo las elegidas. No dejes la celda vacía ni quites la columna sin probarlo: el pago podría quedar con otras deudas abiertas o sin ninguna. Además, si en borrador cambiás cliente, compañía o tipo, se vuelve a cargar toda la deuda abierta (del cliente, según el material) y se pierde tu selección.\n- **Retenciones a proveedores:** se calculan solas según la posición fiscal. Verificá que las importadas no queden duplicadas ni reemplazadas. Si el cálculo automático ya es correcto, probá sin esas columnas.\n- **Importes:** revisá el total, las retenciones y cuánto queda pendiente. Después de confirmar el pago de prueba, mirá que la factura correcta quede paga, total o parcialmente.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15459,
+  "cache_read_input_tokens": 77556,
+  "output_tokens": 6786,
+  "output_tokens_details": {
+   "thinking_tokens": 2153
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15459,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2681,
+    "cache_read_input_tokens": 31449,
+    "cache_creation_input_tokens": 1520,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1520
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El test falló porque la base conservó la policy del borrador, `USING (true)`, que deja ver las filas de cualquier workspace.** Por eso B ve 2 filas de A. Es una falla de aislamiento real según el test, no la trataría como un test inestable.\n\nLa secuencia, según el log y el `grep`:\n\n1. `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`.\n2. `0412_scheduled_runs.sql` quiere crear la policy correcta con el mismo nombre.\n3. El `IF NOT EXISTS` solo mira el nombre, no la condición. Como el nombre ya existe, saltea el `CREATE POLICY`.\n\nEsa policy tampoco tiene `WITH CHECK`. Si no está limitada a `SELECT` (la línea no tiene `FOR`, así que aplica a todo), también permite insertar y modificar filas de otros workspaces.\n\n**Qué hacer:** creá una migración nueva con el próximo número libre, por ejemplo `0413_fix_scheduled_runs_rls.sql`. No edites 0398 ni 0412: según `AGENTS.md`, una migración ya aplicada no vuelve a correr.\n\n```sql\nBEGIN;\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid)\n  WITH CHECK (workspace_id = current_setting('app.current_workspace_id')::uuid);\nCOMMIT;\n```\n\nSi el runner ya abre una transacción por migración, sacá el `BEGIN` y el `COMMIT`.\n\nDespués aplicala y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`. Antes y después, mirá qué hay realmente en la base:\n\n```sql\nSELECT policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n```\n\nRevisá que no quede otra policy permisiva: Postgres las combina con `OR`, y una abierta alcanza para que la fuga siga.\n\n⚠️ **Revisá los otros entornos, sobre todo producción.** Si corrieron 0398 y después 0412, es probable que tengan la misma policy abierta. Corré ahí la consulta: `qual = true` lo confirma. En ese caso, avisá al equipo y priorizá el fix. Habría que investigar además si hubo lecturas o escrituras entre workspaces.\n\nNo corrí nada ni consulté la base: el diagnóstico sale del output y el `grep` que pegaste, y el fix está sin verificar. En las próximas migraciones, no uses un `IF NOT EXISTS` por nombre para definir una policy, porque puede ocultar una definición distinta. Usá `DROP POLICY IF EXISTS` seguido de `CREATE POLICY`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10593,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1509,
+  "output_tokens_details": {
+   "thinking_tokens": 464
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10593,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1509,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10593,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10593
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

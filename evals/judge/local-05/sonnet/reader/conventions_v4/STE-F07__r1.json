@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás una fila de ejemplo ya completa (recibo con dos cheques y una retención) y me decís qué va en cada < >? Necesito saber si en cliente, diario, método de pago, banco e impuesto de retención pongo el nombre tal como lo veo en pantalla o un ID, y cómo se ve el ID de un apunte. Decime también a qué columna de la pantalla corresponde cada encabezado técnico del CSV. Y aclarame a qué te referís con «el material» y con `tuqui_context`, porque no sé qué son."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás qué va en cada columna, con el nombre que veo en la pantalla de Odoo, y cuáles son obligatorias en cada archivo? Aclarame si el monto lo es, porque queda fuera del rango que marcaste. Para los valores entre < > (diario, método de pago, impuesto de retención, banco), ¿qué escribo exactamente? Mostrame una fila completada de ejemplo. Además, no entiendo qué son «el material» ni «tuqui_context»: ¿qué quedó sin confirmar por eso y me afecta?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Primero decís que sí se puede indicar la factura y que Odoo concilia contra ella, pero después que no está probado si la importación respeta mi selección o si recarga toda la deuda abierta. ¿Lo podés probar en una base de prueba y confirmarme si el recibo queda solo con la factura que indiqué? Además, explicame cómo completar cada < > desde la pantalla, con un ejemplo de una fila llena: qué escribo en cliente, diario, método de pago e impuesto de retención, y qué es un «apunte» y cómo saco su identificador."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me explicás qué va en cada columna, con el nombre que veo en la pantalla de Odoo, y cuáles son obligatorias en cada archivo? Aclarame si el monto lo es, porque queda fuera del rango que marcaste. Para los valores entre < > (diario, método de pago, impuesto de retención, banco), ¿qué escribo exactamente? Mostrame una fila completada de ejemplo. Además, no entiendo qué son «el material» ni «tuqui_context»: ¿qué quedó sin confirmar por eso y me afecta?",
+ "followup_answer": "**El monto (`amount`) no está en la lista de obligatorios, pero cargalo siempre en `recibos.csv` y `pagos_proveedores.csv`.** Quedó fuera del rango porque marqué solo los obligatorios del código. Supongo que sin monto el pago queda en cero, pero no lo probé. En `recibos_con_cheques.csv` no va, porque es la suma de los cheques.\n\n**Los nombres en pantalla salen de mi conocimiento de Odoo y no los verifiqué en la base del cliente.** Pueden cambiar según la traducción o la versión.\n\n## Columnas\n- **Sí:** es obligatoria.\n- **Cargala:** no la tengo confirmada como obligatoria, pero completala para que el registro salga como esperás.\n- **Si hay:** completala solo si el pago tiene ese dato.\n- **—:** no está en ese archivo.\n\nEn la tabla, \"Recibos\" y \"Pagos\" son los archivos sin cheques; \"Cheques\" es `recibos_con_cheques.csv`.\n\n| Columna | En pantalla y qué va | Recibos | Pagos | Cheques |\n|---|---|---|---|---|\n| `id` | No se ve. Un código único que inventás para cada pago | Cargala | Cargala | Cargala |\n| `partner_type` | Tipo de contacto (puede no verse): `customer` o `supplier` | Sí | Sí | Sí |\n| `payment_type` | Tipo de pago: `inbound` (recibir) o `outbound` (enviar) | Sí | Sí | Sí |\n| `partner_id` | Cliente o Proveedor | Sí | Sí | Sí |\n| `date` | Fecha: `AAAA-MM-DD` | Sí | Sí | Sí |\n| `journal_id` | Diario | Sí | Sí | Sí |\n| `payment_method_line_id` | Método de pago | Sí | Sí | Sí |\n| `amount` | Importe o Monto del medio de pago | Cargala | Cargala | — |\n| `to_pay_move_line_ids/id` | Deudas a pagar: identificadores de los apuntes | Cargala | Cargala | Cargala |\n\nLas columnas de cheques empiezan con `l10n_latam_new_check_ids/`:\n\n| Termina en | En pantalla (cheques) | En el archivo de cheques |\n|---|---|---|\n| `name` | Número | Cargala |\n| `payment_date` | Fecha de pago | Cargala |\n| `bank_id` | Banco | Opcional; vacío, sale del cliente |\n| `issuer_vat` | CUIT del emisor | Opcional; vacío, sale del cliente |\n| `amount` | Importe | Sí, mayor a 0 |\n\nLas de retenciones empiezan con `l10n_ar_withholding_line_ids/`:\n\n| Termina en | En pantalla (retenciones) | Recibos y cheques | Pagos |\n|---|---|---|---|\n| `tax_id` | Impuesto | Sí, si hay línea | Sí, si hay línea |\n| `name` | Número | Si hay certificado | Vacía: se numera al confirmar |\n| `base_amount` | Base | Si hay | Si hay |\n| `amount` | Importe retenido | Si hay | Si hay |\n\nEn pagos a proveedores, las retenciones **se calculan solas** según la posición fiscal. No sé si las importadas se conservan, se reemplazan o se duplican.\n\n## Qué escribir entre `< >`\nPor lo que conozco de la importación de Odoo, escribí el nombre tal como figura en la base:\n\n| Dato | Qué escribir | Dónde buscarlo |\n|---|---|---|\n| Cliente o proveedor | Nombre completo del contacto | Contactos |\n| Diario | Nombre del diario | Contabilidad › Configuración › Diarios |\n| Método de pago | Nombre de la línea de ese diario | El diario, solapas de pagos entrantes o salientes |\n| Impuesto de retención | Nombre del impuesto de retención | Contabilidad › Configuración › Impuestos |\n| Banco | Nombre del banco | Contactos › Configuración › Bancos |\n\nSi un nombre está repetido, usá el identificador externo y agregá `/id` al encabezado, por ejemplo `payment_method_line_id/id`. En cheques o retenciones va igual: `.../tax_id/id`.\n\n## Fila de ejemplo (`recibos.csv`)\n**Todos los datos son inventados**; reemplazalos antes de importar. El ejemplo supone una deuda de 100.000: 97.000 cobrados y 3.000 retenidos. Entiendo que el monto no incluye la retención, pero verificá el total en la prueba.\n\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_recibo_001,customer,inbound,Cliente Ejemplo SA,2026-11-26,Banco Ejemplo,Manual,97000.00,__export__.account_move_line_1234_ab12cd34,Retención IIBB Ejemplo,0001-00000123,100000.00,3000.00\n```\n\nCon dos deudas, van los dos identificadores entre comillas: `\"identificador_1,identificador_2\"`.\n\n## Qué quedó sin confirmar\n- **\"El material\"** es el resumen que tengo sobre el código de Odoo by Adhoc 18 y los módulos del cliente. No incluye los nombres en pantalla ni aclara todos los datos de cheques y retenciones. Tampoco hubo una prueba de importación. Por eso pueden fallar los encabezados o los valores, o cambiar las deudas y retenciones que cargaste.\n- **`tuqui_context`** es la herramienta que trae las reglas internas de Adhoc, entre ellas cómo operar Odoo. No la tuve disponible. No sé si hay una regla para cargas masivas en la base de un cliente: confirmalo con tu equipo antes de cargar.\n\nProbá primero **un registro de cada archivo**, idealmente en una base de prueba. Antes de confirmar, revisá que sigan solo las deudas que elegiste y que no haya retenciones duplicadas. Revisá también cheques e importes. Después de confirmar, mirá qué facturas se conciliaron y qué saldo quedó.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13654,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4280,
+  "output_tokens_details": {
+   "thinking_tokens": 2005
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13654,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4280,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13654,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13654
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d549b3a2b0",
+  "persona": "consultoria"
+ }
+}

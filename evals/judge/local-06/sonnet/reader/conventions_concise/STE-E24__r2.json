@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR trae las dos cosas juntas. ¿Podés revisar `release-train.yml` y confirmarme si el tren posterga solo el `DROP COLUMN` o si hoy salió (o va a salir) junto con el código? Si no lo separa, ¿qué hago exactamente para sacar el `DROP` de staging? Y si el tren de hoy ya salió, ¿cómo chequeo en prod si `members.lang` sigue existiendo? De paso, ¿la fecha del martes 1/12 sigue valiendo en ese caso?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en `release-train.yml` y en el run del tren de hoy (jueves 26) qué pasa si mi PR trae las dos migraciones juntas: el pipeline posterga solo el `DROP COLUMN`, o ya salió a prod y borró `members.lang`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mi PR trae las dos cosas juntas (agrega `locale` y borra `lang`). ¿Podés revisar `release-train.yml` y confirmarme si el pipeline posterga solo el `DROP COLUMN` al tren del martes, o si hoy a las 9:00 sale (o ya salió) junto con el código? Si no lo separa solo, ¿qué pasos exactos tengo que hacer para sacar el `DROP` de staging, y llegó a correr en prod?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Mi PR trae las dos cosas juntas. ¿Podés revisar `release-train.yml` y confirmarme si el tren posterga solo el `DROP COLUMN` o si hoy salió (o va a salir) junto con el código? Si no lo separa, ¿qué hago exactamente para sacar el `DROP` de staging? Y si el tren de hoy ya salió, ¿cómo chequeo en prod si `members.lang` sigue existiendo? De paso, ¿la fecha del martes 1/12 sigue valiendo en ese caso?",
+ "followup_answer": "**No te puedo confirmar si el tren posterga solo el `DROP COLUMN`.** `/tmp/ste-es-eval-y082mvm3` no es un repo git, y no encontré `release-train.yml` buscando hasta 6 niveles. Tampoco vi tu PR, el run de hoy ni prod. El extracto dice qué regla hay que cumplir, pero no si el workflow la aplica solo. **Hasta comprobarlo, asumí que el `DROP` sale junto con el código.**\n\n**1. Fijate si el tren ya salió** (sale a las 9:00 de Argentina). Desde tu repo:\n```bash\ngh run list --workflow=release-train.yml --limit 5\ngit fetch origin\ngit log -1 origin/main\ngit show origin/main:.github/workflows/release-train.yml\n```\nRevisá en el run y en `main` si entró tu commit. En el workflow, y en los scripts que llame, buscá cómo elige las migraciones. Que `main` haya avanzado no prueba que la migración haya corrido en prod. Si me pasás la ruta del repo o el workflow, lo reviso.\n\n**2. Si todavía no salió (puede estar atrasado) y no ves que separe el `DROP`:**\n- Abrí ya un PR contra `staging` que saque solo el borrado de `lang`. Si está en un archivo propio, borralo; si comparte archivo con `locale`, dejá solo el agregado. No reviertas todo el PR. El código nuevo tiene que seguir sin usar `lang`.\n- Revisá si la herramienta de migraciones requiere actualizar también un snapshot o índice. Si el `DROP` ya corrió en la base de staging, sacar el archivo no recupera la columna y puede desajustar el historial.\n- El fix tiene que estar mergeado, con CI verde, antes de que corra el tren. Si no llegás, avisá ya a quien maneje el release para frenarlo. No cuentes con que ya pasó la hora.\n- Volvé a agregar el `DROP` en otro PR **solo después de confirmar que el código está en prod**. Si lo mergeás antes, pueden volver a salir juntos. Según la herramienta, puede necesitar un nombre o timestamp nuevo.\n\n**3. Para ver qué hay en prod** (supongo PostgreSQL; es solo lectura):\n```sql\nSELECT table_schema, column_name\nFROM information_schema.columns\nWHERE table_name = 'members' AND column_name IN ('lang', 'locale')\nORDER BY 1, 2;\n```\n\n| Resultado en el schema de la app | Qué indica |\n|---|---|\n| `lang` y `locale` | Se agregó `locale` y `lang` sigue. No garantiza que el `DROP` no vaya a correr después |\n| Solo `locale` | `lang` ya no está |\n| Solo `lang` | No se ve el agregado de `locale` |\n| Ninguna | Revisá la base, el schema y los permisos |\n\n`information_schema` muestra solo las columnas sobre las que tu usuario tiene permisos, así que una ausencia confirma el borrado solo si tenés acceso a la tabla completa.\n\n**Si `lang` ya se borró**, avisá enseguida a quien maneje el release y revisá errores de la versión vieja, sobre todo si el deploy sigue en curso. Sacar el `DROP` de `staging` no lo deshace. Recrear la columna no recupera los datos, así que hay que ver backups antes de definir el arreglo. Un hotfix manual necesita la aprobación de jjs.\n\n**4. El martes 1/12 a las 9:00 ya no se puede dar por seguro.** Corrijo mi respuesta anterior: la tabla presentaba la separación en dos trenes como algo que iba a pasar, y no está comprobado.\n\n| Caso | Borrado de `lang` |\n|---|---|\n| El código llega hoy sin el `DROP`, y lo volvés a mergear después de confirmarlo en prod y antes del tren del martes | 1/12, con CI verde |\n| El tren de hoy se saltea y el código sale el 1/12, con el `DROP` separado | Como pronto, jueves 3/12 |\n| El `DROP` ya corrió hoy | Ya ocurrió; el 1/12 no aplica a ese borrado |\n| El workflow separa el `DROP` solo y el código sale hoy | 1/12, si el CI está verde y confirmás que lo deja programado para ese tren |",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 11731,
+  "cache_read_input_tokens": 75275,
+  "output_tokens": 3000,
+  "output_tokens_details": {
+   "thinking_tokens": 1169
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11731,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2566,
+    "cache_read_input_tokens": 29070,
+    "cache_creation_input_tokens": 180,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 180
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "8570026f18"
+ }
+}

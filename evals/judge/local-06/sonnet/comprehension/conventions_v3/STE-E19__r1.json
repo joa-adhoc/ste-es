@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el nombre del test que falló. Indica que, después de aplicar el arreglo, hay que volver a correr `pytest tuqui_core/tests/test_rls.py -q`. La falla es de aislamiento entre workspaces: B ve 2 filas de `scheduled_runs` de A.",
+  "Porque `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`, que no filtra por workspace. `0412_scheduled_runs.sql` quiere crear la policy correcta con el mismo nombre, pero su `IF NOT EXISTS` solo mira el nombre y la saltea (`already exists, skipped`). Así queda la policy del borrador. El texto atribuye esta causa al log y al `grep`.",
+  "No. El texto dice que no se edite la 0412, porque en los entornos donde ya se aplicó no vuelve a correr. Hay que crear una migración nueva con el próximo número libre (por ejemplo, `0413_fix_scheduled_runs_rls.sql`) que borre la policy y la vuelva a crear filtrando por workspace, aplicarla en la base de test y volver a correr el test; el arreglo está sin verificar. También pide revisar cada base que haya aplicado 0398 y después 0412, incluidas las otras policies y la configuración de RLS. Advierte que otra policy permisiva amplia aplicable al mismo rol puede mantener la fuga aunque se corrija esta."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d2ce2175ba",
+  "control": "8368a6d09b"
+ }
+}

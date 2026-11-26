@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "En tu primer caso la tool **se ejecuta sin preguntar**, siempre que sea un canal con identidad personal. En el webhook, el \"allow\" del miembro **no cuenta** y decide la configuración del workspace. Esto sale del material que pegaste; no lo comprobé contra el código.\n\n## Orden de decisión\n\nPrimero actúa `workspace_write_models`, donde el admin permite o no cada operación por modelo (Settings → Write Models). Si no la permite, la tool se corta ahí, sin mirar los permisos siguientes.\n\nSi pasa, `evaluate_permission` revisa en este orden y se queda con lo primero que aplique:\n\n1. **`deny` del workspace:** bloquea, y ninguna preferencia personal lo levanta.\n2. **Preferencia del miembro en ese workspace** (`user_tool_approvals`): si existe, gana. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n3. **`allow` o `ask` del workspace** (`workspace_tool_approvals`).\n4. **Valor por defecto de la tool:** pregunta si el recurso declara `approval` (`\"ask\"` o `\"always\"`) y permite si no. Para las tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las anotaciones MCP.\n\nEl resultado es permitir, bloquear o preguntar. La tool se ejecuta si está permitida o si preguntó y se aprobó, y queda registrada en `tool_usage_log` con `permission_action`.\n\n## Admin en \"ask\", miembro en \"allow\"\n\nEl resultado es **ALLOW**: el paso 2 gana antes de llegar al \"ask\" del admin. De la configuración del workspace, solo `deny` funciona como piso; `ask` no obliga a preguntarle a quien tiene su propio \"allow\". Si el admin necesita impedir la ejecución, con estos permisos lo asegura `deny` (o no habilitar la operación en Write Models), pero eso la bloquea en vez de preguntar.\n\n## Agent por webhook\n\nEl turno usa la identidad prestada de un miembro, pero **sus preferencias se ignoran**, tanto para permitir como para bloquear. Después de pasar Write Models:\n\n| Configuración del workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `allow` | ALLOW |\n| `ask` | ASK |\n| Sin fila | Valor por defecto de la tool (paso 4) |\n\nPor eso, un \"deny\" personal de ese miembro tampoco frena la tool en el webhook. Para bloquearla ahí, el `deny` tiene que estar en el workspace.\n\n**Lo que el material no dice:** qué pasa cuando el resultado es ASK en un webhook, por ejemplo si se rechaza, queda pendiente o alguien puede aprobarlo. Tampoco explica en qué se diferencian `\"ask\"` y `\"always\"` dentro de `approval`. Para confirmarlo, miraría cómo se maneja ASK a partir de `tuqui_core/chat/permissions.py` y `chat/client_facing_core.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11154,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1563,
+  "output_tokens_details": {
+   "thinking_tokens": 492
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11154,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1563,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11154,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11154
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

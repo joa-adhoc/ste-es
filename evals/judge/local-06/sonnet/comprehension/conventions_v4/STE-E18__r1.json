@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria de ese scope con el `created_at` más antiguo, en la misma transacción de la base de datos. Es FIFO: según el material, cuenta la fecha de creación y no el uso, así que una memoria vieja se puede borrar aunque se consulte seguido. El modelo se entera por un mensaje en la respuesta de la herramienta. El material no dice si la persona recibe algún aviso.",
+  "En cada turno entra de cada memoria solo el header: el título más el resumen. Si no tiene resumen, entra el cuerpo, hasta 250 caracteres, y si el cuerpo supera ese largo, el header termina en `... [read]`. Las memorias van después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las del workspace y después las del usuario. Cuando el modelo necesita el contenido completo de una memoria marcada con `[read]`, lo pide a demanda con `manage_memory(action='read', id=...)`.",
+  "Si los headers suman más de `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual del usuario y solo entran los N mejores. Según el fragmento, este filtro no borra nada: solo decide qué se inyecta en ese turno, por lo que una memoria que queda afuera en un turno puede entrar en otro. No dice cómo se calcula N, si el filtro compara los dos scopes juntos o por separado, ni si una memoria que quedó afuera se puede encontrar de otra forma en ese turno."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "03bacf970e",
+  "control": "2fefeeffdf"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline separa solo el DROP de `members.lang` si va mergeado en el mismo PR, o corre todo junto el jueves? Revisá `release-train.yml` y el pipeline de migraciones y confirmámelo. Si no lo separa, decime exactamente qué tengo que sacar o revertir en staging y cómo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El pipeline separa solo el DROP de `members.lang` para el tren del martes, o el jueves sale junto con todo lo que mergeé? Revisá `release-train.yml` y el pipeline de migraciones. Si no lo separa, pasame los pasos concretos para sacar el DROP de staging y cuándo volver a mergearlo. Confirmame también si hoy es miércoles 25 o jueves 26, porque de eso depende si todavía llego a hacerlo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `release-train.yml` y el pipeline de migraciones y decirme si el `DROP COLUMN` de `members.lang` se posterga solo o si sale en el mismo tren que `locale`? Si no se separa solo, decime los pasos concretos para sacarlo de staging y volver a mergearlo, y si todavía llego a hacerlo o el tren del jueves ya corrió con el borrado incluido."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El pipeline separa solo el DROP de `members.lang` si va mergeado en el mismo PR, o corre todo junto el jueves? Revisá `release-train.yml` y el pipeline de migraciones y confirmámelo. Si no lo separa, decime exactamente qué tengo que sacar o revertir en staging y cómo.",
+ "followup_answer": "**No puedo confirmar si el pipeline separa el `DROP`, porque no pude revisarlo.** El directorio de trabajo (`/tmp/ste-es-eval-1e81po88`) está vacío y no es un repo. No busqué en otras carpetas ni en el remoto. El extracto dice que el `DROP` no debe ir en el mismo tren, pero no que el pipeline lo separe solo. No cuentes con eso.\n\n**Es urgente:** el reloj marca jueves 26/11 a las 10:26 (Argentina), y el tren estaba previsto a las 9:00. El plazo que te di para sacar el `DROP` ya habría vencido. Si mergeaste ayer, puede que ya haya corrido en prod.\n\n### 1. Fijate qué pasó hoy\nEn tu repo:\n```bash\ngit fetch origin\ngh run list --workflow=release-train.yml --limit 5\ngit log origin/main --oneline -15\n```\nAbrí el run con `gh run view <id> --log`. Revisá también el pipeline de migraciones y el esquema de prod, para ver si `members.lang` existe. Un run en verde o el commit en `main` no alcanzan para saber qué migraciones corrieron.\n\n| Qué encontrás | Qué hacer |\n|---|---|\n| `lang` ya no existe en prod | Avisá ya a quien opere prod y a jjs. Revisen errores de la app y backups. Revertir en git no recupera la columna ni sus datos. Un release manual de hotfix necesita la aprobación de jjs. |\n| El tren está corriendo o pendiente | Pedí a quien opere el pipeline que lo frene antes de la migración. No lo canceles a mitad de una migración sin saber en qué estado queda. |\n| El tren se salteó por CI rojo | Separá el `DROP` antes del próximo tren. Si no, el martes 1/12 pueden salir juntos. |\n| El código salió, pero `lang` sigue ahí | Averiguá por qué: puede estar separado, o la migración pudo fallar o estar pendiente. |\n\n### 2. Si el `DROP` no corrió y nada lo separa\n**No reviertas todo el PR**, porque también sacarías el código nuevo y `locale`. Hacé un PR nuevo que saque solo el borrado:\n```bash\ngit switch -c fix-separar-drop-lang origin/staging\ngit grep -niE \"lang\\b\"\ngit log origin/staging --oneline -10\n```\n- **Un archivo propio para el `DROP`:** sacá esa migración y su registro en el índice o journal, si existe.\n- **El mismo archivo que `locale`:** borrá solo la operación que elimina `lang`. Dejá el `ADD` de `locale` y la copia de datos, si la hay.\n- **Esquema o snapshots generados:** pueden tener que seguir declarando `lang`. Regeneralos con la herramienta del repo.\n- **Migración ya aplicada en staging:** es probable que ahí `lang` ya no exista, y sacar el archivo no la recupera. Algunas herramientas además fallan si cambia o falta una migración aplicada. Antes de mergear, definan cómo reparar el historial y la columna en staging.\n\nEse PR tiene que estar en `staging`, con CI en verde, antes de que corra el tren que lleve el código. El `DROP` vuelve en **otro PR, como migración nueva**. Mergealo solo después de confirmar que el código ya está en prod. Si el código sale el martes 1/12, el `DROP` va como pronto el jueves 3/12.\n\nNo cambié nada ni consulté GitHub o prod. No sé el nombre de tu migración ni qué herramienta usás, así que todavía no puedo indicarte la línea exacta. Pasame la ruta del repo, o el diff del PR, `release-train.yml` y el pipeline de migraciones, y lo reviso. Primero mirá el paso 1.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12035,
+  "cache_read_input_tokens": 75586,
+  "output_tokens": 2516,
+  "output_tokens_details": {
+   "thinking_tokens": 844
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12035,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1984,
+    "cache_read_input_tokens": 29175,
+    "cache_creation_input_tokens": 370,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 370
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1878d40355"
+ }
+}

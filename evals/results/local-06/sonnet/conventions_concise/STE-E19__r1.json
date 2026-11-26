@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Falló `test_scheduled_runs_isolated`: el workspace B ve 2 filas de `scheduled_runs` del workspace A, así que el aislamiento RLS está roto en la base donde corriste el test (los otros 6 tests pasaron).\n\n**Causa probable:** `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`, que deja ver todas las filas. Después, `0412` intenta crear la policy correcta con el mismo nombre, pero solo si no existe. Como ya existía, no la creó y quedó la permisiva. El log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\n**Qué hacer:** no edites `0398` ni `0412`. Si ya se aplicaron, no vuelven a correr. Creá una migración nueva, con el número libre que siga, que reemplace la policy:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nSi el runner no ejecuta cada migración en una transacción, envolvé las dos sentencias en `BEGIN; ... COMMIT;`. Después aplicala y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`. No probé el fix.\n\n**Antes de cerrarlo:**\n- **Policy vigente:** confirmala en la base con `SELECT policyname, permissive, roles, cmd, qual, with_check FROM pg_policies WHERE tablename = 'scheduled_runs';`. Las policies permisivas se combinan con OR, así que otra policy abierta seguiría exponiendo filas. El `grep` solo buscó ese nombre.\n- **Otros entornos:** revisá con la misma query staging y producción, si existen. Donde hayan corrido `0398` y `0412` en ese orden, sin otro cambio sobre la policy, puede haber datos visibles entre workspaces. Si pasa en producción, tratalo como un problema de seguridad y avisá sin esperar al ciclo normal. El material no muestra dónde se aplicaron.\n- **Escrituras:** si la policy permisiva no tiene `WITH CHECK` propio y aplica a todos los comandos, `USING (true)` también permite insertar, modificar y borrar filas de otros workspaces. La definición de `0398` es así. La nueva usa el filtro por workspace también como `WITH CHECK`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10584,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 895,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10584,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 895,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10584,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10584
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

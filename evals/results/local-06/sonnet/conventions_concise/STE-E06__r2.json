@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Los dos worktrees comparten la misma DB local, y casi seguro la migración de la rama de tu compañero borró o renombró columnas que tu código todavía lee. El `conftest` aplica migraciones en cada corrida, así que la base queda con la unión de las migraciones de ambas ramas. Por eso ves `UndefinedColumnError` en tests que no tocaste. No lo verifiqué contra tu base: sale de la documentación que pegaste. El lock (`flock`) no lo evita, porque solo impide corridas simultáneas y no aísla el esquema.\n\n**Arreglo: una base propia para tu worktree**\n\n1. Creá `tuqui_core/.env.test.local` (está gitignoreado) a partir de `.env.test.local.example`.\n2. Apuntalo a una base local con un nombre que no use ningún otro worktree. Tomá del example el nombre de la variable y el formato.\n3. Corré `make migrate-reset`. **Vacía la base a la que apunte** y la rearma en unos 3 segundos. Antes de correrlo, confirmá que apunta a tu base nueva y no a la compartida. El material no aclara si el target lee `.env.test.local` ni si crea la base cuando no existe: revisalo en el `Makefile` y en `scripts/reset_database.py`.\n4. Volvé a correr los tests. Si el `UndefinedColumnError` sigue, buscá la causa en tu rama.\n\nNo uses `npx supabase db reset`: aborta en el primer prefijo de migración repetido.\n\n**Para que no vuelva a pasar:** mantené ese override en cada worktree nuevo, con una base distinta en cada uno. Al estar gitignoreado, un worktree nuevo no lo trae. Mientras alguno siga usando la base compartida, ese sigue expuesto.\n\n**Opcional, correr tests en paralelo:** para soltar el lock necesitás las tres cosas:\n- Base propia.\n- `REDIS_URL` con un índice propio, distinto de 0 (server de desarrollo) y de 15 (default compartido de tests), y que no use otro worktree.\n- Un `TEST_LOCK` distinto.\n\nCon solo la base aislada, dejá el lock como está: el cleanup todavía puede pisar el Redis compartido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11021,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 779,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11021,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 779,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11021,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11021
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

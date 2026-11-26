@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al volver a confirmar, Odoo crea una recepción. Probablemente queda sin movimientos porque las 2 unidades ya se recibieron, e intenta borrarla. Que no quede nada pendiente es una inferencia, porque el código que genera los movimientos no está en el material. `stock_ux` impide el borrado porque el tipo de operación «Recepciones» tiene activado el bloqueo de eliminación de traslados. El mensaje junta ese motivo con el del estado, pero el bloqueo alcanza para que salte. El error deshace toda la operación: la orden queda en borrador y la recepción nueva no se guarda.",
+  "No dice que haya sido el usuario ni quién hizo las acciones. Sí dice que el 11/11 la orden se confirmó (12:26), se recibieron las 2 unidades (12:27), se canceló (13:26) y volvió a solicitud de cotización (13:27), mientras la recepción 412 siguió en Hecho. Señala que la cancelación con la recepción hecha explica cómo se llegó a este estado. No sabe si el código debería permitirla.",
+  "Se propone probar primero en una copia de la base:\n1. Anotar el stock del producto, los movimientos de la 412, las cantidades de la orden y el estado y saldo de la factura. Revisar que el movimiento de la 412 siga vinculado a la línea de la orden.\n2. Desactivar «Bloquear eliminación de traslados» en el tipo de operación «Recepciones».\n3. Confirmar P00231.\n4. Reactivar la opción enseguida, también si la confirmación falla.\n5. Comparar con lo anotado: la orden tiene que quedar como Orden de compra, con 2 pedidas, 2 recibidas y 2 facturadas; no tiene que haber recepciones ni movimientos nuevos, y el stock, la 412 y la factura tienen que seguir igual.\n\nSi en la copia aparece una recepción pendiente o cambia alguna cantidad, no hay que hacerlo en producción. Mientras la opción está desactivada, el bloqueo se levanta para todos los traslados de «Recepciones», aunque los que no estén en borrador o cancelado siguen protegidos; conviene hacerlo en un momento sin actividad. Si importa la fecha de confirmación, hay que anotarla antes y compararla en la copia, porque en el Odoo estándar puede quedar la fecha de hoy. Para este arreglo no hace falta tocar la 412, hacer una devolución, editar cantidades, modificar la factura ni rehacer la orden. Tampoco hay que buscar el 415 o el 416 para borrarlos."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "f29d520f61",
+  "control": "cf4a8527a9"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Sí, según el código que describís podés indicar qué factura salda cada recibo.** Va en la columna `to_pay_move_line_ids/id`, y al confirmar, Odoo concilia contra esos apuntes hasta donde alcance el importe. No lo probé importando.\n\n**No se guardaron los archivos:** no tuve permiso para escribirlos. Copiá cada bloque en un `.csv` (UTF-8) con el nombre indicado y reemplazá todo lo que está entre `< >`.\n\n### `recibos_clientes.csv`\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_recibo_001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO>,<METODO_DE_COBRO>,<IMPORTE>,<ID_EXTERNO_APUNTE>,<IMPUESTO_RET_1>,<NRO_CERTIFICADO_1>,<BASE_1>,<IMPORTE_RET_1>\n,,,,,,,,,<IMPUESTO_RET_2>,<NRO_CERTIFICADO_2>,<BASE_2>,<IMPORTE_RET_2>\n```\n\n### `pagos_proveedores.csv`\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_pago_001,supplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,<IMPORTE>,\"<ID_EXTERNO_APUNTE_1>,<ID_EXTERNO_APUNTE_2>\",<IMPUESTO_RET_1>,,<BASE_1>,<IMPORTE_RET_1>\n,,,,,,,,,<IMPUESTO_RET_2>,,<BASE_2>,<IMPORTE_RET_2>\n```\n\n### `cobros_y_pagos_con_cheques.csv`\nTrae un recibo con dos cheques y un pago con un cheque propio. No lleva el `amount` del pago, porque se calcula sumando los cheques.\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_recibo_cheque_001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO_CHEQUES_TERCEROS>,<METODO_CHEQUES_NUEVOS>,<ID_EXTERNO_APUNTE>,<NRO_CHEQUE_1>,<FECHA_PAGO_1>,<BANCO_1>,<CUIT_1>,<MONTO_1>,<IMPUESTO_RET>,<NRO_CERTIFICADO>,<BASE>,<IMPORTE_RET>\n,,,,,,,,<NRO_CHEQUE_2>,<FECHA_PAGO_2>,<BANCO_2>,<CUIT_2>,<MONTO_2>,,,,\nimport_pago_cheque_001,supplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO_BANCO>,<METODO_CHEQUES_PROPIOS>,<ID_EXTERNO_APUNTE>,<NRO_CHEQUE>,<FECHA_PAGO>,<BANCO>,<CUIT_EMISOR>,<MONTO>,<IMPUESTO_RET>,,<BASE>,<IMPORTE_RET>\n```\n\n### Cómo completarlos\n- **Varias líneas:** cada cheque o retención extra va en una fila debajo, con los datos del pago vacíos. Si no hay una segunda retención, borrá esa fila.\n- **Obligatorios del pago:** `partner_type`, `payment_type`, `partner_id`, `date`, `journal_id` y `payment_method_line_id`. `id` es opcional; lo agregué para identificar cada registro importado. El talonario se calcula solo.\n- **Cheques:** el monto tiene que ser mayor a 0 y el CUIT se valida. En recibos, si dejás banco o CUIT vacíos, salen del cliente. Para cheques propios no tengo confirmado qué pasa si van vacíos.\n- **Retenciones:** el impuesto es obligatorio. En pagos a proveedores dejé el número vacío porque lo pone la secuencia al confirmar.\n- **Método de pago:** si el nombre se repite entre diarios, usá la columna `payment_method_line_id/id` con su identificador externo.\n\n### Conciliación contra la factura\n1. En Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (o a pagar, si es proveedor).\n2. Exportá el apunte con la opción «compatible con importación».\n3. Pegá su identificador externo en `to_pay_move_line_ids/id`. Si son varios, separalos con coma y encerrá la celda entre comillas en el CSV.\n\nLa cuenta del apunte tiene que ser compatible. Los pagos quedan en borrador, así que **antes de confirmar revisá que las deudas sean solo las que querías**:\n- Si en borrador cambiás cliente, compañía o tipo, la selección se reemplaza por toda la deuda abierta.\n- No sé si la importación respeta tu selección o la recalcula al crear el pago. Tampoco qué carga si dejás la columna vacía.\n\n### Falta verificar\n- **Columnas:** los nombres después de la `/` en cheques (`name`, `payment_date`, `bank_id`, `issuer_vat`, `amount`) y retenciones (`tax_id`, `name`, `base_amount`, `amount`) no están en tu material. Los puse de memoria.\n- **Retenciones a proveedores:** se calculan solas según la posición fiscal. Las importadas podrían duplicarse o pisarse.\n- **Cheques de terceros entregados a proveedores:** el archivo no cubre la entrega de cheques que ya tenés en cartera.\n\nPara probar, usá primero el botón «Probar» del importador para validar columnas y valores. Después, idealmente en una base de prueba, importá un pago de cada tipo. Revisá deudas, cheques, importe y retenciones en borrador, y confirmalo para comprobar la conciliación.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15481,
+  "cache_read_input_tokens": 76423,
+  "output_tokens": 7081,
+  "output_tokens_details": {
+   "thinking_tokens": 2523
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15481,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2964,
+    "cache_read_input_tokens": 30424,
+    "cache_creation_input_tokens": 2567,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 2567
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 5,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No sé qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, «Journal multi-company», `_search` ni el traceback. En términos de pantalla: ¿el usuario de la sucursal Norte debería poder ver las facturas del punto 22, sí o no? ¿Por qué en un lado las ve y en otro no? ¿Y qué tengo que hacer yo ahora, paso a paso (cómo activo el modo desarrollador, qué copio y a quién se lo paso), y qué le puedo contestar al cliente mientras tanto?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read` = False, `_search` ni «Journal multi-company», ni qué significa que el módulo oculte diarios de las búsquedas pero permita leerlos. Con eso, decime en simple qué debería poder ver «Encargado Norte» en el seguimiento, en el libro mayor y en «Ver asientos». También indicame paso a paso qué tengo que hacer para sacar el error completo: cómo activo el modo desarrollador, de dónde copio el traceback y, si no aparece ahí, a quién le pido el log."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar desde la pantalla, sin nombres técnicos? No sé qué son `account_multi_store`, `store_id`, `perm_read` = False, `account_journal_security`, «Journal multi-company», `_search` ni el traceback. En concreto: según el diseño, ¿el usuario de sucursal Norte debería poder abrir «Ver asientos» de una factura del punto 22 sí o no? ¿Qué le puedo decir hoy al cliente? Y para conseguir el mensaje completo del error, ¿qué pasos sigo en modo desarrollador y qué tengo que copiar y pasarte?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos? No sé qué son `account_multi_store`, `store_id`, `perm_read`, `account_journal_security`, «Journal multi-company», `_search` ni el traceback. En términos de pantalla: ¿el usuario de la sucursal Norte debería poder ver las facturas del punto 22, sí o no? ¿Por qué en un lado las ve y en otro no? ¿Y qué tengo que hacer yo ahora, paso a paso (cómo activo el modo desarrollador, qué copio y a quién se lo paso), y qué le puedo contestar al cliente mientras tanto?",
+ "followup_answer": "**Sí, el usuario de Norte debería poder ver las facturas del punto 22, pero no publicarlas ni modificarlas.** Eso dice la ayuda del propio campo de sucursal, y coincide con los permisos que revisamos. No confirmamos que el cliente quiera ese criterio.\n\n## Por qué en un lado ve y en otro no\n**Todavía no lo sé.** El sistema hace dos cosas distintas con lo que es de otra sucursal:\n\n- **Permisos:** en los que revisé, la sucursal limita los cambios, no la lectura. La separación por empresa sí limita lo que se ve.\n- **Búsquedas:** al buscar diarios, el sistema le esconde al usuario de Norte los de otras sucursales, como el del punto 22.\n\nQue un diario no aparezca en una búsqueda no significa que esté prohibido ver sus facturas. Mi hipótesis es que cada pantalla busca los datos de otra forma, pero no revisé cómo lo hacen.\n\nEsto tampoco explica el cartel: en los permisos que revisé, nada le impide ver algo por ser de otra sucursal. No sabemos qué intenta abrir «Ver asientos» ni qué lo frena.\n\n## Qué hacer ahora\nHacelo con el mismo usuario con el que replicaste el problema:\n\n1. **Activá el modo desarrollador.** En la dirección del navegador, agregá `?debug=1` después de `/odoo` y apretá Enter. Queda así: `https://direccion-del-cliente/odoo?debug=1`. Si la dirección ya tiene un `?`, agregá `&debug=1` al final.\n2. **Abrí el registro del navegador.** Apretá F12 y entrá en la pestaña «Red» («Network»).\n3. **Repetí el recorrido** hasta «Ver asientos», para que salga el error. No guardes ni cambies nada.\n4. **Copiá el cartel completo**, desde el título hasta el final. Si tiene un botón para copiar, usalo; si no, seleccioná el texto. Sacá también una captura.\n5. **Copiá el detalle interno del error.** En «Red», hacé clic en los pedidos que aparecieron al tocar «Ver asientos». En «Respuesta» («Response»), buscá el que contiene `error` y copiá todo ese texto. No copies los encabezados, las cookies ni uses «Copiar como cURL»: pueden incluir la sesión del usuario.\n6. **Anotá el recorrido:** usuario, contacto, número de factura y cada clic.\n7. **Adjuntá todo al ticket** y pasáselo a quien siga la parte técnica. Si seguimos nosotros, pegámelo acá. Tiene datos del cliente, así que no lo compartas fuera de esos canales.\n8. **Salí del modo desarrollador** cambiando `debug=1` por `debug=0` en la dirección.\n\nCon eso buscamos qué frena la pantalla. Puede hacer falta revisar además el código.\n\n## Qué contestarle al cliente\n> «Pudimos reproducir el error que nos pasaron al usar \"Ver asientos\" en una factura del punto 22. También vimos que la información disponible cambia según la pantalla. Estamos analizando la causa y cuál debe ser el comportamiento para usuarios de otra sucursal. Todavía no lo tenemos confirmado. Les vamos a avisar cuando tengamos novedades.»\n\nPor ahora, **no le diría que es por la actualización desde la 16** ni que es correcto que no pueda ver. Tampoco le asignaría la sucursal Sur al usuario para destrabarlo, porque podría permitirle también operar sobre ella.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12654,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2934,
+  "output_tokens_details": {
+   "thinking_tokens": 1665
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12654,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2934,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12654,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12654
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "48f94800a7",
+  "persona": "actualizacion"
+ }
+}

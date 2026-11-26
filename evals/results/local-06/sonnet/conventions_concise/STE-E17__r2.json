@@ -1,0 +1,47 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool tira una excepción, el modelo no la recibe cruda: recibe como resultado un texto con la clase del error y el mensaje. Esto sale solo del material que pasaste; no revisé el código.\n\n**De la falla al modelo**\n1. La tool falla.\n2. `_wrap_tool` (en `agent.py`) captura la excepción:\n   - Si es un `ToolError`, la usa directamente. Este trae `error_class`, `message` y `retry_after_seconds`.\n   - Si es otra, `classify_unknown(exc)` mapea las excepciones de Python y httpx a un `ErrorClass`.\n3. `_wrap_tool` retorna `exc.for_llm()` en lugar del string genérico de antes. El modelo ve `[TOOL_ERROR class=X]: message`.\n\nLas clases posibles son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. Dos se parecen pero tienen textos distintos:\n- **`CONNECTION`:** Odoo está caído, porque falla el transporte.\n- **`ODOO_NOT_CONNECTED`:** nadie conectó Odoo para este run porque no hay credenciales (`require_adapter`, en `tools/base.py`). Así, a quien no conectó su Odoo no se le dice que la conexión está caída.\n\n**Cómo se cortan los reintentos**\n\n`DoomLoopGuard` (en `guards.py`, `THRESHOLD=3`) registra cada llamada con `record(tool_name, args, ok, error_class)`:\n- **Qué cuenta como repetición:** la clave es `\"{tool_name}|{hash(args)}|{error_class}\"`. Si cambian la tool, los argumentos o la clase de error, es otro contador.\n- **Corte:** cuando un contador llega a 3, `record` retorna `True`. Entonces `_wrap_tool` devuelve `FATAL` e impide más llamadas idénticas.\n- **Reinicio:** cualquier éxito limpia **todos** los contadores. Según esa regla, un loop con éxitos de otra llamada en el medio, antes de llegar a 3, no se cortaría por este contador.\n\nAdemás, el guard corta `CONNECTION` y `ODOO_NOT_CONNECTED` **entre tools**, cada una con su propio aviso. El material no dice con qué umbral, con qué clave ni qué texto devuelve en ese caso. Tampoco explica cómo bloquea las llamadas siguientes ni qué hace con `retry_after_seconds`. Para saberlo hay que mirar `guards.py` y `_wrap_tool`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10717,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 978,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10717,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 978,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10717,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10717
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

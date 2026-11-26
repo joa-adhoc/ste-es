@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si me armo un venv propio en el worktree (después de `rm tuqui_core/.venv`), ¿qué comandos exactos tengo que correr para crearlo e instalar las dependencias? ¿`make install` sirve ahí o también toca los `node_modules` que siguen linkeados al clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Necesito el que instala solo ese paquete en el venv del clone principal (con qué pip o herramienta y desde dónde). Si conviene un venv propio, necesito los pasos para crearlo e instalarlo según el Makefile, y saber si eso toca los node_modules linkeados."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Necesito el de instalar solo ese paquete en el venv del clone principal y, si conviene un venv propio, los pasos para crearlo en el worktree después de sacar el link, aclarando si ese `make install` toca los `node_modules` linkeados."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos para la dependencia de Python? Necesito el que instala solo ese paquete en el venv del clone principal (con qué pip o herramienta y desde dónde). Si conviene un venv propio, necesito los pasos para crearlo e instalarlo según el Makefile, y saber si eso toca los node_modules linkeados.",
+ "followup_answer": "No puedo darte los pasos del `Makefile` porque no lo leí. La búsqueda del repo en esta máquina quedó frenada porque el comando requería aprobación, y la guía que pegaste no dice qué ejecuta `make install`.\n\n**Instalar solo el paquete en el venv del clone principal**\n\nEstos comandos son la forma estándar de `pip` y `uv`, no salen de la guía y no los probé. Corrélos desde la raíz del **clone principal**, cambiando `paquete==X.Y.Z` por tu dependencia:\n\n```bash\ntuqui_core/.venv/bin/python -m pip --version          # ¿el venv tiene pip?\n\n# si respondió con una versión:\ntuqui_core/.venv/bin/python -m pip install 'paquete==X.Y.Z'\n\n# si dice \"No module named pip\" y tenés uv:\nuv pip install --python tuqui_core/.venv/bin/python 'paquete==X.Y.Z'\n```\n\nQue tenga `pip` no asegura que sea la herramienta que usa el proyecto: confirmalo en el `Makefile`. Al nombrar solo el paquete no pedís reinstalar el proyecto en modo editable, pero sí se pueden instalar o cambiar de versión sus dependencias. Eso afecta a todos los worktrees que comparten el venv. Igual tenés que declarar la dependencia en tu branch, para que la tengan CI y el resto.\n\n**Venv propio**\n\nPara ver qué hace el target, corré esto desde la raíz del worktree:\n\n```bash\ngrep -nE -A25 '^(install|worktree-setup)[[:space:]]*:' Makefile\ngrep -nE 'VENV|PYTHON|PIP|npm|node_modules|^-?include' Makefile\n```\n\nRevisá también los targets de los que dependa `install` y los scripts o archivos incluidos que llame. Con eso vas a saber:\n- con qué crea el venv y qué versión de Python pide;\n- desde dónde instala las dependencias;\n- si ejecuta `npm` o toca `node_modules`.\n\n**Todavía no sé si `make install` toca los `node_modules`.** Que instalar en el venv sea una tarea de Python no lo descarta, porque el target puede hacer más cosas. Hasta revisarlo, no lo corras en el worktree con esos links puestos. Sacar solo `tuqui_core/.venv` no protege `node_modules` ni garantiza el resto del aislamiento.\n\nSi me pegás la salida de esos `grep`, o me autorizás a leer el repo y me decís dónde está, te paso la secuencia exacta. Sigue valiendo no instalar un venv completo si estás en Tuqui Work.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12383,
+  "cache_read_input_tokens": 46929,
+  "output_tokens": 1679,
+  "output_tokens_details": {
+   "thinking_tokens": 498
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12383,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1336,
+    "cache_read_input_tokens": 29419,
+    "cache_creation_input_tokens": 474,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 474
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ddeeacd2ae"
+ }
+}

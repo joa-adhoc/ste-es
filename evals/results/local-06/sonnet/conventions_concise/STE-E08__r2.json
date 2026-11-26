@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Skill**, salvo que tu tool cumpla alguno de los ejes. Un `odoo_create` con algunos defaults es un wrapper 1→1: es componible, así que no cumple (a), y el umbral de (d) lo excluye explícitamente, aunque ahorre tokens de esquema. Los defaults van escritos en la skill.\n\nPasa a tool nativa si cumple **al menos uno** de estos:\n\n| Eje | Cuándo califica | ¿Vale en MCP saliente? |\n|---|---|---|\n| **(a)** No componible | No se logra con las tools genéricas ni con otra existente | Sí |\n| **(b1)** Approval o policy propia | Con menor blast radius que la genérica | No, solo en chat |\n| **(b2)** Whitelist más fina | Más acotada que el `create` o `execute` genérico | Sí |\n| **(c)** Procedimiento crítico | Que el LLM saltee un paso tiene un costo real (compliance dura) | No |\n| **(d)** Eficiencia o determinismo | Una llamada reemplaza ≥3, un loop no acotado o un procedimiento con pasos que el LLM saltearía | Sí |\n\nEn tu caso, revisá dos cosas:\n- **(b2):** califica si la tool restringe de verdad qué se puede crear o cambia el gate con un menor blast radius. Poner defaults que se pueden pisar no es una whitelist más fina. Como tu operación ya es un `create`, usar el gate `create` no alcanza: el ejemplo de `odoo_copy` mejora respecto de `execute`.\n- **(c):** si alguno de esos \"defaults\" es en realidad una obligación de compliance, puede calificar, pero solo en chat.\n\n**El MCP saliente sí cambia el criterio:** ahí (b1) y (c) no cuentan, porque no hay canal de approval (el router MCP ignora `requires_approval`) ni un turno donde forzar pasos. Para exponerla por MCP, la tool se tiene que justificar por **(a), (b2) o (d)**.\n\nHay un precedente en el material: `odoo_schedule_activity` bajó a system skill. Era componible, su único diferencial era (b1), que no vale en MCP, y ya estaba en `MCP_EXCLUDED_TOOLS`.\n\nMe baso solo en el texto que pegaste; no miré el código ni sé qué defaults tiene tu tool.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11100,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 832,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11100,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 832,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11100,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11100
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando un owner conecta su Odoo, Tuqui valida las credenciales y la versión, **las guarda en el workspace** y, solo si corresponde, vincula a quien conecta con un usuario de Odoo. Ser `owner` es un rol de Tuqui: no exige tener usuario en Odoo y conectar no lo cambia. Me baso solo en el fragmento que pasaste (spec `0093`); no lo contrasté con el código.\n\n## Recorrido de `connect_odoo`\n\nEl pedido entra por `POST /workspaces/{slug}/odoo`, requiere ser owner o admin y llama a `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autenticación:** `_authenticate_odoo` prueba URL, base, login y API key, y obtiene el `admin_uid`.\n2. **Permisos en Odoo:** `_verify_odoo_admin_group` exige que ese usuario tenga `base.group_system`; si no, da `ValueError`. Es un control aparte del rol en Tuqui.\n3. **Versión:** `get_version` la detecta. Si falla o la versión mayor es menor que `MIN_SUPPORTED`, da `ValueError`.\n4. **Vínculo:** `_resolve_link_mode` decide cómo vincular a quien conecta.\n5. **Guardado:** se actualizan `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version` en `workspaces`, que queda conectado. Si otro workspace ya tiene el mismo `database.uuid`, responde `409 Conflict` por un índice único (migración 0134).\n6. **Limpieza:** si cambió la URL, se borran los vínculos de los miembros.\n7. **Aplicación del vínculo:** en modo `auto` o `manual`, guarda el `odoo_user_id` en el miembro actual y lanza `sync_user_api_key` en segundo plano.\n8. **Respuesta:** devuelve los datos del workspace más `members_invalidated`, `warning` (mensaje para la interfaz), `link_status` y `linked_odoo_user_id`.\n\n## A qué usuario de Odoo te vincula\n\n| Modo | Cuándo | Resultado |\n|---|---|---|\n| `auto` | Por defecto, si tu email en Tuqui coincide con `odoo_login` | Te vincula al `admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y te vincula a él |\n| `none` | Por defecto, si no coinciden | No asigna ningún `odoo_user_id` |\n\nLas credenciales y tu identidad pueden ser de usuarios distintos: en `manual`, el workspace guarda el `odoo_uid` de las credenciales y vos podés quedar vinculado a otro. El chequeo de `base.group_system` que figura es sobre las credenciales; no se pide para el usuario elegido a mano.\n\n## Si cambia la URL\n\n- Se borran `odoo_user_id` y `odoo_api_key` de **todos los miembros, incluido el owner**, porque esas identidades pueden ser de otra instancia. Las credenciales nuevas del workspace son otra cosa y quedan guardadas.\n- Después, en `auto` o `manual`, se vuelve a vincular **solo a quien está conectando**. En `none`, esa persona también queda sin vínculo.\n- `members_invalidated` informa cuántos miembros se invalidaron; si la URL no cambió, es 0. El fragmento no dice cómo se vuelve a vincular al resto.\n\n## Lo que el fragmento no aclara\n\n- **Cambio de base:** la limpieza depende de `url_changed`. No se ve si cambiar solo `odoo_db` con la misma URL la activa. Conviene revisarlo, porque los ids guardados podrían corresponder a otros usuarios.\n- **`none` con la misma URL:** según el flujo, no se actualiza el miembro, así que un vínculo anterior se conservaría. En ese caso, `link_status='none'` no probaría que estás sin vínculo.\n- **Sincronización de la API key:** como usa `asyncio.create_task`, el flujo no la espera. Un `link_status` en `auto` o `manual` no confirma que haya terminado bien, y no se ve qué pasa si falla.\n- **Errores y transacción:** no se ve si el guardado, la limpieza y el vínculo son atómicos, ni qué código HTTP devuelve cada `ValueError`. Tampoco de dónde sale el `database.uuid`, que no figura entre los campos del `UPDATE`.\n- **Comparación de emails:** no dice si distingue mayúsculas, ni qué pasa si se pide `auto` y los emails no coinciden.\n\nPara cerrar estos puntos hay que mirar `connect_odoo`, `_resolve_link_mode` y `sync_user_api_key` en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11302,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2275,
+  "output_tokens_details": {
+   "thinking_tokens": 543
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11302,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2275,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11302,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11302
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

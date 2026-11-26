@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Son dos problemas distintos, y los dos se resuelven corriendo los tests por `make` desde la raíz del repo.\n\n**1. El error raro con `pytest` desde la raíz:** la configuración de la suite (modo asyncio, markers, `testpaths`) está en `tuqui_core/pyproject.toml`, y desde la raíz pytest no la lee. Además junta `evals/tests` y puede dar miles de fallas que no son del código. El `conftest.py` de la raíz corta la invocación simple con un mensaje. Si ese es tu \"error raro\", es esperado; no sé cuál viste, así que si es otro, pegame la salida.\n\n**2. `file or directory not found: or`:** la expresión de `-k` llegó sin comillas, así que el shell la partió y pytest tomó `or` como un path. `ARGS` se copia tal cual en la receta, así que van comillas dobles adentro y simples afuera:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nSi además tipeaste `ARGS=-k a or b` sin ninguna comilla, `make` recibe solo `ARGS=-k` y toma `a`, `or` y `b` como otros targets. Las comillas de arriba también evitan eso.\n\nPara lo habitual:\n\n```bash\nmake test                                     # unit, el mismo paso de pytest que corre CI\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\n```\n\nSi necesitás `pytest` directo, hacé antes `cd tuqui_core`. Si tu código lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile. Evitá `pytest tuqui_core/tests/test_x.py` desde la raíz: corre, pero se saltea el lock que aplica el camino por `make`.\n\nEsto sale del material que pegaste; no ejecuté los comandos ni revisé el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10884,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 660,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10884,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 660,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10884,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10884
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

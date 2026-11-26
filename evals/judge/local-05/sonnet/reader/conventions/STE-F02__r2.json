@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar como lo veo en pantalla? Para el paliativo, decime en qué menú y en qué plantillas tengo que cargar el CC, qué campo es (y cuál sería el «Responder a»), y qué poner ahí. También aclarame qué son C1 y C2 (qué contacto o usuario es cada uno) y qué quieren decir «account_ux», «el cron», «partner_to», «mail_autosubscribe (OCA)» y «tuqui-adhoc», o sacalos si no me hacen falta para responder el ticket."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como se ve desde la pantalla de Odoo y sin nombres técnicos? No entiendo qué son `email_cc`, `partner_to`, `reply_to`, `account_ux`, `mail_autosubscribe (OCA)`, el «cron», `tuqui-adhoc` ni quiénes son C1 y C2. Decime en pocas líneas qué campo de la plantilla de correo tengo que completar y dónde está, para dejar el paliativo de la copia a Administración, y qué le puedo contestar al cliente sobre lo que esto resuelve y lo que no."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como lo vería desde la pantalla de Odoo, sin nombres técnicos? No entiendo qué son `email_cc`, `partner_to`, `reply_to`, `account_ux`, el cron ni `mail_autosubscribe` (OCA). Tampoco sé qué son «C1» y «C2»: ¿son dos contactos o un contacto y un usuario, y cómo los distingo? Para el paliativo, decime en qué menú y en qué plantillas tengo que cargar la copia a Administración y qué le aviso al cliente que no va a resolver."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar como lo veo en pantalla? Para el paliativo, decime en qué menú y en qué plantillas tengo que cargar el CC, qué campo es (y cuál sería el «Responder a»), y qué poner ahí. También aclarame qué son C1 y C2 (qué contacto o usuario es cada uno) y qué quieren decir «account_ux», «el cron», «partner_to», «mail_autosubscribe (OCA)» y «tuqui-adhoc», o sacalos si no me hacen falta para responder el ticket.",
+ "followup_answer": "# Paliativo: cargar el CC en las plantillas\n\nNo pude ver la base del cliente. **Los menús y nombres de pantalla son los que conozco de Odoo 18, sin verificar en esa base.** Pueden cambiar según el idioma o los módulos instalados.\n\n## Dónde entrar\n1. **Ver qué plantillas se usan.** En **Contabilidad → Configuración → Diarios**, abrí los cinco diarios de venta electrónicos y anotá la plantilla de envío automático de cada uno. No tengo el nombre de ese campo ni los de las plantillas del cliente.\n2. **Abrir las plantillas.** Activá el modo desarrollador y andá a **Ajustes → Técnico → Correo electrónico → Plantillas de correo electrónico**.\n3. **Sumar las del envío manual y las notas de crédito.** Las estándar suelen llamarse, en inglés, *Invoice: Sending* y *Credit Note: Sending*. Confirmá cuáles usa el cliente, porque pueden ser otras. Si una misma plantilla se repite, se edita una sola vez.\n4. **Cargar el campo.** En cada una, buscá la pestaña **Configuración de correo electrónico**.\n\n## Qué campo tocar\n\n| En pantalla | Nombre interno | Qué poner |\n|---|---|---|\n| **CC** | `email_cc` | El correo de Administración (el que comparten C1 y C2; no figura en el material). Si ya hay otra dirección, no la borres sin consultar: agregá esta separada por coma |\n| **Responder a** | `reply_to` | **Para el paliativo, nada: dejalo como está.** Si después se prueba la alternativa, iría el mismo correo |\n| **Para (socios)** o similar | `partner_to` | No lo toques. Define a qué contactos va dirigido el correo |\n\nSi en vez de esos campos ves tildada una opción de **destinatarios predeterminados**, no la cambies sin probar en una copia: puede modificar a quién le llega la factura.\n\n**Cómo probarlo:** en una copia de la base, con correos de prueba, hacé un envío automático (validando una factura), uno manual y uno de una nota de crédito. En cada caso, revisá que la copia llegue a Administración.\n\n**Qué decirle al cliente:** Administración va a recibir copia de los próximos envíos que usen esas plantillas. Esto no saca a vendedores ni usuarios internos, no cambia a quién le llegan las respuestas como seguidor y no corrige las facturas anteriores.\n\n**Sobre «Responder a»:** podría hacer que las respuestas vayan a Administración, pero falta probar que el envío de facturas lo respete. También hay que ver si la respuesta queda registrada en el historial de la factura.\n\n## Quiénes son C1 y C2\nC1 y C2 son las etiquetas del material para dos registros que se llaman «Administración» y tienen el mismo correo.\n\n| | Qué es | Dónde verlo | Seguidor en facturas de 2026 |\n|---|---|---|---|\n| **C1** | Un contacto solo, sin usuario para entrar a Odoo | En **Contactos** | Unas 500 |\n| **C2** | El contacto del usuario interno «Administración» | En **Contactos**; su usuario, en **Ajustes → Usuarios y compañías → Usuarios** | Unas 4.600 (el usuario «Administración») |\n\nEn el usuario, el campo **Notificación** está en **Gestionar en Odoo**: sus notificaciones quedan en la bandeja de Odoo y no van al correo. Para el CC no hace falta elegir entre C1 y C2, porque se escribe la dirección. Para armar la regla de seguidores, sí.\n\n## Los otros términos\n\n| Término | Qué quiere decir | ¿Hace falta en el ticket? |\n|---|---|---|\n| `account_ux` | El módulo que, en esta base, envía la factura al validarla | No hace falta nombrarlo: alcanza con «envío automático al validar» |\n| El cron | Una tarea programada de Odoo; la que creó la factura de ejemplo viene de suscripciones | Podés decir «el proceso automático de suscripciones» |\n| `partner_to` | El campo de destinatarios de la tabla de arriba | No para explicar el paliativo |\n| `mail_autosubscribe` (OCA) | Un módulo de la comunidad de Odoo que suscribe seguidores | No: no sirve para este caso y se puede sacar |\n| `tuqui-adhoc` | La herramienta de Adhoc para consultas; la mencioné porque no la tenía disponible | No: se puede sacar |\n\n## Texto para el ticket\n> No encontramos una opción nativa confirmada que cumpla todo el pedido. Como paliativo, se puede agregar el correo de Administración en el campo CC de las plantillas de facturas y notas de crédito, previa prueba. Administración recibiría copia de los próximos envíos. Esto no quita a vendedores ni usuarios internos, no la agrega como seguidora ni corrige los documentos anteriores. Para el resto del pedido, recomendamos derivar a Consultoría.\n\nEl material pedía resolverlo antes del 25/10 y hoy es 26/11: antes de responder, confirmá cómo sigue la urgencia.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12854,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2859,
+  "output_tokens_details": {
+   "thinking_tokens": 1025
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12854,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2859,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12854,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12854
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "70aec8103d",
+  "persona": "soporte"
+ }
+}

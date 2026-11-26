@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El front inicia la conexión, el usuario autoriza en el provider, y el backend canjea el código, prueba las habilidades y devuelve al usuario al SPA. **Si algunas habilidades no contestan pero al menos una sí, queda conectado con una advertencia.** Solo se borra el token si no contesta ninguna.\n\n## Flujo\n\n**Preparación (admin).** Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n1. **Usuario → front:** abre `/connectors` y clickea **Connect**.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve la `authorize_url`, que incluye:\n   - **`state`:** protegido con AES-GCM (el material dice \"firmado\", pero AES-GCM además cifra) y con TTL de 10 min. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede llevar `code_verifier` (PKCE) y, en platform connectors, `scope_profile`.\n   - **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir el refresh token. El segundo hace que lo vuelva a emitir en cada autorización, también al desconectar y reconectar. Los demás providers deberían ignorar los parámetros que no conocen (RFC 6749 §3.1).\n4. **Front → provider:** redirige el navegador, y ahí el usuario autoriza.\n5. **Provider → backend:** redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** valida el `state`, canjea el `code` en `token_url` y guarda los tokens cifrados en `user_mcp_oauth_tokens`.\n   - **Prueba de humo:** después introspecciona en paralelo todas las habilidades habilitadas.\n7. **Backend → SPA:** redirige según quién es el dueño de la conexión, sin usar un `return_to` aparte:\n   - **Usuario:** `/w/{slug}/settings/connectors?connected={server_id}`\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`\n8. **Más adelante, backend ↔ provider:** al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 s. Según este disparador, es una renovación anticipada pero hecha al usarlo; el material no menciona ningún proceso en segundo plano.\n\n**`resource` (RFC 8707).** Si el discovery guardó en `OAuthPerUserConfig.resource` la URI canónica que declaró el server, se manda al autorizar (paso 3), al canjear (6) y al renovar (8). Si no está guardada, no se manda ni se adivina: un authorization server que valida el valor rechaza los que no reconoce. Así siguen andando los conectores anteriores a ese campo.\n\n## Si fallan habilidades\n\n| Resultado | Token | Redirect | Qué ve el usuario |\n|---|---|---|---|\n| Contestan todas | Se conserva | `connected` | Queda conectado |\n| Contesta al menos una | Se conserva | `connect_warning=<habilidades>` | Banner de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>` | Banner de error en la card |\n\nEn el caso parcial se prioriza que pueda usar lo que sí funciona, en vez de desconectarlo por una habilidad rota. En el caso total, que el canje haya salido bien no alcanza para dejarlo conectado.\n\nDe la regla se desprende que una caída pasajera que afecte a todas las habilidades durante la prueba también borraría el token, salvo que haya reintentos que el material no menciona. En ese caso habría que conectar de nuevo.\n\n## Preguntas abiertas\nEl material no aclara lo siguiente; para confirmarlo habría que mirar el código:\n- **Habilidades con falla:** si se vuelven a probar solas, si se ofrecen igual en los toolsets y cómo se quita la advertencia.\n- **Criterio de la prueba:** qué cuenta como \"no contesta\" (timeout, 401/403 u otro error), si hay reintentos y qué pasa si no hay ninguna habilidad habilitada.\n- **Reconexión:** si una prueba que falla del todo borra solo los tokens nuevos o deja al usuario sin la conexión que ya tenía.\n- **Renovación:** qué pasa si el refresh falla o el provider no entregó refresh token.\n- **Seguridad del callback:** si el `nonce` es de un solo uso (el TTL por sí solo no impide reusar el `state`) y si se verifica que el navegador que vuelve tenga la sesión de quien inició el flujo.\n- **Otros errores:** qué pasa si el usuario rechaza la autorización, el `state` venció o falla el canje.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11119,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2321,
+  "output_tokens_details": {
+   "thinking_tokens": 583
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11119,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2321,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11119,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11119
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Sí, podés indicar la factura al importar el recibo, en la columna `to_pay_move_line_ids/id`. Al confirmar, Odoo concilia el pago contra esos apuntes, hasta donde alcance a cubrirlos. No lo probé importando en la base del cliente.\n\n**No pude crear los archivos:** no tuve permiso para escribir en la carpeta. Copiá cada bloque en un archivo de texto con el nombre indicado y guardalo como CSV en UTF-8. Reemplazá todo lo que está entre `< >`, incluidos esos signos.\n\n### `recibos.csv`\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_recibo_001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,<MONTO>,\"<ID_APUNTE_1>,<ID_APUNTE_2>\",<IMPUESTO_RETENCION>,<NRO_CERTIFICADO>,<BASE>,<IMPORTE_RETENIDO>\n```\n\n### `pagos_proveedores.csv`\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_pago_001,supplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO>,<METODO_DE_PAGO>,<MONTO>,\"<ID_APUNTE_1>,<ID_APUNTE_2>\",<IMPUESTO_RETENCION>,,<BASE>,<IMPORTE_RETENIDO>\n```\n\n### `recibos_con_cheques.csv`\nNo lleva `amount`, porque se calcula como la suma de los cheques.\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimport_recibo_cheques_001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO>,<METODO_DE_PAGO_CHEQUES>,\"<ID_APUNTE_1>,<ID_APUNTE_2>\",<NRO_CHEQUE_1>,<FECHA_PAGO_1>,<BANCO_1>,<CUIT_EMISOR_1>,<MONTO_CHEQUE_1>,<IMPUESTO_RETENCION>,<NRO_CERTIFICADO>,<BASE>,<IMPORTE_RETENIDO>\n,,,,,,,,<NRO_CHEQUE_2>,<FECHA_PAGO_2>,<BANCO_2>,<CUIT_EMISOR_2>,<MONTO_CHEQUE_2>,,,,\n```\n\n### Cómo completarlos\n- **Obligatorios del pago:** son las columnas de `partner_type` a `payment_method_line_id`. En las retenciones, el impuesto es obligatorio. Cada cheque necesita un monto mayor a 0. Si dejás vacíos banco o CUIT, salen del cliente; el CUIT se valida.\n- **Columna `id`:** es el identificador del pago, no el de la factura. Usá uno distinto para cada pago.\n- **Varias líneas:** cada cheque o retención adicional va en otra fila, con los datos del pago vacíos. Si hay un solo cheque, borrá la segunda fila. Si un pago no tiene retenciones, dejá esas columnas vacías.\n- **Formato:** usé fechas `AAAA-MM-DD`; cambiá la de ejemplo. Si un método de pago se llama igual en varios diarios, revisá cuál toma la importación.\n- **Pagos con cheques propios:** podés partir del archivo de cheques, con `supplier`, `outbound` y el proveedor. El material no confirma ese caso ni cubre la entrega de cheques de terceros.\n\n### Cómo obtener los ID de las deudas\n1. Entrá a Contabilidad › Apuntes contables.\n2. Filtrá la factura y su cuenta a cobrar (recibos) o a pagar (proveedores).\n3. Exportá con la opción «compatible con importación».\n4. Copiá el identificador externo de cada apunte. Si son varios, separalos con coma, entre comillas en el CSV. Si es uno, poné solo ese.\n\nLa cuenta del apunte tiene que ser compatible; Odoo lo controla.\n\n### Qué probar antes de la carga masiva\n- **Nombres de las columnas de cheques y retenciones:** el material nombra los campos principales, pero no los nombres técnicos de sus datos. Los que puse después de la `/` salen de mi conocimiento de Odoo. Comparalos con las opciones de la pantalla de importación.\n- **Retenciones a proveedores:** se calculan solas según la posición fiscal. No sé si las importadas se conservan, se reemplazan o se duplican. El número queda vacío porque lo pone la secuencia al confirmar.\n- **Deudas:** completá siempre la columna. En borrador, cambiar cliente, compañía o tipo recarga **toda la deuda abierta**. No está probado si la importación respeta tu selección o qué pasa si la columna queda vacía.\n\nProbá primero un registro de cada archivo, idealmente en una base de prueba. Los pagos quedan en borrador. Antes de confirmar, revisá las deudas seleccionadas, los cheques, las retenciones (sin duplicados) y los importes. Después de confirmar, verificá contra qué facturas concilió y qué saldo quedó.\n\nTampoco tuve disponible `tuqui_context`, así que no revisé las reglas de la empresa sobre cómo operar Odoo.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15540,
+  "cache_read_input_tokens": 77567,
+  "output_tokens": 7069,
+  "output_tokens_details": {
+   "thinking_tokens": 2410
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15540,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2879,
+    "cache_read_input_tokens": 31453,
+    "cache_creation_input_tokens": 1597,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1597
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

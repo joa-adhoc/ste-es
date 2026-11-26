@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El error del ticket 140512 fue, muy probablemente, pasajero y propio de la actualización: la base ya tenía las reglas nuevas, pero el pod A seguía con el código anterior.** Con este material no veo un bug en el módulo ni un motivo para cambiar código. Trabajé solo con lo que pegaste: no consulté la base, los logs ni Tuqui, y no modifiqué nada.\n\n**Qué pasó (UTC, 2026-11-04)**\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A. |\n| 15:07:39 y 15:08:01 | Se actualizan `account_multicompany_ux` y `stock_account_multicompany_ux`. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro y el uid 31 recibe tres `AttributeError`. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones porque falta otro método. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el pod A. |\n| 15:09–15:30 | El filtro no muestra errores en el pod B. |\n\nLas reglas se guardan en la base, pero los métodos salen del código que cargó cada pod. Recargar el registro relee la base, pero no vuelve a importar el código Python ya cargado. Por eso el pod A pudo evaluar un dominio nuevo sin tener `_get_branch_stock_root_ids`. La falla del cron, con un método de `res.company`, sigue el mismo patrón.\n\nEl método y su import aparecen en la introspección, así que hoy no veo un import faltante. La ventana de riesgo va como máximo de 15:08:01 a 15:08:58. Los errores que me pasaste están entre 15:08:37 y 15:08:40.\n\n**Lo que no está confirmado**\n- **Imagen del pod A:** que tenía la anterior es una inferencia. Se cierra mirando su tag y buscando los dos métodos en el código de esa imagen. La introspección es de hoy y no muestra qué código tenía ese pod.\n- **Hora del ticket:** dice 15:09:12, pero a esa hora el pod A ya había empezado a apagarse (15:08:58), y el pod B no muestra errores. Puede ser la hora en que se registró o copió el error, pero no lo sé. Los errores del uid 31 son de unos 34 segundos antes (12:08:37–38, hora argentina).\n- **Alcance de los logs:** las 39 líneas están completas para ese filtro. No descartan errores que el filtro no incluya, ni dicen nada de lo que pasó después de las 15:30.\n- **Quién actualizó los módulos:** el material no muestra qué proceso lo hizo mientras el pod A estaba activo.\n- **Efecto en la carga y el cron:** no sé si la persona pudo terminar de cargar el stock, ni si el cron corrió bien después.\n\n**Qué haría**\n1. **Cliente:** confirmar que la carga de stock haya quedado completa. Se puede mandar esto:\n   > «El error coincidió con una actualización de tu base. Por lo que revisamos, fue algo momentáneo: en los registros del sistema nuevo no vemos errores entre las 12:09 y las 12:30. ¿Podés revisar si el stock que estabas cargando quedó completo? Si falta algo, volvé a cargarlo, verificando antes que no quede duplicado. Si vuelve a aparecer el error, avisanos con la hora.»\n2. **Cron:** revisar que «Consolidation: bring currency rates in» tenga una ejecución exitosa posterior y que no falten cotizaciones.\n3. **Ticket:** si hay que cargar el módulo, el que corresponde al método del error es `stock_account_multicompany_ux`. Eso no significa que el módulo tenga la falla. El producto no surge del material. Cerraría el ticket cuando la persona confirme que la carga está bien.\n4. **Despliegue:** avisar a quien lo administra que, según esta secuencia, un pod puede atender con código viejo sobre una base ya actualizada. Conviene revisar cómo se ordena la actualización con el reemplazo de pods. Va como seguimiento aparte, porque puede repetirse cuando datos nuevos dependan de código nuevo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11040,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2930,
+  "output_tokens_details": {
+   "thinking_tokens": 1415
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11040,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2930,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11040,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11040
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

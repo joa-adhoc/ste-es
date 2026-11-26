@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Un admin configura el conector una sola vez y después cada usuario autoriza su cuenta. El backend cambia el código por tokens y prueba las habilidades. Si solo algunas no contestan, **el usuario queda conectado y ve un aviso**. Si no contesta ninguna, se borra el token. Todo sale del material que pegaste; no miré el código.\n\n## Flujo\n\n**0. Configuración (admin).** Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n**1. Inicio (usuario y front).** El usuario entra a `/connectors` y clickea **Connect**. El front llama a `GET /api/mcp-oauth/{server_id}/start`.\n\n**2. URL de autorización (backend).** Devuelve la `authorize_url` con un `state` cifrado con AES-GCM, que vence a los 10 minutos. El material lo llama \"firmado\"; AES-GCM además de autenticar cifra.\n- **Contenido del `state`:** `server_id`, `user_id`, `issued_at` y `nonce`. Puede llevar `code_verifier` (PKCE) y, en conectores de plataforma, `scope_profile`.\n- **Refresh token:** la URL incluye `access_type=offline` y `prompt=consent`. Google necesita el primero para pedirlo y el segundo para volver a emitirlo en cada autorización. Así, desconectar y reconectar no deja al usuario sin refresh token. Según el material, los demás providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n\n**3. Autorización (front y provider).** El front redirige el navegador al provider.\n\n**4. Callback (provider y backend).** El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. Esa vuelta va directo al backend.\n\n**5. Intercambio (backend y provider).** El backend valida el `state`, cambia el `code` por tokens en `token_url` y los guarda cifrados en `user_mcp_oauth_tokens`.\n\n**6. Prueba de humo (backend y server MCP).** Todavía dentro del callback, consulta en paralelo **todas las habilidades habilitadas**.\n\n**7. Vuelta a la app (backend y front).** El destino depende de quién es el dueño de la conexión, sin un `return_to` aparte:\n\n| Dueño | Destino en caso de éxito |\n|---|---|\n| Usuario | `/w/{slug}/settings/connectors?connected={server_id}` |\n| Cuenta de servicio | `/w/{slug}/settings/members/{member_id}?connected=...` |\n\n**8. Uso posterior (backend y provider).** Al armar los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 segundos. \"Proactivo\" acá significa antes de que venza; el material no menciona un proceso en segundo plano.\n\n**`resource` (RFC 8707).** Es la URI canónica del server, que el discovery guarda en `OAuthPerUserConfig.resource`. Si está guardada, viaja en la autorización, el intercambio y el refresh (pasos 2, 5 y 8 de esta explicación). Si no, no se manda: los conectores anteriores siguen funcionando, y un valor adivinado podría ser rechazado por el servidor de autorización.\n\n## Si algunas habilidades no contestan\n\nQue el intercambio salga bien no garantiza que el token sirva para usar las habilidades.\n\n| Resultado de la prueba | Token | Redirect | Qué ve el usuario |\n|---|---|---|---|\n| Contestan solo algunas | Se conserva y queda conectado | `connect_warning=<habilidades>` | Banner de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>` | La card con el banner de error |\n\nEl criterio es que una habilidad rota no justifica quitarle al usuario las que sí puede usar. De la segunda regla deduzco que una caída temporal de todas durante la prueba también borraría el token, y habría que volver a conectar. El material no menciona una excepción para ese caso.\n\n## Lo que el material no aclara\n\nPara confirmar esto habría que mirar el código y sus tests:\n- **Fallas previas a la prueba:** qué pasa si el usuario rechaza el permiso, el `state` es inválido o venció, o falla el intercambio.\n- **Seguridad del callback:** si el `nonce` se puede usar una sola vez y si se comprueba que la sesión del navegador sea la de quien inició el flujo. Tampoco detalla cómo se manda el `code_challenge` de PKCE.\n- **Prueba de humo:** cuánto espera cada habilidad, qué cuenta como \"no contesta\" y qué pasa si no hay ninguna habilitada.\n- **Conexión parcial:** si se reintenta, si las habilidades que fallaron siguen disponibles en los toolsets y si el aviso se guarda o solo viaja en la URL.\n- **Errores posteriores:** qué pasa si falla el refresh, y si al borrar el token también se lo revoca en el provider.\n\nEl fragmento sobre `resource` además tiene una parte recortada (`[...]`), así que puede haber condiciones que no vi.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11254,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2407,
+  "output_tokens_details": {
+   "thinking_tokens": 587
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11254,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2407,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11254,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11254
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

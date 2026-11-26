@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Corré `make worktree-setup` y después resolvé las dos dependencias por separado, porque el setup linkea el `.venv` y los `node_modules` al clone principal. Todo desde el worktree, salvo que indique otra cosa.\n\n**1. Setup**\n```bash\nmake worktree-setup\n```\n\n**2. Dependencia de Python.** No corras `make install` mientras el `.venv` esté linkeado. Elegí una opción:\n- **Instalarla en el venv del clone principal:** es lo más simple, pero ese venv lo usan todos los worktrees. Instalá el paquete puntual con ese venv. Un `make install` en el clone principal usa su checkout, que probablemente todavía no declare tu dependencia.\n- **Armar un venv propio (para aislarla, o si cambia versiones de paquetes existentes):** borrá solo el link con `rm tuqui_core/.venv`, **sin `-r` ni barra final**. Después creá el venv en el worktree e instalá ahí. El material no detalla cómo crearlo, así que revisá el `Makefile`.\n\n**3. Frontend.** El material indica correr `npm ci` en el worktree antes de `make test-web`. Como `npm ci` borra `node_modules` antes de instalar, yo sacaría antes el link. No verifiqué si tu versión de npm, al encontrarlo, toca el contenido del clone principal.\n```bash\nls -ld web/node_modules      # confirmá que es un symlink\nrm web/node_modules          # si lo es: sin -r ni barra final\n(cd web && npm ci)\n```\nEl `node_modules` de la raíz también está linkeado. No instales nada ahí desde el worktree. Si `web/` usa workspaces de npm desde la raíz, revisalo antes de correr `npm ci`. Si cambiaste dependencias en `package.json`, el lockfile tiene que estar actualizado o `npm ci` falla.\n\n**4. Tests**\n```bash\nmake test ARGS=\"tests/<tu_test>.py\"   # path relativo a tuqui_core/\nmake test-web\nmake lint\n```\nLa suite completa de Python es `make test`, y para aislamiento multi-tenant está `make test-rls`. Según tus convenciones, la validación pesada queda para CI: en local corré lint y subconjuntos baratos. `make test-evals` prueba el módulo `evals/`, no corre los benchmarks.\n\nNo ejecuté ninguno de estos comandos; los pasos salen del material que pegaste, salvo las precauciones sobre los links y el lockfile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10669,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1305,
+  "output_tokens_details": {
+   "thinking_tokens": 437
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10669,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1305,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10669,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10669
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

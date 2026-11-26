@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "La migración no se aplica en el preview de tu PR. Se aplica recién en un deploy de la rama `staging` o `main` que tenga el permiso activado, siempre que el archivo la declare como destructiva con esta línea cerca del inicio:\n\n```sql\n-- destructive: true\nALTER TABLE mi_tabla DROP COLUMN mi_columna;\n```\n\nEl marker corresponde si el código anterior no puede correr sin esa columna. La tabla y la columna del ejemplo son inventadas.\n\n| Dónde | ¿Se aplica? | Por qué |\n|---|---|---|\n| CI (postgres de cada workflow), stack e2e y base de pytest | Sí, con el permiso activado | Son bases efímeras que nadie más usa. El workflow define `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y el conftest pasa `allow_destructive=True`. |\n| Local con `make migrate` | No | No activa el permiso, porque la base local se comparte entre worktrees. |\n| PR env de Railway | No | Hereda el permiso de staging, pero su rama no es `staging` ni `main`. |\n| Deploy de `staging` o `main` después del merge | Sí, si tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` | Se cumplen las dos condiciones. |\n\n- **Cuando la saltea:** el runner no la registra en `_migrations`, así que queda pendiente y la puede aplicar un deploy posterior que cumpla las dos condiciones. En Railway corre al deployar, con `python -m tuqui_core.db.migrate`. En CI y local se usa `scripts/apply_migrations.py`, con el mismo contrato.\n- **Si te olvidás el marker:** el runner la trata como aditiva y el preview la aplica en la base de staging. Eso rompe el servicio de staging, que sigue con el código anterior. Ya pasó algo así: un preview aplicó `0180_chat_ga` contra la base compartida.\n- **Si hay marcadores de Railway pero falta la rama (`RAILWAY_GIT_BRANCH`):** no la aplica.\n- **Al probar el preview:** el código nuevo corre contra una base que todavía tiene la columna. Por lo que se deduce de esto, conviene revisar que funcione así. Por ejemplo, si la columna es `NOT NULL` sin valor por defecto y el código nuevo ya no la completa, los `INSERT` van a fallar.\n\n**Sobre prod:** el fragmento no dice qué rama se deploya en prod ni si ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Que `main` pase el control de rama no alcanza para asegurar que se aplique ahí. Antes de contar con eso, revisá las variables y la rama del servicio de prod. Si falta el permiso, la migración se saltea y la columna sigue existiendo.\n\nEl material también remite a `docs/infra-ci-cd.md`, sección «Un PR preview escribe en la base de staging», por lo que pasa al mergear o renombrar migraciones aditivas. Esa sección no vino en lo que pegaste y no la revisé; tampoco verifiqué el código del runner.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11045,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1625,
+  "output_tokens_details": {
+   "thinking_tokens": 505
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11045,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1625,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11045,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11045
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

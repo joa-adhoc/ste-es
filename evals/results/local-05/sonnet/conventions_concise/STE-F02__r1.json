@@ -1,0 +1,44 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No hay una opción nativa solo de configuración que cumpla todo lo pedido.** El CC en la plantilla resuelve la copia de la factura, pero no las respuestas ni saca a nadie. Me baso solo en el material que pegaste: no consulté la base ni el ticket en Odoo.\n\n| Opción | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| `email_cc` o `partner_to` en la plantilla (envío manual y automático) | Administración recibe copia de la factura | No la suma como seguidora, así que no le llegan las respuestas. No saca seguidores |\n| Pasar el usuario «Administración» (C2) a notificaciones por correo | Le llegan por mail las notificaciones de los documentos que ya sigue (C2 aparece en unas 4.600 facturas de 2026) | No saca a nadie ni cubre los documentos que no sigue, como el del ejemplo. Cambia todas las notificaciones de ese usuario |\n| «Agregar seguidores» y «Quitar seguidores», en regla automática o en forma masiva | Es lo que más se acerca: agrega a Administración y saca a los usuarios que se indiquen, también en los históricos | Es personalización por interfaz (Consultoría). Falta probarlo |\n| OCA `mail_autosubscribe` | No aplica | Suscribe contactos de la empresa destinataria, no uno propio |\n\n**Para la Revisión Técnica**\n- **Camino:** derivar a Consultoría y probar primero con las acciones nativas, antes de desarrollar código. El código que propone el ticket solo agrega.\n- **Autor del envío:** al validar, `account_ux` envía la factura y Odoo suscribe al autor, sin opción para apagarlo. Hay que sacarlo después de cada envío, también de los manuales.\n- **Momento de la regla:** los vendedores que ya sean seguidores habría que sacarlos antes del envío, y al autor, después. Una regla al validar podría no alcanzar. No verifiqué el orden.\n- **Lista a mantener:** supongo que «Quitar seguidores» trabaja con una lista fija de contactos. Así se conservan el cliente y sus contactos, pero cada vendedor o usuario interno nuevo habría que sumarlo.\n- **Qué «Administración»:** para recibir por mail, C1 sirve como está; C2 requiere cambiar su preferencia. Conviene usar uno solo y evitar duplicados.\n- **Causa no confirmada:** en la factura de ejemplo, el vendedor no es seguidor. La respuesta le puede haber llegado a Usuario A por seguir el documento, pero eso no explica la copia a vendedores. Sí hay seis vendedores portal siguiendo unas 4.100 facturas; falta ver cómo se agregaron. También revisaría `partner_to` y `email_cc` en las plantillas de los cinco diarios y en las de notas de crédito.\n\n**Otra alternativa a probar (no verificada):** poner el correo de Administración en `reply_to` de la plantilla. El material no dice si el envío de facturas en 18 respeta ese campo. Si lo respeta, las respuestas a esos correos irían a esa casilla. Espero que no queden en el chatter ni avisen a los seguidores, pero hay que probarlo. Tampoco saca a nadie de las demás notificaciones. Si al cliente le alcanza con recibir factura y respuestas en la casilla, `email_cc` más `reply_to` podría cubrir esa parte sin reglas.\n\n**Preguntas abiertas**\n- ¿«Sin usuarios internos» incluye no copiarlos en el envío, o también que no sigan el documento?\n- ¿Las respuestas tienen que quedar registradas en la factura?\n- ¿En los históricos alcanza con corregir seguidores? Eso afecta las notificaciones futuras, no los correos ya enviados.\n\nEl ticket pedía la solución antes del 25/10 y hoy es 26/11. Si ese plazo es de este año, ya venció: conviene confirmar con el cliente la urgencia y si algo cambió.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11303,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3521,
+  "output_tokens_details": {
+   "thinking_tokens": 2101
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11303,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3521,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11303,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11303
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

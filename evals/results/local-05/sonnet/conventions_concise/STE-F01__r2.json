@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El error fue transitorio y, con alta probabilidad, se debió a la actualización:** la base ya tenía las reglas nuevas y el pod A seguía atendiendo sin el método en memoria. El material no muestra un defecto a corregir en `stock_account_multicompany_ux`.\n\nMe basé solo en la introspección y los logs que pegaste. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no consulté el ticket, la base ni los logs, y tampoco cargué `tuqui_context`.\n\n| UTC (04/11) | Hecho |\n|---|---|\n| 15:06:29 | Arranca el pod A, antes de las actualizaciones de los módulos. |\n| 15:07:39 y 15:08:01 | Se actualizan los dos módulos. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro y el uid 31 recibe tres veces el `AttributeError`. |\n| 15:08:40 | En el pod A, el cron falla porque falta otro método, esta vez en `res.company`. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el A. |\n| 15:09–15:30 | No hay errores en el pod B. |\n\n**Por qué:** recargar el registro relee la base, pero no vuelve a importar el código Python que el proceso ya cargó. Por eso el pod A podía evaluar reglas nuevas con código viejo. El fallo del cron sigue el mismo patrón y apunta a un desfasaje entre código y base, más que a un problema propio de stock. Que hoy el método esté definido e importado coincide con esta explicación.\n\n**Sin confirmar**\n- **Versión del pod A:** que corriera la imagen anterior es una inferencia. Lo confirmaría ver el tag de su imagen en los eventos del despliegue. También falta saber qué proceso actualizó los módulos.\n- **Hora del cliente:** informa 15:09:12, 14 segundos después de la señal de apagado del pod A, y el pod B no registra errores. Puede ser la hora en que vio o copió el error, pero no está probado. Para revisarlo, buscaría ese horario en todos los pods sin el filtro usado, incluidos los pedidos del uid 31. No sé qué dejó afuera ese filtro.\n- **Si volvió a pasar:** los logs aportados llegan hasta las 15:30 del 04/11 y hoy es 26/11. Antes de cerrar, buscaría `_get_branch_stock_root_ids` desde las 15:30 hasta ahora.\n- **Carga de stock:** no sabemos si la operación que falló se completó después. No daría por hecho que se guardó.\n\n**Qué haría con el ticket**\n- Asignarle el módulo `stock_account_multicompany_ux`, aclarando que es donde apareció el síntoma, no la causa. El material no alcanza para definir el producto.\n- Avisar a quien maneja los despliegues que el pod viejo siguió atendiendo con la base ya actualizada. Los errores vistos van de 15:08:37 a 15:08:40, y la exposición pudo empezar cerca de las 15:08:01. Esto puede repetirse en otra actualización que agregue métodos usados por reglas o crons.\n- Revisar si el cron de cotizaciones volvió a correr bien después del cambio de pod. Que no haya errores hasta las 15:30 no prueba que se haya ejecutado.\n\n**Borrador para el cliente** (no lo envié; conviene mandarlo después de buscar si el error se repitió):\n\n> Hola. Revisamos el error que te apareció al cargar stock el 04/11. Por lo que vimos, coincidió con una actualización del sistema: durante un momento, una parte ya estaba actualizada y otra todavía no. En los registros que revisamos, hasta las 12:30 (hora argentina) de ese día, no vimos errores en el sistema ya actualizado. ¿Podés confirmar si la carga de stock quedó hecha? Si no, revisá qué llegó a guardarse antes de repetirla, para no duplicarla. Si el error vuelve a aparecer, avisanos con la fecha y la hora.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10912,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2833,
+  "output_tokens_details": {
+   "thinking_tokens": 1371
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10912,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2833,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10912,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10912
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}
