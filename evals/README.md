@@ -11,12 +11,15 @@ Evidence for the published skill: does it give a direct answer the dev does not 
 | `conventions` | adhoc-way's `templates/conventions.md` as it is (commit `29a520c`) |
 | `conventions_v3` | the same file with rules 0 to 6 of `ste_es_v3` as a section, the way they would land in adhoc-way |
 | `conventions_concise` | adhoc-way's `conventions.md` as it is, plus the `Concise` output style: the cheap option in Claude Code |
+| `conventions_v4` | `conventions_v3` with rule 2 for any person: what to do and where, the command for someone who codes, screen names and what to tell the customer for someone who does not |
+| `conventions_v5` | Claude Code's `Concise` rules written in our words as a `conventions.md` section, so any agent can follow them, plus rule 2 of v4 |
+| `conventions_v6` | `conventions_v5` plus one sentence: what was not verified or tested is always said |
 
 Earlier versions and arms are in the git history.
 
 ## Cases
 
-29 cases in `cases.yml`, in five groups that `measure.py` also reports apart, so a loss in one kind of case does not hide in the average:
+37 cases in `cases.yml`, in six groups that `measure.py` also reports apart, so a loss in one kind of case does not hide in the average:
 
 | Group | Cases | What it checks |
 |---|---|---|
@@ -24,6 +27,7 @@ Earlier versions and arms are in the git history.
 | `precision` | 4 | an error, a failing test, a leaked secret and a destructive command: what rule 0 must keep whole |
 | `conditional` | 3 | the answer depends on conditions: no diagram, and no condition lost |
 | `report` | 4 | the agent tells what it did, from a session log |
+| `functional` | 8 | support, upgrade, consulting and sales people, from real follow-ups in Tuqui Work (anonymized); F05 to F07 take part of their material from an agent answer |
 | `other` | 9 | facts, procedures, explanations, diagnoses and comparisons |
 
 ## Isolation
@@ -62,3 +66,5 @@ Arm texts, cases and prompts are in Spanish, because the answers are.
 ## Limits
 
 One model (Sonnet). The judge, the reader and the generator are all Claude: a reader from another family is still pending. The cases were written by the people who wrote the rules.
+
+In the `functional` cases the reader and the judge play that profile, and a technical name the answer does not explain counts as something they do not understand: an LLM told to play a person who does not code still understands everything unless the limit is explicit.

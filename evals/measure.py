@@ -105,12 +105,14 @@ def arm_summary(rows):
     }
 
 
-GROUPS = ("flow", "precision", "conditional", "report", "other")
+GROUPS = ("flow", "precision", "conditional", "report", "functional", "other")
 GROUP_METRICS = ("n", "followup_rate", "facts_kept", "conditions_kept", "incorrect", "words_median",
                  "diagram_rate")
 
 
 def group_of(case):
+    if case.get("perfil"):
+        return "functional"
     return case["category"] if case["category"] in GROUPS else "other"
 
 
