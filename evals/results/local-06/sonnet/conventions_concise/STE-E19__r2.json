@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El test falló porque quedó activa la policy del borrador. `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`. Después, `0412` encuentra una policy con ese nombre y saltea la creación de la que filtra por workspace. El log lo confirma (`already exists, skipped`), y por eso el workspace B ve 2 filas del A. Es una **fuga de datos entre workspaces**, no un test flaky.\n\n**Qué hacer:** no edites `0398` ni `0412`. Según `AGENTS.md`, el tracking es por nombre de archivo, así que donde ya se aplicaron no vuelven a correr. Creá una migración nueva con el próximo número libre:\n\n```sql\n-- NNNN_fix_scheduled_runs_rls.sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\n- **Sin `IF NOT EXISTS`:** ese guard comprueba solo el nombre, no la condición, y por eso ocultó el problema. `DROP` y `CREATE` reemplazan la definición. Aplicalos en la misma transacción; verificá que tu runner lo haga.\n- **Otras policies:** revisá todas las de la tabla con `SELECT policyname, permissive, roles, cmd, qual, with_check FROM pg_policies WHERE tablename = 'scheduled_runs';`. Las permisivas se combinan con OR, así que otra policy abierta mantendría la fuga. Tu `grep` buscó solo ese nombre.\n- **Verificación:** aplicá la migración y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`.\n- **Entornos desplegados:** averiguá si `0398` y `0412` llegaron a staging o producción. Si la policy abierta está ahí, la tabla pudo quedar expuesta a otros workspaces. En ese caso, avisá al equipo, priorizá el fix y revisá si hubo accesos cruzados.\n\nSolo vi el material que pegaste: no corrí el test ni probé el fix, y no sé en qué entornos se aplicaron las migraciones.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10586,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 808,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10586,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 808,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10586,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10586
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

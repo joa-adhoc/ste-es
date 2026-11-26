@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Corré `make worktree-setup` desde el worktree y después resolvé las dos dependencias por separado. Sin el setup, `make test` falla con \"Venv no encontrado\". El comando linkea al clone principal `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`.\n\n**1. Dependencia de Python**\n\nNo corras `make install` en el worktree linkeado: escribiría en el venv del clone principal y le cambiaría el editable install. El target se niega a correr. Tenés dos opciones:\n\n- **Instalarla en el clone principal:** es lo más directo, pero ese venv lo usan todos los worktrees. Ojo: infiero que `make install` ahí lee las dependencias de la branch del clone principal. Entonces no tomaría la nueva, y quizás tengas que instalar ese paquete puntual.\n- **Armar un venv propio:** es la opción más aislada. Primero borrá solo el link, sin barra final: `rm tuqui_core/.venv`. Después creá el venv en el worktree. El material no detalla cómo; revisá el `Makefile` antes, incluido si `make install` sirve para esto.\n\n**2. Cambio en `web/package.json`**\n\nEl material indica correr `npm ci` en el worktree antes de `make test-web`. Pero `web/node_modules` es un link al clone principal, y `npm ci` borra las dependencias instaladas antes de reinstalar. No verifiqué si con el link toca la carpeta del clone principal, y el material no lo aclara. Como precaución mía, sacá antes el link:\n\n```bash\nls -ld node_modules web/node_modules   # ver cuáles son links\nrm web/node_modules                    # solo si es un link; sin -r y sin barra final\ncd web && npm ci && cd ..\n```\n\nSi el `Makefile` o la configuración de npm muestran que `npm ci` también usa el `node_modules` de la raíz, revisá ese link antes de correrlo.\n\n`npm ci` instala según el lockfile. Si agregaste o cambiaste dependencias, el lockfile tiene que estar actualizado junto con `package.json`, o el comando falla. Actualizarlo también escribe en `node_modules`, así que hacelo después de sacar el link. Si estás en Tuqui Work, no hagas esta instalación si es grande: el home tiene poco espacio, así que dejá esa validación al CI.\n\n**3. Tests**\n\n```bash\nmake test                                      # unit de Python\nmake test ARGS=\"tests/test_rls.py -k policy\"   # ejemplo de subconjunto (paths relativos a tuqui_core/)\nmake test-web                                  # frontend, después de npm ci\nmake lint                                      # ruff check + format check\n```\n\nSi tu cambio afecta el aislamiento multi-tenant, está `make test-rls`. Para el módulo `evals/` está `make test-evals`, que corre sus unit tests y no los benchmarks. En Tuqui Work, corré en local solo lint y checks de segundos, y dejá las suites largas al CI.\n\nNo ejecuté nada: esto sale del material que pegaste, más las inferencias y precauciones que marqué.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10793,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1788,
+  "output_tokens_details": {
+   "thinking_tokens": 680
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10793,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1788,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10793,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10793
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

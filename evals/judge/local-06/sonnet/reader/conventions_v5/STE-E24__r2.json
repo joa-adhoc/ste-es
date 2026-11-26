@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El tren separa solo el `DROP` o hay algún otro mecanismo que lo frene? Si no lo hay, ¿cómo lo saco de `staging` antes del tren sin sacar también la columna `members.locale` y el código, sobre todo si la migración ya corrió en staging?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Mi PR agrega `locale` y borra `lang`. Cuando decís \"sacalo de `staging`\", ¿revierto todo el PR o solo el `DROP`, dejando la columna nueva y el código para el tren del jueves? Pasame los pasos concretos, incluido cómo volver a meter el `DROP` después sin que git ignore los cambios ya revertidos. Y si el tren de hoy a las 9:00 ya salió con el `DROP` incluido, ¿qué tengo que hacer?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿El tren separa solo el `DROP` o hay algún otro mecanismo que lo frene? Si no lo hay, ¿cómo lo saco de `staging` antes del tren sin sacar también la columna `members.locale` y el código, sobre todo si la migración ya corrió en staging?",
+ "followup_answer": "**El extracto no dice que el tren separe el `DROP`, ni menciona otro mecanismo que lo frene.** \"No corre en el mismo tren\" es la regla, pero no dice quién la hace cumplir. Para confirmarlo hay que mirar `release-train.yml`, los scripts de migración que llama y la configuración del deploy. No los vi, así que hasta revisarlos no cuentes con un freno automático.\n\n**Si no hay freno, no reviertas todo el PR.** Sacá solo el `DROP` con un PR nuevo a `staging`, sin reescribir su historia:\n\n```bash\ngit fetch origin\ngit switch -c fix/postergar-drop-lang origin/staging\n# sacar solo el DROP de members.lang; dejar locale y el código\n```\n\n- **Migración separada:** borrá o revertí solo la del `DROP`. Si tiene su propio commit, alcanza con `git revert <sha>`, siempre que ese commit no traiga nada más.\n- **Mismo archivo que `locale`:** editalo para quitar solo el `DROP`. Si copia datos de `lang` a `locale`, dejá la copia. Revisá también el esquema o snapshot, si el repo lo versiona. Si el ORM exige que el modelo coincida con el esquema, puede que tengas que seguir declarando `lang` aunque el código no la use.\n\n**Si la migración ya corrió en `staging`,** cambiar o revertir el archivo no hace que la columna vuelva. Qué hacer depende de la herramienta de migraciones, que no conozco. Antes de mergear el arreglo, revisá:\n\n1. **Historial:** si la herramienta registra la migración como aplicada, puede fallar porque falta el archivo o cambió su checksum. Si la editás, puede que no la vuelva a correr. Coordiná con quien administra `staging` cómo corregir ese registro o recrear la base.\n2. **Columna:** para dejar `staging` como va a estar prod, restaurá `lang` con el mismo tipo, restricciones, valor por defecto e índices. Recrearla no recupera los datos; para eso necesitás un backup u otra fuente. Si usás una migración para restaurarla, también va a llegar a prod, así que ahí no tiene que fallar ni cambiar nada si `lang` ya existe.\n3. **`DROP` posterior:** volvé a agregar solo el `DROP`, no todo el PR; así corrijo mi \"volvé a mergearlo\". Usá una migración con identificador nuevo y probá que corra tanto en `staging` como en prod. Mergeala después de que el código esté en prod.\n\n**La hora importa:** mi sesión marca jueves 26/11, pero hablaste de \"hoy miércoles\". Si el tren de las 9:00 todavía no salió, el arreglo tiene que estar mergeado antes y con el CI en verde. Un CI rojo saltea el tren, pero no cuentes con eso como plan. Si no llegás, avisá ya a quien opera el tren para ver si se puede frenar; el extracto no documenta cómo. Si ya salió, revisá en los logs qué corrió en prod antes de tocar las migraciones. Si el `DROP` ya se ejecutó, tratalo como un incidente: revertirlo en `staging` no lo deshace en prod.\n\nSi me pasás el workflow y los archivos de migración del PR, te digo qué cambio concreto corresponde.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11210,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1947,
+  "output_tokens_details": {
+   "thinking_tokens": 779
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11210,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1947,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11210,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11210
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "18a7c828be"
+ }
+}

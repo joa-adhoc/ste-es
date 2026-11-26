@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del pipeline y confirmarme qué pasa si se agota el tiempo o un límite del Investigator, si una investigación no encuentra nada, si falla una consulta o el LLM del Planner o del Synthesizer, y si el Synthesizer puede devolver 0 teasers por su cuenta? Necesito saber en cuáles de esos casos no se muestra nada."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código el manejo de errores y confirmar qué pasa en estos casos: timeout o límite agotado en el Investigator, una investigación sin hallazgos, la falla de una consulta o del LLM (Planner o Synthesizer) y el Synthesizer devolviendo cero teasers? Para cada uno, decime si termina sin mostrar nada, y de paso cómo se llega al máximo de 2 teasers."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del pipeline y decirme qué pasa si el Investigator agota el tiempo o algún límite, si una investigación no encuentra nada, si falla una consulta o un LLM (Planner, Investigator o Synthesizer) y si el Synthesizer puede devolver 0 teasers por su cuenta? En cada caso, aclará si termina sin mostrar nada, si sigue con resultados parciales o si tira error."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código del pipeline y confirmarme qué pasa si se agota el tiempo o un límite del Investigator, si una investigación no encuentra nada, si falla una consulta o el LLM del Planner o del Synthesizer, y si el Synthesizer puede devolver 0 teasers por su cuenta? Necesito saber en cuáles de esos casos no se muestra nada.",
+ "followup_answer": "No pude revisar el código, así que no puedo confirmar en cuáles de esos casos no se muestra nada. La carpeta de trabajo (`/tmp/ste-es-eval-f5i9m8hk`) está vacía. Antes intenté buscar los archivos también en `/home/joa`, pero ese comando requería aprobación y no se ejecutó. Después solo miré la carpeta de trabajo, así que no sé si el código está en otro lado de la máquina.\n\n| Caso | Qué dice el material que pegaste | ¿Se muestra nada? |\n|---|---|---|\n| Se agota el tiempo del Investigator | Define el tiempo por hipótesis, pero no qué pasa al agotarse | Sin confirmar |\n| Se llega al máximo de iteraciones o de llamadas a herramientas | Define los máximos, pero no qué pasa al alcanzarlos | Sin confirmar |\n| Una investigación no encuentra nada | No lo menciona | Sin confirmar |\n| Falla una consulta del Context Assembler | No lo menciona | Sin confirmar |\n| Falla el LLM del Planner o del Synthesizer | No lo menciona | Sin confirmar |\n| El Synthesizer devuelve 0 teasers por su cuenta | El resultado admite de 0 a 2, pero no dice de dónde puede salir el 0 | Sin confirmar |\n\nSiguen documentados los dos casos sin teasers: el Planner no propone hipótesis, o los filtros rechazan todos los teasers. Si falla el juez por infraestructura, ese filtro deja pasar el teaser.\n\nPara confirmarlo, pasame la ruta del repo en esta máquina o pegá `planner.py`, `investigator.py`, `synthesizer.py`, `guards.py`, `context_assembler.py` y el código que los llama. Ese último importa porque un error o un tiempo agotado se puede manejar ahí. En el código voy a mirar:\n- **Errores y límites:** si se capturan, y si se descarta solo la hipótesis afectada o se corta toda la ejecución.\n- **Resultados parciales o vacíos:** si igual llegan al Synthesizer.\n- **0 teasers:** si el formato de salida y el prompt del Synthesizer permiten una lista vacía.\n- **Guardado:** qué hace el upsert cuando no hay teasers o falla la ejecución. De eso depende si no se ve nada o si quedan a la vista insights anteriores.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13699,
+  "cache_read_input_tokens": 78942,
+  "output_tokens": 1341,
+  "output_tokens_details": {
+   "thinking_tokens": 149
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13699,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 902,
+    "cache_read_input_tokens": 30880,
+    "cache_creation_input_tokens": 329,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 329
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e8077bf3c5"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código si el refresh de datos ya está implementado y si publica solo? Cuando se refrescan los datos, ¿quien tiene el link los ve sin que nadie haga `publish`? Y si hay que publicar, ¿se publica también un diseño que todavía estaba sin publicar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código si el refresh de datos ya está implementado y si se publica solo o requiere un `publish` manual? Si requiere `publish`, confirmame también si al publicar esa versión sale el último `content` aunque todavía no esté publicado."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código si el refresh de datos ya está implementado y si se publica solo o requiere `publish`? Si hay que publicarlo, ¿publicar esa versión también expone un `content` que todavía no estaba publicado?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar en el código si el refresh de datos ya está implementado y si publica solo? Cuando se refrescan los datos, ¿quien tiene el link los ve sin que nadie haga `publish`? Y si hay que publicar, ¿se publica también un diseño que todavía estaba sin publicar?",
+ "followup_answer": "**No pude revisar el código: no está en el directorio de trabajo.** `/tmp/ste-es-eval-w5euo_fm` está vacío. Antes intenté buscar también en tu home, pero ese comando requería aprobación y no se ejecutó. No revisé nada fuera del directorio de trabajo. Por eso, esto sigue **sin verificar en el código**.\n\n| Pregunta | Qué se puede decir con el material |\n|---|---|\n| ¿El refresh ya está implementado? | No se sabe. El material solo lo ubica en la fase 2. |\n| ¿Publica solo? | No se sabe. Dice que crea una versión solo-data, pero no si mueve `published_version_id`. |\n| ¿El link muestra los datos nuevos sin `publish`? | Solo si el refresh mueve `published_version_id`. El link sirve siempre la versión publicada, y los datos de una versión `n` salen de versiones ≤ `n`. Si el refresh no mueve el puntero, los datos nuevos no se ven. |\n| Si hay que publicar, ¿sale también el diseño sin publicar? | Sí, si publicás la versión del refresh y se aplica la regla de `_effective_version`. Es una deducción del material. |\n\nUn ejemplo de el último caso:\n\n| Versión | Qué guarda | Estado inicial |\n|---|---|---|\n| v1 | diseño A y datos 1 | publicada |\n| v2 | diseño B | sin publicar |\n| v3 | datos 2, por el refresh | depende de si el refresh publica |\n\nSi el link pasa a v3, muestra **diseño B con datos 2**, aunque nadie haya publicado v2 por separado. Esto vale para un `publish(3)` y también para un refresh que mueva solo el puntero a v3. En ese segundo caso, un refresh automático publicaría el borrador sin que nadie lo decida.\n\nPara tener diseño A con datos 2, no alcanza con elegir otra versión en `publish`. Según las reglas del material, habría que hacer un `save` con el diseño A y los datos 2, que crearía v4, y después `publish(4)`. B quedaría en el historial, pero v4 pasaría a ser la versión actual. No lo probé.\n\n**Para confirmarlo**, pasame la ruta del repo de la biblioteca de artifacts o abrí la sesión ahí. Si preferís que busque en tu home, aprobá la búsqueda. En el código miraría:\n- **Implementación:** si existe un flujo que cree versiones solo-data y qué lo dispara.\n- **Publicación:** si ese flujo cambia `published_version_id` o llama a `publish`.\n- **Diseño:** cómo `service._effective_version` arma la página del link, y si el refresh tiene algún control cuando hay un diseño sin publicar.\n- **Tests:** si cubren el caso v1, v2 y v3 del ejemplo.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12557,
+  "cache_read_input_tokens": 76639,
+  "output_tokens": 1743,
+  "output_tokens_details": {
+   "thinking_tokens": 399
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12557,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1285,
+    "cache_read_input_tokens": 29740,
+    "cache_creation_input_tokens": 327,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 327
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "993552c963"
+ }
+}

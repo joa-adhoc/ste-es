@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Con lo que se leyó de la base, no se sostiene que en la 18 se hayan reforzado los permisos para que el usuario de Norte no vea lo de Sur.** El error que reprodujiste es real, pero las reglas apuntan a que el diseño es \"ve, pero no publica ni modifica\":\n\n- Las reglas por sucursal sobre diarios, asientos y pagos no restringen la lectura (`perm_read` = False).\n- Las de `account_journal_security` no aplican al diario del punto 22, porque no tiene usuarios cargados.\n- La ayuda de `store_id` dice que los usuarios de otra sucursal pueden ver los registros del diario.\n- Queda la regla por compañía, que sí restringe la lectura. No sería la causa si el diario es de una compañía que el usuario tiene activa; eso conviene confirmarlo.\n\n**La sospecha principal es el `_search` de `account.journal`.** Oculta de las búsquedas los diarios de otras sucursales, aunque las reglas permitan leerlos. Por lo que sé del núcleo de Odoo (no lo verifiqué en este código), en la 18 la lectura de un registro por id también pasa por `_search`. Si el registro existe y no vuelve, Odoo lo informa como error de permiso. En la 16 la lectura no pasaba por ahí. Eso explicaría el cambio sin que nadie haya endurecido una regla: el filtro pensado para búsquedas estaría bloqueando también la lectura, justo lo que su comentario quería evitar.\n\nNo me cierra todavía que el error diga que \"las siguientes reglas lo impiden\". Hay que ver qué modelo y qué reglas nombra. Tampoco sé por qué el libro mayor se comporta distinto, porque no se leyó el código de ninguno de los dos reportes. Además, en el seguimiento las facturas aparecen al cambiar el filtro; lo que reprodujiste que falla es «Ver asientos».\n\nPara confirmarlo:\n1. **Error:** copiar el mensaje completo y el traceback.\n2. **Misma acción:** desde el libro mayor de Contabilidad, abrir esa factura y tocar «Ver asientos». Que ahí la veas no prueba que esa acción funcione. Si también falla, el problema no es del reporte de seguimiento.\n3. **Código:** leer el `_search` y la lectura en el núcleo 18 y 16, qué abre «Ver asientos» y cómo consultan los dos reportes.\n4. **Prueba de sucursal:** en una copia de la base, sumarle Sur al usuario y repetir. Si el error desaparece, la sucursal interviene, pero eso solo no distingue el `_search` de una regla.\n\n**Sobre el criterio, recomiendo unificar en \"ve, pero no modifica\"**, que es lo que declaran las reglas y la ayuda. Si se confirma la sospecha, el arreglo sería que el `_search` siga filtrando los diarios donde haga falta, como las listas para elegirlos, sin impedir leer uno ya vinculado a una factura. Cómo hacerlo se define después de leer el código.\n\n\"Si no ve, que no vea en ningún lado\" también es un criterio válido, pero es un cambio de diseño. Habría que restringir la lectura y revisar reportes, apuntes, pagos y campos relacionados con el diario. El comentario del módulo ya advierte que ocultar diarios genera errores. También afectaría lo que ve cada sucursal de la deuda total de un contacto.\n\nSi hay que responderle al cliente ahora: «Pudimos reproducir el error. Estamos revisando por qué el sistema se comporta distinto según desde dónde se consulta la factura; todavía no confirmamos la causa». Yo no le diría que es una restricción esperada de la 18.\n\nMe basé solo en el material que pasaste. No consulté la base ni el contexto de `tuqui-adhoc`, que no tengo disponible en esta sesión. Si me pasás el traceback, seguimos desde ahí.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11144,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3360,
+  "output_tokens_details": {
+   "thinking_tokens": 1977
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11144,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3360,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11144,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11144
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

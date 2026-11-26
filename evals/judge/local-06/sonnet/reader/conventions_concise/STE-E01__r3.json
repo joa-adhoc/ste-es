@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Cómo tiene que llamarse el archivo? `supabase migration new` genera un prefijo con timestamp, pero decís que el nombre es `NNNN_descripcion.sql`. ¿Dejo el nombre que genera el comando o lo renombro con el número correlativo siguiente? Si hay que renombrarlo, ¿lo hago antes de abrir el PR para que la migración no se vuelva a ejecutar en staging?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Cómo tiene que llamarse el archivo de la migración? `supabase migration new` genera el nombre con un timestamp como prefijo, pero vos decís `NNNN_descripcion.sql`. ¿Uso el nombre que genera el comando o lo renombro con un número correlativo? Si es correlativo, ¿cómo elijo el número? Quiero dejarlo definido antes de abrir el PR, porque renombrar el archivo hace que la migración vuelva a correr en staging."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Cómo tiene que llamarse el archivo? `supabase migration new` genera un prefijo con timestamp, pero decís que el nombre es `NNNN_descripcion.sql`. ¿Dejo el nombre que genera el comando o lo renombro con el número correlativo siguiente? Si hay que renombrarlo, ¿lo hago antes de abrir el PR para que la migración no se vuelva a ejecutar en staging?",
+ "followup_answer": "**El material no alcanza para saber qué nombre va.** Pide `NNNN_descripcion.sql` y a la vez sugiere `supabase migration new`, que según indicás genera un prefijo con timestamp. En mi respuesta anterior junté las dos cosas sin avisarte que no coinciden.\n\nDefine la convención lo que usen las migraciones recientes en la rama base y lo que valide el runner o el CI, si valida el nombre. No vi ninguna de las dos cosas. Para ver los nombres, cambiá `main` si la base es otra:\n\n```bash\ngit fetch origin\ngit ls-tree --name-only origin/main supabase/migrations/ | sort | tail\n```\n\n- **Si usan correlativo (`0042_...`):** renombrá el archivo generado con el número siguiente. Fijate también que ningún PR abierto use ese número.\n- **Si usan timestamp:** dejá el nombre que genera el comando.\n- **Si están mezclados:** revisá cómo ordena y valida el runner, o preguntale a quien mantiene las migraciones. Un orden alfabético que mezcla formatos puede no ser el que esperás.\n\n**Si hay que renombrar, hacelo antes de abrir el PR.** Según el material, la migración se aplica en staging al abrirlo, así que debería registrarse solo con el nombre final. Esto supone que no la aplicaste antes en staging por otra vía.\n\nSi otro PR toma tu número después de que abriste el tuyo y tenés que renombrar, la migración va a correr de nuevo en staging. La idempotencia debería evitar errores si cubre todas las sentencias, pero no actualiza objetos que ya existen. Si además cambiaste el SQL, por ejemplo una columna dentro del `CREATE TABLE IF NOT EXISTS`, ese cambio no se aplica y la ejecución puede terminar sin error. Antes de renombrar en ese caso, leé la [sección sobre el preview](./docs/infra-ci-cd.md#un-pr-preview-escribe-en-la-base-de-staging) que cita el material.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12367,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1226,
+  "output_tokens_details": {
+   "thinking_tokens": 514
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12367,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1226,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12367,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12367
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "96d18c80e4"
+ }
+}

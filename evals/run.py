@@ -52,6 +52,7 @@ def one(run_dir, model, arm, case, run):
         "case": case["id"], "arm": arm, "arm_hash": arm_hash(arm), "model": model, "run": run,
         "result": out.get("result", ""),
         "usage": out.get("usage", {}),
+        "model_ids": sorted(out.get("modelUsage", {})),
         "num_turns": out.get("num_turns"),
         "is_error": out.get("is_error", False),
     }, ensure_ascii=False, indent=1))

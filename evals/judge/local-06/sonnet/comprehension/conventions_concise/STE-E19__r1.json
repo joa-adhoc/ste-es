@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Falló `test_scheduled_runs_isolated`. El workspace B ve 2 filas de `scheduled_runs` del workspace A, así que el aislamiento RLS está roto en la base donde se corrió el test. Los otros 6 tests pasaron.",
+  "Según la causa probable que da el texto, `0398_scheduled_runs_draft.sql` ya había creado `scheduled_runs_ws` con `USING (true)`, que deja ver todas las filas. La `0412` intenta crear la policy correcta con el mismo nombre solo si no existe. Como ya existía, no la creó y quedó la permisiva. El log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.",
+  "No. El texto dice que no se editen `0398` ni `0412`, porque si ya se aplicaron no vuelven a correr. Hay que crear una migración nueva, con el número libre que siga, que reemplace la policy (`DROP POLICY IF EXISTS` y luego `CREATE POLICY` con el filtro por workspace). Si el runner no ejecuta cada migración en una transacción, hay que envolver ambas sentencias en `BEGIN; ... COMMIT;`. Después hay que aplicarla y volver a correr los tests. El texto aclara que el fix no se probó. Antes de cerrarlo, pide confirmar la policy vigente en la base y revisar staging y producción, si existen."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "df3dbd9839",
+  "control": "8368a6d09b"
+ }
+}

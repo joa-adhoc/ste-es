@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con lo que contás, va como skill.** Un `odoo_create` con algunos defaults se puede armar con las tools genéricas y es un wrapper 1→1. No cumple (a), y (d) lo excluye expresamente, aunque ahorre tokens de esquema. Los defaults van escritos en la skill.\n\nAlcanza con cumplir un eje para que sea tool nativa. Estas preguntas pueden cambiar la respuesta:\n\n| Pregunta | Si la respuesta es sí | ¿Vale en MCP? |\n|---|---|---|\n| ¿Tiene un gate propio **más acotado** que el `create` genérico? Por ejemplo, habilita solo esta operación sin dar `create` sobre el modelo. | Nativa por (b2) | Sí |\n| Para resolver los defaults, ¿hacen falta en total **3 llamadas o más**, un loop que depende de los datos o pasos que el LLM se saltearía? | Ya no es 1→1: nativa por (d) | Sí |\n| ¿Necesita un approval o una identidad de policy propia? | (b1) | No, solo en chat |\n| ¿Saltearse un paso tiene un costo real de compliance? | (c) | No |\n\n- **Defaults no son lo mismo que un gate:** fijar valores no achica por sí solo lo que se puede hacer. Para usar (b2), la restricción tiene que estar en los permisos. Si para usar tu tool igual hay que habilitar el `create` genérico sobre el modelo, yo no la daría por menor blast radius.\n- **Defaults calculados:** si antes del create hay que buscar dos IDs que dependen del contexto, ya son 3 llamadas. Si son valores fijos, es una sola.\n\n**El MCP saliente sí cambia el criterio:** ahí solo sirven (a), (b2) y (d). El material dice que el router MCP ignora `requires_approval` (no lo verifiqué en el código) y que no hay un turno donde forzar pasos. Si tu única razón es (b1) o (c), no justifica exponerla por MCP. No cuentes con ese approval como protección en esa superficie.\n\n**Una ambigüedad del material:** la regla dice que (b1) vale en chat, así que debería alcanzar para una tool nativa solo de chat. Pero `odoo_schedule_activity` pasó a system skill aunque su diferencial era (b1), y el motivo que da la tabla es que no vale en MCP, donde la tool ya estaba excluida. El fragmento no explica por qué no bastó para dejarla en chat. Si tu tool dependiera solo de (b1), aclararía eso con quien mantiene la decisión antes de hacerla.\n\nSi me pasás el modelo, los defaults, cómo se obtiene cada uno y qué permisos tendría, te digo en qué caso cae.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11223,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1618,
+  "output_tokens_details": {
+   "thinking_tokens": 649
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11223,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1618,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11223,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11223
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

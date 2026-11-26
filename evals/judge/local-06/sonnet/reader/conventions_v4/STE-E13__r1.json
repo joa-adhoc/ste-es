@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en el código (`_run_trial_expiry` y lo que decide el bloqueo) dos cosas? 1) Si un workspace sin suscripción y sin exceso pasa a free, ¿en qué `account_status` queda y le siguen funcionando el chat y el MCP, o el asistente deja de responderle a todo el equipo? 2) Si ya tiene una suscripción viva, ¿igual le salen los avisos previos (7 y 0), y qué estados de suscripción cuentan como \"viva\"?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y el proceso de avisos) dos cosas? Primero: si hay una suscripción viva, ¿salen igual los avisos de 7 y 0 días, y qué estados de suscripción cuentan como \"viva\"? Segundo: si el workspace pasa a free sin exceso, ¿en qué `account_status` queda y el equipo pierde el asistente (MCP y chat, con el `PlanLapsedBanner`) o sigue funcionando?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar en `_run_trial_expiry` (`scheduler/billing_cron.py`) o donde se manden los avisos: 1) si un workspace con suscripción igual recibe los avisos de 7 y 0 días, y qué estados de suscripción cuentan como \"viva\"; y 2) cómo queda el día del vencimiento un workspace free sin exceso: qué `account_status` tiene y si siguen andando el chat, el MCP y el asistente o aparece el `PlanLapsedBanner`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés confirmar en el código (`_run_trial_expiry` y lo que decide el bloqueo) dos cosas? 1) Si un workspace sin suscripción y sin exceso pasa a free, ¿en qué `account_status` queda y le siguen funcionando el chat y el MCP, o el asistente deja de responderle a todo el equipo? 2) Si ya tiene una suscripción viva, ¿igual le salen los avisos previos (7 y 0), y qué estados de suscripción cuentan como \"viva\"?",
+ "followup_answer": "**No pude confirmar ninguna de las dos en el código: no lo leí.** `/tmp/ste-es-eval-rnj43iux` está vacío. Quise buscar los archivos en `/home/joa`, pero ese comando requería aprobación y no se ejecutó. No sé si el repo está en esta máquina.\n\n**1. Sin suscripción y sin exceso: no está confirmado el estado ni si el asistente responde.**\n- **Lo que dice el material:** el workspace pasa a `plan='free'` y se evalúa el exceso. `active` es el valor por defecto, y `restricted` bloquea el chat y el MCP.\n- **Lo que infiero:** sin exceso ni otra causa de restricción, debería quedar en `active`. Pero el vencimiento y los límites free figuran entre las causas de `restricted`, así que falta ver las condiciones exactas.\n- **Ojo:** `active` tampoco asegura que el asistente responda. El material justifica avisar a los miembros con asiento porque \"el asistente deja de responder para todo el equipo\". No dice si eso pasa siempre o solo con restricción, y el bloqueo podría depender también del plan o de `billing_tier`.\n- **Corrección:** antes escribí que esto pasa \"al terminar la prueba\", como un hecho general. El material solo lo da como motivo para elegir los destinatarios. Por ahora, no le asegures a nadie que va a conservar el asistente, ni que lo va a perder.\n\n**2. Con suscripción viva: no está confirmado si salen los avisos de 7 y 0, ni qué estados cuentan.**\nEl \"no se manda nada\" aparece bajo \"Qué pasa al vencer\". El hito 0 sale el día del vencimiento con el workspace todavía funcionando, así que esa frase no alcanza para descartarlo. Tampoco enumera los estados de suscripción. No doy por hecho cuáles son, por ejemplo si un pago atrasado cuenta como \"viva\".\n\n**Para cerrarlo**, corré esto desde la raíz del repo:\n\n```bash\ngrep -n \"_run_trial_expiry\" -A120 scheduler/billing_cron.py\ngrep -rnE \"account_status|billing_tier|trial_expired_with_excess|free_member_limit_exceeded\" --include='*.py' .\n```\n\nFijate en estos puntos y seguí las funciones que llamen, porque 120 líneas pueden no alcanzar:\n- **Avisos previos:** si el filtro de suscripción viva se aplica antes de mandar los hitos o solo en la rama del vencimiento. Mirá también el hito 0, por si lo manda otra función.\n- **\"Viva\":** la función o consulta que lo decide y la lista de estados que acepta.\n- **Sin exceso:** qué escribe en `account_status` y `billing_tier` al pasar a free.\n- **Bloqueo:** qué condiciones revisan el chat y el MCP antes de responder.\n\nTambién sirven los tests, empezando por `tests/test_trial_notices.py`, aunque no sé qué casos cubre. Si me pasás la ruta del repo con acceso, o pegás esas funciones, reviso las dos cosas. Si preferís que lo busque en `/home/joa`, aprobá la búsqueda.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13018,
+  "cache_read_input_tokens": 77575,
+  "output_tokens": 2173,
+  "output_tokens_details": {
+   "thinking_tokens": 677
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13018,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1714,
+    "cache_read_input_tokens": 30155,
+    "cache_creation_input_tokens": 373,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 373
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "42acb08dbf"
+ }
+}

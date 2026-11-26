@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el nombre del test. Solo menciona el comando `pytest tuqui_core/tests/test_rls.py -q`. La falla muestra que el workspace B ve 2 filas del A. Según el texto, es una falla de aislamiento real según ese resultado y no un problema del assert. La causa es que en `scheduled_runs` quedó la policy del borrador, con `USING (true)`, que no filtra por workspace.",
+  "Porque `0398_scheduled_runs_draft.sql` ya había creado `scheduled_runs_ws` con `USING (true)`. `0412_scheduled_runs.sql` crea la policy correcta solo si no existe otra con ese nombre. Como ya existía, la saltea, y el log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.",
+  "No. El texto indica no editar `0398` ni `0412`, porque según `AGENTS.md` una migración ya aplicada no vuelve a correr. Hay que crear una migración nueva (por ejemplo `0413_scheduled_runs_fix_policy.sql`, verificando que el número esté libre) que haga `DROP POLICY IF EXISTS` y vuelva a crear la policy filtrando por workspace, con ambas sentencias en la misma transacción. Después hay que aplicarla en la base de test, volver a correr el test y revisar las policies que quedaron en la tabla. Si hay otra permisiva abierta, arreglar `scheduled_runs_ws` no alcanza. También pide revisar staging y producción, si existen."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "35d20812af",
+  "control": "8368a6d09b"
+ }
+}

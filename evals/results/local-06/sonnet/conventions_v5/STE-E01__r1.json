@@ -1,0 +1,47 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Necesitás una migración SQL idempotente, con RLS y su policy, más un test de aislamiento y un modelo Pydantic.\n\n## Pasos\n\n1. **Creá la migración** con `supabase migration new <nombre>`. Tiene que quedar en `supabase/migrations/` como `NNNN_descripcion.sql`.\n2. **Escribí el SQL** para que pueda correr varias veces sin error.\n3. **Agregá el test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n4. **Creá el modelo Pydantic** de la tabla.\n\n## Qué lleva la migración\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`, con `workspace_id`.\n- **Índices, si agregás:** `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`, que ya es idempotente.\n- **Policy:** filtra por `app.current_workspace_id` y va dentro de un bloque `DO $$` que primero revisa si existe.\n\nEn este ejemplo, los nombres y las columnas además de `workspace_id` son ilustrativos:\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_id_idx\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE schemaname = 'public'\n          AND tablename = 'mi_tabla'\n          AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\nFiltrar por `workspace_id` solo en la aplicación no alcanza: la defensa principal es RLS.\n\n## Antes de abrir el PR\n\n**El preview aplica tu migración en la base real de staging**, no en una copia. Lo hace al abrir el PR, así que revisala bien antes. Como las migraciones se registran por nombre de archivo, si la renombrás se vuelve a aplicar. Antes de abrirlo, leé las consecuencias completas en `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\"; el material solo la enlaza.\n\nDe cómo funcionan ese registro y `IF NOT EXISTS`, deduzco otro riesgo si cambiás el SQL después de abrir el PR:\n- Con el mismo nombre de archivo, el cambio no debería aplicarse.\n- Con otro nombre, el SQL corre de nuevo, pero no modifica una tabla, un índice o una policy que ya existan con ese nombre (la policy, por el chequeo del bloque `DO`).\n\nAsí, staging podría quedar distinto de lo que dice tu archivo.\n\n**Ruta del test:** el material menciona `tests/test_rls.py` y `tuqui_core/tests/test_rls.py`. Supongo que es el mismo archivo y que la primera ruta es relativa a `tuqui_core/`, pero confirmalo en el repo. Respondí solo con el material que pegaste, sin revisar el código ni probar el SQL.\n\nSi en algún caso la tabla no lleva `workspace_id`, hay que discutirlo antes porque es una excepción.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10999,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1701,
+  "output_tokens_details": {
+   "thinking_tokens": 386
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10999,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1701,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10999,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10999
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

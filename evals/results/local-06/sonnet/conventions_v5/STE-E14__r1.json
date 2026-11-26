@@ -1,0 +1,47 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los insights diarios salen de un armado de contexto seguido de tres etapas (Planner, Investigator y Synthesizer), y terminan en 0 a 2 teasers que se guardan con upsert en la tabla `insights`. Esto sale solo del texto que pegaste; no lo contrasté con el código.\n\n**Qué hace cada etapa y qué entrega**\n\n1. **Context Assembler** (previo a las tres etapas): hace 6 consultas en paralelo con los permisos de fila (RLS) de la persona usuaria:\n   - perfil del workspace;\n   - perfil de la persona;\n   - memoria del workspace;\n   - memoria personal;\n   - conversaciones de los últimos 7 días (título y último mensaje, sin resumen hecho por un LLM);\n   - insights mostrados en los últimos 14 días, como señal para no repetirlos.\n\n   Entrega al Planner un texto en markdown de unos 2 a 4 mil tokens.\n\n2. **Planner:** Gemini Flash devuelve JSON con una lista de hipótesis (de 0 a N) y un `silence_reason`. El modelo se configura en `insights_planner_model`; si no, se usa el modelo por defecto de la plataforma.\n\n3. **Investigator:** un agente investiga cada hipótesis con herramientas de solo lectura, sin las que tienen `approval`. Corren hasta 3 a la vez, y cada una dispone de `(watchdog_sec - 30) / n_hypotheses` de tiempo. Los límites dependen del registro (tipo) de la hipótesis:\n\n   | Registro | Máx. iteraciones | Máx. llamadas a herramientas | Razonamiento |\n   |---|---|---|---|\n   | `dato`, `celebracion` | 4 | 6 | minimal |\n   | `observacion` | 8 | 15 | low |\n   | `alerta`, `analisis` | 12 | 25 | medium |\n\n   Entrega al Synthesizer los hallazgos (`InvestigationFindings`).\n\n4. **Synthesizer:** un LLM arma los teasers a partir de los hallazgos. Después pasan por tres filtros, en este orden:\n   - **Expresiones regulares:** rechaza textos sospechosos o con marcadores sin completar, como \"cliente A\", \"seguramente\" o \"[nombre]\".\n   - **Coincidencia aproximada de texto:** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado de la investigación, con `partial_ratio >= 75`.\n   - **LLM juez:** usa el mismo modelo que el Synthesizer, con temperatura cero, y responde si el teaser está respaldado (`grounded`) y por qué (`reason`).\n\n**Cuándo termina sin mostrar nada**\n\nEl texto describe dos casos:\n- **El Planner no devuelve hipótesis.** Es un silencio válido y no se genera ningún teaser.\n- **Los filtros rechazan todos los teasers.** El Synthesizer devuelve la lista vacía, con `debug_note=\"synth_all_rejected: ...\"`.\n\nLa salida final admite 0 teasers, pero el texto no dice si hay otras formas de llegar a eso. Tampoco aclara qué pasa si el Synthesizer no genera ninguno, si una investigación no encuentra nada, falla o se queda sin tiempo o sin llamadas, ni si falla otra llamada a un modelo. Para saberlo habría que mirar el código.\n\nSi el LLM juez falla por un problema de infraestructura, el teaser **pasa**: ese error no lo bloquea. En ese caso solo quedó controlado por los dos primeros filtros.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11400,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1269,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11400,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1269,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11400,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11400
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

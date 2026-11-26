@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Poné `-- destructive: true` cerca del inicio del archivo SQL. Sin esa línea, el runner trata la migración como aditiva, y el preview de tu PR dropea la columna en la base de staging. Esa base la comparte el servicio de staging, que sigue corriendo el código anterior, así que se le rompe a todos. La marca corresponde cuando la migración deja al código anterior sin poder correr, y un drop de una columna que ese código usa es ese caso.\n\n```sql\n-- destructive: true\nALTER TABLE ... DROP COLUMN ...;\n```\n\n**Regla del runner:** una migración marcada se aplica solo si se cumplen **las dos** condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y el deploy es de la rama `staging` o `main` (`RAILWAY_GIT_BRANCH`). Si no, la saltea **sin registrarla** en `_migrations`, y queda pendiente. El runner de deploy es `python -m tuqui_core.db.migrate`.\n\n| Momento o entorno | ¿Se aplica? |\n|---|---|\n| PR env de Railway (base compartida con staging) | **No.** Hereda el flag de staging, pero la rama no es `staging` ni `main`. |\n| Deploy con marcadores de Railway y sin rama estampada | **No.** El control falla cerrado. |\n| CI: postgres de servicio de cada workflow | Sí, si el workflow define `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Son bases efímeras que nadie más comparte. |\n| Container del stack e2e y base de pytest | Sí. Activan el opt-in; el conftest puede usar `allow_destructive=True`. |\n| `make migrate` en local | **No.** No activa el opt-in, porque la base de desarrollo local se comparte entre worktrees. |\n| Deploy de `staging` o `main` posterior al merge | Sí, donde esté el flag. Como los salteos no la registraron, sigue pendiente. |\n\nEn CI y en local el runner es `scripts/apply_migrations.py`. Sigue el mismo contrato, pero el opt-in va por base y no por environment. El material no detalla cómo se combina ahí con el control de rama.\n\n**Hasta llegar a prod:** el material dice que el deploy real posterior al merge la aplica. No describe cómo se promueve de `staging` a `main` ni qué environments de producción tienen el flag. Antes de mergear, confirmá que el de prod tenga `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Si no lo tiene, el runner la saltea sin registrarla.\n\nCuando se aplique en staging o prod, cualquier instancia que todavía corra el código anterior y use esa columna puede fallar. La marca evita que la aplique un preview, pero según este material no garantiza esa compatibilidad durante el deploy.\n\nEsto sale solo del texto que pegaste: no revisé el código del runner ni la configuración de los environments. Para más detalle sobre los previews, el texto remite a `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\". Ahí se explican las consecuencias de las migraciones **aditivas** al mergear y al renombrar un archivo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11032,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1140,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11032,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1140,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11032,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11032
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

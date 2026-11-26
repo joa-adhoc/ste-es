@@ -1,0 +1,47 @@
+{
+ "case": "STE-E04",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**`replace` (el modo por defecto)** pisa cada campo que mandás con el valor nuevo, sin leer lo que había. **`append`** conserva el contenido actual de los campos `html` y `text` y pone el nuevo abajo, en cada registro. Los demás tipos de campo se reemplazan igual que en `replace`.\n\nLa diferencia importa en textos largos como una descripción o una nota interna. Si te piden \"completar la descripción\" y usás `replace`, se borra lo que había escrito una persona, y esos campos no guardan el valor anterior en el chatter. Para agregar o completar va `append`, mandando **solo el texto nuevo**; si mandás también el anterior, queda duplicado. Con `append`, en esos campos el valor tiene que ser texto: algo como `{\"description\": false}` se rechaza con `append_requires_text`. Para vaciar un campo va `replace`.\n\n**Si el `append` falla a mitad de camino:** escribe registro por registro y no es una transacción, así que lo que ya se escribió no se revierte.\n\n- **Falla en el primer registro:** no se escribió nada. Sale como un write fallido común (`invalid_values` o la excepción), y se puede reintentar la llamada entera una vez resuelta la causa.\n- **Falla después de haber escrito alguno:** devuelve `append_partially_applied` con:\n  - `written_ids`: los que ya tienen el texto nuevo.\n  - `failed_id`: el que falló.\n  - `pending_ids`: los que faltan, **incluido el que falló**.\n\n  En este caso, reintentá **solo con `pending_ids`**. Si repetís la llamada completa, los de `written_ids` reciben el texto dos veces. Los ids escritos también quedan en `tool_usage_log.write_metadata`, con `partial: true`.\n\nHay además un caso en el que no escribe: si antes de empezar no puede leer el valor actual o resolver el schema, corta con `append_precheck_failed`. Lo hace porque, sin el valor actual, el `append` terminaría pisando el campo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11181,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 704,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11181,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 704,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11181,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11181
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

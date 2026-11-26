@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "En el worktree corré `make worktree-setup`, que linkea desde el clone principal lo que no viaja en git (`.venv`, `.env`, `node_modules`, `web/node_modules`, etc.). Sin eso, `make test` falla con \"Venv no encontrado\". Por tus dos cambios, además:\n\n1. **Dependencia de Python:** no corras `make install` en el worktree linkeado. Escribiría en el venv del clone principal y le repuntaría el editable install (el target se niega). Tenés dos opciones:\n   - **Instalarla en el clone principal:** ese venv lo comparten todos los worktrees, así que el cambio les llega a todos.\n   - **Aislarla:** borrá el link `tuqui_core/.venv` del worktree (solo el link, no su destino) y armá un venv propio ahí.\n\n2. **`web/package.json`:** corré `npm ci` en el worktree antes de `make test-web`. Ojo: `web/node_modules` es un link al del clone principal, y el material no aclara si `npm ci` reemplaza el link o toca el destino. Como `npm ci` borra `node_modules` antes de instalar, para no arriesgar el del clone principal yo sacaría antes el link con `rm web/node_modules` (sin `-r` ni barra final). Así la instalación queda en el worktree. Es una precaución mía, no un paso del material.\n\nDespués corré lo que necesites:\n\n| Comando | Qué corre |\n|---|---|\n| `make test` | Tests unitarios, el mismo paso de pytest del job `test` de CI. Para un subconjunto: `make test ARGS=\"tests/test_rls.py -k policy\"` (paths relativos a `tuqui_core/`) |\n| `make test-rls` | Aislamiento multi-tenant |\n| `make test-web` | Frontend (vitest) |\n| `make test-evals` | Tests unitarios de `evals/`, no los benchmarks |\n| `make lint` | `ruff check` y chequeo de formato |\n\nNo necesitás reinstalar el resto de las dependencias de Python. Aunque el venv sea compartido, se ejecuta el código del worktree.\n\nEsto sale del material que pegaste; no revisé el repo ni corrí los comandos. En tu máquina o en el workspace, dejá las suites largas para el CI.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10671,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 786,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10671,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 786,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10671,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10671
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

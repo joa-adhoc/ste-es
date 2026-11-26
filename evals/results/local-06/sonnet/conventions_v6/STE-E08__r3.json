@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Skill.** Una tool que en el fondo es un `odoo_create` con defaults es un wrapper 1→1: es componible, y los defaults se pueden indicar en la skill. Solo conviene tool nativa si cumple al menos uno de estos ejes:\n\n| Eje | Califica si… | ¿Vale en el MCP saliente? |\n|---|---|---|\n| **(a)** No componible | no se logra con las tools genéricas ni con otra existente | Sí |\n| **(b1)** Approval o identidad de policy propia | necesitás ese gate, con menor alcance de daño que la genérica | No, el router MCP ignora `requires_approval` |\n| **(b2)** Whitelist más fina | limita más que el `create` o `execute` genérico | Sí |\n| **(c)** Procedimiento crítico | que el LLM saltee un paso tiene un costo real (compliance dura) | No, no hay un turno donde forzar pasos |\n| **(d)** Eficiencia o determinismo | reemplaza ≥3 llamadas, un loop no acotado o un procedimiento con pasos que el LLM saltearía | Sí |\n\nPara tu caso:\n- **(d) no aplica si es una sola llamada**, aunque ahorres tokens de esquema. Cambiaría si antes del `create` hubiera búsquedas o pasos que sumen para alguno de los casos de (d).\n- **(b) es lo que habría que revisar.** Un gate propio solo cuenta si reduce el alcance de daño frente a `odoo_create`; poner defaults no alcanza. El material no detalla qué restricción concreta haría que un `create` acotado califique como (b2).\n\n**El MCP saliente sí cambia el criterio:** ahí la tool solo se justifica por **(a), (b2) o (d)**. Si tu único argumento es el approval (b1) o forzar un procedimiento (c), puede valer para el chat, pero no justifica exponerla por MCP. El material tiene un precedente: `odoo_schedule_activity` pasó a system skill porque era componible, su único diferencial era (b1) y ya estaba en `MCP_EXCLUDED_TOOLS`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11243,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 740,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11243,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 740,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11243,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11243
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

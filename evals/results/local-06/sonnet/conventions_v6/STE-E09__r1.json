@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El usuario hace clic en **Connect**, autoriza en el provider, y el backend canjea el `code` por tokens, los guarda encriptados y prueba las habilidades. **Si contesta al menos una, queda conectado**; si no contesta ninguna, el token se borra. Esto sale solo del material que pasaste; no lo contrasté con el código.\n\n## Flujo\n\n**Preparación (admin).** Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. El discovery guarda además `resource` si el server declara su URI canónica en la protected-resource metadata.\n\n1. **Usuario → front:** abre `/connectors` y hace clic en **Connect**.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve la `authorize_url` con:\n   - **`state`:** protegido con AES-GCM y válido por 10 minutos. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede llevar `code_verifier` (PKCE) y, en los platform connectors, `scope_profile`. El material dice \"firmado\"; AES-GCM además cifra el contenido, no solo detecta si lo alteraron.\n   - **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir un refresh token. El primero lo pide y el segundo fuerza que lo vuelva a emitir en cada autorización, así desconectar y reconectar no te deja sin él. Los providers que no conocen estos parámetros tienen que ignorarlos (RFC 6749 §3.1).\n4. **Front → provider:** redirige al usuario, que autoriza allá.\n5. **Provider → backend:** redirige el navegador a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** valida el `state`, canjea el `code` en `token_url` y guarda los tokens encriptados en `user_mcp_oauth_tokens`. Después, todavía dentro del callback, hace la prueba de humo.\n7. **Backend → front:** redirige a la SPA según quién sea el dueño de la conexión, sin usar un `return_to` aparte:\n   - **Usuario:** `/w/{slug}/settings/connectors?connected={server_id}`\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`\n8. **Uso posterior (backend ↔ provider):** al armar los toolsets, si al token le quedan menos de 60 s, `refresh_if_expired` lo renueva.\n\n**`resource` (RFC 8707).** Se manda en la autorización (paso 3), el canje (6) y el refresh (8), **solo si está guardado**. Los conectores anteriores a ese campo siguen funcionando sin él. No conviene adivinarlo: un authorization server que lo valida rechaza los valores que no reconoce.\n\n## Si algunas habilidades no contestan\n\nDespués del canje, el callback consulta en paralelo **todas las habilidades habilitadas**:\n\n| Resultado | Token | Qué llega al front |\n|---|---|---|\n| Contestan todas | Se conserva | El redirect normal con `connected` |\n| Contestan algunas | Se conserva y el usuario queda conectado | `connect_warning=<habilidades>`: banner de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>`: banner de error en la card |\n\nEn el caso parcial no se desconecta al usuario porque todavía puede usar una parte, y eso es mejor que dejarlo sin nada. Que el canje haya salido bien no garantiza que la conexión sirva: si ninguna habilidad contesta, igual termina en error.\n\n## Lo que el material no aclara\n\nPara confirmar estos puntos hay que mirar el código o la documentación completa, sobre todo porque el fragmento sobre `resource` tiene una parte omitida (`[...]`):\n\n- **Prueba de humo:** qué cuenta como \"contestar\", qué timeout tiene y qué pasa si no hay ninguna habilidad habilitada.\n- **Recuperación parcial:** si las habilidades que fallaron se vuelven a probar solas o cómo se quita el aviso. El refresh del paso 8 depende del vencimiento del token; el material no lo presenta como un reintento de esas habilidades.\n- **Otros errores:** qué pasa si el usuario rechaza el permiso, el `state` es inválido o venció, o falla el canje o el refresh.\n- **Seguridad:** si el `nonce` se controla para que el `state` se use una sola vez y si el callback comprueba que la sesión sea de quien inició la conexión. Con PKCE, lo estándar es mandar `code_challenge` al autorizar y `code_verifier` al canjear, pero el material solo menciona que el verifier puede ir en el `state`.\n- **Redirects:** si los de error y aviso usan las mismas rutas del paso 7 y si también incluyen `connected`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11258,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2310,
+  "output_tokens_details": {
+   "thinking_tokens": 544
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11258,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2310,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11258,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11258
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

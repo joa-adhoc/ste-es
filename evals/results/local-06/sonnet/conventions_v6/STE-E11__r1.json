@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Con el marker, el preview de tu PR no aplica el drop. Lo aplica un deploy de la rama `staging` o `main` que tenga el permiso activado. Al principio del archivo, en una línea, va:\n\n```sql\n-- destructive: true\n```\n\n| Dónde | ¿Se aplica? |\n|---|---|\n| PR preview de Railway | **No.** Puede heredar `MIGRATIONS_ALLOW_DESTRUCTIVE=1` de staging, pero su rama no es `staging` ni `main`. |\n| CI, stack e2e y pytest (bases efímeras) | **Sí**, donde el workflow define `MIGRATIONS_ALLOW_DESTRUCTIVE=1` o el conftest pasa `allow_destructive=True`. |\n| Local con `make migrate` | **No.** No activa el permiso, porque la base local se comparte entre worktrees. |\n| Deploy de `staging` o `main` después del merge | **Sí**, si tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. |\n\nCuando el runner la saltea, **no la registra en `_migrations`**, así que un deploy habilitado la puede aplicar después. En Railway, si hay marcadores de Railway pero falta `RAILWAY_GIT_BRANCH`, tampoco la aplica.\n\n**Sin el marker**, el runner no la trata como destructiva: el preview puede dropear la columna en la base compartida y romper el código anterior que sigue corriendo en staging. Ya pasó algo así cuando un preview aplicó `0180_chat_ga`.\n\n**Prod:** el fragmento no dice qué rama despliega a prod ni si ese entorno tiene el permiso. Revisá las dos cosas antes de dar por hecho que el drop llega. Según la regla, si falta el permiso, la migración se saltea.\n\nAdemás, esto lo deduzco del mecanismo; el fragmento no lo dice:\n- **En el preview:** tu código nuevo corre con la columna todavía presente, así que tiene que funcionar igual. Por ejemplo, si la columna es `NOT NULL` sin valor por defecto y el código deja de cargarla, los inserts fallan.\n- **Cambios aditivos:** si tu PR también los tiene, ponelos en otro archivo sin marker. Si van junto con el drop, el preview saltea todo y al código nuevo le van a faltar. Ese archivo aditivo **sí se aplica a la base de staging desde el preview**, antes del merge. Antes de renombrarlo o mergear, leé la sección \"Un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`.\n- **Después del merge:** el marker solo controla dónde se aplica el drop, no vuelve compatible al código anterior. Cuando staging lo aplique, lo que todavía use esa columna contra esa base va a fallar, incluidos previews de otros PR. Si eso no es aceptable, primero mergeá y desplegá el código que deja de usar la columna, y dropeala en un PR posterior.\n\nMe basé solo en el fragmento que pegaste; no revisé el código del runner ni la configuración de los entornos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11041,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1613,
+  "output_tokens_details": {
+   "thinking_tokens": 516
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11041,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1613,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11041,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11041
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

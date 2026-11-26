@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Tu worktree comparte la base de tests local con el de tu compañero. Su rama aplicó migraciones ahí (el `conftest` las corre solo), y alguna destructiva dejó el esquema sin columnas que tu código todavía lee. Por eso falla con `UndefinedColumnError` en tests que no tocaste. El lock (`flock`) no lo evita: solo impide dos corridas simultáneas, y el esquema queda con la unión de las migraciones de las dos ramas.\n\n**Arreglo: una base propia para tu worktree**\n\n1. Creá `tuqui_core/.env.test.local` a partir de `tuqui_core/.env.test.local.example`. Está gitignoreado y pisa a `.env.test`.\n2. Apuntalo a una base con un nombre que no use ningún otro worktree. Las variables exactas sacalas del `.example`, y mirá en § La base de tests es por worktree si hay que crear la base antes.\n3. Con esa configuración ya cargada, corré `make migrate-reset`. Arma el esquema desde cero en unos 3 segundos. **Vacía la base a la que apunta**, así que antes confirmá que es la tuya y no la compartida. No verifiqué que ese target lea `.env.test.local`: el texto solo lo dice de los targets de test. Revisá en el `Makefile` o en `scripts/reset_database.py` de dónde toma la URL.\n4. Volvé a correr los tests que fallaban. Si el error sigue, revisá que estés usando la base nueva y que la columna no falte por un cambio de tu propia rama.\n\nNo uses `npx supabase db reset`. Aborta en el primer prefijo de migración repetido, y según el material hoy hay 25. `make migrate-reset` usa el mismo runner que CI y deploy, y solo toca bases locales.\n\n**Para que no vuelva a pasar**\n\nDejá ese `.env.test.local` en cada worktree que uses, también en el de tu compañero si comparten máquina. Con eso se separan los esquemas.\n\n**El lock, opcional:** con la base propia solamente, mantené el lock, porque Redis sigue compartido. Si querés correr en paralelo, necesitás las dos cosas:\n- **Redis propio:** en `REDIS_URL`, un índice que no sea 0 (server de desarrollo) ni 15 (default compartido de `.env.test`), ni el que use otro worktree.\n- **Lock propio:** un valor distinto de `TEST_LOCK`.\n\nLos targets que toman el lock son `test`, `test-rls`, `test-integration`, `test-all` y `odoo-matrix`.\n\nEsta explicación sale del texto que me pasaste. No revisé tu repo ni tu base, así que la causa en tu caso está sin verificar, aunque el síntoma coincide.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11145,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 959,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11145,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 959,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11145,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11145
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

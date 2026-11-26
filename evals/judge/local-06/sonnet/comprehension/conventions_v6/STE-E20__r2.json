@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el mensaje de error completo. Dice que `0415_terms_acceptance.sql` intentó poner `members.accepted_version` como `NOT NULL`, pero hay filas con ese valor en null (`SQLSTATE 23502`).",
+  "No debería estar caído: según el log, el deploy nuevo no se promovió y el anterior sigue sirviendo (`previous deployment keeps serving`). No se verificó contra el entorno; para confirmarlo hay que abrir staging o mirar su healthcheck.",
+  "Según el texto, `docs/infra-ci-cd.md` pide separar el cambio en dos trenes si la columna ya existía: en este tren, una migración que solo haga el backfill de los nulls, sin el `SET NOT NULL`; en un tren posterior, otra migración con el `SET NOT NULL`. Reintentar sin cambios va a fallar igual mientras sigan esas filas en null. Antes de separarla, hay que revisar el SQL de la 0415 (no se vio completo, así que no se sabe si ya trae un backfill o si crea la columna) y definir qué valor les corresponde a las filas viejas, sin poner una versión cualquiera, porque podría registrar una aceptación que no ocurrió. También conviene revisar que el código que sigue escribiendo en `members` complete `accepted_version`; si no, pueden aparecer nulls nuevos antes del segundo paso."
+ ],
+ "grades": [
+  "not_stated",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "937978db8c",
+  "control": "a20a96ac5b"
+ }
+}

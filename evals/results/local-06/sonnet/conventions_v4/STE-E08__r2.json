@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Te conviene una skill.** Un `odoo_create` con defaults se puede armar con las tools genéricas, así que no cumple (a). Tampoco cumple (d): es un wrapper 1→1, y eso queda excluido aunque ahorre tokens de esquema. Los defaults van escritos en la skill.\n\n**El criterio:** va como tool nativa si cumple al menos un eje. Si no cumple ninguno, va como skill.\n\n| Eje | Cuándo se cumple | En tu caso |\n|---|---|---|\n| **(a)** No componible | Ni las tools genéricas ni otra existente lo logran | No, por lo que describís |\n| **(b1)** Approval o policy propia | Necesitás ese gate; vale solo en chat | Solo si lo necesitás |\n| **(b2)** Whitelist más fina | Tiene menor alcance de daño que `create` o `execute` genéricos; vale en chat y MCP | Es lo que hay que revisar |\n| **(c)** Procedimiento crítico | Que el LLM saltee un paso tiene un costo real (compliance dura) | Solo si hay algo así; un default de conveniencia no alcanza |\n| **(d)** Eficiencia o determinismo | Reemplaza 3 llamadas o más, un loop no acotado o un procedimiento con pasos que el LLM saltearía | No, si es una sola llamada |\n\nLa respuesta cambia si la tool **restringe de verdad** lo que se puede hacer, y eso te da un gate propio más acotado que el de `odoo_create`. Fijar el modelo o completar valores que el agente puede pisar no me parece suficiente. Además, si el mismo agente sigue teniendo `odoo_create` sobre ese modelo, yo no daría (b2) por cumplido sin explicar qué reduce la tool nueva. Estas dos observaciones son mi lectura: el texto que pegaste no las dice.\n\n**Con el MCP saliente sí cambia:** ahí solo justifican una tool (a), (b2) o (d). El router MCP ignora `requires_approval`, así que (b1) no tiene efecto. Con (c) pasa algo parecido, porque no hay un turno donde forzar pasos.\n\nEntonces, si tu único motivo es (b1) o (c), puede justificar la tool en el chat, pero no en el MCP. Infiero que en ese caso tendrías que excluirla con `MCP_EXCLUDED_TOOLS`. Exponerla por MCP nunca le suma un motivo para ser nativa.\n\nEl precedente cercano es `odoo_schedule_activity`, que pasó a system skill. Era componible, su único diferencial era (b1) y ya estaba excluida del MCP.\n\n**Para decidir, contestate esto:** ¿qué cosa que hoy permite `odoo_create` va a impedir tu tool, y quién aplica ese límite? Si la respuesta es \"nada, solo completa valores\", hacé la skill.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11226,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1384,
+  "output_tokens_details": {
+   "thinking_tokens": 374
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11226,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1384,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11226,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11226
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

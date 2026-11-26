@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al agregar la memoria 51, en la misma transacción se borra la más vieja por `created_at`. El límite es de 50 por usuario y 50 por workspace. Es FIFO y no mira cuánto se usa, así que una memoria vieja pero útil se puede perder. El material lo llama eliminación silenciosa (\"silent eviction\"), pero aclara que el modelo se entera por un mensaje en la respuesta de la tool. No dice que se le avise a la persona.",
+  "En cada turno, `_load_chat_setup` inyecta las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto, primero las de workspace y después las de usuario. De cada una entra un encabezado con el título y el resumen, si tiene, o si no, el cuerpo hasta 250 caracteres. Si no tiene resumen y el cuerpo es más largo, el encabezado termina en `[read]`. Cuando el modelo necesita todo el contenido de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`. Si los encabezados superan el presupuesto, no entran todos.",
+  "Si los encabezados suman más de 12K caracteres (`_MEMORY_BUDGET_CHARS`, unos 3K tokens), `rapidfuzz` los puntúa contra el mensaje actual y entran solo los mejores. Las que quedan afuera no se borran, y la selección puede cambiar con cada mensaje. El texto infiere que, como compara por similitud de texto, podría quedar afuera una memoria relevante escrita con otras palabras. No dice cuántas son las \"top-N\" ni si los dos scopes comparten los 12K."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e17ad0cf5f",
+  "control": "2fefeeffdf"
+ }
+}

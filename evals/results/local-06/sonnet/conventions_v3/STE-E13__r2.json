@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Con la configuración por defecto salen avisos en dos momentos: **7 días antes y el mismo día del vencimiento**, con el workspace todavía funcionando. Si al vencer no tiene una suscripción viva, pasa a `free` y sale el mail de prueba vencida.\n\n**Cuándo**\n- El cron (`_run_trial_expiry`) corre todos los días a las **12:00 UTC** (9 h de Argentina).\n- Los días de aviso salen de `platform_config.billing_trial_warning_days_list`. El valor por defecto es `{7, 0}`, así que conviene revisar el configurado.\n- Hoy es 26/11. Si vence la semana que viene (30/11 al 6/12), el aviso de 7 días cae entre el 23/11 y el 29/11. Puede que ya haya salido o que esté por salir. Para saberlo, mirá `trial_warning_for` (para qué fecha de fin se avisó) y `trial_warning_days` (el aviso más cercano al vencimiento que ya se envió).\n- Si se extiende la prueba, vuelve a avisar para la fecha nueva.\n\n**A quién** (por vencer y vencida)\n- A los owners y admins siempre, aunque no tengan asiento.\n- A todos los miembros con asiento (`billing_tier <> 'none'`).\n\nEl aviso informa qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar. Además, en el chat, quien perdió el asistente ve `PlanLapsedBanner` sobre el cuadro de escritura.\n\n**Qué pasa al vencer sin suscripción viva**\n1. Queda en `plan='free'`.\n2. Se evalúa si excede los límites.\n3. Sale el mail.\n\nSi hay exceso, el workspace puede quedar en `account_status='restricted'`, con **MCP y chat bloqueados**. El motivo correspondiente es `trial_expired_with_excess`.\n\nEl material no dice expresamente qué pasa **sin exceso**. Por el nombre del motivo, infiero que el vencimiento no lo restringe por sí solo. Eso no asegura que el asistente siga respondiendo: el circuito justifica avisar a los miembros con asiento porque «el asistente deja de responder para todo el equipo». Antes de prometerle algo al cliente, confirmalo en el código.\n\n**Si tiene una suscripción viva**\nSí, cambia lo que pasa al vencer: **solo se limpian los flags de la prueba y no se manda ningún aviso de vencimiento**. Para el owner no cambia nada visible, y el cobro se anuncia con su propio recibo, que va a los owners. El paso a `free` y la evaluación de exceso descriptos arriba corresponden al caso sin suscripción viva.\n\nEl material **no aclara si con suscripción viva se omiten también los avisos previos** (7 y 0 días). El «no se manda nada» está dicho sobre el momento del vencimiento. Para confirmarlo, revisá en `_run_trial_expiry` cómo filtra a quién le manda esos avisos. Respondí solo con el material que pasaste, sin revisar el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11181,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1785,
+  "output_tokens_details": {
+   "thinking_tokens": 704
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11181,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1785,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11181,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11181
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

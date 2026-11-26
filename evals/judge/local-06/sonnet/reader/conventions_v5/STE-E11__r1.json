@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo llega la migración a prod? Necesito saber qué rama despliega prod, cómo se pasa de `staging` a `main` y si el servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Si no lo tiene, ¿quién lo activa y en qué momento?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `docs/infra-ci-cd.md`, el runner y la config del servicio de prod para confirmar qué rama despliega prod, si tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y cómo se promueve de `staging` a `main`? Si le falta el permiso, ¿qué tengo que hacer, y quién, para que el drop se aplique ahí?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmar cómo llega a prod? Necesito saber qué rama despliega prod, si ese servicio tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y cómo se pasa de `staging` a `main`. Si no tiene el permiso, ¿quién lo activa y cuándo? Fijate en `docs/infra-ci-cd.md`, el código del runner o la config de Railway."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Cómo llega la migración a prod? Necesito saber qué rama despliega prod, cómo se pasa de `staging` a `main` y si el servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Si no lo tiene, ¿quién lo activa y en qué momento?",
+ "followup_answer": "No pude averiguar cómo llega a prod. El fragmento no dice qué rama despliega prod, cómo se pasa de `staging` a `main`, si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` ni quién lo activa. El directorio de trabajo está vacío, y la búsqueda que incluía tu home quedó bloqueada por los permisos de la sesión. Que el runner acepte `main` no prueba que prod se despliegue desde esa rama.\n\n**Cuándo tiene que estar el permiso:** antes de que corra el runner en el deploy de prod. Si todavía no está:\n1. La migración se saltea y no queda registrada, así que la columna sigue ahí mientras el código nuevo ya puede estar desplegado.\n2. Activarlo después no alcanza según el fragmento: el runner tiene que volver a correr, con un redeploy u otra ejecución habilitada. No sé si cambiar la variable en Railway dispara eso solo.\n\n**Cómo confirmar el resto**, desde la raíz del repo:\n\n```bash\ngit grep -nE 'MIGRATIONS_ALLOW_DESTRUCTIVE|RAILWAY_GIT_BRANCH|tuqui_core\\.db\\.migrate'\ngit grep -niE 'prod|producci[oó]n|promo|release' -- docs .github\n```\n\n| Qué falta saber | Dónde confirmarlo |\n|---|---|\n| Qué rama despliega prod | En Railway, el servicio del environment de prod: la rama conectada en la configuración de origen. Si el deploy lo dispara un workflow, mirá `.github/workflows`. |\n| Cómo se pasa de `staging` a `main` | La documentación de CI/CD (empezá por `docs/infra-ci-cd.md`), los workflows y los PRs anteriores hacia `main`: `gh pr list --base main --state merged`. |\n| Si prod tiene el permiso | Las variables de ese servicio en Railway. Revisá el valor en prod; que staging lo tenga no lo confirma. |\n| Quién lo activa y cuándo | La documentación o quien administra ese servicio. Verlo en las variables no dice quién se encarga. |\n\nPodés mandarle esto a quien administre prod:\n\n> Mi PR dropea una columna con `-- destructive: true`. ¿Qué rama despliega prod y cómo llegan ahí los cambios de `staging`? ¿El servicio de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no, ¿quién lo activa, antes de qué paso, y queda activo o se saca después? ¿El código anterior sigue atendiendo mientras corre la migración?\n\nLa última pregunta importa porque, si el código anterior todavía usa la columna y sigue atendiendo cuando se borra, puede fallar también en prod. La marca controla dónde se aplica la migración, pero el fragmento no dice que evite eso.\n\nEsto mismo vale para staging, y no lo aclaré antes: cuando el deploy de `staging` borre la columna de la base compartida, los previews de otros PRs que todavía la usen pueden romperse, aunque la migración tenga la marca.\n\nNo actives el permiso en prod solo para probar: habilita las migraciones destructivas pendientes que el runner ejecute ahí desde una rama permitida, no solo la tuya. Antes de mergear, confirmá las respuestas; después del deploy de prod, verificá en esa base que tu archivo figure en `_migrations`.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12915,
+  "cache_read_input_tokens": 77461,
+  "output_tokens": 2216,
+  "output_tokens_details": {
+   "thinking_tokens": 617
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12915,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1563,
+    "cache_read_input_tokens": 30276,
+    "cache_creation_input_tokens": 149,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 149
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "2befc3bcf8"
+ }
+}

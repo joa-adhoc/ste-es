@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/`, con un nombre de la forma `NNNN_descripcion.sql`. Se crea con `supabase migration new <nombre>`.",
+  "La tabla lleva su `workspace_id`. Se le habilita RLS con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y lleva una policy creada dentro de un bloque `DO` que primero chequea si ya existe. El PR también necesita un test de aislamiento. Filtrar por `workspace_id` en el código no alcanza: la defensa principal es RLS.",
+  "El texto pide que toda la migración pueda correr varias veces sin error. Advierte que, al abrir el PR, el preview aplica la migración en la base de staging, que no es una copia sino la misma base. El sistema registra las migraciones por nombre de archivo, así que si se renombra el archivo después de abrir el PR, la migración se vuelve a aplicar. La idempotencia tampoco actualiza lo existente: `IF NOT EXISTS` no modifica una tabla o policy ya creada, así que si cambia su definición, volver a correr la migración no cambia nada en staging. Las consecuencias completas están en una sección de `docs/infra-ci-cd.md` que el texto no incluye."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "a89f9daf96",
+  "control": "cb1718959b"
+ }
+}

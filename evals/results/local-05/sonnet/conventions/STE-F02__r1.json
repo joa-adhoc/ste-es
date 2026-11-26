@@ -1,0 +1,44 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Hay opciones nativas, pero según el material ninguna configuración simple cumple todo el pedido.** El CC en la plantilla manda la copia, pero no resuelve las respuestas ni saca a nadie.\n\n**Ojo con la fecha:** el pedido era para antes del 25/10 y hoy es 26/11. Confirmaría con el cliente cómo está el tema.\n\n| Opción | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| **Para/CC en la plantilla** (`partner_to`, `email_cc`) | Administración recibe copia de la factura, en envío manual y automático | No la suma como seguidora, así que las respuestas no le llegan. Tampoco saca seguidores |\n| **Pasar el usuario «Administración» (C2) a notificaciones por correo** | Le llegan por correo las notificaciones que hoy quedan en la bandeja de Odoo, donde es seguidor | No lo agrega donde falta (como en la factura de ejemplo) ni saca a nadie. Afecta todas sus notificaciones |\n| **Acciones «Agregar seguidores» y «Quitar seguidores»** | Corrigen el historial en forma masiva y, con una regla automática, los documentos nuevos | Es personalización por interfaz (Consultoría). Falta probar que cubra todo el recorrido |\n| **OCA `mail_autosubscribe`** | No aplica | Suscribe contactos de la empresa destinataria, no un contacto propio |\n\n**La causa no está cerrada**\n- En la factura de ejemplo, el vendedor **no es seguidor**. El usuario interno que sí lo es, Usuario A, la validó: `account_ux` la envía en ese momento y Odoo suscribe al autor del envío, sin opción para apagarlo.\n- Eso explica el ejemplo, pero no los cerca de 4.100 seguimientos de vendedores portal en facturas de 2026. No sé por qué vía se agregan.\n- El cliente dice que la respuesta le llegó también a Usuario B, que no figura entre los seguidores. Hay que revisarlo.\n\n**Qué haría**\n1. **Derivar a Consultoría** y probar primero la regla con las acciones nativas, antes de pensar en código. El código propuesto en el ticket solo agrega Administración.\n2. **Probar el momento en que corre la regla.** Si corre antes del envío, el autor puede volver a quedar suscripto. Hay que cubrir validación automática, envío manual, reenvío y notas de crédito.\n3. **Definir qué contacto es «Administración».** Si tiene que recibir correo, C1 es el candidato porque no tiene usuario. Con `email_cc` probaría a cuál de los dos resuelve Odoo, porque comparten correo. En `partner_to` se puede indicar C1, conservando al cliente.\n4. **Acordar a quién quitar** antes de la corrección masiva. «Todos los usuarios internos» incluiría a C2, que es Administración.\n\n**Otra alternativa a probar:** poner el correo de Administración en el «Responder a» (`reply_to`) de las plantillas. No verifiqué que el envío de facturas en 18 lo respete. Si funciona, las respuestas irían a esa casilla, pero habría que ver si quedan en el chatter y a quién notifican. No quita seguidores ni evita las copias de otros mensajes.\n\n**Para dejar en el ticket:**\n> El Para/CC de la plantilla permite enviar copia de la factura a Administración, pero no hace que reciba las respuestas ni quita seguidores. Para el resultado completo, proponemos que Consultoría evalúe una regla con las acciones nativas «Agregar seguidores» y «Quitar seguidores», más la corrección masiva del historial. Falta probarla en todo el recorrido de validación y envío antes de descartar o confirmar un desarrollo.\n\nMe basé solo en el material que pasaste: no consulté la base ni probé nada. Tampoco pude cargar `tuqui_context`, porque no tengo las herramientas de `tuqui-adhoc` en esta sesión; para darlo de alta está `adhoc-way-guide`. No publiqué nada en el ticket.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10868,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3498,
+  "output_tokens_details": {
+   "thinking_tokens": 2050
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10868,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3498,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10868,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10868
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

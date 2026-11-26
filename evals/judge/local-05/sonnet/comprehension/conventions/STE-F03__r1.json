@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según el texto, la causa probable es esta (sigue sin verificar). Al confirmar P00231, Odoo estándar crea una recepción nueva que queda sin movimientos y, como está vacía, intenta borrarla (`created_receipt.unlink()`). «Recepciones» tiene `block_picking_deletion` = True, así que `_check_block_picking_deletion` de `stock_ux` lanza el error, y alcanza con esa opción. El error deshace la confirmación: la orden sigue en borrador y la recepción nueva no se guarda. La explicación probable de que quede vacía es que las 2 unidades ya están cubiertas por la recepción 412, pero no se leyó el código que genera los movimientos.",
+  "El 11/11 la orden se confirmó (12:26) y se registraron las 2 unidades recibidas (12:27). Después se canceló (13:26) y volvió a Solicitud de cotización (13:27), todo con el mismo usuario. La 412 sigue en Hecho. El texto no dice por qué se canceló, ni si permitir esa cancelación fue un comportamiento esperado o una falla.",
+  "Antes de tocar producción, hay que preguntar por qué se canceló la orden, porque si querían anular la compra o corregir algo, volver a confirmarla puede no ser lo que necesitan. La regularización propuesta se prueba primero en una copia de la base:\n1. Anotar el stock del producto, los movimientos de P00231, las cantidades de la línea y los datos de la factura. En este paso hay que revisar también si el movimiento de la 412 sigue vinculado a la línea de P00231.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción, también si la confirmación falla.\n5. Comprobar que la orden quedó como Orden de compra; que la única recepción es la 412, en Hecho, sin otra pendiente; que no cambiaron el stock ni los movimientos; que la línea sigue con 2 pedidas, 2 recibidas y 2 facturadas; y que BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\nEn la copia conviene revisar también la fecha de confirmación, una posible aprobación pendiente y los avisos automáticos, cuidando que la copia no envíe correos. Si todo coincide, se repite en producción en un momento de poco uso; mientras la opción esté desactivada, se van a poder borrar traslados en borrador o cancelados de ese tipo de operación. Si aparece una recepción nueva con movimientos, no hay que validarla ni pasar el cambio a producción. No hace falta devolver ni tocar la 412, anular la factura ni crear otra orden, y no se recomienda cambiar el estado directo en la base. Además, antes de enviar la respuesta al cliente o tocar la base, hay que revisar el análisis contra las reglas de la empresa y registrar el MCP `tuqui-adhoc` (guía `adhoc-way-guide`). La corrección de fondo conviene tratarla aparte, y la decisión le corresponde a quien mantiene el módulo."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "0809dca1d0",
+  "control": "cf4a8527a9"
+ }
+}

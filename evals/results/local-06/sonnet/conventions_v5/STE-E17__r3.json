@@ -1,0 +1,47 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cuando una tool tira una excepción, `_wrap_tool` (en `agent.py`) la ataja y al modelo le devuelve un texto con la clase del error. Si el mismo fallo se repite 3 veces, `DoomLoopGuard` lo reemplaza por un FATAL. Esto sale solo del material que pegaste; no miré el código.\n\n**De la falla al modelo**\n\n1. La tool falla.\n2. `_wrap_tool` ataja la excepción:\n   - Si es un `ToolError`, la usa como viene, con `error_class`, `message` y `retry_after_seconds`.\n   - Si es otra, `classify_unknown` asigna una `ErrorClass` a las excepciones de Python y httpx.\n3. El modelo recibe como resultado de la tool lo que devuelve `exc.for_llm()`, en lugar del string genérico de antes:\n   ```\n   [TOOL_ERROR class=X]: message\n   ```\n\nLas clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. Hay dos parecidas con textos distintos: `CONNECTION` indica que Odoo está caído, y `ODOO_NOT_CONNECTED` que no hay credenciales para ese run (lo detecta `require_adapter`).\n\nEl formato que muestra el material no incluye `retry_after_seconds`, así que no se puede saber si el modelo llega a ver cuánto esperar.\n\n**Cómo se corta el reintento**\n\n`DoomLoopGuard.record(tool_name, args, ok, error_class)` cuenta con la clave `tool_name | hash(args) | error_class`. Cuando un contador llega a 3 (`THRESHOLD`), devuelve `True`. Entonces `_wrap_tool` responde con un FATAL e impide más llamadas idénticas.\n\nPor cómo está armada la clave y la regla de reinicio:\n- **Cambiar los argumentos** usa otro contador, aunque el cambio sea mínimo y el error el mismo. Esto supone que el hash no normaliza los argumentos.\n- **Cambiar la clase de error** también: la misma llamada que alterna entre `TRANSIENT` y `RATE_LIMIT` suma por separado.\n- **Cualquier éxito** limpia todos los contadores, no solo el de esa tool. Un loop que intercale llamadas exitosas entre los fallos podría no llegar nunca a 3.\n\n**La excepción de Odoo:** en `CONNECTION` y `ODOO_NOT_CONNECTED`, el guard corta también **entre tools**, con un aviso distinto para cada una. La clave descripta incluye `tool_name`, así que por sí sola no explica ese corte. Debe haber otra lógica que el material no detalla.\n\n**Lo que el material no aclara** y se puede ver en `guards.py` y `_wrap_tool`:\n- Cómo se bloquea la llamada siguiente: si se frena antes de ejecutar la tool o si se ejecuta y se reemplaza el resultado. `record` recibe `ok`, así que supongo que al menos el registro se hace después de ejecutar.\n- Si ese FATAL corta el run o solo le llega al modelo como otro resultado de la tool.\n- Cuál es el umbral y el alcance del corte entre tools.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10830,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1483,
+  "output_tokens_details": {
+   "thinking_tokens": 278
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10830,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1483,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10830,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10830
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

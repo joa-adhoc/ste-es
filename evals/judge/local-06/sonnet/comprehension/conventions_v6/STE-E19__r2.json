@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no nombra el test específico que falló; indica volver a correr `pytest tuqui_core/tests/test_rls.py -q`. El fallo se ve en que el workspace B ve 2 filas de A en `scheduled_runs`.",
+  "Porque `0398_scheduled_runs_draft.sql` ya había creado una policy llamada `scheduled_runs_ws` con `USING (true)`. La `0412_scheduled_runs.sql` quiere crear la correcta con el mismo nombre y, como el `IF NOT EXISTS` solo mira el nombre, la saltea. El log lo muestra: `already exists, skipped`.",
+  "No. No alcanza con editar la 0398 o la 0412, porque las migraciones se registran por nombre de archivo y las ya aplicadas no vuelven a correr. Hay que agregar una migración nueva con el próximo número libre que haga `DROP POLICY IF EXISTS` y vuelva a crear la policy filtrando por workspace. Tampoco hay que agregar otro `IF NOT EXISTS`, porque volvería a saltear el cambio."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "34c51463b9",
+  "control": "8368a6d09b"
+ }
+}

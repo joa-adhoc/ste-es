@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Yo todavía no lo cerraría como «está bien que no vea».** Lo que reprodujiste muestra el problema, pero el diseño de `account_multi_store` apunta a lo contrario: el usuario de otra sucursal **puede ver, pero no publicar ni modificar**.\n\n**Por qué**\n- La ayuda de `store_id` lo dice así.\n- Las reglas multi-store de diarios, asientos y pagos tienen `perm_read` = False, o sea que no restringen la lectura.\n- En los diarios, la otra regla que aplica a la lectura según lo relevado es la de compañía. Las de `account_journal_security` no alcanzan a los diarios de venta, porque no tienen usuarios cargados.\n\nEntonces, que Norte no tenga la sucursal Sur **no alcanza para explicar el error de lectura**. Puede haber una regla en otro modelo o de otro módulo: no tengo relevadas todas.\n\n**Dónde puede estar la confusión**\n\n`account.journal._search` sí le oculta el diario Sur en las búsquedas a todo usuario que no sea superadmin. No es una regla de registro: según el comentario del código, lo hicieron así para evitar errores en los campos relacionados con el diario.\n\nMi hipótesis es que algunas pantallas pasan por ese filtro al buscar facturas y otras no. Eso podría explicar que la lista cambie según el reporte o el filtro. No la verifiqué, porque falta leer el código de `account_followup` y del libro mayor. Tampoco está probado que ese filtro cause el error de «Ver asientos».\n\n**Sobre la 16:** no puedo confirmar que tuviera permisos más livianos ni que ahora se hayan reforzado, porque no se leyó ese código.\n\n**Qué criterio unificar**\n\n| Criterio | Qué implica |\n|---|---|\n| **Ve todo, opera solo en su sucursal** (recomendado) | Coincide con la ayuda y las reglas. Hay que encontrar qué bloquea la lectura y revisar dónde el filtro de búsqueda esconde facturas. |\n| **Si no es su sucursal, no ve en ningún lado** | Es cambiar el diseño. Habría que restringir la lectura y revisar reportes y relaciones. El libro mayor y el seguimiento podrían mostrar saldos parciales, con riesgo de reclamarle al contacto una deuda mal calculada. |\n\nTenés razón en que hay que unificar. Yo lo haría con el primero, salvo que el cliente necesite confidencialidad entre sucursales. Eso sería un pedido de alcance distinto, a confirmar con el cliente.\n\n**Qué falta para cerrarlo**\n1. En el cartel de error, copiá el texto completo con el traceback, si aparecen los detalles. Necesitamos modelo, operación, ID del registro y reglas nombradas. Si no figuran las reglas, repetilo en una copia de la base con modo desarrollador.\n2. Con Encargado Norte, abrí **la misma factura** desde el libro mayor de Contabilidad y ejecutá **«Ver asientos»**. Ver la factura en el listado no prueba que esa acción funcione. Así sabemos si cambia el resultado según el camino o falla la acción en ambos.\n3. Con esos datos, hay que leer el código de la acción y de los dos reportes. Para comparar con la 16, también el de esa versión.\n\n**Si el cliente está esperando**, le contestaría esto:\n\n> «Pudimos reproducir el error. Vimos que el acceso a facturas de otra sucursal no se comporta igual en todos los recorridos que probamos. Estamos revisando la causa antes de confirmar cuál es el comportamiento correcto.»\n\nAntes de mandarlo, tené en cuenta que la diferencia que viste es entre listados. «Ver asientos» desde Contabilidad se confirma recién con el paso 2.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11129,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3064,
+  "output_tokens_details": {
+   "thinking_tokens": 1719
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11129,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3064,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11129,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11129
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

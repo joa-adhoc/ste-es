@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos? No sé qué son \"pod A/pod B\", \"imagen\", \"método\", \"recargar el registro\", \"cron\" ni \"traceback\". Decime en simple qué pasó, qué tengo que revisar yo desde las pantallas de Odoo (por ejemplo, dónde veo si las cotizaciones se actualizaron y si la carga de stock quedó hecha) y a quién le paso el tema del despliegue, con qué texto."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin términos técnicos? No entiendo qué son el pod A y B, el «método», las «reglas de acceso», «recargar el registro», el uid 31, el cron, res.company o el traceback. Decime en criollo qué pasó, qué tengo que hacer yo (qué le pregunto al cliente y dónde miro en Odoo si las cotizaciones se actualizaron) y a quién le paso lo del despliegue y con qué texto."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos? No entiendo qué son el «pod A» y el «pod B», el «método» que faltaba, «recargar el registro», el «uid 31», el «cron», «res.company» ni el «traceback». Decime en criollo qué pasó y qué tengo que hacer yo. De los pendientes, ¿cuáles me tocan y cómo los reviso desde la pantalla de Odoo (por ejemplo, las cotizaciones)? ¿A quién le paso el tema del despliegue y qué le digo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin términos técnicos? No sé qué son \"pod A/pod B\", \"imagen\", \"método\", \"recargar el registro\", \"cron\" ni \"traceback\". Decime en simple qué pasó, qué tengo que revisar yo desde las pantallas de Odoo (por ejemplo, dónde veo si las cotizaciones se actualizaron y si la carga de stock quedó hecha) y a quién le paso el tema del despliegue, con qué texto.",
+ "followup_answer": "**En simple:** mientras se actualizaba el sistema del cliente, durante un momento convivieron reglas nuevas con el programa viejo. Las reglas pedían algo que el programa viejo todavía no tenía, y por eso salió el error. Es la explicación más probable, pero no está confirmada. En los registros del sistema ya actualizado no aparecen errores entre las 12:09 y las 12:30 del 04/11 (hora argentina). También falló en ese momento una tarea automática relacionada con las cotizaciones.\n\n## Qué revisar en Odoo\nNo pude mirar las pantallas de esta base, así que los nombres de los menús pueden variar. Si no ves alguno, puede ser por falta de permisos.\n\n**1. La carga de stock**\n- Preguntale al cliente qué estaba cargando: producto, cantidad, ubicación y si era una recepción, una transferencia o un ajuste.\n- Entrá en **Inventario → Reportes → Historial de movimientos** (puede llamarse \"Movimientos\"). Buscá ese producto el 04/11, desde las 12:00. La pantalla suele mostrar la hora según la configuración de tu usuario.\n- Si era una recepción o transferencia, abrí también el documento y mirá su estado. \"Hecho\" indica que se completó. Si era un ajuste, compará la cantidad con la que quería dejar el cliente.\n- Si no aparece, no la cargues enseguida: puede estar pendiente o registrada de otra forma. Confirmalo con el cliente para no duplicarla.\n\n**2. Las cotizaciones**\n- Entrá en **Contabilidad → Configuración → Monedas**, abrí las monedas que usa el cliente y mirá el historial de cotizaciones. Revisá el 04/11 y los días siguientes. Que falte un día no siempre es un error: depende de cada cuánto se actualicen.\n- Con el modo desarrollador y permisos de administrador, buscá en **Ajustes → Técnico → Acciones planificadas** la que se llama «Consolidation: bring currency rates in». Fijate si está activa, cada cuánto corre y cuándo le toca de nuevo. **No alcanza para saber si terminó bien.**\n- No sé si esa tarea guarda sus datos en esa lista de monedas. Si no podés confirmarlo, pedile a quien conozca Consolidación que lo revise.\n\n## A quién pasarle el despliegue\nPasáselo al equipo que se ocupa de instalar las actualizaciones en las bases de los clientes. No sé qué equipo o persona es; si vos tampoco, preguntale a quien coordina soporte. El texto tiene términos técnicos porque es para ese equipo, y podés copiarlo así:\n\n> Ticket 140512 (Odoo 19.0, 04/11/2026, horas UTC): el usuario 31 tuvo tres errores entre 15:08:37 y 15:08:38 en el pod A: `'res.users' object has no attribute '_get_branch_stock_root_ids'`. Las reglas 507 y 508, que usan ese método, figuran reescritas a las 15:08:01. El pod A recargó el registro entre 15:08:36 y 15:08:39, y a las 15:08:40 falló el cron «Consolidation: bring currency rates in» por otro método faltante (`_cron_update_consolidation_rates`). El pod B arrancó con la imagen nueva a las 15:08:53 y el A empezó a apagarse a las 15:08:58. En los logs revisados del B no hubo errores de 15:09 a 15:30.\n>\n> Hipótesis sin confirmar: el pod A seguía atendiendo con código anterior cuando la base ya tenía cambios nuevos. ¿Pueden verificar qué imagen y código tenía A, qué proceso actualizó la base y cuándo confirmó los cambios? Si se confirma, ¿cómo se puede evitar en próximas actualizaciones? El ticket informa el error a las 15:09:12 y todavía no sabemos por qué esa hora es posterior al apagado iniciado en A.\n\nNo envié este texto ni cambié nada en el ticket.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12787,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1986,
+  "output_tokens_details": {
+   "thinking_tokens": 565
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12787,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1986,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12787,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12787
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4e218383fb",
+  "persona": "soporte"
+ }
+}

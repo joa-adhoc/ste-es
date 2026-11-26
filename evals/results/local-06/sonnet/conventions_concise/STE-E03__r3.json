@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup` desde el worktree. Linkea al clone principal `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`. Sin esos links, `make test` falla con \"Venv no encontrado\".\n\nComo tu tarea cambia dependencias, tené en cuenta esto:\n\n- **Python:** no corras `make install` en el worktree linkeado, porque escribiría en el venv del clone principal y repuntaría su editable install (el target se niega). Tenés dos opciones:\n  - **Instalar la dependencia en el clone principal:** ese venv lo comparten todos los worktrees.\n  - **Aislarla:** borrá el link `tuqui_core/.venv` (solo el link, no el contenido del destino) y armá un venv propio en el worktree.\n- **Web:** si tocás `web/package.json`, corré `npm ci` en el worktree antes de `make test-web`. Ojo: `node_modules` y `web/node_modules` son links al clone principal, y el material no aclara si `npm ci` reemplaza el link o escribe a través de él. `npm ci` borra `node_modules` antes de instalar, así que, para no afectar al clone principal, revisá qué directorios va a tocar y sacá antes esos links (solo los links). No lo verifiqué en el repo.\n\nDespués, para los tests y el lint:\n\n```bash\nmake test                                     # unit (el mismo paso de pytest del job `test` de CI)\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/ (no los benchmarks)\nmake lint                                     # ruff check + format check\n```\n\nSi estás en un workspace de Tuqui Work (1 CPU, 2 GiB de RAM), no corras ahí las suites completas ni instalaciones pesadas: corré lint y checks cortos, pusheá y mirá el CI con `gh pr checks`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10667,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 750,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10667,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 750,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10667,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10667
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

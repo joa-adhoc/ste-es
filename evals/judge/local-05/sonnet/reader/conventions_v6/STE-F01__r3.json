@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en palabras de usuario? No entiendo qué es el 'pod', 'recargar el registro', las 'reglas 507 y 508', el 'AttributeError' ni el 'cron'. En concreto: ¿qué le tengo que escribir en el ticket a quien mantiene el despliegue, quién es, y el error puede volver a pasarle al cliente fuera de una actualización?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin términos técnicos? No entiendo qué son el \"pod A\" y el \"pod B\", \"recargar el registro\", el \"AttributeError\", el \"cron\", el \"método\" que faltaba, las \"reglas 507 y 508\" ni \"res.company\". Decime en criollo qué pasó y si ya puedo mandarle la respuesta al cliente aunque la causa no esté confirmada. Decime también a quién le paso el tema del despliegue y qué tengo que escribirle."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin términos técnicos? No entiendo qué son el pod A y el B, la imagen, recargar el registro, el cron, el AttributeError, las reglas 507 y 508, `_get_branch_stock_root_ids` ni `tuqui-adhoc`/`adhoc-way-guide`. En concreto: ¿puedo mandarle ya la respuesta al cliente? ¿A quién le paso el problema del despliegue y qué le digo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en palabras de usuario? No entiendo qué es el 'pod', 'recargar el registro', las 'reglas 507 y 508', el 'AttributeError' ni el 'cron'. En concreto: ¿qué le tengo que escribir en el ticket a quien mantiene el despliegue, quién es, y el error puede volver a pasarle al cliente fuera de una actualización?",
+ "followup_answer": "**Lo más probable es que el error haya aparecido porque el sistema se estaba actualizando, pero todavía no está confirmado.** Una parte del sistema ya tenía los cambios nuevos y, al parecer, el servidor que seguía atendiendo tenía el programa anterior. Al cargar stock, se le pedía algo que no sabía hacer.\n\n| Antes dije | Qué quiere decir |\n|---|---|\n| Pod | Una copia del sistema en funcionamiento; acá, \"el servidor\". Hubo uno anterior y uno nuevo. |\n| Recargar el registro | El servidor vuelve a leer qué tiene instalado y configurado. Por lo que sé de Odoo, eso no reemplaza al programa por una versión nueva. |\n| Reglas 507 y 508 | Permisos que definen qué ubicaciones y existencias de stock puede ver cada usuario. |\n| AttributeError | El aviso de que el programa buscó una función y no la encontró. |\n| Cron | Una tarea automática programada. También falló por una función que faltaba. |\n\n**¿Puede pasar fuera de una actualización?** No lo puedo descartar. Si la causa es esa, haría falta que un servidor atienda con el programa atrasado respecto de la configuración. Eso es esperable en una actualización, aunque también podría pasar si un servidor quedara atrasado por otro motivo. Entre las 15:09 y las 15:30 UTC del 04/11, el servidor nuevo no registró errores. No revisé nada posterior, así que no le aseguraría al cliente que no va a volver a pasar. Podría repetirse en otra actualización.\n\n**Corrijo algo que dije:** no está probado que el servidor anterior ya estuviera apagado a las 15:09:12 (12:09 en Argentina), la hora que informa el ticket. A las 15:08:58 el registro muestra que **empezó** a apagarse, no que terminó. Tampoco sé qué pasó a las 15:09:12.\n\n**¿Quién mantiene el despliegue?** (el proceso que pone en marcha las versiones nuevas) No lo sé: el material no lo dice y en esta sesión no pude consultarlo. Preguntale a tu referente qué equipo se ocupa de las actualizaciones de las bases de clientes.\n\n**Qué escribir en el ticket** (como nota interna; los términos técnicos son para quien la recibe):\n\n> Ticket 140512: pedimos revisar la actualización del 04/11 de esta base (horas en UTC).\n>\n> - 15:08:01: se reescriben las reglas 507 y 508, que llaman a `user._get_branch_stock_root_ids`.\n> - 15:08:36–39: el pod A recarga el registro cuatro veces. El uid 31 recibe tres `AttributeError` porque `res.users` no tiene ese método.\n> - 15:08:40: en el pod A falla el cron \"Consolidation: bring currency rates in\" porque `res.company` no tiene `_cron_update_consolidation_rates`.\n> - 15:08:53: arranca el pod B con la imagen nueva. 15:08:58: el A registra \"Stopping workers gracefully\".\n> - 15:09–15:30: sin errores en el pod B.\n>\n> Hipótesis, sin confirmar: el pod A atendió con código anterior cuando la base ya tenía cambios nuevos. El ticket informa el error a las 15:09:12 y no tenemos explicada esa diferencia.\n>\n> ¿Pueden confirmar:\n> 1. qué imagen tenía el pod A y si incluía esos dos métodos;\n> 2. cuándo dejó de atender pedidos;\n> 3. si en una actualización es esperable que el pod anterior atienda con la base ya actualizada y, si no corresponde, cómo evitarlo?\n\nAl cliente le podés mandar la respuesta que te sugerí antes: le pide revisar si la carga quedó guardada antes de repetirla y avisar si el error vuelve. No escribí nada en el ticket ni le envié nada al cliente.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12475,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1978,
+  "output_tokens_details": {
+   "thinking_tokens": 586
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12475,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1978,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12475,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12475
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "388d0ab5df",
+  "persona": "soporte"
+ }
+}

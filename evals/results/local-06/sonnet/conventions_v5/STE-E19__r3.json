@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "La falla muestra que el workspace B ve 2 filas de A porque, según el log, `0412_scheduled_runs.sql` no creó su policy: ya existía una `scheduled_runs_ws` y la salteó (`already exists, skipped`). En el `grep`, la otra definición está en `0398_scheduled_runs_draft.sql` con `USING (true)`, que deja ver todas las filas. Todo indica que esa es la que quedó activa. No consulté la base. Los otros 6 tests pasaron.\n\n**Qué hacer:** no edites `0398` ni `0412`. Según `AGENTS.md`, las migraciones se trackean por nombre de archivo y una ya aplicada no vuelve a correr. Creá una migración nueva con el número siguiente que esté libre, que reemplace la policy sin condicionarlo a que no exista:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nAntes, o en la base donde falló el test, podés confirmar cuál está activa:\n\n```sql\nSELECT policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n```\n\n- **Qué esperar:** si `qual` da `true`, se confirma la causa. Revisá también que no haya otra policy permisiva, porque Postgres las combina con `OR` y podría seguir exponiendo filas.\n- **Cómo validar:** aplicá la migración y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`. El arreglo todavía no está probado.\n- **Otros entornos:** si `0398` se aplicó en algún entorno compartido o en producción, corré ahí la misma consulta. Con `USING (true)` activa, los roles sujetos a esa policy pueden ver filas de otros workspaces, así que tratalo como una posible exposición de datos y no solo como un test roto.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10703,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 726,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10703,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 726,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10703,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10703
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "En tu primer caso, si el miembro está en el chat, **la tool se ejecuta sin preguntar**: su `allow` le gana al `ask` del admin. Por webhook, ese `allow` se ignora y el resultado es **ASK**. Esto sale del material que pegaste; no lo verifiqué contra el código.\n\n## Orden de decisión\n\nGana la primera regla que resuelve:\n\n0. **`workspace_write_models`** (Settings → Write Models): si no permite esa operación sobre ese modelo, se corta ahí. No se llega a evaluar permisos, y ningún `allow` lo cambia.\n1. **`deny` en `workspace_tool_approvals`:** da **DENY**. Ninguna preferencia personal lo levanta.\n2. **`user_tool_approvals`:** si hay fila para ese usuario, workspace y tool, gana su valor. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n3. **`allow` o `ask` en `workspace_tool_approvals`:** se aplica ese valor.\n4. **Sin fila que decida, va el valor por defecto de la tool:**\n   - Si el recurso está en `approval` (`\"ask\"` o `\"always\"`), da **ASK**.\n   - Si no, da **ALLOW**.\n   - En tools de conector sin declaración en el REGISTRY, se usan la heurística de verbos y las annotations MCP. El material no dice qué resultado da cada una.\n\nLa tool llega a `tool.execute()` con ALLOW, o con ASK si se aprueba. La ejecución se audita en `tool_usage_log`, con `permission_action`.\n\n## Tus dos casos\n\nLos dos suponen que `workspace_write_models` permite la operación.\n\n**1. Admin en `ask`, miembro en `allow`, en un canal con identidad personal:** el paso 1 no corta porque no es `deny`. En el paso 2 gana el `allow` del miembro, así que da **ALLOW**.\n\nPara el admin, `ask` **no es un piso**: un miembro con su propia fila en `allow` no recibe la pregunta. Con este orden, lo único que el admin puede imponer en esta grilla por encima de esa preferencia es `deny`.\n\n**2. Agent por webhook:** el turno usa la identidad prestada de un miembro, pero sus preferencias no cuentan. Lo define `ChannelProfile.personal_identity_applies`.\n\n| Grilla del workspace | Resultado por webhook |\n|---|---|\n| `deny` | DENY |\n| `ask` | ASK |\n| `allow` | ALLOW |\n| sin fila | el valor por defecto del paso 4 |\n\nEsto vale aunque ese miembro tenga la tool en `allow`. Tampoco se aplica un `deny` personal suyo: si la grilla dice `allow`, por webhook da ALLOW. Para bloquearla ahí con estas grillas, el `deny` tiene que estar en la del workspace.\n\n## Lo que el material no dice\n\nNo explica **qué pasa con un ASK por webhook**, donde puede no haber nadie para responder. No se puede deducir si queda pendiente, falla o se trata como bloqueo. Para confirmarlo, revisá cómo maneja ese resultado quien llama a `evaluate_permission(ctx)` (en `tuqui_core/chat/permissions.py`), sobre todo en el camino de webhook de `chat/client_facing_core.py`. Un test de webhook con la grilla en `ask` lo comprobaría.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11165,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1692,
+  "output_tokens_details": {
+   "thinking_tokens": 490
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11165,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1692,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11165,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11165
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código y confirmar cómo funciona el recorte por presupuesto? En concreto: si los 12.000 caracteres son un único límite para los dos scopes o uno por scope, cuánto vale N, y si una memoria que queda fuera del prompt sigue guardada y el modelo puede llegar a ella de alguna forma."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código y confirmar cómo funciona el recorte por presupuesto: si el límite de 12.000 caracteres es único o por scope, cuánto vale N, y si una memoria que quedó afuera del prompt se puede seguir encontrando o leyendo con `manage_memory` (por ejemplo, listando o buscando) o queda invisible para el modelo en ese turno?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código cómo funciona el recorte por presupuesto? Necesito saber si los 12.000 caracteres son un límite único o uno por scope, cuánto vale N y si el modelo todavía puede encontrar y leer una memoria que quedó afuera del prompt."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés mirar el código y confirmar cómo funciona el recorte por presupuesto? En concreto: si los 12.000 caracteres son un único límite para los dos scopes o uno por scope, cuánto vale N, y si una memoria que queda fuera del prompt sigue guardada y el modelo puede llegar a ella de alguna forma.",
+ "followup_answer": "No pude confirmar ninguno de los tres puntos en el código. Busqué `_MEMORY_BUDGET_CHARS` y `manage_memory` en el directorio de trabajo (`/tmp/ste-es-eval-627uq4g3`) y no hubo coincidencias. Mi primer intento también buscaba en tu home, pero pedía aprobación y no se ejecutó, así que ahí no busqué.\n\n| Pregunta | Lo que dice el material (sin verificar en el código) |\n|---|---|\n| ¿El límite de 12.000 es único o uno por scope? | No lo aclara. Habla del total de caracteres de los encabezados (`total header chars`) y calcula unos 3K tokens para 50 memorias. Eso no alcanza para saber cómo se suman los dos scopes. |\n| ¿Cuánto vale N? | No da un número, solo dice que se conservan las N mejores. No se sabe si N es fijo o si depende de cuántas entran en los 12.000 caracteres. |\n| ¿La memoria que queda fuera del prompt sigue guardada? | Describe el recorte como parte del armado del prompt y el borrado solo al superar las 50 por scope. Infiero que sigue guardada. |\n| ¿El modelo puede llegar a ella? | No lo dice. `manage_memory(action='read', id=...)` pide el `id`, y el material solo muestra que el modelo lo recibe en el encabezado. Si ese encabezado queda fuera, no describe otra forma de conseguirlo, como listar o buscar memorias. Tampoco dice si el modelo puede conservar un `id` visto en un turno anterior ni si la lectura funcionaría con él. |\n\nEn mi respuesta anterior, la cuenta de los 12.500 caracteres supone que los 250 se miden en caracteres de cuerpo en todos los casos. Los resúmenes pueden cambiar ese total, porque el material no les fija un largo máximo. Por eso, la cuenta no prueba que el cálculo de 3K esté mal ni que haya un único límite.\n\nPara confirmarlo, necesito la ruta de un clon del repo que tiene `tuqui_core/chat/agent.py`, o el nombre del repo para intentar leerlo. Ahí revisaría:\n1. **Límite y N:** en `_load_chat_setup` y las funciones que llame, si la suma se hace con los dos scopes juntos o por separado, y cómo se eligen las N.\n2. **Persistencia:** que el recorte solo filtre la lista y no borre nada.\n3. **Acceso:** qué acciones acepta `manage_memory`, si hay una para listar o buscar, y si `read` devuelve una memoria que no entró al prompt.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12714,
+  "cache_read_input_tokens": 77097,
+  "output_tokens": 1538,
+  "output_tokens_details": {
+   "thinking_tokens": 200
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12714,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1058,
+    "cache_read_input_tokens": 29964,
+    "cache_creation_input_tokens": 260,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 260
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1414b0bae6"
+ }
+}

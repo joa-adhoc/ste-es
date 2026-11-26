@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Si quiero un venv propio en el worktree (mi tarea suma una dependencia y no quiero tocar el venv compartido), ¿cuáles son los comandos exactos según el Makefile para crearlo e instalar ahí? ¿Y `make test` y `make lint` usan ese venv o siguen apuntando al del clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos, según el Makefile, para crear un venv propio en el worktree (después de borrar el link `tuqui_core/.venv`) e instalar ahí las dependencias, incluida la nueva?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para crear un venv propio en el worktree (después de borrar el link de `tuqui_core/.venv`) e instalar ahí todas las dependencias, incluida la nueva? Revisá el `Makefile` y aclarame si `make install` sirve para eso una vez que saqué el link."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás los comandos exactos, según el Makefile, para crear un venv propio en el worktree (después de borrar el link `tuqui_core/.venv`) e instalar ahí las dependencias, incluida la nueva?",
+ "followup_answer": "No puedo darte los comandos exactos según el Makefile porque no lo vi: no está en este directorio (`/tmp/ste-es-eval-b7t2nwby` está vacío), y el material que pegaste no dice cómo se crea el venv.\n\nDesde la raíz del worktree, esto te muestra cómo se arma:\n\n```bash\ngrep -nE -A15 '^(install|worktree-setup)[[:space:]]*:' Makefile\ngrep -nE 'VENV|venv|pip |uv ' Makefile\n```\n\nPegame la salida y te paso los comandos. Si las recetas llaman a otros targets o scripts, también voy a necesitar verlos.\n\nSi `make install` crea el venv en `tuqui_core/.venv` e instala desde los archivos del worktree, podría alcanzar con esto, pero **todavía no lo corras** sin confirmar esas dos cosas:\n\n```bash\nls -ld tuqui_core/.venv   # si es un symlink, seguí\nrm tuqui_core/.venv       # sin -r ni barra final: borra solo el link\nmake install\n```\n\n- **Dependencia nueva:** tiene que estar declarada en el archivo de dependencias del que instala el target. Si no, `make install` no tiene por qué incluirla.\n- **Otros links:** revisá también que la receta no escriba en `node_modules` o `web/node_modules`, que siguen apuntando al clone principal. El rechazo de `make install` en un worktree linkeado no garantiza que proteja esos links una vez que borrás el del venv.\n- **`make worktree-setup`:** no lo vuelvas a correr sin revisar su receta, porque no sé si reemplazaría tu venv propio por el link.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12048,
+  "cache_read_input_tokens": 46684,
+  "output_tokens": 856,
+  "output_tokens_details": {
+   "thinking_tokens": 93
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 581,
+    "cache_read_input_tokens": 29165,
+    "cache_creation_input_tokens": 402,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 402
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "372211c44f"
+ }
+}

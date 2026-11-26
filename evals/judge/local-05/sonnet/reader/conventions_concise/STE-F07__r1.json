@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás cada columna con el nombre que veo en la pantalla de Odoo, diciendo cuáles son obligatorias y qué valor va en cada una, con una fila de ejemplo completa (incluido cómo calcular el importe cuando hay retenciones)? No entiendo los nombres como `to_pay_move_line_ids/id`, `l10n_ar_withholding_line_ids/...`, `l10n_latam_new_check_ids/...` o `payment_method_line_id/id`, ni qué son `tuqui-adhoc` y `adhoc-way-guide` o si tengo que hacer algo con ellos."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás las tres plantillas con los encabezados tal como aparecen en la pantalla de importación (o al lado de cada columna, qué campo de la pantalla es, cuáles son obligatorios y qué escribo en cada uno), con un ejemplo completo de un recibo? Necesito saber en particular cómo saco los valores de «diario», «método de pago», «impuesto de retención» y «payment_method_line_id/id», y qué son `tuqui-adhoc` y `adhoc-way-guide`, si es que tengo que hacer algo con eso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás un ejemplo completo con datos ficticios de un recibo con dos cheques, dos retenciones y una sola factura elegida? Quiero ver qué se escribe en cada columna (cliente, diario, método de pago, impuesto de retención y el ID del apunte, con cómo se ve ese ID al exportarlo) y cómo se relaciona el importe con las retenciones y el total. Al lado de cada columna, poné el nombre del campo como lo veo en la pantalla de Odoo. También aclarame qué son «tuqui-adhoc» y «adhoc-way-guide», y si tengo que hacer algo con eso."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás cada columna con el nombre que veo en la pantalla de Odoo, diciendo cuáles son obligatorias y qué valor va en cada una, con una fila de ejemplo completa (incluido cómo calcular el importe cuando hay retenciones)? No entiendo los nombres como `to_pay_move_line_ids/id`, `l10n_ar_withholding_line_ids/...`, `l10n_latam_new_check_ids/...` o `payment_method_line_id/id`, ni qué son `tuqui-adhoc` y `adhoc-way-guide` o si tengo que hacer algo con ellos.",
+ "followup_answer": "En los recibos, el **importe es solo la plata que entra o sale, sin las retenciones**. Esto sale de mi conocimiento del módulo, no de tu material, y no lo probé:\n\n**Importe = deuda que cancelás − total de retenciones**\n\nPor ejemplo, para una factura de 121.000 con una retención de 3.000, el importe es **118.000**. En un pago parcial, usá como deuda la parte que querés cancelar.\n\nLos nombres de pantalla también salen de mi conocimiento y pueden variar según la traducción. Confirmalos en la pantalla de importación.\n\n## Cómo leer los nombres\n- **Sin barra** (`date`): es un campo del recibo o pago.\n- **`algo_ids/campo`**: es un dato de una línea. `l10n_ar_withholding_line_ids/amount` es el importe de una línea de retención.\n- **`/id`** al final: se completa con el **ID externo**, un código que identifica un registro, en vez de su nombre. No es el número de factura. Lo ves al exportar con «compatible con importación».\n\nDejá los encabezados tal como están en el CSV.\n\n## Columnas\n«Sí» significa que tu material lo marca como obligatorio. Los valores son inventados.\n\n### Datos generales\n\n| Columna | Nombre probable en pantalla | ¿Obligatoria? | Ejemplo y qué va |\n|---|---|---|---|\n| `partner_type` | Tipo de contacto | Sí | `customer` en recibos, `supplier` en pagos |\n| `payment_type` | Tipo de pago | Sí | `inbound` (cobro), `outbound` (pago) |\n| `partner_id` | Cliente / Proveedor | Sí | `Cliente Ejemplo SA`, como figura en Odoo |\n| `date` | Fecha | Sí | `2026-11-26` |\n| `journal_id` | Diario | Sí | `Banco Ejemplo`, el nombre de tu diario |\n| `payment_method_line_id` | Método de pago | Sí | `Transferencia`, uno habilitado en ese diario |\n| `amount` | Importe | No figura en la lista; completalo si no hay cheques | `118000.00` |\n| `to_pay_move_line_ids/id` | Deudas / líneas a pagar | No figura; necesaria para elegir qué conciliar | `__export__.account_move_line_1234_ab12cd`, el apunte de la factura |\n\n`payment_method_line_id/id` **reemplaza** a `payment_method_line_id`; no uses las dos. Sirve si hay varios métodos con el mismo nombre. Ahí va el ID externo del método correspondiente a ese diario.\n\n### Retenciones\nTodas empiezan con `l10n_ar_withholding_line_ids/`.\n\n| Termina en | Nombre probable | ¿Obligatoria en cada retención? | Ejemplo y qué va |\n|---|---|---|---|\n| `tax_id` | Impuesto | Sí | `Retención Ejemplo`; usá el nombre exacto de tu impuesto |\n| `name` | Número | No figura | `0001-00000123`, el certificado del cliente. En pagos, vacío |\n| `base_amount` | Base | No figura | `100000.00`, la base del certificado |\n| `amount` | Importe | No figura | `3000.00`, lo retenido |\n\nEn el recibo, copiá la base y el importe del certificado. El 3.000 sobre 100.000 es solo ilustrativo, no una alícuota a aplicar. Si hay dos retenciones, restás ambas: 121.000 − 3.000 − 1.000 = 117.000.\n\n### Cheques\nTodas empiezan con `l10n_latam_new_check_ids/`. Tu material no dice cuáles son obligatorias, pero sí exige que el monto sea mayor a 0.\n\n| Termina en | Nombre probable | Ejemplo y qué va |\n|---|---|---|\n| `name` | Número | `00001234`; completalo |\n| `payment_date` | Fecha de pago | `2026-12-15` |\n| `bank_id` | Banco | `Banco Ejemplo`; vacío, sale del cliente |\n| `issuer_vat` | CUIT del emisor | `20123456786` (ficticio; poné el real). Vacío, sale del cliente |\n| `amount` | Monto | `118000.00`; completalo, mayor a 0 |\n\nEl archivo de cheques no lleva el `amount` general: se calcula sumándolos. Por eso, **los cheques tienen que sumar deuda − retenciones**. Por ejemplo, 70.000 + 48.000 = 118.000.\n\n## Filas completas de ejemplo\nReemplazá los datos antes de importar.\n\n**Recibo sin cheques:**\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,Cliente Ejemplo SA,2026-11-26,Banco Ejemplo,Transferencia,118000.00,__export__.account_move_line_1234_ab12cd,Retención Ejemplo,0001-00000123,100000.00,3000.00\n```\n\n**Recibo con un cheque:**\n```csv\npartner_type,payment_type,partner_id,date,journal_id,payment_method_line_id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\ncustomer,inbound,Cliente Ejemplo SA,2026-11-26,Cheques Ejemplo,Cheques nuevos,__export__.account_move_line_1234_ab12cd,00001234,2026-12-15,Banco Ejemplo,20123456786,118000.00,Retención Ejemplo,0001-00000123,100000.00,3000.00\n```\n\n**Pago a proveedor:** usa las mismas columnas que el recibo sin cheques. La base y el importe son ilustrativos.\n```csv\nsupplier,outbound,Proveedor Ejemplo SA,2026-11-26,Banco Ejemplo,Transferencia,118000.00,__export__.account_move_line_5678_cd34ef,Retención Ejemplo,,100000.00,3000.00\n```\nEn pagos, Odoo calcula las retenciones según la posición fiscal. Probá primero con uno: revisá que no se dupliquen ni reemplacen y que importe más retenciones den la deuda a cancelar. Si Odoo calcula otro valor, revisá por qué y ajustá el importe según la retención que corresponda. Si el cálculo automático es correcto, podés quitar las cuatro columnas de retención.\n\nAntes de confirmar cualquier borrador, revisá que en deudas estén **solo las facturas elegidas**, porque un recálculo podría cargar otras. También revisá el total. Probalo primero en una base de prueba.\n\n## `tuqui-adhoc` y `adhoc-way-guide`\n**No tenés que hacer nada con ellos para armar o importar estos archivos.** No son columnas ni módulos que necesite esta importación. `tuqui-adhoc` es una conexión del asistente con información interna de Adhoc, y `adhoc-way-guide` es una guía del asistente que ayuda, entre otras cosas, a configurarla. Solo te sirven si querés que el asistente consulte esa información.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13688,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 4318,
+  "output_tokens_details": {
+   "thinking_tokens": 1576
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13688,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4318,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 13688,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13688
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "438147f58d",
+  "persona": "consultoria"
+ }
+}

@@ -15,7 +15,7 @@ CASES = HERE / "cases.yml"
 RESULTS = HERE / "results"
 JUDGE = HERE / "judge"
 
-ARM_ORDER = ["baseline", "ste_es", "ste_es_v3", "concise", "conventions", "conventions_v3", "conventions_concise"]
+ARM_ORDER = ["baseline", "ste_es", "ste_es_v3", "concise", "conventions", "conventions_v3", "conventions_concise", "conventions_v4", "conventions_v5", "conventions_v6"]
 
 # Flags that keep the user's setup out of the run: no user/local settings
 # (hooks, plugins), no CLAUDE.md outside the empty cwd, no MCP servers, no
@@ -31,6 +31,29 @@ ISOLATION_FLAGS = [
 ISOLATION_ENV = {"ENABLE_CLAUDEAI_MCP_SERVERS": "false"}
 NO_TOOLS = ("--tools=",)
 REFERENCE = "baseline"
+
+
+# Who reads and judges an answer. Functional profiles do not know code, models or field names, and an
+# LLM told to play them still understands everything, so the jargon rule makes that limit explicit.
+PERSONAS = {
+    None: "un dev del equipo.",
+    "soporte": "una persona de soporte funcional del equipo: usás Odoo desde la pantalla (menús, botones, documentos) y no sabés de código, modelos ni nombres técnicos de campos.",
+    "actualizacion": "una persona del equipo de actualizaciones de versión: conocés Odoo desde la pantalla y los procesos del cliente, no el código, los modelos ni los nombres técnicos de campos.",
+    "consultoria": "una persona de consultoría funcional del equipo: conocés los procesos del cliente y Odoo desde la pantalla, no el código ni los nombres técnicos de campos.",
+    "comercial": "una persona del equipo comercial: hablás con clientes y no conocés Odoo por dentro.",
+}
+JARGON_RULE = (" Un nombre técnico (campo, modelo, método, módulo) que no conocés y que la respuesta no explica"
+               " cuenta como algo que no entendés.")
+
+
+def persona(case):
+    profile = case.get("perfil")
+    return PERSONAS[profile] + (JARGON_RULE if profile else "")
+
+
+def persona_key(case):
+    """Added to a verdict's cache key only for functional cases, so dev verdicts stay valid."""
+    return {"persona": case["perfil"]} if case.get("perfil") else {}
 
 
 def load_cases():

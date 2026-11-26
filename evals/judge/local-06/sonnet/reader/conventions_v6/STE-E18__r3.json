@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés verificarlo contra el código (`tuqui_core/chat/agent.py` y `manage_memory`)? Quiero saber cómo y cuándo el modelo guarda una memoria. También, cómo recorta `_MEMORY_BUDGET_CHARS` cuando se pasa de 12.000 caracteres: si junta los dos alcances, cuántos encabezados deja, y si el modelo se entera de que quedaron memorias afuera o puede buscarlas."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisarlo contra el código y confirmar cómo funciona el recorte cuando se pasa de `_MEMORY_BUDGET_CHARS`? Quiero saber si el límite es sobre los dos alcances juntos, cuánto vale N (o si se agregan encabezados hasta llenar los 12.000 caracteres) y si el modelo se entera de que quedaron memorias afuera o puede buscarlas."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés mirar el código (`_load_chat_setup`, `manage_memory` y la lógica de `_MEMORY_BUDGET_CHARS`) y confirmar cómo funciona el recorte? Necesito saber si se aplica sobre workspace y usuario juntos, si N es fijo o se agregan encabezados hasta llegar a 12.000 caracteres, si el modelo se entera de las memorias que quedan afuera o puede buscarlas, y cómo y cuándo el modelo crea una memoria."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés verificarlo contra el código (`tuqui_core/chat/agent.py` y `manage_memory`)? Quiero saber cómo y cuándo el modelo guarda una memoria. También, cómo recorta `_MEMORY_BUDGET_CHARS` cuando se pasa de 12.000 caracteres: si junta los dos alcances, cuántos encabezados deja, y si el modelo se entera de que quedaron memorias afuera o puede buscarlas.",
+ "followup_answer": "No pude verificarlo: **no llegué a leer el código, así que todo lo que pregunta tu repregunta sigue sin verificar**. La carpeta de trabajo (`/tmp/ste-es-eval-x_4ozh3i`) está vacía. La búsqueda en el resto del disco y la búsqueda en el código de `ingadhoc` en GitHub (`gh search code`) pedían una aprobación que no se dio, así que no se ejecutaron. Eso no indica si el código está o no en alguno de esos lugares.\n\n| Pregunta | Lo que dice el material | Qué falta mirar en el código |\n|---|---|---|\n| Cómo y cuándo guarda el modelo | No lo explica | Las acciones de `manage_memory`, su descripción y las instrucciones del system prompt sobre cuándo guardar. También si algún proceso guarda memorias sin que el modelo llame a la herramienta. |\n| Si junta los dos alcances | No lo aclara | Si `_MEMORY_BUDGET_CHARS` se aplica sobre la lista unida o por separado |\n| Cuántos encabezados deja | Solo dice \"top-N\" | Si N es fijo o se agregan encabezados hasta llenar el límite, y qué pasa con los empates y el orden |\n| Si el modelo se entera de las que quedaron afuera | No lo dice (el aviso que menciona es el del borrado al guardar) | Si el bloque agrega un aviso o la cantidad de omitidas |\n| Si puede buscarlas | Solo muestra `read` por `id` | Si hay una acción para listar o buscar. Con `read` solo, necesitaría conocer el `id` por otro lado. |\n\nTambién matizo algo de mi respuesta anterior: \"los números no cierran\" fue demasiado fuerte. Los 3.000 tokens son una estimación, y 12.500 caracteres quedan cerca de 12.000. La diferencia importante aparece si entran los dos alcances: son hasta 100 memorias, y los 3.000 tokens no valdrían para el total salvo que algo lo recorte, como un límite conjunto.\n\nPara cerrarlo, pasame la ruta de un clon del repo, o corré esto desde su raíz y pegame la salida:\n\n```bash\ngit rev-parse --short HEAD\ngit grep -nE \"_MEMORY_BUDGET_CHARS|manage_memory|_load_chat_setup\"\n```\n\nCon eso ubico los archivos; después voy a necesitar leer las funciones completas, porque las líneas encontradas no alcanzan para confirmar el comportamiento. Si preferís que busque yo en GitHub, aprobá el comando `gh` y decime el repo si lo sabés.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 13208,
+  "cache_read_input_tokens": 107847,
+  "output_tokens": 1867,
+  "output_tokens_details": {
+   "thinking_tokens": 461
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13208,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1156,
+    "cache_read_input_tokens": 30423,
+    "cache_creation_input_tokens": 295,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 295
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a759b1b80a"
+ }
+}

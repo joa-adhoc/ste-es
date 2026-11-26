@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Si editás un artifact que ya compartiste, quien tiene el link sigue viendo la versión publicada.** Tus cambios le llegan recién cuando publicás.\n\n**Cómo funcionan las versiones**\n\n- **Primer guardado** (`save` sin `artifact_id`): crea la v1 y la publica, así que el link funciona desde el principio.\n- **Ediciones** (`save` con `artifact_id`): cada una crea una versión nueva y mueve `current_version_id`, pero no `published_version_id`. El resultado avisa con `unpublished_changes: true` y el viewer muestra un banner.\n- **Publicar** (`publish(version?)`): define qué versión muestra el link. Si no indicás una, publica la última. Para volver atrás, publicás una anterior.\n\nEl viewer interno muestra la versión actual y te deja elegir otras. El link con token muestra siempre la publicada.\n\n**Cuando solo se refrescan los datos**\n\nCada versión puede cambiar el diseño (`content`), los datos (`data`) o, según el modelo, ambos. Para mostrar la versión `n`, el sistema busca por separado el último diseño y los últimos datos guardados hasta `n`.\n\nUn refresh (previsto para la fase 2) crea una versión solo con datos. Esa versión usa el último diseño anterior, y el refresh no lo modifica. A la inversa, si una versión cambia solo el diseño, conserva los últimos datos.\n\nSi el artifact ya tiene datos, los nuevos se validan contra el `data_schema` guardado: claves obligatorias y tipos. Si no cumplen, el `save` se rechaza antes de escribir. El diseño y los datos tienen además un límite de 1 MB cada uno; si lo superan, da error.\n\n**Ojo al publicar un refresh.** Esto lo deduzco de cómo se arma cada versión:\n\n| Versión | Qué cambia | Estado |\n|---|---|---|\n| v1 | diseño y datos | publicada |\n| v2 | solo diseño | sin publicar |\n| v3 | solo datos | refresh |\n\nEl link sigue mostrando la v1. Si publicás la v3, salen los datos nuevos **y también el diseño de la v2**, aunque nunca la hayas publicado. Con estas reglas, si hay un diseño pendiente, el refresh no se puede publicar sin él.\n\n**Lo que el material no aclara:** si el refresh de la fase 2 publica solo. Si funciona como un `save` común, quien tiene el link no ve los datos nuevos hasta que alguien publique. Para un dashboard puede no ser lo esperado, así que conviene definirlo. Me basé solo en el texto que pegaste; no lo verifiqué en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10893,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1460,
+  "output_tokens_details": {
+   "thinking_tokens": 526
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10893,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1460,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10893,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10893
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

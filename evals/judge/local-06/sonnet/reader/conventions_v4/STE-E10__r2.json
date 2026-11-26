@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el agent que corre por webhook, si la decisión es ASK y no hay nadie en el chat, ¿qué pasa en concreto? ¿El turno queda esperando una aprobación (y quién la puede dar), falla o la tool se rechaza? ¿Podés revisarlo en el código y decirme dónde se maneja?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué pasa en concreto cuando una tool da ASK en un turno por webhook? Revisá el código (por ejemplo `tuqui_core/chat/client_facing_core.py`) y decime si el turno queda esperando una aprobación (y quién puede darla), si falla o si se rechaza como un DENY."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En un turno por webhook, cuando el resultado es ASK, ¿qué pasa en la práctica: quién recibe el pedido de aprobación, y el turno queda esperando, falla o la tool se rechaza? ¿Podés revisarlo en el código (por ejemplo en `tuqui_core/chat/client_facing_core.py`) y confirmármelo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "En el agent que corre por webhook, si la decisión es ASK y no hay nadie en el chat, ¿qué pasa en concreto? ¿El turno queda esperando una aprobación (y quién la puede dar), falla o la tool se rechaza? ¿Podés revisarlo en el código y decirme dónde se maneja?",
+ "followup_answer": "**No pude revisarlo en el código, así que no sé qué pasa con un ASK en un webhook: no está verificado.** La carpeta de trabajo (`/tmp/ste-es-eval-_wwyv4u7`) está vacía. La búsqueda en todo el disco no corrió porque pedía aprobación. Por lo tanto, no puedo decirte si el código está o no en otra parte de tu máquina.\n\n**Lo que dice el material:**\n- En `webhook` se ignora la preferencia personal. Con \"ask\" del workspace, la decisión es ASK. También da ASK si no hay fila y el recurso está en `approval`.\n- El diagrama muestra el paso a `tool.execute()` con \"allow\" o \"asked-granted\". De ahí deduzco que un ASK sin aprobación no debería ejecutar la tool.\n- No dice si el turno espera, falla o rechaza la tool. Tampoco dice quién puede aprobar, si hay un plazo ni qué queda registrado.\n\nQue el turno use la identidad prestada de un miembro no significa que ese miembro reciba el pedido o pueda aprobarlo.\n\n**Dónde buscarlo.** Corré esto en la raíz del repo que tiene `tuqui_core`:\n\n```bash\n# quién llama al evaluador y qué hace con el resultado\ngrep -rn \"evaluate_permission\" --include='*.py' .\n\n# manejo de ASK, canales y espera de la aprobación\ngrep -rnE \"\\bASK\\b|personal_identity_applies|ChannelProfile|permission_action|asked\" --include='*.py' tuqui_core\n```\n\nEmpezá por quienes llaman a `evaluate_permission`. El material ubica la función en `tuqui_core/chat/permissions.py`, pero eso no muestra dónde se maneja su resultado. `client_facing_core.py` aparece citado por la identidad prestada; no sé si también maneja el ASK. En la respuesta anterior lo propuse como punto de partida solo por esa mención.\n\nEn ese recorrido, fijate:\n1. Qué rama toma un ASK en `webhook`: si lo convierte en rechazo, lanza un error o guarda un pedido pendiente.\n2. Si queda pendiente, quién puede resolverlo, qué permisos se le exigen y cuándo vence.\n3. Qué recibe quien llamó al webhook y qué se guarda en `tool_usage_log`. El material solo habla de auditar en el paso de ejecución.\n\n**Para confirmarlo en ejecución:** en un entorno de prueba, poné en \"ask\" una tool inofensiva y verificá que `workspace_write_models` la permita, si le aplica. Después disparé el webhook. Mirá la respuesta, el estado del turno, si aparece una aprobación pendiente y si la tool se ejecutó. Si el turno queda esperando, observalo hasta que venza o se resuelva.\n\nSi me pasás la ruta del repo, sigo esas llamadas y te señalo el archivo y la línea donde se maneja.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12979,
+  "cache_read_input_tokens": 77651,
+  "output_tokens": 1569,
+  "output_tokens_details": {
+   "thinking_tokens": 230
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12979,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1211,
+    "cache_read_input_tokens": 30204,
+    "cache_creation_input_tokens": 285,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 285
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "931e83c5cf"
+ }
+}

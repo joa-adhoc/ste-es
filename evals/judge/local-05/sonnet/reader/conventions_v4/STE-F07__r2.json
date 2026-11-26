@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo saco desde la pantalla los otros identificadores que tengo que completar (contacto, diario, método de pago, impuesto de retención y banco)? Solo me explicaste cómo sacar el del apunte. Decime en qué menú está cada uno, cuál método de pago elegir para recibos, pagos y cheques (propios o de terceros), y mostrame una fila de ejemplo completa para ver qué formato tienen."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo saco desde la pantalla los identificadores que van en los otros COMPLETAR_ID (contacto, diario, método de pago, impuesto de retención y banco)? Solo explicaste cómo exportar el del apunte. ¿Me das el paso a paso con una fila de ejemplo completa? Aclarame también qué son «el material», `tuqui-adhoc` y `adhoc-way-guide`, y si tengo que hacer algo con eso."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo saco los identificadores que van en los otros COMPLETAR (contacto, diario, método de pago, impuesto de retención y banco)? Solo me explicaste cómo sacar el del apunte. Decime desde qué menú se exporta cada uno y qué método de pago tengo que elegir para cheques de terceros, cheques propios y pagos sin cheque. Además, ¿podés confirmar los nombres de las columnas de cheques y retenciones antes de que pruebe? Y aclarame qué es «el material» que mencionás y si tengo que hacer algo con «tuqui-adhoc» y «adhoc-way-guide», porque no sé qué son."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cómo saco desde la pantalla los otros identificadores que tengo que completar (contacto, diario, método de pago, impuesto de retención y banco)? Solo me explicaste cómo sacar el del apunte. Decime en qué menú está cada uno, cuál método de pago elegir para recibos, pagos y cheques (propios o de terceros), y mostrame una fila de ejemplo completa para ver qué formato tienen.",
+ "followup_answer": "Los identificadores se sacan exportando cada registro desde su lista. Los menús y métodos de pago de abajo no están en el material: salen de lo que conozco de Odoo 18 y no los probé en la base del cliente. Los nombres pueden variar.\n\n**Cómo exportar:** abrí la lista, marcá el registro y andá a **Acciones (⚙) › Exportar**. Tildá la opción «compatible con importación», agregá el nombre y exportá. Copiá tal cual la columna **ID externo** (`id`). Necesitás permiso para exportar, y los menús de Configuración pueden pedir más permisos.\n\n| Dato | Dónde está |\n|---|---|\n| Contacto | **Contabilidad › Clientes › Clientes** o **Proveedores › Proveedores**, en vista de lista |\n| Diario | **Contabilidad › Configuración › Diarios** |\n| Método de pago | Dentro del diario, en las solapas **Pagos entrantes** y **Pagos salientes** (ver abajo) |\n| Impuesto de retención | **Contabilidad › Configuración › Impuestos**. Elegí el de retención de clientes (recibos) o de proveedores (pagos). |\n| Banco | **Contactos › Configuración › Bancos** |\n\n### ID del método de pago\nNecesitás el ID de la **línea del método en ese diario**. Dos diarios pueden tener un método «Manual», cada uno con su ID. En la lista de **Diarios**, marcá el diario y exportá, dentro de las líneas de pagos entrantes o salientes, el **ID externo** y el **nombre**:\n\n- `inbound_payment_method_line_ids/id` y `inbound_payment_method_line_ids/name`\n- `outbound_payment_method_line_ids/id` y `outbound_payment_method_line_ids/name`\n\nExportá entrantes y salientes por separado para no confundirlos.\n\n### Qué método elegir\n\n| Caso | Diario | Método (código) | Columnas de cheques |\n|---|---|---|---|\n| Recibo sin cheques | Banco o efectivo | Entrante, normalmente Manual (`manual`), según el medio de cobro | Ninguna |\n| Pago sin cheques | Banco o efectivo | Saliente, normalmente Manual (`manual`), según el medio de pago | Ninguna |\n| Recibo con cheques de terceros | Cheques de terceros | Nuevos cheques de terceros (`new_third_party_checks`) | `l10n_latam_new_check_ids/…` |\n| Pago con cheques propios | Banco emisor | Cheques propios (`own_checks`) | `l10n_latam_new_check_ids/…` |\n| Pago con cheques de terceros en cartera | Cartera donde está el cheque | Cheques de terceros existentes, saliente (`out_third_party_checks`) | `l10n_latam_move_check_ids/id` |\n\n- **Cheques en cartera:** no los cargues como nuevos. En `l10n_latam_move_check_ids/id` va el ID de cada cheque existente, separados por coma. Esta columna no figura en el material. Para sacar los ID, probá exportar un pago o recibo que ya tenga esos cheques, con ese campo.\n- **Cheques propios:** corrijo algo de mi respuesta anterior. El material dice que banco y CUIT vacíos salen del cliente, y no aclara qué pasa con cheques propios. En el borrador, revisá que no hayan quedado los datos del proveedor.\n\n### Fila de ejemplo: recibo con un cheque y una retención\n**Todos los identificadores y datos son inventados**, así que esta fila no sirve para importar. Supone una factura de 121.000: cheque de 119.000 más retención de 2.000. Falta confirmar en la prueba que la retención se sume así.\n\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id/id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheque_ejemplo,customer,inbound,__export__.res_partner_1234_a1b2c3d4,2026-11-26,__export__.account_journal_15_b2c3d4e5,__export__.account_payment_method_line_42_c3d4e5f6,__export__.account_move_line_5678_d4e5f6a7,00012345,2026-12-15,__export__.res_bank_7_e5f6a7b8,30000000007,119000.00,__export__.account_tax_88_f6a7b8c9,0001-00000123,100000.00,2000.00\n```\n\nTus ID pueden tener otro prefijo o formato; no los armes a mano. Las fechas van como `AAAA-MM-DD` y los importes con punto decimal, sin separador de miles.\n\n**Para confirmar el formato en tu base:** cargá a mano un recibo o pago de cada tipo en una copia. Después exportalo desde su lista, con «compatible con importación», eligiendo las columnas del archivo. Así ves los nombres de campos y los ID que usa tu base. Para usarlo como plantilla de un pago nuevo, cambiá el `id` de la primera columna, porque si lo repetís podés pisar el original. Cambiá también los datos de la operación, como apuntes, cheques y certificados.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13921,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4507,
+  "output_tokens_details": {
+   "thinking_tokens": 2522
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13921,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4507,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13921,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13921
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "554c188ece",
+  "persona": "consultoria"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Con el `git reset --hard origin/staging` que no hay que correr todavía, la rama deja de apuntar a los 3 commits sin pushear a `origin/feat/limite-mcp` (`a1b2c3d`, `d4e5f6a` y `0718293`). Se pueden recuperar con `git reflog` por un tiempo, pero no conviene depender de eso. Con la alternativa de crear una rama nueva desde `staging`, quedan en `feat/limite-mcp`, solo en tu máquina. Si se quiere conservar el nombre de la rama, primero se hace una copia con `git branch backup/limite-mcp`, después del stash y el fetch, y recién ahí el reset.",
+  "Los cambios sin commitear en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py` se pierden con el reset: los pisa, y Git no permite recuperarlos si nunca pasaron por `git add`. Si antes se corre `git stash push -u`, quedan en el stash. Para recuperarlos hay que volver a `feat/limite-mcp` y correr `git stash pop`.",
+  "`supabase/migrations/0420_mcp_limits.sql` está sin trackear, así que normalmente el reset no lo toca. La excepción es que `origin/staging` traiga un archivo en esa misma ruta, en cuyo caso lo sobrescribe. Si queda en el directorio, no se empieza realmente de cero. Con `git stash push -u` queda guardado en el stash y se recupera volviendo a `feat/limite-mcp` y corriendo `git stash pop`. Si se quiere descartar todo, el reset solo no alcanza, porque el archivo queda en el directorio."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "c605f109c8",
+  "control": "3ee69c3af9"
+ }
+}

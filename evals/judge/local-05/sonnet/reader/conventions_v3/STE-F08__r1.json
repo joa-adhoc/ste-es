@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El borrador deja sin respuesta las IP, los pasos para cambiar de módulo, el módulo para facturar solo en Odoo 17 y qué pasa con los datos, y tampoco confirma si los kits funcionan. ¿Me podés conseguir esos datos o decirme a quién se los pido (y quién prueba el pack de patas) antes de contestarle al cliente? Si mientras tanto le mando el borrador, explicame en palabras simples qué significa que el conector crea un campo en `product.product` y registros en `ir.model.data`, y si eso le afecta en algo."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Antes de mandarlo, ¿a quién le pido lo que quedó sin confirmar y me podés conseguir las respuestas? Necesito saber desde qué IP se conecta Odumbo, qué pasos seguir el día del cambio para no duplicar ventas ni facturas, con qué módulo de Odoo 17 Enterprise sale la factura sola, si los kits publican bien el stock y descuentan las patas, y qué datos guarda Odumbo y qué hace con ellos al dar de baja el servicio."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "El borrador deja sin respuesta las IP, los pasos para el cambio de módulo, el módulo de facturación en Odoo 17 y qué pasa con nuestros datos, y los kits quedan sin confirmar. ¿A quién le pido cada dato (o lo podés conseguir vos) para mandarle al cliente una respuesta completa? En particular, necesito al menos los pasos para no duplicar ventas ni facturas, en palabras que yo pueda explicar."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "El borrador deja sin respuesta las IP, los pasos para cambiar de módulo, el módulo para facturar solo en Odoo 17 y qué pasa con los datos, y tampoco confirma si los kits funcionan. ¿Me podés conseguir esos datos o decirme a quién se los pido (y quién prueba el pack de patas) antes de contestarle al cliente? Si mientras tanto le mando el borrador, explicame en palabras simples qué significa que el conector crea un campo en `product.product` y registros en `ir.model.data`, y si eso le afecta en algo.",
+ "followup_answer": "No pude conseguir ninguno de los datos que faltan, y el pack sigue sin probar. Intenté leer en GitHub los módulos de facturación y el código de kits de Odoo 17, pero esos comandos requerían aprobación y no se ejecutaron. No encontré herramientas de Tuqui, y la carpeta de trabajo y la memoria están vacías. Por eso no sé los nombres de los responsables: abajo van por rol.\n\n## A quién pedirle cada dato\n\n| Qué falta | A quién pedírselo (sugerencia) | Qué pedirle |\n|---|---|---|\n| IP | Quien maneja la infraestructura de Odumbo. Si no tenés contacto directo, un ticket, como dice el manual | ¿Desde qué IP se conecta? ¿Son fijas? ¿Cómo se avisa si cambian? |\n| Cambio de módulo | Quien hace las altas o implementaciones de Odumbo | ¿Desde qué fecha importa ventas? ¿Reconoce las ya cargadas y las facturas ya subidas? ¿En qué orden se apaga uno y se activa el otro? |\n| Módulo de Odoo 17 | Un consultor funcional que conozca Odoo 17 Enterprise | ¿Qué módulos se instalan para que la factura salga al confirmar la venta? |\n| Datos y baja | El dueño del producto o quien se ocupe de privacidad | ¿Qué se guarda además de las credenciales, para qué, por cuánto tiempo y qué se borra en la baja? |\n| Pack de patas | Alguien de soporte o implementación con una base de prueba de Odoo 17 y Odumbo | La prueba de abajo |\n\n**Prueba del pack.** Hay que usar una base de prueba y una publicación que no pueda recibir ventas reales, porque Odumbo publica stock. El pack tiene que estar configurado como lo tiene el cliente, incluido el tipo de producto, porque el conector saltea algunos no almacenables.\n\n1. Cargar 10 patas, sin otras reservas ni ventas pendientes, y armar el kit de 4.\n2. Confirmar una venta de 3 patas sueltas, sin validar la entrega.\n3. Sincronizar y anotar el stock publicado del pack. Quedan 7 patas libres, así que lo correcto es **1**. Por lo que recuerdo de Odoo, podría salir 2.\n4. Vender 1 pack desde Mercado Libre, si el entorno de prueba lo permite. Revisar que la entrega tenga 4 patas.\n5. Sincronizar de nuevo. Quedan 3 libres, así que lo correcto es **0**.\n\nUna venta cargada a mano en Odoo sirve para ver la entrega, pero no prueba la importación de Odumbo.\n\n**Mensaje para pedirlo** (mandale a cada uno su parte):\n> Tenemos consultas de un cliente sin respuesta confirmada. ¿Me ayudás con esto? [pregunta de la tabla, o pasos de la prueba]. Pasame también de dónde sale el dato, o capturas del resultado. Si no te corresponde, ¿quién lo sabe?\n\n## El campo y los registros, en simple\n\n- **Campo en `product.product`:** `product.product` es donde Odoo guarda cada producto o variante. Crear un campo es como agregar una columna a esa planilla, en este caso una relacionada con el precio.\n- **Registros en `ir.model.data`:** es el índice de identificadores internos de Odoo. Cada registro es como una etiqueta que permite volver a encontrar un elemento de la base.\n\n**Si les afecta:** implica que el conector **escribe en la base del cliente**, no solo lee. Con tu material no puedo asegurar que no tenga efectos. No dice cuándo los crea, qué valor lleva el campo, si cambia precios que usen, a qué apuntan las etiquetas ni si se borran en la baja. En general, agregar un campo o una etiqueta no cambia por sí solo los datos existentes, pero no revisé qué más hace este conector. Eso hay que preguntárselo a quien mantiene su código.\n\n## Si mandás el borrador ahora\n\nMandalo sin las notas internas y presentalo como respuesta parcial. En el punto 1, reemplazá la frase que empieza con «Tengan en cuenta» por esta:\n\n> Tengan en cuenta que el conector no solo lee: también escribe en su base. Crea un campo técnico relacionado con el precio en los productos y registros de identificación internos de Odoo. Todavía no tenemos confirmado su efecto ni qué pasa con ellos si dan de baja el servicio.\n\nAgregá al final del punto 2:\n\n> Hagan la prueba en un entorno de prueba, con una publicación que no pueda recibir ventas reales.\n\nY al final del punto 3:\n\n> Les recomendamos no activar Odumbo en su base productiva hasta que definamos los pasos del cambio.\n\nNo agregué una fecha de respuesta para lo pendiente: sumala solo si podés cumplirla.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15388,
+  "cache_read_input_tokens": 80494,
+  "output_tokens": 4384,
+  "output_tokens_details": {
+   "thinking_tokens": 1454
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15388,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2876,
+    "cache_read_input_tokens": 32162,
+    "cache_creation_input_tokens": 736,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 736
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5df5704b47",
+  "persona": "comercial"
+ }
+}

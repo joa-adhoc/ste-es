@@ -8,7 +8,7 @@ import json
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from common import JUDGE, NO_TOOLS, REFERENCE, RESULTS, claude, is_cached, load_cases, parse_json_block, text_hash
+from common import JUDGE, NO_TOOLS, REFERENCE, RESULTS, claude, persona, persona_key, is_cached, load_cases, parse_json_block, text_hash
 
 FIDELITY = """Sos un evaluador. Compará una respuesta con una lista de hechos esperados.
 
@@ -37,7 +37,7 @@ Además:
 Devolvé solo JSON:
 {{"facts": [{{"n": 1, "status": "present"}}], "incorrect": ["..."], "diagram": {{"errors": 0}} }}"""
 
-PAIRWISE = """Sos un dev del equipo. Te llegan dos respuestas a la misma pregunta. Elegí la que preferirías recibir: la que entendés más rápido y mejor, sin perder información que necesitás.
+PAIRWISE = """Sos {persona} Te llegan dos respuestas a la misma pregunta. Elegí la que preferirías recibir: la que entendés más rápido y mejor, sin perder información que necesitás.
 
 PREGUNTA:
 <<<
@@ -82,12 +82,12 @@ def pairwise(run_id, model, judge_model, case, run, arm, reference=REFERENCE):
     base = RESULTS / run_id / model
     mine = json.loads((base / arm / f"{case['id']}__r{run}.json").read_text())["result"]
     ref = json.loads((base / reference / f"{case['id']}__r{run}.json").read_text())["result"]
-    key = {"judge_model": judge_model, "answers": text_hash(mine, ref)}
+    key = {"judge_model": judge_model, "answers": text_hash(mine, ref), **persona_key(case)}
     if is_cached(out_path, **key):
         return "skip"
     swap = random.Random(f"{case['id']}{run}{arm}").random() < 0.5
     a, b = (ref, mine) if swap else (mine, ref)
-    out = claude(PAIRWISE.format(prompt=case["prompt"], a=a, b=b), model=judge_model, extra=NO_TOOLS)
+    out = claude(PAIRWISE.format(persona=persona(case), prompt=case["prompt"], a=a, b=b), model=judge_model, extra=NO_TOOLS)
     verdict = parse_json_block(out["result"])
     w = {"a": "A", "b": "B", "tie": "tie", "empate": "tie"}.get(str(verdict.get("winner", "")).strip().lower())
     if w is None:

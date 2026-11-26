@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "En tu primer caso, en un chat con identidad personal, **gana el \"allow\" del miembro** y la tool se ejecuta sin preguntar. Por webhook ese \"allow\" se ignora, y con \"ask\" del admin el resultado es **ASK**. En los dos casos, `workspace_write_models` tiene que permitir antes la operación.\n\n## Orden de decisión\n\n1. **`workspace_write_models`** (Settings → Write Models): el admin permite o no la operación de la tool sobre cada modelo. Si no la permite, se corta ahí y las aprobaciones no se evalúan.\n2. **`evaluate_permission(ctx)`**, en `tuqui_core/chat/permissions.py`. Decide en este orden:\n   1. Si `workspace_tool_approvals` dice `deny`, el resultado es **DENY**. Ninguna preferencia personal lo levanta.\n   2. Si el canal admite identidad personal y hay fila en `user_tool_approvals` para ese usuario, workspace y tool, **gana esa fila**.\n   3. Si no, vale el `allow` o `ask` de `workspace_tool_approvals`.\n   4. Si ninguno de los pasos anteriores decidió, se aplica el default de la tool:\n      - Si el recurso está en `approval` (`\"ask\"` o `\"always\"`): **ASK**.\n      - Si no tiene `approval`: **ALLOW**.\n      - Para tools de conector sin declaración en el REGISTRY, el material menciona una heurística de verbos más las annotations MCP.\n3. **`tool.execute()`**: corre si el resultado fue ALLOW, o si fue ASK y se concedió. Queda auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin \"ask\", miembro \"allow\"\n\nEsto vale en un canal con identidad personal:\n\n| Paso | Qué pasa |\n|---|---|\n| Write Models | Tiene que permitir la operación. |\n| `deny` del workspace | No aplica, porque el admin puso `ask`. |\n| Preferencia personal | Dice `allow`: **se decide acá**. |\n| `ask` del workspace | No se llega a evaluar. |\n\nEl \"ask\" del admin **no es un piso**: un miembro puede relajarlo para sí en ese workspace. El único valor del admin que la preferencia personal no puede cambiar es `deny`. Con las opciones de esta grilla, si el admin no quiere que nadie ejecute la tool, tiene que usar `deny`. Eso la bloquea; no obliga a preguntar. El material no muestra una opción para \"preguntar siempre, sin excepción personal\" desde la grilla.\n\n## Caso 2: agent por webhook\n\n`webhook` no usa identidad personal, igual que `exposure` y `scheduled`. **`user_tool_approvals` se saltea entero.** Esto vale aunque el turno corra con la identidad prestada del miembro que tiene el \"allow\".\n\nSi Write Models permite la operación, el resultado es este:\n\n| Grilla del workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `ask` | ASK |\n| `allow` | ALLOW |\n| sin fila | default de la tool |\n\n## Lo que el material no dice\n\nMe basé solo en el texto que pegaste; no lo verifiqué contra el código.\n\n- **ASK por webhook:** no dice quién responde la pregunta, ni si el turno espera, falla o se bloquea cuando no hay una persona. No asumiría que equivale a DENY. Para confirmarlo, revisá cómo se maneja ASK en ese canal o probalo con un test.\n- **`\"ask\"` y `\"always\"`:** en el default los dos dan ASK, pero no explica en qué se diferencian. Tampoco dice si `\"always\"` limita la preferencia personal. Según el orden descrito, una fila personal se evalúa antes que el default.\n- **Heurística de conectores:** no detalla qué verbos o annotations llevan a ASK o a ALLOW.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11165,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2029,
+  "output_tokens_details": {
+   "thinking_tokens": 657
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11165,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2029,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11165,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11165
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

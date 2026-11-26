@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Corré `make worktree-setup` desde el worktree y después resolvé las dos dependencias por separado. El setup linkea al clone principal el `.venv`, los `.env`, los `node_modules` y `.mcp.json`. Sin eso, `make test` falla con \"Venv no encontrado\".\n\n**Dependencia de Python:** en un worktree linkeado no corras `make install`, porque escribe en el venv del clone principal y le cambia a dónde apunta el editable install. El target se niega a hacerlo. Tenés dos opciones:\n- **Instalarla en el clone principal:** es lo más liviano, pero ese venv lo usan todos los worktrees. Instalá el paquete puntual en ese venv: un `make install` desde el clone principal usa los archivos de ese checkout, que pueden no tener tu dependencia nueva.\n- **Armar un venv propio:** conviene si la dependencia cambia versiones o puede afectar otras tareas. Sacá el link con `rm tuqui_core/.venv`, sin `-r` ni barra final, y recién ahí instalá. El material no detalla los pasos para crearlo, así que revisalos en el `Makefile`. Fijate también si `make install` toca los `node_modules` linkeados.\n\n**`web/package.json`:** la guía dice que corras `npm ci` en el worktree antes de `make test-web`. Como `npm ci` borra `node_modules` antes de instalar y acá hay links al clone principal, por precaución sacaría antes el link:\n\n```bash\nls -ld node_modules web/node_modules   # ver cuáles son links\nrm web/node_modules                    # solo si es link; sin -r ni barra final\ncd web && npm ci\n```\n\nSacar el link es un agregado mío a la guía, y no probé cómo se comporta tu versión de `npm` con él. Si tu cambio de dependencias usa también el `node_modules` de la raíz, revisalo antes de instalar. Si cambiaste `package.json`, el lockfile tiene que estar actualizado o `npm ci` falla. Si estás en un workspace de Tuqui Work, no instales esos `node_modules` ni un venv completo ahí: dejá esa validación al CI.\n\n**Tests**, desde la raíz del worktree:\n\n```bash\nmake test        # unit; con ARGS=\"tests/archivo.py -k algo\" corrés un subconjunto\nmake test-web    # frontend, después de npm ci\nmake lint\n```\n\nSi tu cambio lo requiere, también están `make test-rls` (aislamiento multi-tenant) y `make test-evals` (unit tests de `evals/`, no los benchmarks). El código que se prueba es el del worktree, aunque compartas el venv.\n\nMe basé en la guía que pegaste; no ejecuté nada ni revisé el repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10808,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1480,
+  "output_tokens_details": {
+   "thinking_tokens": 531
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10808,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1480,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10808,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10808
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

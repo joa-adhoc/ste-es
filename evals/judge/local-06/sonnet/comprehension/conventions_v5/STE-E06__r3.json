@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo más probable es que los dos worktrees usen la misma base de tests local y que el `conftest` de la rama de tu compañero le haya aplicado sus migraciones. Si alguna borra o renombra una columna que tu código todavía lee, fallan tests que no tocaste con `UndefinedColumnError`. Es una deducción del material pegado, sin haber mirado tu base ni sus migraciones, y vale si los dos worktrees están en la misma máquina. Para confirmarlo, hay que buscar la columna del error en las migraciones de su rama.",
+  "No, no lo evita. El lock de `make test` impide que dos corridas se pisen al mismo tiempo, pero el esquema sigue siendo compartido.",
+  "Con una base propia para tu worktree:\n1. Copiá el ejemplo con `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local`. Si ya tenés un `.env.test.local`, editá ese.\n2. En ese archivo, apuntá a una base con un nombre que no use ningún otro worktree.\n3. Antes de resetear, confirmá a qué base apunta `make migrate-reset`, porque la vacía. Revisalo en el `Makefile` y en `scripts/reset_database.py`, y fijate si el script crea la base o si la tenés que crear antes.\n4. Cuando sepas que apunta a la tuya, corré `make migrate-reset` y después `make test`.\n\nNo uses `npx supabase db reset`, porque en este repo aborta por prefijos de migración repetidos."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "16bcb397d2",
+  "control": "d71584ce60"
+ }
+}

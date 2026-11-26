@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El modelo guarda la memoria, y desde ahí cada turno inyecta en el system prompt solo un encabezado corto. El cuerpo completo se pide cuando hace falta. Esto sale del material que pegaste; no revisé el código.\n\n1. **Guardado.** La memoria queda en un scope: usuario (personal) o workspace (compartida con el equipo). El material no detalla la llamada de guardado.\n\n2. **Tope.** Cada scope admite 50 memorias: por usuario en el de usuario y por workspace en el de workspace. Al agregar la número 51, se borra la más vieja según `created_at`, en la misma transacción de base de datos. El material llama a este borrado \"silencioso\", pero aclara que el modelo recibe un aviso en la respuesta de la tool. No dice que se avise a la persona. Como es FIFO, el criterio es la antigüedad de creación, no cuánto se usa la memoria.\n\n3. **Inyección en cada turno.** `_load_chat_setup`, en `tuqui_core/chat/agent.py`, agrega las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto. Van en dos secciones: la del workspace y la personal. Cada encabezado tiene el título más uno de estos textos:\n   - el resumen, si existe;\n   - si no hay resumen, el cuerpo hasta 250 caracteres. Si el cuerpo es más largo, el encabezado termina en `... [read]`.\n\n   En el ejemplo, cada línea incluye además el `id`.\n\n4. **Lectura a demanda.** Si el modelo necesita el contenido completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**Cuando hay muchas** actúan dos límites distintos:\n\n| Límite | Cuándo actúa | Efecto |\n|---|---|---|\n| 50 por scope | Al guardar | Borra la memoria más vieja |\n| `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens) | Si el total de encabezados lo supera, al armar el prompt | `rapidfuzz` puntúa los encabezados contra el mensaje actual y deja los N mejores |\n\nSegún el material, el recorte por presupuesto solo decide qué entra al prompt y no menciona que borre nada. Por eso, una memoria puede seguir guardada y quedar afuera en un turno. Como el puntaje depende del mensaje, la selección puede cambiar de un turno a otro. `rapidfuzz` hace comparación aproximada de texto, así que infiero que una memoria relevante escrita con otras palabras podría quedar afuera.\n\nEl material también tiene puntos sin cerrar:\n- **Costo por turno:** dice que la carga en dos niveles lo limita a unos 3K tokens con 50 memorias de tamaño máximo. No aclara si son 50 en total o por scope. Con los dos scopes llenos puede haber 100 encabezados en el prompt de una persona. A 250 caracteres cada uno, serían unos 25K sin contar títulos, más del doble del presupuesto.\n- **Valor de N:** no dice cómo se calcula, ni si los dos scopes compiten por el mismo presupuesto.\n- **Resúmenes:** no indica un largo máximo.\n\nPara cerrar estos puntos, habría que revisar `_load_chat_setup` y el código de guardado de memorias.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10765,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1177,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10765,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1177,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10765,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10765
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

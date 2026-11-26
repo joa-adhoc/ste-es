@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod (`main`?) y ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene, ¿cómo y cuándo se aplica el drop en prod?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod y ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene y el runner saltea el drop, ¿cómo y cuándo se aplica en prod?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega a prod y ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Revisalo en la config o en los docs. Si no lo tiene, ¿qué tengo que hacer para que el drop llegue a prod?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué rama despliega a prod (`main`?) y ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene, ¿cómo y cuándo se aplica el drop en prod?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas: ni qué rama despliega a prod ni si ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. El directorio donde estoy está vacío, y el fragmento no lo dice. Que el runner acepte `main` además de `staging` sugiere que `main` podría ser la de prod, pero no lo prueba.\n\n**Cómo confirmarlo:**\n- **Rama:** en Railway, en el servicio de prod, mirá qué rama tiene conectada para desplegar. Compará también con `docs/infra-ci-cd.md` y los workflows de deploy del repo.\n- **Permiso:** en las variables de ese mismo servicio, en el entorno de prod, buscá `MIGRATIONS_ALLOW_DESTRUCTIVE`. Tiene que valer `1`. Que staging lo tenga no dice nada sobre prod.\n- **Rama que ve el runner:** `RAILWAY_GIT_BRANCH` en el deploy de prod tiene que ser exactamente `staging` o `main`. Con cualquier otro nombre, el drop se saltea aunque el permiso esté.\n\n**Si falta el permiso:** según el fragmento, cada vez que corre el runner en ese deploy saltea el archivo y no lo registra en `_migrations`. La columna sigue ahí y el drop queda pendiente. Se aplicaría la próxima vez que el runner corra con ese archivo, el permiso en `1` y una rama habilitada. Activar la variable no alcanza por sí solo: tiene que correr `python -m tuqui_core.db.migrate`, que según el fragmento corre al deployar. No sé si cambiar una variable en tu configuración de Railway dispara un deploy.\n\nEl fragmento no describe otra forma de aplicarlo en prod, ni dice si el deploy avisa o falla cuando saltea un archivo. No daría por hecho que un deploy en verde significa que la columna se borró: revisá el log del runner, y que el archivo figure en `_migrations` en la base de prod.\n\nAntes de activar el permiso en prod, consultalo con quien administra ese entorno. La variable habilita el entorno, no solo tu archivo, así que en esa corrida también se pueden aplicar otras migraciones destructivas pendientes. Confirmá además que el código que está corriendo en prod pueda funcionar sin la columna.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12649,
+  "cache_read_input_tokens": 47283,
+  "output_tokens": 1133,
+  "output_tokens_details": {
+   "thinking_tokens": 118
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12649,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 835,
+    "cache_read_input_tokens": 29773,
+    "cache_creation_input_tokens": 386,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 386
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "4749c78b5b"
+ }
+}

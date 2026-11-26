@@ -1,0 +1,47 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Necesitás una migración idempotente con RLS (seguridad por fila), un test de aislamiento y un modelo Pydantic. Esto sale del texto que pegaste; no revisé el repo.\n\n**Pasos**\n1. Creá la migración con `supabase migration new <nombre>`. Tiene que quedar en `supabase/migrations/` como `NNNN_descripcion.sql`.\n2. Escribí la migración.\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`. La sección de RLS dice `tests/test_rls.py`; supongo que es el mismo archivo con la ruta acortada, pero confirmalo en el repo.\n4. Creá el modelo Pydantic de la tabla.\n\n**Qué tiene que tener la migración**\n\nTiene que poder correr varias veces sin error:\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`, con `workspace_id`.\n- **Índices, si agregás:** `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ENABLE ROW LEVEL SECURITY`, que ya es idempotente.\n- **Policy:** con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, dentro de un bloque `DO` que primero mire si existe.\n\nUn esqueleto, donde los nombres y las columnas son de ejemplo:\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_id_idx\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE schemaname = 'public'\n          AND tablename = 'mi_tabla'\n          AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\nEl `NOT NULL`, la clave primaria y el índice son sugerencias mías, no requisitos del texto. También supuse el esquema `public`.\n\n**Ojo antes de abrir el PR**\n- **El preview escribe en staging:** corre las migraciones contra la misma base, no contra una copia. Tu tabla se crea ahí apenas abrís el PR, así que revisá bien el SQL antes.\n- **Renombrar el archivo la vuelve a ejecutar:** el registro de migraciones aplicadas va por nombre de archivo.\n- **Cambios posteriores (lo deduzco):** si editás el SQL sin cambiar el nombre, no debería volver a correr. Si lo renombrás, `IF NOT EXISTS` saltea la tabla, el índice o la policy que ya existan con ese nombre, aunque hayas cambiado su definición. Que corra sin error no significa que staging haya quedado actualizado. Antes de corregir algo ya aplicado, leé la sección \"Un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`, que no vino en lo que pegaste.\n\nAdemás, no alcanza con filtrar por `workspace_id` en la aplicación: la defensa principal es RLS. Y si al final la tabla no llevara `workspace_id`, hay que discutirlo antes.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11021,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1667,
+  "output_tokens_details": {
+   "thinking_tokens": 375
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11021,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1667,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11021,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11021
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

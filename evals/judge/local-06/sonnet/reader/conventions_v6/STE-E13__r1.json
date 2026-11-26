@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del cron y confirmar dos cosas? Primero, qué le pasa el día que vence a un workspace sin suscripción y sin exceso de límites: ¿queda activo en free o restringido? ¿El asistente deja de responder para todo el equipo, y por qué mecanismo? Segundo, si ya tiene una suscripción activa, ¿igual salen los avisos de 7 días y del día 0, o se omiten?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del cron y confirmar dos cosas? Primero, qué le pasa el día del vencimiento a un workspace sin suscripción que no excede los límites del plan free: ¿queda restringido o deja de responder el asistente para todo el equipo, y por qué mecanismo? Segundo, si ya tiene una suscripción activa, ¿igual salen los avisos de 7 días y del día 0, o se omiten?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código del cron y confirmarme dos cosas? Primero, si un workspace con suscripción activa igual recibe los avisos de 7 días y del día 0. Segundo, qué le pasa exactamente el día que vence a un workspace sin suscripción y sin exceso: si queda en free y activo o restringido, y si el asistente deja de responder para todos, con qué mecanismo y motivo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código del cron y confirmar dos cosas? Primero, qué le pasa el día que vence a un workspace sin suscripción y sin exceso de límites: ¿queda activo en free o restringido? ¿El asistente deja de responder para todo el equipo, y por qué mecanismo? Segundo, si ya tiene una suscripción activa, ¿igual salen los avisos de 7 días y del día 0, o se omiten?",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas porque no llegué a ver el código. La carpeta de trabajo (`/tmp/ste-es-eval-0w8iz6yq`) está vacía. Quise buscar los archivos en `/home/joa`, pero el comando pedía aprobación y no se ejecutó, así que no sé si hay un clon en la máquina.\n\n| Pregunta | Qué se sabe por el material | Sin confirmar |\n|---|---|---|\n| Vence sin suscripción ni exceso | Pasa a `plan='free'`, se evalúa el exceso y sale el mail. `trial_expired_with_excess` corresponde al caso con exceso. | Si queda en `active`. Es lo que esperaría, pero el material no lo dice. |\n| El asistente y el equipo | Al explicar a quién se avisa, dice que \"el asistente deja de responder para todo el equipo\". `PlanLapsedBanner` se muestra a quien lo perdió. | El mecanismo y si pasa sin exceso. `restricted` bloquea el chat, pero no se puede deducir que ese sea el motivo. Podría depender del plan o del asiento (`billing_tier`). |\n| Avisos de 7 días y día 0 con suscripción | Al vencer se limpian las marcas de prueba y no se manda nada. | Si los avisos previos se omiten. Que no salga nada al vencer no alcanza para saberlo, sobre todo porque el día 0 es un aviso previo al corte, con la prueba todavía activa. |\n\nEn mi respuesta anterior mencioné `free_member_limit_exceeded` como posible resultado del vencimiento. El material no lo relaciona con el fin de la prueba: la tabla solo lista ese motivo y, por separado, los límites del plan free como causa de `restricted`. No lo tomes como parte de este circuito.\n\nPara cerrarlo, pasame la ruta del repo o pegá estas partes:\n- **Avisos:** `_run_trial_expiry` en `scheduler/billing_cron.py`, con las funciones que llama. Hay que ver si la consulta de los avisos excluye a quienes tienen una suscripción viva, y cómo define \"viva\".\n- **Caso sin exceso:** en esa misma parte, la función que evalúa el exceso. Hay que ver qué valor deja en `account_status` cuando no lo hay, y si cambia el `billing_tier` de los miembros.\n- **Bloqueo del asistente:** la validación que decide si el chat y el MCP responden, y la condición con la que aparece `PlanLapsedBanner`.\n\nSi preferís que busque el clon en `/home/joa`, aprobá la búsqueda cuando la vuelva a pedir. Mientras tanto, no le asegures a nadie que el workspace va a seguir funcionando después del vencimiento, ni que con suscripción no le van a llegar avisos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13001,
+  "cache_read_input_tokens": 77408,
+  "output_tokens": 1823,
+  "output_tokens_details": {
+   "thinking_tokens": 471
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13001,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1314,
+    "cache_read_input_tokens": 30077,
+    "cache_creation_input_tokens": 434,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 434
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "44ed80a11e"
+ }
+}

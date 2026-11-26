@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Sí, en `to_pay_move_line_ids/id` podés indicar qué factura se salda. Según el código, al confirmar el recibo se concilia contra esos apuntes, hasta donde alcance el importe. No lo probé importando en la base del cliente.\n\nNo pude guardar los archivos porque no tuve permiso para escribirlos. Copiá cada bloque en un editor de texto y guardalo en UTF-8 con el nombre indicado. Reemplazá todos los `COMPLETAR_…`; las fechas y los importes son ejemplos.\n\n### `recibos.csv` (sin cheques, con dos retenciones)\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_1,customer,inbound,COMPLETAR_ID_CONTACTO,2026-11-26,COMPLETAR_ID_DIARIO,COMPLETAR_ID_METODO,100000.00,COMPLETAR_ID_APUNTE,COMPLETAR_ID_IMPUESTO_1,COMPLETAR_NRO_CERTIFICADO_1,100000.00,2000.00\n,,,,,,,,,COMPLETAR_ID_IMPUESTO_2,COMPLETAR_NRO_CERTIFICADO_2,100000.00,1000.00\n```\n\n### `pagos_proveedores.csv` (sin cheques)\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_pago_1,supplier,outbound,COMPLETAR_ID_CONTACTO,2026-11-26,COMPLETAR_ID_DIARIO,COMPLETAR_ID_METODO,100000.00,COMPLETAR_ID_APUNTE,COMPLETAR_ID_IMPUESTO,,100000.00,2000.00\n```\n\n### `recibos_cheques.csv` (dos cheques y una retención)\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id/id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheque_1,customer,inbound,COMPLETAR_ID_CONTACTO,2026-11-26,COMPLETAR_ID_DIARIO,COMPLETAR_ID_METODO,COMPLETAR_ID_APUNTE,COMPLETAR_NRO_CHEQUE_1,2026-12-15,COMPLETAR_ID_BANCO,COMPLETAR_CUIT,60000.00,COMPLETAR_ID_IMPUESTO,COMPLETAR_NRO_CERTIFICADO,100000.00,2000.00\n,,,,,,,,COMPLETAR_NRO_CHEQUE_2,2027-01-15,COMPLETAR_ID_BANCO,COMPLETAR_CUIT,40000.00,,,,\n```\n\n### Cómo completarlos\n- **Columnas:** las de datos principales son los obligatorios del material. Agregué `id` (identificador propio de cada pago, único y estable, para que al reimportar se actualice en vez de duplicarse), deudas, retenciones y `amount` donde no hay cheques. El talonario se calcula solo.\n- **Líneas extra:** para otro cheque u otra retención, agregá una fila con los datos principales vacíos.\n- **Cheques:** no lleva el `amount` del pago, porque es la suma de los cheques (100.000 en el ejemplo). Cada monto tiene que ser mayor a 0. Si dejás vacíos banco o CUIT, salen del cliente.\n- **Cheques propios a proveedores:** en el archivo de cheques, usá `supplier` y `outbound`, con contacto, diario, método y apunte de ese pago. Dejá vacío el número de retención. Este formato no sirve para entregar cheques de terceros que ya tenés en cartera.\n- **Planilla:** si usás Excel, revisá que no cambie fechas, números de cheque (ceros iniciales), CUIT ni decimales.\n\n### Factura a saldar\n1. En Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (recibos) o a pagar (proveedores).\n2. Exportá con la opción «compatible con importación».\n3. Copiá el identificador externo **del apunte**, no el de la factura, en `to_pay_move_line_ids/id`.\n\nPara varios apuntes (varias facturas o cuotas), ponelos en la misma celda, separados por coma: `\"id_apunte_1,id_apunte_2\"`. En un editor de texto, las comillas son necesarias; en una planilla, no las escribas.\n\n### Qué probar antes de la carga masiva\n- **Nombres de columnas:** el material no trae los nombres técnicos de los campos internos de cheques y retenciones (`name`, `payment_date`, `bank_id`, `issuer_vat`, `base_amount`, `amount`, `tax_id`). Los puse según lo que conozco de Odoo; confirmalos con el botón «Probar» del importador. Los `/id` esperan identificadores externos.\n- **Deudas:** importá un recibo de un cliente con varias facturas abiertas. Quedará en borrador: revisá que figure **solo** el apunte elegido. Después confirmalo y revisá la conciliación y el saldo.\n- **Recálculo:** en borrador, cambiar cliente, compañía o tipo vuelve a cargar toda la deuda abierta. Si lo cambiás, revisá las deudas antes de confirmar. No dejes la columna vacía sin probar qué carga, porque podría traer toda la deuda.\n- **Retenciones a proveedores:** se calculan solas según la posición fiscal. No sé si las líneas importadas se conservan, se reemplazan o se duplican. Revisalo en borrador; si el cálculo automático ya es correcto, probá sin esas cuatro columnas. El número queda vacío porque lo pone la secuencia al confirmar.\n- **Importes:** el material no aclara si `amount` incluye las retenciones. Mi supuesto es que es el dinero sin ellas; verificá el total en la prueba. Lo mismo vale para la suma de cheques más retenciones.\n\nHacé estas pruebas en una copia de la base, un caso por archivo. En esta sesión tampoco tuve disponible `tuqui-adhoc`, así que me basé en el material y en lo que conozco de Odoo. Para darlo de alta, está la guía `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15766,
+  "cache_read_input_tokens": 77731,
+  "output_tokens": 7589,
+  "output_tokens_details": {
+   "thinking_tokens": 2365
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15766,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3176,
+    "cache_read_input_tokens": 31615,
+    "cache_creation_input_tokens": 1661,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1661
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

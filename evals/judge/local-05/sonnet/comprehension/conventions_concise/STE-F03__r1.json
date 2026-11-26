@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al reconfirmar P00231, Odoo crea otra recepción y, si queda sin movimientos, intenta borrarla. Como «Recepciones» tiene `block_picking_deletion` = True, `stock_ux` bloquea ese borrado, aunque el traslado esté en borrador, y se cancela toda la confirmación. No es la recepción hecha WH/IN/00098 (412) la que se intenta borrar. Que la recepción nueva quede vacía porque las 2 unidades ya están cubiertas por la 412 es una inferencia que coincide con los datos, pero falta verlo en una prueba.",
+  "El 11/11 la orden se confirmó y se recibieron las 2 unidades. Una hora después se canceló y se volvió a borrador, y la 412 sigue en Hecho. Después se intenta confirmar de nuevo y ahí falla. El texto no dice quién hizo esas acciones. Menciona la cancelación de las 13:26 y plantea preguntarle al cliente por qué canceló la orden. No dice cómo se pudo cancelar con una recepción hecha.",
+  "Primero probar en una copia de la base. Antes de aplicarlo, preguntarle al cliente por qué canceló la orden a las 13:26: si quería anular la compra, no corresponde reconfirmar sin más y hay que ver si la mercadería se devuelve y si va una nota de crédito. Los pasos valen si la compra sigue en pie (la mercadería entró y la factura corresponde):\n1. Revisar que la línea siga en 2 unidades, con el mismo producto y precio, y que sus movimientos sigan vinculados a la 412. Si se agregan cantidades, puede generarse una recepción real por la diferencia.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción, aunque la confirmación falle. Mientras está apagada afecta a todos los traslados de ese tipo. La protección por estado sigue activa según la regla descrita, así que hay que ver en la copia que no frene el borrado.\n5. Verificar que la orden quedó como Orden de compra (si quedó pendiente de aprobación, falta ese paso); que no hay recepciones ni movimientos nuevos y la 412 sigue igual; que el stock no cambió; que la línea sigue con 2 recibidas y 2 facturadas; y que BILL/2026/11/0007 sigue contabilizada, sin cambios y vinculada a la línea.\nAdemás, conviene mirar en la copia la fecha de confirmación de la orden, porque reconfirmar puede cambiarla. No hace falta borrar ni cancelar la 412, tocar la factura ni ajustar stock."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "3c0391f182",
+  "control": "cf4a8527a9"
+ }
+}

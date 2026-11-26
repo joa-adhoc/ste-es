@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Todavía no daría por bueno que el error sea correcto porque el usuario solo tiene Norte.** Con lo que leíste, el módulo busca lo contrario: ver lo de otra sucursal, pero no publicarlo ni modificarlo.\n\n- **Reglas:** las de sucursal sobre diarios, asientos y pagos tienen `perm_read` = False, así que no restringen la lectura.\n- **Usuarios por diario:** las dos reglas de `account_journal_security` no aplican, porque ningún diario de venta tiene usuarios cargados.\n- **Ayuda de `store_id`:** dice que los usuarios de otras sucursales «solo pueden ver los registros».\n- **Compañía:** «Journal multi-company» sí restringe la lectura. Hay que ver si el traceback o el mensaje la nombran.\n\n**Mi hipótesis principal es el `_search` de `account.journal`.** De memoria, sin verificarlo en el código:\n\n- **En 18:** leer un registro (`fetch`) pasa por `_search`. El filtro pensado para ocultar diarios en las búsquedas también bloquearía la lectura directa, con un `AccessError`.\n- **En 16:** la lectura aplicaba las reglas sin pasar por `_search`.\n\nSi es así, nadie necesitó reforzar permisos: el mismo filtro cambió de efecto con la actualización. Y rompería justo lo que el comentario del módulo quería evitar: errores al usar campos relacionados con el diario. Tampoco sabemos si en la 16 el filtro era igual.\n\n**Para confirmarlo,** corré esto en `odoo shell` sobre una copia de la base:\n\n```python\nu = env['res.users'].search([('name', '=', 'Encargado Norte')])\nj = env['account.journal'].sudo().search([('name', '=', 'FACTURA ELECTRONICA SUR')])\nenv.invalidate_all()\nenv['account.journal'].with_user(u).browse(j.ids).read(['name'])\n```\n\n- **Si da `AccessError`:** el usuario no puede leer el diario ni siquiera de forma directa. Para aislar la causa, repetilo en la copia sin el filtro de `_search`. Si ahí lee, es el filtro.\n- **Si lee bien:** la hipótesis pierde fuerza para este diario. Hay que ver en el traceback qué modelo, registro y operación fallan.\n\n**Sobre la diferencia con el libro mayor:** no leímos el código de ningún reporte, así que no sé por qué se comportan distinto. Una posibilidad es que listar los apuntes no lea el diario igual que «Ver asientos». Compará lo mismo en los dos caminos: desde el libro mayor de Contabilidad, con el mismo usuario, abrí esa factura y tocá «Ver asientos». Ver la línea en el reporte no prueba que pueda abrirla. Que el seguimiento no muestre todas las facturas de entrada lo miraría aparte.\n\n**Sobre el criterio:** coincido en unificarlo, pero según lo declarado en el módulo sería «ve, pero no publica ni modifica». «Si no ve, que no vea en ningún lado» es otro criterio. Habría que restringir la lectura de asientos, apuntes, pagos y reportes. Si el cliente quiere eso, yo lo trataría como un cambio de alcance a decidir, no como la corrección de este error.\n\n**Qué anotaría en el ticket:**\n> Replicado con un usuario de sucursal Norte al usar «Ver asientos» en una factura del punto 22 (sucursal Sur), llegando desde el reporte de seguimiento. Las reglas por sucursal leídas no restringen la lectura. Falta confirmar la causa con el traceback y una prueba de lectura del diario. Todavía no está definido si es un error o el comportamiento esperado.\n\nAl cliente todavía no le diría que es por los permisos nuevos de la 18. Si pasás el traceback completo, lo cruzo con esto. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no cargué el contexto de la empresa ni consulté la base. Me basé en tu material; para dar de alta el MCP, usá la skill `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11131,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4065,
+  "output_tokens_details": {
+   "thinking_tokens": 2601
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11131,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4065,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11131,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11131
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

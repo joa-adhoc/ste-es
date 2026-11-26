@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en criollo, desde la pantalla? Primero decime en una o dos frases por qué P00231 no se puede confirmar y qué tengo que hacer. Aclarame qué son `purchase_stock`, `stock_ux`, `block_picking_deletion`, el «traceback» y la «secuencia de IDs», qué son los números 412, 415 y 416, y dónde en los menús desactivo «Bloquear eliminación de traslados». También decime quién tiene que hacer la copia de la base y la prueba, y si puedo mandarle ya la respuesta al cliente."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "resumen",
+   "followup": "¿Me lo resumís en pocas líneas y sin nombres técnicos? Decime por qué no se puede confirmar P00231, qué tengo que hacer yo desde la pantalla (dónde está la opción «Bloquear eliminación de traslados» y si puedo crear la copia de la base o se la pido a alguien) y si ya puedo mandarle al cliente la respuesta sugerida."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como lo vería desde la pantalla? No sé qué son `purchase_stock`, `stock_ux`, `block_picking_deletion`, el «traceback» ni la «secuencia de IDs». Tampoco sé qué son los números 412, 415 y 416, ni qué es eso de `tuqui-adhoc` y `adhoc-way-guide` (¿tengo que hacer algo con eso?). Y para regularizar, decime en qué menú está «Bloquear eliminación de traslados», quién tiene que hacer la prueba en la copia y quién consigue lo que falta revisar (el error completo y el código de cancelación) antes de que le responda al cliente."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás en criollo, desde la pantalla? Primero decime en una o dos frases por qué P00231 no se puede confirmar y qué tengo que hacer. Aclarame qué son `purchase_stock`, `stock_ux`, `block_picking_deletion`, el «traceback» y la «secuencia de IDs», qué son los números 412, 415 y 416, y dónde en los menús desactivo «Bloquear eliminación de traslados». También decime quién tiene que hacer la copia de la base y la prueba, y si puedo mandarle ya la respuesta al cliente.",
+ "followup_answer": "**P00231 no se puede confirmar porque, según lo más probable, al hacerlo Odoo crea una recepción nueva, queda vacía, intenta borrarla y un bloqueo de «Recepciones» no lo deja.** Probá en una copia de la base: desactivá ese bloqueo, confirmá la orden, volvé a activarlo y revisá que stock y factura sigan igual; todavía no lo hagas en la base del cliente.\n\n### Qué pasa en la pantalla\nLa orden se confirmó, se registraron las 2 unidades como recibidas, después se canceló y volvió a borrador. La recepción WH/IN/00098 siguió en Hecho. Al tocar **Confirmar orden** otra vez aparece el error y la orden queda en borrador. La causa es una deducción: no la reproduje.\n\n### Los números\nSon los ID internos de los traslados, distintos del nombre que ves en pantalla.\n- **412:** la recepción real, WH/IN/00098. No es la que Odoo intentaría borrar.\n- **415 y 416:** serían las recepciones vacías de dos intentos de confirmar. Como el error deshace todo, no quedan guardadas.\n- **Secuencia de IDs:** el contador que asigna esos números. Un número usado en un intento fallido no se reutiliza, y por eso el siguiente puede ser otro.\n\n### Los términos\n- **`purchase_stock`:** la parte estándar de Odoo que conecta Compras con Inventario y crea las recepciones.\n- **`stock_ux`:** un módulo de Odoo by Adhoc que cambia cosas de Inventario. El error sale de su control al borrar traslados.\n- **`block_picking_deletion`:** el nombre interno de la opción **Bloquear eliminación de traslados**.\n- **Traceback:** el detalle técnico de un error, que muestra por qué pasos del código pasó. Sirve para confirmar qué intentó el borrado.\n\n### Dónde se desactiva\nEn el menú estándar de Odoo: **Inventario → Configuración → Tipos de operaciones → Recepciones**. Ahí buscá **Bloquear eliminación de traslados**.\n\nNo vi esa pantalla en esta base, así que los nombres o la ubicación de la opción pueden variar. Si hay varios tipos «Recepciones», elegí el que figura en WH/IN/00098. Si no ves el menú, puede ser un tema de permisos.\n\nEn la copia:\n1. Anotá el stock del producto y cómo están la factura, las cantidades y las recepciones de la orden. Revisá que WH/IN/00098 sea por las 2 unidades y no tenga devoluciones.\n2. Desactivá la opción y guardá.\n3. En P00231, tocá **Confirmar orden**.\n4. Volvé a activar la opción, aunque falle.\n5. Compará: la orden tiene que quedar confirmada, con WH/IN/00098 como única recepción, 2 pedidas, 2 recibidas y 2 facturadas, y el mismo stock. La factura tiene que seguir contabilizada, con el mismo importe y vinculada a la orden. Fijate también si cambió la fecha de confirmación o salió algún aviso.\n\nQue funcione en la copia no autoriza solo el cambio en la base del cliente: antes revisá el resultado y el motivo de la cancelación. Si querían anular la compra o corregirla, confirmar puede no ser lo que corresponde.\n\n### Quién hace la copia y la prueba\nEl material no lo dice, y no cargué las reglas de la empresa, así que no sé a quién le toca. Yo no hice la copia ni la prueba. Si tenés el ticket, confirmá con tu equipo quién puede crear la copia y quién la prueba. Antes de usarla, que verifiquen que no pueda mandar correos ni conectarse con servicios reales.\n\n### Respuesta al cliente\n**La anterior no la mandaría sin confirmar que la prueba se va a hacer**, porque dice «vamos a probar la solución en una copia». Esta versión no promete eso y la podés mandar ahora, si te corresponde responder el ticket:\n\n> Estamos revisando el error en P00231. Por la información que analizamos, lo más probable es que Odoo no esté intentando eliminar la recepción WH/IN/00098, sino una recepción vacía que se genera al intentar confirmar, y que el bloqueo de eliminación de «Recepciones» lo impida. Todavía no lo comprobamos ni tenemos una solución probada. Por ahora, les pedimos que no modifiquen la recepción, la factura ni las cantidades de la orden. ¿Nos cuentan por qué se canceló la orden el 11/11 y si la compra sigue vigente?",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12520,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2395,
+  "output_tokens_details": {
+   "thinking_tokens": 771
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12520,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2395,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12520,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12520
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fc70532280",
+  "persona": "soporte"
+ }
+}

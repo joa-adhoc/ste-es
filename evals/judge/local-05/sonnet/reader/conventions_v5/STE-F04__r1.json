@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos y decirme qué hago yo desde la pantalla? No sé qué es `_search`, el ORM, `fetch`/`_read`, `tuqui_context` ni los módulos que nombrás. Tampoco puedo comparar código ni sacar el filtro: ¿a quién se lo paso y qué le pido exactamente? Y en la copia de prueba, ¿cómo saco el texto completo del error y el traceback que necesitás?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? Entiendo que el criterio sería que pueda ver pero no operar, pero me pierdo con «_search», «ORM», «store_id», «account_journal_security», «account_multi_store», el «traceback» y lo de comparar «fetch», «_fetch_query» y «_read». Tampoco sé qué son «tuqui_context» y «adhoc-way-guide». Decime en términos de pantallas y permisos por qué creés que falla al usar «Ver asientos». Y de los pasos para cerrarlo, ¿cuáles puedo hacer yo (por ejemplo, cómo saco el texto completo del error) y cuáles tengo que pasarle a un desarrollador, con qué pedido concreto?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `_search`, el ORM, `store_id`, `account_journal_security`, `account_multi_store`, `fetch`/`_fetch_query`/`_read` ni `tuqui_context`/`tuqui-adhoc`. Decime en simple por qué creés que el usuario debería poder ver la factura aunque solo tenga la sucursal Norte, y qué tengo que hacer yo: qué capturar o probar desde Odoo (por ejemplo, de dónde saco el traceback) y qué cosas, como sacar el filtro en una copia o comparar el código, tengo que pasarle a alguien de desarrollo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos y decirme qué hago yo desde la pantalla? No sé qué es `_search`, el ORM, `fetch`/`_read`, `tuqui_context` ni los módulos que nombrás. Tampoco puedo comparar código ni sacar el filtro: ¿a quién se lo paso y qué le pido exactamente? Y en la copia de prueba, ¿cómo saco el texto completo del error y el traceback que necesitás?",
+ "followup_answer": "**Todavía no está claro que el usuario no deba ver esa factura.** Te toca reproducir el error en una copia de prueba, guardar la evidencia y pasársela a alguien técnico.\n\n## Qué pasa\nEl sistema de sucursales dice, en la ayuda de la sucursal del diario, que alguien de otra sucursal **puede ver** sus comprobantes, pero no publicarlos ni modificarlos. Además, tiene un filtro para que, al buscar diarios, solo aparezcan los de su sucursal y los que no tienen sucursal.\n\nMi sospecha, sin comprobar, es que en la 18 ese filtro además impide abrir información que usa un diario de otra sucursal. No sería necesariamente un refuerzo de permisos hecho a propósito. Tampoco sabemos todavía por qué en el libro mayor de Contabilidad sí se ve.\n\n## Qué hacés vos\nHacelo **en una copia de prueba, no en la base del cliente en uso**, con un usuario que tenga los mismos permisos que el afectado. Si no tenés la copia o ese acceso, pedíselos a la persona técnica.\n\n1. Entrá con ese usuario y activá el modo desarrollador: en la dirección del navegador, agregá `?debug=1` después de `/odoo` (queda `.../odoo?debug=1`). Si la dirección ya sigue con otra cosa, entrá primero a la que termina en `/odoo`.\n2. Apretá **F12**, abrí la pestaña **Red** (o **Network**) y marcá **Conservar registro** (**Preserve log**).\n3. Repetí tus pasos: Contactos → contacto → reporte de seguimiento → libro mayor en el filtro → factura del punto 22 → tres puntitos → «Ver asientos».\n4. Cuando salga el error, sacá una captura y copiá todo el mensaje. Si la ventana tiene un botón para copiarlo o ver detalles, usalo.\n5. En **Red**, buscá el pedido que se hizo al aparecer el error. Suele tener `call_kw` o `call_button` en el nombre y puede no estar en rojo. En **Respuesta** (**Response**), buscá uno que contenga `\"error\"`.\n6. Copiá esa respuesta completa a un archivo de texto. El **traceback**, que es el detalle de por dónde pasó el sistema hasta fallar, debería estar en la parte `\"debug\"`. No probé estos pasos en esta base; si no aparece, pedí que lo busquen en el registro del servidor y pasales la fecha y la hora.\n7. Con el mismo usuario, entrá por el libro mayor de Contabilidad a la misma factura. Anotá hasta dónde llegás: si solo ves el renglón, si abre la factura y si también funciona «Ver asientos».\n\n## A quién pasárselo\nA alguien que programe en Odoo, idealmente quien mantiene el manejo de sucursales. No sé quién es en tu equipo. Adjuntá las capturas, el archivo y tus notas, con este mensaje (los nombres técnicos son para esa persona):\n\n> En una base 18.0 actualizada desde 16, el usuario «Encargado Norte» recibe un error de permisos al hacer «Ver asientos» en una factura del punto 22 (sucursal Sur), llegando desde Contactos → seguimiento → libro mayor. Adjunto pasos, error y lo que pasa desde Contabilidad.\n>\n> Hipótesis sin verificar: el filtro que `account_multi_store` agrega en `account.journal._search` también bloquea la lectura en la 18. Necesito que:\n> 1. Revises el traceback y confirmes qué bloquea, sobre qué registro y en qué operación.\n> 2. Compares el comportamiento con la 16, incluidos el módulo y la lectura del ORM (`_read` en la 16; `fetch` y `_fetch_query` en la 18).\n> 3. En una copia de prueba, quites solo ese filtro y repitas los pasos. Verifica también que el usuario siga sin poder publicar ni modificar en Sur. Es un diagnóstico, no un cambio para producción.\n> 4. Expliques por qué difiere el recorrido desde Contabilidad.\n> 5. Nos digas la causa, con evidencia, y qué solución proponés.\n\nAl cliente le podés decir: «Estamos revisando si el bloqueo al abrir la factura es intencional». Agregá que reprodujiste el error en la copia solo cuando te haya salido ahí.\n\nEl criterio que propongo sigue siendo **ver sí, publicar o modificar no**. Si quieren que no vea nada de otra sucursal en ningún lado, hay que definirlo como un pedido nuevo, incluyendo qué saldo del cliente tiene que ver cada sucursal.\n\nLo otro que mencioné, `tuqui_context`, es una herramienta para consultar tu identidad y las reglas de Adhoc. No tenés que hacer nada con ella para estos pasos.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12754,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2715,
+  "output_tokens_details": {
+   "thinking_tokens": 988
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12754,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2715,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12754,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12754
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e758dea0b4",
+  "persona": "actualizacion"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El usuario autoriza en el provider, el backend cambia el `code` por tokens y los guarda para ese dueño, y después prueba las habilidades habilitadas. **Si contesta al menos una, la conexión queda; si no contesta ninguna, el token se borra.** Esto sale solo del material que pegaste; no lo contrasté con el código.\n\n### Antes de conectar\nEl admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Esta configuración es del server; los tokens que se obtienen después son de cada dueño.\n\n### Conexión\n1. **Usuario → front:** entra a `/connectors` y hace clic en **Connect**.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve la `authorize_url`, que incluye:\n   - **`state`:** protegido con AES-GCM y válido por 10 minutos. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. En algunos casos suma `code_verifier` (PKCE) y `scope_profile` (platform connectors). El material dice \"firmado\", pero AES-GCM es cifrado autenticado: oculta el contenido y detecta cambios.\n   - **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir el refresh token. El primero lo pide y el segundo fuerza que lo vuelva a emitir, por ejemplo al desconectar y reconectar. El material indica que los otros providers ignoran los parámetros que no conocen.\n4. **Front → provider:** redirige el navegador, y ahí el usuario se autentica o autoriza según lo que pida el provider.\n5. **Provider → backend:** redirige el navegador a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** valida el `state`, cambia el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n7. **Backend:** prueba en paralelo todas las habilidades habilitadas.\n8. **Backend → front:** redirige a la SPA con el resultado. El destino depende del dueño:\n   - **Usuario:** `/w/{slug}/settings/connectors`\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}`\n\n   En una conexión exitosa, la URL lleva `connected={server_id}`. No hay un `return_to` aparte.\n\n### Si algunas habilidades no contestan\n\n| Resultado de la prueba | Token | Qué llega al front |\n|---|---|---|\n| Contestan todas | Queda guardado | `connected={server_id}` |\n| Contesta al menos una, pero no todas | Queda guardado y el usuario figura conectado | `connect_warning=<habilidades>`: aviso de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>`: la card muestra un error |\n\nEn el caso parcial, el criterio es que desconectar todo por una habilidad rota sería peor que dejar usar las que andan. El aviso por sí solo no prueba que el problema sea el token, así que conviene revisar las habilidades que nombra.\n\n### Renovación\nAl construir los toolsets, si al token le quedan menos de 60 segundos de validez, se ejecuta `refresh_if_expired`. Es proactivo respecto de ese momento; el material no describe un proceso periódico que renueve tokens.\n\n### El parámetro `resource` (RFC 8707)\nIdentifica para qué recurso se pide el token. Si el discovery guardó la URI canónica en `OAuthPerUserConfig.resource`, se manda al armar la autorización, al cambiar el `code` y al renovar. Si no está guardada, no se manda: así siguen andando los conectores anteriores, y se evita que el servidor de autorización rechace un valor adivinado.\n\n### Lo que el material no aclara\nPara cerrar estos puntos hay que mirar el código o sus tests:\n- **Prueba de humo:** qué cuenta como \"contestar\", qué timeout tiene, si reintenta y qué pasa sin habilidades habilitadas. Tampoco dice si una habilidad que falló se vuelve a probar o se sigue ofreciendo.\n- **Errores previos a la prueba:** qué pasa si el usuario rechaza el permiso, el `state` es inválido o venció, o falla el intercambio de tokens.\n- **Renovación:** qué pasa si falla o si no hay refresh token.\n- **Seguridad del callback:** si comprueba que la sesión corresponde a quien inició el flujo y si el `nonce` es de un solo uso. Que venza a los 10 minutos no impide por sí solo que se reutilice.\n- **Cuentas de servicio:** cómo se representa ese dueño en el `state`, que según el material lleva `user_id`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11236,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2141,
+  "output_tokens_details": {
+   "thinking_tokens": 421
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11236,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2141,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11236,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11236
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

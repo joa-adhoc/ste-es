@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "## Ticket 140512: diagnóstico\n\nLo más probable es que haya sido **un error pasajero durante la actualización**, y no un método que falte en el código actual. No veo motivo para un fix en el módulo.\n\nMe basé solo en la introspección y los logs que pegaste. En esta sesión no tengo `tuqui-adhoc`, así que no consulté la base, el ticket ni los logs, y no cargué las reglas de `tuqui_context`. Para darlo de alta, usá `adhoc-way-guide`.\n\n### Qué pasó (4/11, UTC)\n\n| Hora | Hecho |\n|---|---|\n| 15:06:29–15:06:58 | Arranca el pod A y carga 233 módulos |\n| 15:07:39 | Se actualiza `account_multicompany_ux` |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508 |\n| 15:08:36–15:08:39 | El pod A recarga el registro cuatro veces; el uid 31 tiene tres errores |\n| 15:08:40 | Falla en el pod A un cron, porque falta un método de `res.company` |\n| 15:08:53 | Arranca el pod B con la imagen nueva |\n| 15:08:58 | El pod A empieza a apagarse |\n\n**Explicación:** la base ya tenía las reglas nuevas, que llaman a `_get_branch_stock_root_ids`, pero el pod A seguía con código sin ese método. Recargar el registro vuelve a leer la base, pero no reimporta el código Python que el proceso ya tiene cargado.\n\n- **A favor:** los errores son del mismo usuario que reporta (31) y aparecen después de reescribirse las reglas. El cron falla con el mismo patrón en otro modelo. Además, «cargando stock» es compatible con la regla 508, sobre `stock_quant`.\n- **Falta confirmar:** que el pod A corría la imagen anterior. Los logs dicen que el B arranca con la nueva, pero no qué imagen tenía el A. Que el método esté hoy en `res_users.py` tampoco prueba qué código tenía el A. Se cierra mirando la imagen del A y si su versión del módulo incluía el método.\n- **Cron:** puede que venga de `account_multicompany_ux`, pero el material no muestra dónde está definido su método.\n\n### Lo que no coincide\nEl cliente informa el error a las **15:09:12 UTC** (12:09:12 en Argentina). Es 34 segundos después del último error del uid 31 que figura en los logs y 14 segundos después de que el pod A empezara a apagarse. El pod B no registra errores de 15:09 a 15:30.\n\nPuede que esa hora sea la de cuando se copió o envió el error, y no la de la falla, pero **no lo verifiqué**. Lo cerraría saber cómo se genera el campo «Error date» y revisar si el pod A registró algo después de las 15:08:58.\n\nLos logs tampoco muestran qué pasó después de las 15:30. La introspección de hoy no alcanza para afirmar que el error no volvió a aparecer.\n\n### Qué haría\n1. **Con el cliente:** pedirle que confirme si pudo cargar el stock y que revise que no falte nada de lo que estaba cargando.\n2. **Clasificación:** relacionarlo con `stock_account_multicompany_ux`, aclarando que la causa probable está en el despliegue. El producto hay que elegirlo según cómo clasifiquen estos casos.\n3. **Con quien maneje el despliegue:** revisar quién actualizó la base entre las 15:07 y las 15:08, y por qué el pod A seguía atendiendo. Si se confirma la imagen anterior, esto puede repetirse cuando una actualización haga que la base use métodos nuevos antes de reemplazar el pod.\n\n### Borrador de respuesta al cliente\n> Hola. Revisamos el error que te apareció el 4/11 mientras cargabas stock. En los registros vemos errores de tu usuario cerca de las 12:08 (hora argentina), mientras se estaba actualizando el sistema. Creemos que se debió a esa actualización. En los registros que revisamos, hasta las 12:30, no vemos errores después del cambio a la versión nueva. ¿Pudiste completar la carga? Te pedimos que revises que no falte nada. Si el error te volvió a aparecer, mandanos la fecha, la hora y el mensaje.\n\nNo envié la respuesta ni modifiqué el ticket. Si el cliente confirma que no volvió a pasar, se puede cerrar la consulta; la revisión del despliegue conviene seguirla aparte.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10481,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2958,
+  "output_tokens_details": {
+   "thinking_tokens": 1342
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10481,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2958,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10481,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10481
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

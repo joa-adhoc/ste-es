@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `perm_read`, `account_multi_store`, `account_journal_security`, `store_id`, el filtro en `_search` ni el «traceback». En criollo y desde la pantalla: ¿el usuario con solo sucursal Norte debería poder ver la factura del punto 22 o no? ¿Y qué tengo que hacer y copiarte exactamente cuando repita el error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No sé qué son `account_multi_store`, `account_journal_security`, `perm_read`, `store_id` ni `_search`. En términos de pantalla: ¿qué debería poder ver y hacer un usuario que solo tiene la sucursal Norte con una factura del punto 22, y qué cosas de la configuración del usuario o del diario tengo que revisar? Y decime cómo saco el «traceback» y qué parte del error te tengo que pegar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_multi_store`, `account_journal_security`, `perm_read`, `store_id` ni el «filtro en `_search`», ni cómo se ve en pantalla el «criterio del módulo». Tampoco sé cómo sacar el traceback. Decime en términos de Odoo qué debería poder ver y hacer un usuario que solo tiene la sucursal Norte, y los pasos concretos para copiar el error completo y pasártelo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `perm_read`, `account_multi_store`, `account_journal_security`, `store_id`, el filtro en `_search` ni el «traceback». En criollo y desde la pantalla: ¿el usuario con solo sucursal Norte debería poder ver la factura del punto 22 o no? ¿Y qué tengo que hacer y copiarte exactamente cuando repita el error?",
+ "followup_answer": "**Según cómo está pensado el permiso por sucursal que leímos, sí: debería poder ver la factura del punto 22, que es de Sur, pero no publicarla ni modificarla.** Eso no asegura que «Ver asientos» tenga que funcionar, porque esa opción puede consultar otros datos además de la factura. Todavía no sabemos qué es lo que le bloquea.\n\n- **Qué controla la sucursal:** la descripción del sistema dice que alguien de otra sucursal puede ver lo de ese diario (donde se registran esas facturas), pero no publicar ni modificar asientos. En la configuración que revisamos, la restricción por sucursal de diarios, asientos y pagos tampoco bloquea la lectura.\n- **Por qué puede confundir:** al buscar o listar diarios, el sistema le muestra solo los de sus sucursales y los que no tienen sucursal. Que uno no aparezca en una lista no significa que tenga prohibido verlo. No sabemos si esto explica la diferencia entre los dos reportes.\n- **Otros permisos:** también se puede limitar un diario a ciertos usuarios. Ningún diario de venta tiene usuarios cargados, así que ese límite no explica un bloqueo por el diario de esta factura.\n\nPor eso, «si no ve, que no vea en ningún lado» sería cambiar la forma en que está pensado el permiso. Y todavía no sabemos si en la versión 16 funcionaba distinto.\n\n**Qué hacer**\n\nEntrá con el usuario «Encargado Norte» y usá la misma factura en las dos pruebas, sin cambiar las empresas seleccionadas arriba.\n\n1. Activá el modo desarrollador: en la dirección del navegador, agregá `?debug=1` justo después de `/odoo` y apretá Enter. Si la dirección ya tiene un `?`, reemplazá lo que sigue por `debug=1`.\n2. Andá a Contactos → el contacto → reporte de seguimiento → filtro con el libro mayor de la empresa.\n3. Abrí la factura del punto 22 → tres puntitos → «Ver asientos».\n4. Cuando salga el error, copiá **todo el texto de la ventana**, desde el título hasta el final, sin resumirlo. Si tiene una barra para bajar, incluí también lo de abajo. Si no podés seleccionarlo, sacá capturas que lo muestren entero.\n5. Cerrá el error. Andá a Contabilidad → libro mayor, abrí **la misma factura** y tocá «Ver asientos». En la réplica contaste que ahí ves las facturas; falta saber si esta opción también funciona.\n\n**Pegame esto:**\n\n```text\nNúmero de factura:\nEmpresas seleccionadas arriba:\n\nDesde Contactos / seguimiento:\n(texto completo del error)\n\nDesde Contabilidad / libro mayor:\n¿«Ver asientos» funciona? (sí / no / no aparece la opción)\n(si funciona, qué muestra; si falla, texto completo del error)\n```\n\nCon el mensaje podemos ver qué dato dice que no puede leer y qué permiso nombra. Si no alcanza, habrá que revisar qué hace el sistema por detrás; por ahora no hace falta que busques nada más. Hasta entonces, no le cambiaría permisos ni le diría al cliente que el bloqueo es lo esperado.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12845,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1751,
+  "output_tokens_details": {
+   "thinking_tokens": 586
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12845,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1751,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12845,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12845
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1e67e9c49f",
+  "persona": "actualizacion"
+ }
+}

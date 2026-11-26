@@ -1,0 +1,44 @@
+{
+ "case": "STE-F06",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**No hay tarea ni borrador sobre este error en 18, y no aparece ninguna personalización del cliente en el asistente.** Me baso en el material que pasaste; no abrí el código, la base ni Odoo.\n\n## 16 contra 18\nLa validación es igual en las dos: si el usuario requiere sesión de caja y el asistente no la tiene, da el error. Cambia cómo se completa la sesión:\n\n| | 16 | 18 |\n|---|---|---|\n| ¿Se guarda? | Sí (`store=True`) | No |\n| Cuándo se calcula | Una vez, al abrir; la completa si hay una sola sesión abierta | Se recalcula al cambiar el diario destino, y la elegida se borra |\n| Qué sesiones ofrece | Las abiertas del usuario en la compañía | Solo las de cajas que manejan el diario destino |\n\n- **Cambios en 18:** el guardado se sacó en noviembre de 2025, sin tarea vinculada, y no se sabe por qué. El filtro por diario se agregó en abril de 2026.\n- **Hipótesis principal (inferencia mía, no probada):** al no guardarse, la sesión elegida podría perderse o recalcularse al confirmar, antes de la validación. Para cerrarlo, revisá el cálculo del campo y reproducilo en una base de prueba 18. Usá un usuario que requiera sesión, elegila después del diario, confirmá y mirá qué valor llega al control. Probalo con una y con varias sesiones abiertas, y compará con `store=True`.\n- **A descartar también:** que ninguna sesión abierta sea de una caja que maneje el diario destino.\n- **`l10n_latam_check_ux`:** en setiembre de 2026 reescribió la creación de los pagos. Las vistas del cliente se actualizaron el 02/11 a las 05:11 y 05:26 (hora argentina), antes de los intentos fallidos de las 09:13. La coincidencia no prueba que sea la causa. No se ve por qué ese cambio afectaría un control de sesión anterior.\n\n## Personalización del cliente\nNo hay módulos a medida ni campos manuales, y las tres vistas del asistente vienen de módulos estándar. **No se revisaron las reglas de acceso ni las acciones automatizadas sobre las sesiones de caja**, así que todavía no se pueden descartar.\n\n## Dónde se trató\nLo más cercano al borrador que buscás es el de la **41004**, pero es sobre el cambio de `l10n_latam_check_ux`, no sobre este error. Sigue como «Borrador», aunque la tarea está Realizada y salió en la imagen 18.0.2026.09.24.\n\n- [41004, «Método de pago del diario destino» (18 y 19)](https://www.adhoc.inc/odoo/project.task/41004)\n- [41001, «Sesiones de caja v16»](https://www.adhoc.inc/odoo/project.task/41001): origen del módulo.\n- [41002, «Cashbox - Transferencia de cheques» (2023)](https://www.adhoc.inc/odoo/project.task/41002): nació el asistente; en las pruebas en 16 apareció este mismo error.\n- [41003, «Indicar sesión en transferencia masiva de cheques» (2023)](https://www.adhoc.inc/odoo/project.task/41003): pedido relacionado.\n- [41005 (19)](https://www.adhoc.inc/odoo/project.task/41005): pide elegir la sesión antes que el diario.\n- [41006 (otro cliente)](https://www.adhoc.inc/odoo/project.task/41006): el segundo pago de la transferencia no recibe la sesión.\n\n**Una diferencia para revisar:** la 41005 dice que en 18 «se elegía la sesión y el diario se ajustaba». La comparación dice que al cambiar el diario destino la sesión se borra. Puede que describan momentos o versiones distintas del código, pero no está verificado. Conviene mirarlo antes de usar la 41005 como referencia de cómo funciona 18.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11202,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2696,
+  "output_tokens_details": {
+   "thinking_tokens": 1296
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11202,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2696,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11202,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11202
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

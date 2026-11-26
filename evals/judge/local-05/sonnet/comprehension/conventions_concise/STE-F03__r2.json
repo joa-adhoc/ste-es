@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según el texto, es una inferencia (no se vio el traceback ni se reprodujo). Al confirmar, `purchase_stock` crea una recepción nueva. Como las 2 unidades ya figuran recibidas, quedaría sin movimientos y Odoo intenta borrarla con `created_receipt.unlink()`. `stock_ux` frena ese borrado porque el tipo de operación «Recepciones» tiene `block_picking_deletion` = True, y eso alcanza para bloquear aunque el traslado esté en borrador. El error deshace la operación.",
+  "El texto no dice explícitamente qué acción del usuario originó el problema. Cuenta que el 11/11 la orden se confirmó (12:26), se registraron las 2 unidades recibidas (12:27), se canceló (13:26) y volvió a borrador (13:27), y que el error aparece al confirmar de nuevo. No dice para qué se canceló: es una pregunta abierta.",
+  "Primero, en una copia de la base:\n1. Revisar que los movimientos de 412 estén en Hecho, sumen 2 y sigan vinculados a la línea de P00231. Ver si hubo devoluciones y anotar el stock del producto y los datos de la factura.\n2. Confirmar que el traceback pase por `created_receipt.unlink()`.\n3. Desactivar «Bloquear eliminación de traslados» en «Recepciones», confirmar P00231 y volver a activarlo.\n4. Verificar que la orden quede confirmada con 2 recibidas y 2 facturadas, que 412 siga vinculada y en Hecho, que no queden recepciones ni movimientos nuevos, que el stock no cambie y que BILL/2026/11/0007 siga igual y vinculada. En la prueba, mirar además si confirmar pide aprobación, dispara automatizaciones o cambia la fecha de confirmación.\n\nSi todo da bien, repetirlo en producción con autorización del cliente y en un momento de poco uso, teniendo en cuenta que mientras la opción esté desactivada se pierde la protección en todas las recepciones. Si en la prueba queda una recepción pendiente o cambia el stock, no se aplica en producción. Antes de tocar producción hay que preguntar para qué se canceló la orden: si querían corregir precio, cantidad o proveedor, o anular la compra, confirmar de nuevo puede no alcanzar. Para esta regularización no hace falta borrar ni devolver 412, tocar la factura, recibir de nuevo ni forzar el estado por base de datos."
+ ],
+ "grades": [
+  "correct",
+  "not_stated",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "7645e79958",
+  "control": "cf4a8527a9"
+ }
+}

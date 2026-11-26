@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**No daría por cerrado que no puede ver porque solo tiene la sucursal Norte.** Que el error sea esperable no cierra con lo que declara el módulo:\n\n- La ayuda de `store_id` dice que los usuarios de otra sucursal **pueden ver** los registros del diario, pero no publicar ni modificar.\n- Las reglas multi-sucursal de diarios, asientos y pagos tienen `perm_read` = False, así que no bloquean la lectura.\n- Las reglas de `account_journal_security` no aplican al diario Sur, porque no tiene usuarios cargados.\n\nSegún ese diseño, el criterio es **«ve, pero no toca»**, y lo raro es el error de lectura.\n\n## Hipótesis (no verificada)\nEl sospechoso es la sobrescritura de `account.journal._search`. Por lo que conozco del core, en la 18 leer los campos de un registro (`fetch`) pasa por `_search`, y en la 16 la lectura aplicaba las reglas de registro sin pasar por ahí.\n\nSi es así, en la 16 el filtro solo ocultaba el diario Sur en las búsquedas. En la 18 además impediría leerlo, que es justo lo que el comentario del código quería evitar. No sería un refuerzo buscado de los permisos, sino un efecto colateral de la actualización.\n\nQuise bajar el `models.py` público de la 16 y la 18 para comprobarlo, pero los comandos no se ejecutaron: el último intento pedía aprobación. Tampoco sé si esto explica el mensaje completo. No sabemos qué modelo falla ni qué reglas nombra, y la única regla de lectura de diarios que figura en el material es la de compañía.\n\n## Por qué en el libro mayor sí ve\nTodavía no se puede afirmar, porque no se leyó el código de ninguno de los dos reportes. Además, hay que confirmar que estés comparando lo mismo: ver las líneas en un reporte no es igual a abrir la factura y entrar en «Ver asientos». Un reporte podría mostrar datos del diario que el formulario después no puede leer, pero eso también es una hipótesis.\n\n## Cómo cerrarlo\n1. **Traceback:** mirar modelo, operación, ids y nombres de las reglas. Si falla `account.journal` en lectura sobre el diario Sur, la hipótesis gana fuerza. Si es otro modelo o aparece otra regla, hay que revisarla.\n2. **Misma acción por los dos caminos:** con Encargado Norte, abrir la misma factura desde el libro mayor de Contabilidad y tocar «Ver asientos».\n3. **Core:** comparar `fetch` y `_fetch_query` de la 18 con `_read` de la 16 en `odoo/models.py`.\n4. **Prueba aislada, en una copia de la base:** con ese usuario, leer el nombre del diario Sur con y sin el filtro de `_search`. Si solo falla con el filtro, queda confirmada la causa de ese error de lectura.\n\n## Criterio a unificar\n| Criterio | Qué implica |\n|---|---|\n| **Ve todo, opera solo en su sucursal** | Coincide con la ayuda del campo y con las reglas. Habría que corregir lo que bloquea la lectura y comprobar que siga sin poder publicar ni modificar en Sur. |\n| **Si no es su sucursal, no ve en ningún lado** | Es un cambio de alcance. Habría que restringir la lectura de asientos y pagos, y revisar los reportes. El seguimiento podría mostrar solo una parte de la deuda del contacto. |\n\n**Recomiendo el primero.** Tu planteo de unificar es válido, pero unificar no obliga a ocultar. Si el cliente quiere que Norte no vea nada de Sur, lo trataría como un pedido funcional aparte del error.\n\nLa corrección tampoco debería ser sacar el filtro sin más, porque también define qué diarios le aparecen al usuario en las búsquedas. Habría que ver cómo conservar eso sin bloquear la lectura.\n\nPara el ticket, por ahora pondría: «Reproducido con Encargado Norte. El error contradice el comportamiento que declara `account_multi_store` (ver sí, publicar y modificar no). Causa sin confirmar; falta el traceback».",
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 13166,
+  "cache_read_input_tokens": 105750,
+  "output_tokens": 4872,
+  "output_tokens_details": {
+   "thinking_tokens": 2356
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13166,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2356,
+    "cache_read_input_tokens": 30279,
+    "cache_creation_input_tokens": 397,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 397
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 5,
+ "is_error": false
+}

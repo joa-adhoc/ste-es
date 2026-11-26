@@ -1,0 +1,47 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Cuando una tool tira una excepción, `_wrap_tool` (en `agent.py`) la captura y le devuelve al modelo un texto como resultado de la tool. Me baso solo en tu material; no revisé el código.\n\n```\n[TOOL_ERROR class=X]: message\n```\n\n**De la falla al modelo**\n\n1. La tool falla.\n2. `_wrap_tool` obtiene la clase del error:\n   - Si es un `ToolError`, lo usa directamente. Trae `error_class`, `message` y `retry_after_seconds`.\n   - Si es otra excepción, `classify_unknown(exc)` asigna una `ErrorClass` a las excepciones de Python y httpx.\n3. `_wrap_tool` retorna `exc.for_llm()`, con el formato de arriba, en lugar del string genérico de antes.\n\nLas clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`.\n\nDos se parecen, pero tienen textos distintos:\n- **`CONNECTION`:** Odoo está caído porque falla el transporte.\n- **`ODOO_NOT_CONNECTED`:** nadie conectó Odoo para este run porque no hay credenciales (`require_adapter`, en `tools/base.py`). A esa persona no se le dice que la conexión está caída.\n\n**Cómo se corta el reintento**\n\n`DoomLoopGuard` (`guards.py`) usa `record(tool_name, args, ok, error_class)` y cuenta por esta clave:\n\n```\n\"{tool_name}|{hash(args)}|{error_class}\"\n```\n\n- Cuando un contador llega a 3 o más (`THRESHOLD=3`), `record` retorna `True`. Entonces `_wrap_tool` devuelve un `FATAL` e impide más llamadas idénticas.\n- **Cualquier éxito limpia todos los contadores**, no solo el de esa tool. Según esta regla, si el modelo intercala una llamada exitosa entre los fallos, la cuenta vuelve a cero y ese corte puede no activarse nunca.\n- Si cambian los argumentos o la clase de error, la clave es otra y tiene su propio contador. Esa cuenta por clave no frena a un modelo que varía un poco los argumentos en cada intento.\n\n**Corte entre tools:** el material dice que el guard también corta `CONNECTION` y `ODOO_NOT_CONNECTED` entre tools, cada una con su aviso. La clave de arriba incluye `tool_name`, así que sola no explica ese corte. El material no dice con qué lógica ni con qué umbral funciona.\n\n**Lo que el material no aclara** (se puede confirmar en `agent.py`, `guards.py` y `tool_errors.py`):\n- Si el bloqueo evita que la tool se ejecute o solo reemplaza el resultado después de ejecutarla.\n- El texto exacto del `FATAL` y de los avisos de Odoo.\n- Qué `message` queda cuando la excepción pasa por `classify_unknown`.\n- Qué se hace con `retry_after_seconds`. El formato de `for_llm()` que figura no lo incluye, y no se menciona ningún reintento automático.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10726,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1507,
+  "output_tokens_details": {
+   "thinking_tokens": 338
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10726,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1507,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10726,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10726
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Primero corré `make worktree-setup` desde el worktree. Linkea al clone principal `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`. Sin ese paso, `make test` falla con \"Venv no encontrado\".\n\nComo tu tarea suma una dependencia de Python y toca `web/package.json`:\n\n1. **Dependencia de Python:** no corras `make install` en el worktree linkeado. Escribiría en el venv del clone principal y le repuntaría el editable install (el target se niega a correr). Tenés dos opciones:\n   - Instalar la dependencia en el clone principal. Ese venv lo comparten todos los worktrees, así que el cambio los alcanza a todos.\n   - Borrar el link `tuqui_core/.venv` y armar un venv propio en el worktree. Borrá solo el link, no el contenido del venv al que apunta. Así no tocás el entorno compartido.\n\n2. **Frontend:** `web/node_modules` también es del clone principal, y el material indica correr `npm ci` en el worktree antes de `make test-web`. Hacelo en `web/`, donde está el `package.json`. El material no aclara si `npm ci` respeta el link o escribe en la carpeta del clone principal. `npm ci` borra `node_modules` antes de instalar, y según la versión de npm el efecto sobre un link puede cambiar (no lo verifiqué). Para no arriesgar el clone principal, antes revisá con `ls -l web/node_modules` que sea un link y quitá solo el link, sin barra final:\n   ```bash\n   rm web/node_modules\n   (cd web && npm ci)\n   ```\n   Este paso de quitar el link es una precaución mía, no está en el material. Si además cambiaste dependencias en el `package.json`, `npm ci` necesita que el `package-lock.json` esté actualizado y coincida.\n\n3. **Tests**, desde el worktree. Corren con el código del worktree aunque el venv sea compartido:\n   ```bash\n   make test                                     # unit, el mismo pytest del job `test` de CI\n   make test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\n   make test-rls                                 # aislamiento multi-tenant\n   make test-web                                 # frontend (vitest)\n   make test-evals                               # unit tests de evals/, no los benchmarks\n   make lint                                     # ruff check y format check\n   ```\n\nSi estás en un workspace de Tuqui Work (`ADHOC_RUNTIME=managed`), no instales `node_modules` ahí ni corras las suites completas. Corré solo el lint y los chequeos cortos, y dejá el resto al CI.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10795,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 968,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10795,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 968,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10795,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10795
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

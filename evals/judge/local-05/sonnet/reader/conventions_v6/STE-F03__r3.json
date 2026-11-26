@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como para hacerlo desde la pantalla? ¿Por qué menú entro a «Recepciones» para desactivar «Bloquear eliminación de traslados» (¿es el tipo de operación en Inventario?), y cómo veo ahí que no se hayan creado recepciones ni movimientos nuevos? Además, ¿qué son `stock_ux`, `tuqui-adhoc`, `adhoc-way-guide` y los números 412, 415 y 416? ¿Tengo que hacer algo con alguno de ellos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás para poder hacerlo desde la pantalla? 1) ¿Por qué menú entro a «Recepciones» para desactivar «Bloquear eliminación de traslados», y cómo confirmo P00231 en la copia? 2) ¿Qué son `stock_ux`, `tuqui-adhoc` y `adhoc-way-guide`? ¿Tengo que hacer algo con ellos, y cambia en algo la conclusión no haber cargado las reglas de la empresa? 3) ¿Qué son 412, 415 y 416, que decís que no existen? ¿Dónde se ven y de dónde salen?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos y con el paso a paso por pantalla? En concreto: qué es `stock_ux` y qué significan `tuqui-adhoc` y `adhoc-way-guide` (¿tengo que hacer algo con eso?). ¿En qué menú está «Recepciones» y la opción «Bloquear eliminación de traslados»? ¿Y cómo confirmo P00231 en una copia de la base: quién la genera y qué botón aprieto?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás como para hacerlo desde la pantalla? ¿Por qué menú entro a «Recepciones» para desactivar «Bloquear eliminación de traslados» (¿es el tipo de operación en Inventario?), y cómo veo ahí que no se hayan creado recepciones ni movimientos nuevos? Además, ¿qué son `stock_ux`, `tuqui-adhoc`, `adhoc-way-guide` y los números 412, 415 y 416? ¿Tengo que hacer algo con alguno de ellos?",
+ "followup_answer": "**Sí, «Recepciones» es el tipo de operación de Inventario, y con los números 412, 415 y 416 no tenés que hacer nada.** Hacelo primero en una copia de la base. Los menús son los habituales de Odoo, pero no los verifiqué en la base del cliente (19.0), así que algún nombre puede variar.\n\n**Antes de empezar**\n- Confirmá con el cliente por qué canceló la orden, que las 2 unidades entraron y no se devolvieron, y que la factura es correcta. Si algo no se cumple, no sigas.\n- Anotá los datos del producto (**A mano** y **Pronosticado**), las cantidades de la orden y el importe y estado de la factura.\n- En **Inventario → Reportes → Historial de movimientos**, buscá el producto y anotá qué registros aparecen.\n- En la lista de recepciones (paso 5), anotá cuáles hay para P00231.\n\n**Pasos**\n1. Entrá a **Inventario → Configuración → Tipos de operaciones** y abrí **Recepciones**. Si no ves **Configuración**, probablemente te falten permisos de administrador de Inventario. Si hay varias «Recepciones», elegí la del almacén de WH/IN/00098.\n2. Desmarcá **Bloquear eliminación de traslados** y guardá.\n3. En **Compras**, abrí P00231 y tocá **Confirmar orden**.\n4. Volvé al tipo de operación, marcá otra vez la opción y guardá. **Hacelo aunque la confirmación falle.**\n5. Entrá a **Inventario → Operaciones → Recepciones**. Quitá los filtros de la búsqueda y buscá `P00231` por **Documento de origen**. Compará con lo anotado: debería seguir WH/IN/00098 en **Hecho**, sin una recepción nueva en ningún estado.\n6. Volvé a **Historial de movimientos**, con la misma búsqueda y los mismos filtros: no debería haber registros nuevos. Esta vista no alcanza para descartar pendientes; para eso revisá también el paso 5 y que **Pronosticado** no haya cambiado. **A mano** tampoco debería cambiar, salvo que haya habido otras operaciones del producto.\n7. En P00231, revisá que esté como orden de compra (o pendiente de aprobación) y que la línea siga con 2 de cantidad, 2 recibidas y 2 facturadas. Desde la orden, abrí la factura: BILL/2026/11/0007 tiene que seguir publicada (contabilizada), con el mismo importe.\n\nSi aparece una recepción pendiente o cambia alguno de esos datos, no valides nada ni repitas el cambio en producción. Si todo coincide en la copia, en producción hacé lo mismo en un momento sin otras operaciones: la opción desactivada afecta a todos los que usan ese tipo de operación.\n\n**Qué es cada nombre**\n\n| Nombre | Qué es | ¿Tenés que hacer algo? |\n|---|---|---|\n| `stock_ux` | Módulo de Odoo by Adhoc cuyo código muestra ese error al bloquear el borrado. | No lo desinstales ni lo modifiques para esta orden. Solo cambiás la opción. |\n| `tuqui-adhoc` | La conexión del asistente con Tuqui, de donde saca tu identidad y las reglas de Adhoc. No es un menú del Odoo del cliente. | Conectala si vas a seguir con el asistente. Como no cargué esas reglas, revisalas antes de operar sobre la base o contestarle al cliente. |\n| `adhoc-way-guide` | La guía del asistente para dar de alta esa conexión. | Pedile al asistente que la use, si necesitás conectarla. |\n| 412 | El identificador interno de WH/IN/00098. | No la toques. |\n| 415 y 416 | Los identificadores que aparecieron en los errores y que no existen en la base. Infiero que eran las recepciones temporales de cada intento, descartadas al fallar la confirmación. | No los busques, crees ni borres. |\n\nSigue siendo una inferencia que la recepción nueva queda vacía, porque no se revisó el código que genera sus movimientos. La prueba en la copia muestra si, con el bloqueo desactivado, la orden se confirma sin dejar nada nuevo en las recepciones ni en el stock.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12920,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2975,
+  "output_tokens_details": {
+   "thinking_tokens": 1454
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12920,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2975,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12920,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12920
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "aa4786af36",
+  "persona": "soporte"
+ }
+}

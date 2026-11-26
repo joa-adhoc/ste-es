@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Como la migración dropea una columna que el código anterior todavía puede estar usando, tenés que declararla con esta línea cerca del inicio del archivo:\n\n```sql\n-- destructive: true\n```\n\nEl runner la aplica solo donde se cumplen **las dos** condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y, al deployar, que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Donde no la aplica, la saltea **sin registrarla** en `_migrations`, así que un deploy habilitado posterior todavía la puede aplicar.\n\n| Momento / lugar | ¿Se aplica? |\n|---|---|\n| Preview del PR en Railway | **No.** Hereda el flag de staging, pero la rama no es `staging` ni `main`. Si hay marcadores de Railway y falta la rama, tampoco se aplica. |\n| CI (postgres de servicio de cada workflow), stack e2e y pytest | **Sí.** Son bases efímeras que activan el permiso (`MIGRATIONS_ALLOW_DESTRUCTIVE=1` en el workflow o `allow_destructive=True` en el conftest). Usan el contrato de `scripts/apply_migrations.py`, donde el permiso va por base. |\n| `make migrate` en local | **No.** No activa el permiso, porque la base de desarrollo se comparte entre worktrees. |\n| Deploy de `staging` después del merge | **Sí**, si tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. |\n| Prod (deploy de `main`) | **Sí**, si tiene el flag. La rama sola no alcanza. |\n\nEl motivo es que los previews comparten la base con staging, que sigue corriendo el código anterior. Un drop aplicado desde un preview le rompe ese código a todos; ya pasó con `0180_chat_ga`.\n\n- **El preview corre con la columna todavía presente**, así que no sirve para probar cómo se comporta tu código sin ella.\n- **Las migraciones aditivas son distintas:** si el PR trae alguna sin el marker, el preview **sí** la aplica en la base de staging. Antes de mergear o de renombrar ese archivo, leé la sección \"Un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`.\n- **Lo que el material no dice:** no explica cómo llega el cambio de `staging` a `main` ni confirma que prod tenga el flag activado. Revisá esa variable en el environment de prod antes de contar con el drop. Solo tengo el fragmento que pegaste; no verifiqué el código del runner ni la configuración.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11021,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 931,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11021,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 931,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11021,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11021
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Porque tu worktree y el de tu compañero comparten la DB local de tests, y el `conftest` aplica las migraciones sobre esa base. Si la rama de tu compañero trae una migración destructiva, la base queda sin columnas que tu código todavía lee, y aparece el `UndefinedColumnError`. El texto lo da como la causa más probable según el material, pero no se verificó contra tu máquina.",
+  "No. El lock (`flock`, con espera de hasta 15 minutos, en `test`, `test-rls`, `test-integration`, `test-all` y `odoo-matrix`) evita que dos corridas se pisen al mismo tiempo, pero no separa el esquema. Aunque corran por turnos, la base compartida acumula las migraciones de las dos ramas.",
+  "Con una base propia para tu worktree:\n1. Creá `tuqui_core/.env.test.local` (está gitignoreado). Podés usar de guía `.env.test.local.example`: `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local`.\n2. En ese archivo, apuntá la conexión a una base con nombre propio de este worktree. Tomá el nombre de la variable del `.example`, y revisá en § La base de tests es por worktree, o en el `.example`, si primero tenés que crear la base.\n3. Armala desde cero con `make migrate-reset` (tarda unos 3 segundos). Este comando vacía la base a la que apunta, así que antes confirmá que es la tuya y no la compartida, y que el target toma tu override. El material solo asegura que los targets de test cargan ese archivo.\n4. Volvé a correr los tests. Si el error sigue con la base propia y limpia, revisá las migraciones y el código de tu rama.\n\nNo uses `npx supabase db reset`: el CLI de Supabase aborta en el primer prefijo numérico repetido. `make migrate-reset` admite repetidos y solo toca bases locales. Para que el problema no vuelva, hacé lo mismo en cada worktree nuevo, con la DB propia y manteniendo el lock."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ca7535c4c4",
+  "control": "d71584ce60"
+ }
+}

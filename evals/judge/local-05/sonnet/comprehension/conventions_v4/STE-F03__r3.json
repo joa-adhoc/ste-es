@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al volver a confirmar P00231, Odoo estándar crea una recepción nueva y, si queda sin movimientos, intenta borrarla. `stock_ux` frena ese borrado porque el tipo de operación «Recepciones» tiene activado el bloqueo de eliminación, aunque la recepción esté vacía, y lanza el error. La recepción que intenta borrar no es WH/IN/00098 (412). Lo más probable es que la nueva quede vacía porque las 2 unidades ya figuran recibidas, pero eso no está verificado. El análisis surge de cruzar los datos con el código resumido: no se reprodujo el error ni se consultó la base.",
+  "El usuario canceló la orden cuando la recepción ya estaba hecha. Según el historial, la orden se confirmó (12:26), recibió las 2 unidades (12:27), se canceló (13:26) y volvió a borrador (13:27), y la 412 quedó en Hecho. El error aparece al confirmarla de nuevo. El texto no dice por qué el usuario la canceló. Tampoco determina si permitir esa cancelación es un comportamiento estándar o una falla, ni dice quién hizo los demás pasos.",
+  "Primero, probar el procedimiento en una copia de la base. Conviene preguntar antes de reconfirmar por qué se canceló la orden, por si el usuario quería anular o corregir la compra. Pasos: 1) Anotar el estado inicial: recepciones y movimientos de la orden, stock del producto, cantidades de la línea y datos de la factura. 2) En un momento sin otra operación en depósito, desactivar «Bloquear eliminación de traslados» en «Recepciones»; mientras esté desactivado, el bloqueo no aplica para ningún usuario en ese tipo de operación. 3) Confirmar P00231. 4) Reactivar el bloqueo enseguida, aunque la confirmación falle. 5) Verificar que la orden quede confirmada o pendiente de aprobación (en ese caso, revisar en la copia el circuito, incluido cuándo se crea la recepción); que la 412 siga en Hecho y no aparezcan otra recepción ni movimientos pendientes; que el stock no cambie; que la línea siga con 2 pedidas, 2 recibidas y 2 facturadas; y que BILL/2026/11/0007 siga contabilizada, con el mismo importe y vinculada a la orden. Si en la copia aparece una recepción por otras 2 unidades o cambia algo de esa lista, no aplicarlo en la base del cliente. Para regularizar no hace falta devolver ni tocar la 412, tocar la factura, crear otra orden ni cambiar estados por SQL."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "6e8d7bbadc",
+  "control": "cf4a8527a9"
+ }
+}

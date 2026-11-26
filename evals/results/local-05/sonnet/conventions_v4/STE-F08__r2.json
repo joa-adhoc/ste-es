@@ -1,0 +1,47 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Borrador para enviar.** En los puntos sin fuente dice que falta confirmarlos, así que alguien tiene que hacer ese seguimiento.\n\n---\n\nHola, van las respuestas.\n\n**1. Permisos e IP**\nSí, Ajustes como Administrador es obligatorio. La conexión se chequea con ese permiso en todas las versiones de Odoo, así que Ventas, Inventario y Facturación no alcanzan. En Odoo 19, si falta, el chequeo se corta sin revisar el resto.\n\nEse usuario no solo lee la configuración. El conector también crea en tu base un campo técnico de precio en los productos (`product.product`) y registros de identificadores (`ir.model.data`).\n\nLa configuración que pide el manual es:\n- **Administración:** Ajustes\n- **Ventas:** Administrador\n- **Contabilidad:** Facturación\n- **Inventario:** Administrador\n- **Technical Settings:** Gestión de Productos y Límite de crédito\n\nSobre las IP, todavía no tenemos el dato confirmado. Para tu firewall o lista de IP permitidas, el manual indica pedir los datos técnicos de la conexión con un ticket.\n\n**2. Kits**\nEl stock que se publica es \"A la mano\" menos \"Saliente\", en la ubicación configurada. El conector toma esas dos cantidades de cada producto en Odoo y no tiene un cálculo propio para kits. Todavía no podemos confirmar que tu pack se publique bien, y hay que probarlo antes de activarlo.\n\nAl confirmarse la venta, Odoo genera la entrega, aunque no factures. Falta comprobar en la misma prueba que, con tu kit, la entrega descuente las patas.\n\n**3. Cambio desde tu módulo actual**\nTodavía no tenemos un procedimiento confirmado para este cambio. Antes de darte los pasos necesitamos verificar cómo evitar que se repitan ventas y facturas. Hasta entonces, te recomendamos no activar la importación de ventas de Odumbo en producción mientras tu módulo actual siga trayéndolas.\n\n**4. Facturación**\nSi facturás a mano en lote cada día, Odumbo sube las facturas igual. Odumbo no factura: vos generás y validás las facturas en Odoo, de a una o en forma masiva. Odumbo las detecta y las sube a la venta entre 6 y 24 horas después. La subida funciona solo para Mercado Libre.\n\nPara que la factura salga sola al confirmar la venta, recomendamos los tipos de pedido de venta. Falta confirmarte qué módulo los da en Odoo 17 Enterprise.\n\n**5. Datos**\nTodavía no podemos decirte qué datos se guardan además de las credenciales, ni qué pasa con ellos si das de baja el servicio. Lo tenemos que confirmar.\n\n---\n\n**Notas para vos (no enviar)**\n\n**Prueba de kits.** Esto sale de lo que sé de Odoo estándar, no del material, y no lo probé:\n- **Cálculo:** con `mrp`, Odoo calcula \"A la mano\" y \"Saliente\" del kit a partir de los componentes. Como se calculan por separado y puede haber redondeo, el resultado podría no coincidir con los packs realmente disponibles.\n- **Producto salteado:** el conector saltea los no almacenables, salvo los \"packs\". No sé si un kit de Odoo cuenta como pack para el código. Si no cuenta y el kit no es almacenable, quedaría afuera.\n- **Caso a probar:** 10 patas a mano y 3 salientes sueltas dejan 7 libres, o sea 1 pack entero. Revisá qué stock publica Odumbo. Después vendé 1 pack y mirá si la entrega trae 4 patas.\n\n**A confirmar con el equipo de Odumbo:**\n- **IP:** cuáles son las de salida y si son fijas.\n- **Permisos:** si Ajustes se puede quitar después de la configuración inicial. No lo ofrecería sin probarlo.\n- **Cambio de módulo:**\n  - Desde qué fecha importa ventas Odumbo.\n  - Si reconoce las que ya cargó otro módulo.\n  - Si vuelve a subir facturas que ya están en Mercado Libre.\n  - Qué pasa con las ventas pendientes de entregar o facturar.\n  - Cómo se evita que los dos módulos actualicen stock a la vez.\n- **Módulo en 17 Enterprise:** creo que el candidato es `sale_order_type_automation`, del repo `ingadhoc/sale`. Es de memoria: verificá que exista para la versión 17, qué dependencias tiene y que facture al confirmar.\n- **Datos:** qué se guarda, por cuánto tiempo, y si se borra en la baja o a pedido.\n\n**Manual:** dice que Ajustes le permite a Odumbo leer la configuración, pero el código además crea el campo y los registros. Conviene corregirlo.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`. Por eso no cargué tu identidad ni las reglas de comunicación de la empresa, y el borrador se basa en el material que pegaste. Para darlo de alta, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11291,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4077,
+  "output_tokens_details": {
+   "thinking_tokens": 2253
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11291,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4077,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11291,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11291
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

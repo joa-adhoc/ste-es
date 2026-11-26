@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Con lo que contás, va como skill.** Una tool que termina en un solo `odoo_create` con defaults se puede armar con las tools genéricas, y los defaults se explican en la skill.\n\n**Criterio:** es tool nativa solo si cumple al menos uno de estos ejes.\n\n| Eje | ¿Lo cumple tu caso? | ¿Vale en MCP saliente? |\n|---|---|---|\n| **(a)** No se puede componer con las tools existentes | No, es un `odoo_create` | Sí |\n| **(b1)** Necesita approval o una policy propia | Solo si pedís eso | No |\n| **(b2)** Su whitelist es más fina que la del `create` genérico | Solo si limita de verdad los permisos; precargar defaults no alcanza | Sí |\n| **(c)** Procedimiento crítico: que el LLM saltee un paso tiene un costo real | Solo si hay una exigencia fuerte de cumplimiento | No |\n| **(d)** Reemplaza 3 o más llamadas, un loop no acotado o pasos que el LLM saltearía | No, si es 1→1; ahorrar tokens de esquema no cuenta | Sí |\n\nLo que puede cambiar la respuesta:\n- **Cómo se obtienen los defaults.** Si son valores fijos, va como skill. Si antes del `create` hay que hacer varias búsquedas o seguir pasos que el LLM saltearía, ya no es un simple 1→1 y puede calificar por (d). Con el umbral de llamadas, contá las que hoy harían falta con las tools genéricas.\n- **Qué permiso restringe.** Para (b2), mirá si permite habilitar esa creación puntual con un alcance menor que el del `create` genérico.\n\n**Con MCP saliente cambia qué ejes sirven:** solo (a), (b2) y (d). El router MCP ignora `requires_approval`, así que ahí el approval de (b1) no protege nada. Para (c), tampoco hay un turno donde forzar los pasos.\n\nSi tu único argumento es (b1) o (c), la tool no se justifica en MCP. En chat podría justificarse; en ese caso, yo evaluaría excluirla del MCP. El precedente del material es `odoo_schedule_activity`: pasó a system skill porque era componible, su único diferencial era (b1) y ya estaba en `MCP_EXCLUDED_TOOLS`.\n\nAparte del criterio, mi recomendación: si algún default es una regla que nunca se puede romper, validala en Odoo o en el gate del servidor. Una skill no la garantiza, y una tool nueva tampoco si se puede seguir usando `odoo_create` sobre ese modelo.\n\nMe basé solo en el material que pegaste; no lo contrasté con el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11241,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1644,
+  "output_tokens_details": {
+   "thinking_tokens": 687
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11241,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1644,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11241,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11241
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

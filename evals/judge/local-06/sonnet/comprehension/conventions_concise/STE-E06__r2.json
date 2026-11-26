@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Los dos worktrees comparten la misma DB local y el `conftest` aplica migraciones en cada corrida, así que la base queda con la unión de las migraciones de ambas ramas. Casi seguro la migración de la rama de tu compañero borró o renombró columnas que tu código todavía lee, y por eso aparece `UndefinedColumnError` en tests que no tocaste. El texto aclara que esto no se verificó contra tu base: sale de la documentación que pegaste.",
+  "No. El lock (`flock`) solo impide corridas simultáneas y no aísla el esquema.",
+  "Dale a tu worktree una base propia:\n1. Creá `tuqui_core/.env.test.local` (está gitignoreado) a partir de `.env.test.local.example`.\n2. Apuntalo a una base local con un nombre que no use ningún otro worktree, tomando del example el nombre de la variable y el formato.\n3. Corré `make migrate-reset`, que vacía la base a la que apunte y la rearma en unos 3 segundos. Antes, confirmá que apunta a tu base nueva y no a la compartida. El texto no aclara si el target lee `.env.test.local` ni si crea la base cuando no existe: revisalo en el `Makefile` y en `scripts/reset_database.py`.\n4. Volvé a correr los tests. Si el `UndefinedColumnError` sigue, buscá la causa en tu rama.\n\nNo uses `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido. Para que no vuelva a pasar, mantené ese override en cada worktree nuevo, con una base distinta en cada uno. Como está gitignoreado, un worktree nuevo no lo trae, y mientras alguno siga usando la base compartida, ese sigue expuesto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e041c9edc7",
+  "control": "d71584ce60"
+ }
+}

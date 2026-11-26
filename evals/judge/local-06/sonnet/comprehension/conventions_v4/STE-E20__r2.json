@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "`ERROR: column \"accepted_version\" of relation \"members\" contains null values (SQLSTATE 23502)`, en la sentencia `ALTER TABLE members ALTER COLUMN accepted_version SET NOT NULL;` (en `0415_terms_acceptance.sql`).",
+  "No está caído por este deploy: falló la migración, la versión nueva no se promovió y sigue sirviendo la anterior. Esto sale del log; no se consultó staging en vivo.",
+  "Según el extracto de `docs/infra-ci-cd.md`, en dos trenes. En este tren, una migración que haga el backfill de los nulos de `accepted_version`, sin el `SET NOT NULL`, que hay que sacar de `0415` o de donde se vuelva a aplicar. Si `0415` hace otras cosas, hay que revisarlas, porque el archivo no se vio. En un tren posterior, otra migración con el `SET NOT NULL`. Juntar las dos en el mismo tren va contra esa guía. Antes de escribir el backfill hay que definir qué valor les corresponde a las filas viejas y confirmarlo con quien sepa qué significa el dato. Si la columna registra la versión de los términos aceptada (se infiere por el nombre), completar con la versión actual registraría una aceptación que quizás nunca ocurrió. También hay que revisar si el código que escribe en `members` siempre completa `accepted_version`; si no, pueden aparecer nulos nuevos y el `SET NOT NULL` volvería a fallar."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "2b33e925d1",
+  "control": "a20a96ac5b"
+ }
+}

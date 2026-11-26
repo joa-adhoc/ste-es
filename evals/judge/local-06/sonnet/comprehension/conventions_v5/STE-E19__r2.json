@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Falló el test que corre con `pytest tuqui_core/tests/test_rls.py -q` (el texto no dice el nombre del test en particular). Muestra que el workspace B ve 2 filas del workspace A, es decir, una falla de aislamiento. Solo muestra la lectura.",
+  "Porque `0398` ya había creado una policy con el nombre `scheduled_runs_ws`. Al ver que ese nombre existía, `0412` salteó el `CREATE`, y el filtro por `workspace_id` nunca se aplicó. El log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`. La policy que quedó activa es, según todo indica, la del borrador, `USING (true)`.",
+  "No. El texto indica no editar `0398` ni `0412`, porque según `AGENTS.md` una migración ya aplicada no vuelve a correr. Hay que crear una migración nueva con el siguiente número libre que haga `DROP POLICY IF EXISTS` y vuelva a crear la policy con el filtro por workspace en `USING` y `WITH CHECK`. Después hay que aplicar las migraciones, volver a correr el test y revisar el resultado en cada entorno. Si `relrowsecurity` da `false`, la migración nueva también tiene que activar RLS."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "7489f4a8cf",
+  "control": "8368a6d09b"
+ }
+}

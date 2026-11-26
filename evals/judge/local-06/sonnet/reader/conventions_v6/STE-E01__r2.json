@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "`supabase migration new` genera el archivo con un timestamp adelante, pero vos decís que tiene que llamarse `NNNN_descripcion.sql`. ¿Lo renombro a mano con el número siguiente (antes de abrir el PR) o dejo el nombre que genera el CLI? Y la policy del esqueleto, con `current_setting('app.current_workspace_id')`, ¿es el patrón real que usa tuqui o es solo un ejemplo? Si es un ejemplo, pasame el que tengo que copiar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿La condición de la policy del esqueleto (`workspace_id = current_setting('app.current_workspace_id')::uuid`) es la que usa tuqui de verdad o es también de ejemplo? Si es de ejemplo, pasame la real (y si hace falta `WITH CHECK`) o una migración existente para copiar. Y de paso: `supabase migration new` genera el nombre con timestamp, así que ¿cómo queda en formato `NNNN_descripcion.sql`? ¿Lo renombro a mano antes de abrir el PR, y qué número le pongo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "En el esqueleto aclarás que los nombres, las columnas y el índice son de ejemplo, pero ¿la condición de la policy (`current_setting('app.current_workspace_id')::uuid`) es la que usa tuqui de verdad? Pasame una migración existente del repo con RLS por workspace para copiar la policy exacta y confirmar si lleva algo más (`WITH CHECK`, `FORCE ROW LEVEL SECURITY`, grants o FK a workspaces)."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "`supabase migration new` genera el archivo con un timestamp adelante, pero vos decís que tiene que llamarse `NNNN_descripcion.sql`. ¿Lo renombro a mano con el número siguiente (antes de abrir el PR) o dejo el nombre que genera el CLI? Y la policy del esqueleto, con `current_setting('app.current_workspace_id')`, ¿es el patrón real que usa tuqui o es solo un ejemplo? Si es un ejemplo, pasame el que tengo que copiar.",
+ "followup_answer": "**La expresión de la policy es la que documenta tuqui, pero para el nombre del archivo el material no alcanza.** No pude compararlos con el código: mi directorio de trabajo está vacío y no tengo las migraciones.\n\n**Nombre del archivo**\n\nEl material pide `NNNN_descripcion.sql` y al lado indica `supabase migration new <nombre>`, que según contás genera un timestamp. En la respuesta anterior repetí las dos cosas sin marcar que chocan. Para saber cuál vale, mirá qué hay en la rama base (cambiá `<base>` por su nombre):\n\n```bash\ngit fetch origin\ngit ls-tree --name-only origin/<base> supabase/migrations/\n```\n\n- **Si las últimas usan `NNNN_`:** renombrá el archivo con el número siguiente.\n- **Si las últimas usan timestamp:** dejá el nombre del CLI. En ese caso, la documentación quedó desactualizada y conviene aclararlo en el PR.\n- **Si están mezclados o no queda claro:** revisá cómo ordena los archivos el runner y qué valida el CI, o preguntale a quien mantiene las migraciones.\n\nDefiní el nombre **antes de abrir el PR**, porque renombrar después hace que la migración se vuelva a aplicar en staging. Si usás `NNNN_`, fijate también que ningún otro PR abierto haya tomado ese número. Si aun así tenés que renombrar, comprobá antes que toda la migración soporte correr de nuevo.\n\n**Policy**\n\nEsta línea sale textual de las reglas de RLS del material, no es un ejemplo mío:\n\n```sql\nUSING (workspace_id = current_setting('app.current_workspace_id')::uuid)\n```\n\nEl resto del bloque lo armé yo. El material pide el `DO $$ BEGIN IF NOT EXISTS (...)`, pero no dice qué va en el chequeo. La consulta a `pg_policies`, el esquema `public` y el nombre de la policy son propuestas mías.\n\nPara copiar el bloque completo de una migración real, buscá en el repo, parado en una rama actualizada desde la base:\n\n```bash\ngrep -rniE \"create policy|current_workspace_id\" supabase/migrations/\n```\n\nTomá como referencia una migración reciente. Si usa otra variable, otra función o cláusulas adicionales (`WITH CHECK`, `TO <rol>`), no copies mi esqueleto: averiguá cuál es el patrón vigente y señalá en el PR la diferencia con la documentación. Si me pasás ese resultado y la lista de migraciones, te digo qué nombre usar y te ajusto el SQL.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12738,
+  "cache_read_input_tokens": 47386,
+  "output_tokens": 1633,
+  "output_tokens_details": {
+   "thinking_tokens": 509
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12738,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1328,
+    "cache_read_input_tokens": 29876,
+    "cache_creation_input_tokens": 372,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 372
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a89f9daf96"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Corré `make worktree-setup`, **no corras `make install`**, resolvé la dependencia de Python aparte y hacé `npm ci` antes de los tests de frontend. Esto sale del material que pegaste; no lo probé en el repo.\n\n**1. Prepará el worktree** (desde el worktree):\n\n```bash\nmake worktree-setup\n```\n\nLinkea el `.venv`, los `.env`, los `node_modules` y `.mcp.json` del clone principal. Sin esto, `make test` falla con \"Venv no encontrado\".\n\n**2. Instalá la dependencia de Python.** Tenés dos opciones:\n\n- **Venv propio (la que te recomiendo si no querés afectar nada):** borrá solo el link `tuqui_core/.venv` y armá un venv en el worktree. Para borrarlo, usá `rm tuqui_core/.venv`, sin `-r` ni `/` final. El material no dice cómo crear el venv, así que revisalo en el `Makefile`.\n- **Venv compartido:** instalá la dependencia en el clone principal. Es más rápido, pero el cambio lo ven todos los worktrees que usan ese venv. Si el clone principal está en una branch que no declara la dependencia, correr `make install` ahí probablemente no la instale. En ese caso hay que instalar el paquete puntual en ese venv.\n\n**3. Instalá las dependencias web.** Como tocás `web/package.json`, hace falta `npm ci` antes de `make test-web`. `web/node_modules` empieza siendo un link al clone principal, y el material no aclara qué hace `npm ci` con ese link. Por precaución, sacalo antes para que no pueda modificar los archivos del clone principal:\n\n```bash\nls -ld web/node_modules                # confirmá que es un link\nrm web/node_modules                    # sin -r y sin / final\n(cd web && npm ci)\n```\n\nEl material tampoco dice qué hacer si cambia el `package.json` de otra carpeta.\n\n**4. Corré los tests:**\n\n```bash\nmake test          # unit\nmake test-web      # frontend\nmake lint          # ruff check + format check\n```\n\nSegún lo que toque tu cambio:\n- `make test-rls`: aislamiento multi-tenant.\n- `make test-evals`: unit tests de `evals/`, no los benchmarks.\n- `make test ARGS=\"tests/test_rls.py -k policy\"`: un subconjunto, con paths relativos a `tuqui_core/`.\n\nSi estás en un workspace de Tuqui Work, no armes el venv propio ni corras `npm ci` o las suites completas, porque los recursos no alcanzan. Ahí corré solo `make lint`, y los tests miralos en el CI después del push.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10682,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1436,
+  "output_tokens_details": {
+   "thinking_tokens": 513
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10682,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1436,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10682,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10682
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

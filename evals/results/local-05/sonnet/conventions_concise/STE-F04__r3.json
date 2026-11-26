@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**La réplica sirve, pero con lo que leímos no puedo afirmar que el error sea correcto porque el usuario solo tiene Norte.** Ninguna de las reglas por sucursal que vimos le impide leer:\n\n| Mecanismo | ¿Explica un «no tiene permiso para leer»? |\n|---|---|\n| «Journal multi-store» | No: tiene `perm_read` = False. |\n| Reglas de `account_multi_store` sobre asientos y pagos | No, por lo mismo. |\n| Reglas de `account_journal_security` | No en el diario del punto 22: no tiene usuarios cargados. |\n| Filtro en `account.journal._search` | Oculta diarios en las búsquedas, pero no es una regla de registro. No esperaría que genere un error que nombra reglas. |\n| «Journal multi-company» | Sí restringe la lectura, pero por compañía, no por sucursal. |\n\n**El criterio que declara el módulo** es «ver sí, publicar o modificar no». Lo dice la ayuda de `store_id`: quienes no son de la sucursal «solo pueden ver los registros de este diario». El filtro en `_search` saca los diarios ajenos de las búsquedas, y el comentario explica que no usaron una regla de lectura para no provocar errores en los campos relacionados con el diario.\n\nAsí que «si no ve, que no vea en ningún lado» no sería unificar lo que hay, sino **cambiar el diseño**. Se puede plantear, pero como decisión aparte y teniendo en cuenta el riesgo que señala ese comentario. Si vale el criterio declarado, el sospechoso es el error y no el libro mayor.\n\nTampoco está verificado que en la 18 se hayan reforzado los permisos respecto de la 16: no leímos el código de la 16.\n\n**Para cerrar la causa:**\n1. **Error completo y traceback:** repetí los pasos con el modo desarrollador activo y un usuario que vea el detalle técnico. Necesitamos modelo, operación, registro y nombres de las reglas. Con eso se revisan todas las reglas de ese modelo, porque no está confirmado que hayamos visto todas.\n2. **Misma acción por los dos caminos:** con el mismo usuario y la misma factura, entrá por Contabilidad → libro mayor, abrí la factura y tocá «Ver asientos». Ver las líneas en el reporte no prueba que esa acción funcione. Si falla en los dos, la diferencia no está en el reporte de seguimiento.\n3. **Compañías:** compará la compañía de la factura y del diario con las que el usuario tiene permitidas y activas en cada camino. Es una hipótesis: elegir «el libro mayor de la empresa» podría cambiar lo que muestra el reporte, pero no sé qué hace ese filtro.\n4. **Código:** leer la acción «Ver asientos», `account_followup` y el libro mayor. Si el error apunta ahí, comparar también con la 16.\n\n**Nota para el ticket**, si te sirve:\n> Se replicó: Contactos → contacto → reporte de seguimiento → filtro del libro mayor de la empresa → factura del punto 22 → «Ver asientos» da error de permiso de lectura (usuario con sucursal Norte; el diario es de Sur). Las reglas por sucursal revisadas no restringen la lectura, y la ayuda del módulo indica que se puede ver pero no publicar ni modificar. Causa sin confirmar. Faltan el traceback, probar la misma acción desde Contabilidad, revisar las compañías y leer el código.\n\nPor ahora no le diría al cliente que es el comportamiento esperado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11005,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2593,
+  "output_tokens_details": {
+   "thinking_tokens": 1333
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11005,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2593,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11005,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11005
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

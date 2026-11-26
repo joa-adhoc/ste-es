@@ -1,0 +1,44 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Este es el borrador. Antes de mandarlo, completá los `[COMPLETAR]` y probá el caso de los kits.\n\n---\n\nHola, van las respuestas:\n\n**1. Permisos.** Con Ventas, Inventario y Facturación no alcanza. El chequeo de conexión exige *Ajustes: Administrador* en todas las versiones de Odoo. En la 19, si falta, se corta antes de revisar el resto.\n\nSegún el manual, ese permiso permite leer la configuración de la base: aplicaciones instaladas, empresas y armado del catálogo. Tengan en cuenta que el conector no solo lee: también crea un campo técnico de precio en `product.product` y registros en `ir.model.data`.\n\nLa configuración completa es:\n- Administración: Ajustes\n- Ventas: Administrador\n- Inventario: Administrador\n- Contabilidad: Facturación\n- En Technical Settings: Gestión de Productos y Límite de crédito\n\nSobre las IP, el manual no publica ninguna. `[COMPLETAR: IPs de salida, si son fijas y cómo se avisan los cambios]`\n\n**2. Kits.** Odumbo publica la cantidad \"A la mano\" menos la \"Saliente\" que Odoo informa para cada producto en la ubicación configurada. No tiene una lógica propia para kits.\n\nEn el funcionamiento estándar de Odoo, esas cantidades se calculan a partir de los componentes, y la entrega de un kit vendido mueve las patas. Las patas quedan como salientes al confirmar la venta y se descuentan de \"A la mano\" al validar la entrega. `[COMPLETAR: resultado de la prueba con el pack, incluido si se sincroniza]`\n\n**3. Cambio desde el módulo actual.** `[COMPLETAR: procedimiento validado]`\n\n**4. Facturación.** Odumbo no factura. Pueden facturar a mano y en lote cada día: las facturas se generan y validan en Odoo, y Odumbo las detecta y las sube a la venta. La subida aplica solo a Mercado Libre y se hace entre 6 y 24 horas después. Si facturan una vez por día, a esa demora se le suma la espera hasta el lote. El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n\nPara que la factura salga sola al confirmar, el manual recomienda los tipos de pedido de venta. `[COMPLETAR: módulo para Odoo 17 Enterprise]`\n\n**5. Datos.** `[COMPLETAR: qué datos se guardan además de las credenciales, para qué se usan, y qué pasa con ellos en la baja, incluidos los plazos]`\n\n---\n\n**Notas para vos (no enviar)**\n\n- **Riesgo con los kits:** la explicación del cálculo estándar sale de mi conocimiento de Odoo, no del material, y no la probé en su versión. Si Odoo redondea por separado \"A la mano\" y \"Saliente\" del kit, se puede publicar stock de más. Con 10 patas a la mano y 3 salientes, daría 2 − 0 = **2 packs**, pero las 7 libres alcanzan para **1**.\n- **Prueba:** en una base con Odoo 17, cargá ese caso y compará lo que calcula Odoo con lo que publica Odumbo. Después vendé un pack y revisá la entrega y las patas.\n- **Productos no almacenables:** el conector los saltea, salvo los \"packs\". No está confirmado que eso incluya un kit de `mrp`, así que probalo con el mismo tipo de producto que usa el cliente.\n- **Punto 3:** esto es una propuesta mía para que la valide el equipo, no un procedimiento documentado:\n  1. Definir una fecha y hora de corte, y qué sistema se ocupa de cada venta.\n  2. Confirmar desde qué fecha importa ventas Odumbo y cómo reconoce las que ya cargó el módulo actual. No des por hecho que las reconoce.\n  3. Apagar en el módulo actual la importación, la facturación y la sincronización de stock antes de activar las de Odumbo.\n  4. Revisar las ventas pendientes de entrega o factura, y asignar cada una a un solo circuito. Revisar también si Odumbo volvería a subir facturas ya cargadas.\n  5. Probar antes en una copia sin conexión a las cuentas ni a la facturación reales. Después del corte, conciliar las ventas de Mercado Libre con los pedidos y facturas de Odoo.\n- **Módulo del punto 4:** como pista a verificar, revisá `sale_order_type` (OCA) y `sale_order_type_automation` (`ingadhoc/sale`). El material no confirma que den esta función en 17 Enterprise.\n- **IPs y datos:** las IP hay que pedirlas a quien opere la infraestructura. El manual solo menciona un ticket para pedir los datos técnicos de la conexión. Para el punto 5, consultá a quien se ocupe de datos o de legales.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11161,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3324,
+  "output_tokens_details": {
+   "thinking_tokens": 1589
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11161,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3324,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11161,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11161
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

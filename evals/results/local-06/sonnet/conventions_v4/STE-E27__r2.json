@@ -1,0 +1,47 @@
+{
+ "case": "STE-E27",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El 18-nov hubo 37 errores \"timeout after 30s\" en los reportes (`odoo_report`, workspace `pldistribucion`), todos entre las 13:10 y las 13:40 UTC. La consulta a `tool_usage_log` no muestra errores antes ni después.\n\nEn el mismo período, el worker se quedó sin memoria:\n\n- **13:05 a 13:41:** la memoria subió de 0,9 GB a 2 GB, que es el límite del contenedor.\n- **13:41:58:** el log muestra `Killed: out of memory (container limit 2 GB)`.\n- **13:42:10:** el worker se reinició.\n\nPor la coincidencia de horarios, creo que la falta de memoria puede explicar los timeouts, pero es una inferencia y no está probada.\n\nQuedan dos cosas abiertas:\n\n- **Qué hizo subir la memoria:** no lo encontré, porque el log no tiene el detalle por request. Por eso no puedo decir si puede volver a pasar.\n- **Si los reportes volvieron a funcionar para el cliente:** no verifiqué si los volvió a pedir después de las 13:42. Que no haya errores posteriores no alcanza para saberlo, así que todavía no le confirmaría que está resuelto.\n\nPara cerrar el segundo punto, buscaría en `tool_usage_log` los pedidos a `odoo_report` de ese workspace después de las 13:42, incluidos los exitosos. Para investigar la memoria en un próximo caso, propongo registrar el consumo por request.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10432,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 795,
+  "output_tokens_details": {
+   "thinking_tokens": 269
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10432,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 795,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10432,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10432
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

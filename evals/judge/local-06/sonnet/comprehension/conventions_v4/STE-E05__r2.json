@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Solo lo que tocaste y el lint: `make test ARGS=<lo que tocaste>` y `make lint`.",
+  "La regla anterior se apoyaba en que CI no devolvía el resultado antes que una corrida local, y eso dejó de pasar. El job de `test` bajó de ~11 a ~4 minutos con bcrypt configurable en tests (PR #829) y runners arm64. En cambio, la corrida local completa te bloquea la máquina entera.",
+  "Según el texto, en dos casos. (1) Cambios transversales: si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`, porque arrastran ~76% de los archivos de test (medido sobre el grafo de imports) y probar solo lo que tocaste ya no sirve como subconjunto. (2) Agentes de IA: una sola vez antes de entregar, no en cada iteración, porque el agente no tiene el criterio del autor para elegir el subconjunto e iterar contra CI genera pushes de ruido. El texto también advierte que estas excepciones no figuran en las convenciones de Adhoc, según las cuales las suites largas no se corren en la máquina del dev ni en el workspace de Tuqui Work (1 CPU y 2 GiB de RAM). Si el proyecto se aparta de la convención, debe estar declarado donde alguien lo revise, como `AGENTS.md §Overrides` o un ADR. Quien escribe aconseja revisarlo y, si no está declarado, no correría la suite completa por su cuenta y dejaría esa validación a CI."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "fe53f31a4c",
+  "control": "e1d643cdec"
+ }
+}

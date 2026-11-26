@@ -1,0 +1,47 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**No hay una opción nativa que cumpla todo el pedido.** El CC en la plantilla sirve para que Administración reciba la factura, pero las respuestas no le llegan y no saca a nadie. Para el resultado completo hay que ir por personalización, vía Consultoría.\n\n| Opción nativa | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| **CC o Para en la plantilla** (`email_cc`, `partner_to`) | Manda copia de la factura, en envío manual y automático. | No suma seguidores ni saca a los actuales. |\n| **Pasar el usuario «Administración» (C2) a notificaciones por correo** | Le llegarían por correo las respuestas en los documentos que sigue. En facturas de 2026 sigue unas 4.600. | No lo sigue en la factura de ejemplo ni saca a nadie. Cambia todas sus notificaciones, no solo las de facturas. |\n| **Agregar C1 como seguidor a mano** | C1 no tiene usuario, así que sirve para recibir por correo las respuestas de esa factura. | No es automático. |\n| **`reply_to` en la plantilla** (sin verificar) | Si el envío de facturas lo respeta, la respuesta podría ir a la casilla de Administración. | El material solo confirma `partner_to` y `email_cc`. Si la respuesta va directo a la casilla, esperaría que no quede en el chatter. Tampoco cambia quién sigue la factura. |\n| **Acciones «Agregar seguidores» y «Quitar seguidores»** | Permiten corregir en forma masiva o con una regla automática. | Es personalización por interfaz (Consultoría). |\n\n**Antes de derivar**\n- **La explicación del cliente no cubre su ejemplo.** En esa factura el vendedor no es seguidor. Sí lo es Usuario A, que la validó: `account_ux` la envía al validar y Odoo suscribe al autor del envío. La respuesta del 19/10 le llega por seguir la factura.\n- **El problema de los vendedores igual hay que mirarlo.** Seis vendedores portal siguen unas 4.100 facturas de 2026, pero el material no muestra cómo se agregan. Tampoco muestra qué tienen hoy `partner_to` y `email_cc`; revisaría eso en las plantillas de facturas y notas de crédito.\n- **«Sin usuarios internos» choca con lo nativo.** Quien envíe una factura vuelve a quedar como seguidor. Además, C2 es un usuario interno: propongo usar C1 como destinatario, a confirmar con el cliente, y definir si C2 se quita.\n- **La regla automática hay que probarla completa.** Si corre antes del envío, el autor puede volver a quedar suscripto; si corre después, un vendedor puede haber recibido ya el correo. Hay que probar validación, envío y respuesta, con facturas del cron y notas de crédito. Una lista fija de seguidores a quitar además requiere mantenimiento cuando cambian los usuarios.\n- **La fecha ya pasó.** El pedido era para antes del 25/10 y hoy es 26/11. Conviene confirmar qué sigue siendo urgente.\n\n**Conclusión propuesta para Revisión Técnica** (no la publiqué):\n\n> No hay una opción nativa que cumpla todo el resultado esperado. El CC de la plantilla envía copia a Administración, pero no hace que reciba las respuestas ni quita vendedores o usuarios internos. Además, Odoo suscribe a quien envía la factura. Se recomienda derivar a Consultoría la política de seguidores, la corrección de históricos y las pruebas de validación, envío y respuesta. Como paliativo parcial se puede evaluar la copia por plantilla y las notificaciones por correo para Administración, aclarando sus límites.\n\nSi querés agotar lo nativo antes, probaría `reply_to` en una base de prueba: enviar una factura, responder como cliente y ver a qué casilla llega, si queda en el chatter y a quién notifica. Aun si funciona, quedan pendientes los vendedores que reciben correos por ser seguidores.\n\nMe basé solo en el material que pegaste: no consulté el ticket ni la base, ni probé ninguna opción. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que tampoco cargué `tuqui_context`; para darlo de alta, la guía es `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11446,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4013,
+  "output_tokens_details": {
+   "thinking_tokens": 2464
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11446,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4013,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11446,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11446
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Para sumar la dependencia sin romper nada, ¿cuál de las dos opciones uso? Si es un venv propio en el worktree, pasame los comandos exactos para crearlo e instalar las dependencias, y confirmame si ahí `make install` ya funciona. Con `web/node_modules`, ¿es seguro sacar el link y correr `npm ci` en `web/`, y también tengo que sacar el link `node_modules` de la raíz? Como agrego una dependencia al `package.json`, ¿cómo actualizo antes el `package-lock.json` sin tocar el clone principal?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para no tocar el entorno compartido, quiero armar un venv propio en el worktree. ¿Qué comandos exactos corro, desde qué directorio, para sacar el link `tuqui_core/.venv`, crear el venv e instalar la dependencia nueva? ¿Después de sacar el link, `make install` ya funciona y deja el editable install apuntando al worktree?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para no tocar el venv compartido prefiero un venv propio en el worktree. ¿Me pasás los comandos exactos para sacar el link `tuqui_core/.venv`, crear el venv e instalar las dependencias con la nueva incluida? ¿Después de borrar el link puedo correr `make install` en el worktree sin afectar el clone principal?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Para no tocar el entorno compartido, quiero armar un venv propio en el worktree. ¿Qué comandos exactos corro, desde qué directorio, para sacar el link `tuqui_core/.venv`, crear el venv e instalar la dependencia nueva? ¿Después de sacar el link, `make install` ya funciona y deja el editable install apuntando al worktree?",
+ "followup_answer": "Podés sacar el link y crear el venv con los comandos de abajo. **No puedo confirmar que después `make install` funcione ni que el editable install quede apuntando al worktree.** El material no muestra el Makefile. Solo dice que el target se niega en un worktree linkeado y que una alternativa es borrar el link y armar un venv propio.\n\nTodo se corre **desde la raíz del worktree**.\n\n**1. Sacá el link**\n```bash\ndeactivate 2>/dev/null || true   # por si tenés activado otro venv\nls -l tuqui_core/.venv           # tiene que mostrar \"-> .../tuqui_core/.venv\" del clone principal\ntest -L tuqui_core/.venv && rm tuqui_core/.venv\n```\nUsá `rm` sin `-r` y sin barra final: así borrás solo el link.\n\n**2. Mirá qué hace `make install` antes de correrlo**\n```bash\ngrep -n -E -A20 '^(install|worktree-setup)[[:space:]]*:' Makefile\n```\nRevisá estos puntos, también en los scripts, variables o archivos incluidos que use:\n- **Control:** qué mira para negarse. Si solo mira si `.venv` es un link, debería dejarte seguir. Si detecta que estás en un worktree o mira otros links, puede seguir negándose.\n- **Venv:** si lo crea o espera que ya exista, y en qué ruta instala. Tiene que ser la del worktree.\n- **Editable:** desde qué ruta instala el paquete.\n- **Herramienta y versión:** si usa `pip`, `uv` u otra, y qué versión de Python pide.\n- **Otros efectos:** si escribe en `node_modules` o en otra ruta que siga linkeada.\n\n**3. Creá el venv e instalá**\n\nSi la receta crea el venv y todo lo que escribe queda en el worktree, corré `make install`. Si necesita que el venv ya exista, crealo antes con la versión de Python que pida el proyecto:\n```bash\npython3 -m venv tuqui_core/.venv\nmake install\n```\nEsto vale si el proyecto usa un venv estándar. Si la receta usa `uv` u otra herramienta para crearlo, seguí la receta.\n\nEl venv nuevo arranca vacío, así que **no alcanza con instalar la dependencia nueva**: necesita todas las del proyecto y las de test. Declará la nueva en el archivo de dependencias que use el proyecto, antes de `make install`. Instalarla a mano la deja solo en tu venv. No te doy un comando de instalación alternativo porque no sé cuál es ese archivo ni qué extras usa. Si `make install` se niega, no fuerces el control: pasame la receta y lo vemos.\n\n**4. Verificá a dónde apunta**\n\nSi el venv tiene `pip`:\n```bash\ntuqui_core/.venv/bin/python -c 'import sys; print(sys.prefix)'\ntuqui_core/.venv/bin/python -m pip list --editable\n```\nEl primer comando tiene que mostrar una ruta dentro del worktree. En el segundo, la ubicación del paquete de Tuqui también tiene que estar en el worktree. Que los tests pasen no lo prueba: según el material, ya usan el código del worktree aun con el venv compartido.\n\nNo vuelvas a correr `make worktree-setup` sin revisar en su receta qué hace si `.venv` ya existe. Y si estás en un workspace de Tuqui Work (`ADHOC_RUNTIME=managed`), tené en cuenta el límite de espacio antes de crear otro venv. En ese caso, dejá las suites completas al CI.\n\nNo corrí ninguno de estos comandos en tu worktree.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11919,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1980,
+  "output_tokens_details": {
+   "thinking_tokens": 707
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11919,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1980,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11919,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11919
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1e1975f173"
+ }
+}

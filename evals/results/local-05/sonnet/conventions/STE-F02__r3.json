@@ -1,0 +1,44 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Hay opciones nativas, pero con lo que muestra el material ninguna cumple todo el pedido.** El CC de la plantilla resuelve el envío de la factura, no las respuestas ni los seguidores.\n\n| Lo que pide el cliente | CC en la plantilla | Otra vía sin código |\n|---|---|---|\n| Que Administración reciba la factura | Sí, en envío manual y automático | |\n| Que reciba las respuestas | No, porque no la suma como seguidora | Parcial: preferencia de notificación |\n| Sacar vendedores e internos | No | «Quitar seguidores» (Consultoría) |\n| Corregir el histórico | No | «Agregar» y «Quitar seguidores» en forma masiva (Consultoría) |\n\n**Qué se puede probar sin personalizar**\n1. **CC (`email_cc`):** hay que ponerlo en las plantillas que usan los cinco diarios. Falta confirmar cuál usan las notas de crédito.\n2. **Notificaciones de «Administración» (C2):** hoy le quedan en la bandeja de Odoo. Aparece como seguidor en unas 4.600 facturas de 2026, así que pasarlo a notificación por correo haría que le lleguen las respuestas de las facturas que sigue. Afecta todas sus notificaciones, no asegura que siga las facturas nuevas (en la de ejemplo no está) y no saca a nadie.\n3. **`Responder a` (`reply_to`) en la plantilla:** es la alternativa a revisar para las respuestas, pero **no verifiqué** que el envío de facturas en 18 lo respete. Se prueba en una copia de la base: enviar a mano y automáticamente, responder y mirar adónde llega. Si va directo a la casilla, esperaría que la respuesta no quede en el chatter ni avise a los seguidores. Tampoco evita un «Responder a todos» ni otras notificaciones.\n\n**Diagnóstico**\n- En la factura de ejemplo, **el vendedor no es seguidor**. La respuesta le llega a un seguidor interno; Usuario A la validó, `account_ux` la envió al validar y Odoo suscribe al autor del envío. Es la explicación más probable de por qué Usuario A la sigue. El material no ubica a Usuario B entre sus seguidores, aunque el cliente dice que también recibió el aviso.\n- Los vendedores portal sí siguen unas 4.100 facturas de 2026. El material no muestra cómo se agregaron, así que la explicación del cliente no está confirmada.\n- Odoo no tiene opción para dejar de suscribir al autor. Una regla que quite seguidores tiene que actuar **después** de esa suscripción; si corre al validar, puede quedar antes. Hay que probarlo, también con envíos y mensajes posteriores.\n\n**Recomendación:** derivar a Consultoría como personalización, en línea con el análisis anterior. Para empezar evaluaría reglas con las acciones nativas antes que código; el que propone el ticket solo agrega Administración. No incluiría `mail_autosubscribe`, porque no cubre este caso. Como paliativo ofrecería el CC, aclarando que **no cambia quién recibe las respuestas**.\n\n**Para el chatter (borrador)**\n> Hay soluciones nativas parciales. El CC de la plantilla envía copia de la factura a Administración, pero no la suma como seguidora ni quita a otros. No identificamos una configuración que cumpla todo el pedido. Las reglas con «Agregar/Quitar seguidores» son personalización: se propone derivar a Consultoría.\n\n**Preguntas abiertas**\n- **Fecha:** el pedido era para antes del 25/10 y hoy es 26/11. Si es el de este año, venció hace un mes; conviene confirmar la urgencia y el nuevo plazo.\n- **Destinatario:** ¿«Administración» es el contacto C1 o el usuario C2? Tienen el mismo correo, y combinar CC con seguidores podría duplicar envíos.\n- **Respuestas:** ¿tienen que quedar registradas en Odoo o alcanza con que lleguen a la casilla?\n- **Alcance:** ¿qué usuarios internos hay que excluir, en qué notificaciones y desde qué fecha se corrige el histórico?\n\nMe basé solo en el material que pegaste: no entré al ticket ni a la base, ni probé nada. No tengo disponible `tuqui-adhoc` en esta sesión, así que tampoco cargué las reglas de la empresa; para darlo de alta, usá `adhoc-way-guide`. El borrador no está publicado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10872,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3659,
+  "output_tokens_details": {
+   "thinking_tokens": 2056
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10872,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3659,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10872,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10872
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

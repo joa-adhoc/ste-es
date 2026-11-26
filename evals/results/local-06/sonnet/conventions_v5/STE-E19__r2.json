@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El test falló porque la policy que quedó activa es, según todo indica, la del borrador, `USING (true)`, que no filtra por workspace.** `0398` crea `scheduled_runs_ws`. Después `0412` ve que ya existe una policy con ese nombre y saltea el `CREATE`, así que el filtro por `workspace_id` nunca se aplica. Lo confirma el log: `policy \"scheduled_runs_ws\" already exists, skipped`. Por eso el workspace B ve 2 filas del A.\n\n**Es una falla de aislamiento, no del test.** Como la policy no tiene `FOR`, vale para todas las operaciones. Con `USING (true)` y sin `WITH CHECK`, otro workspace también podría insertar, modificar o borrar filas, si los permisos de la tabla se lo dejan. El test solo muestra la lectura. Si `0398` se aplicó en un entorno compartido o en producción, revisalo ya y avisá a quien esté a cargo.\n\n**Qué hacer:** no edites `0398` ni `0412`. Según `AGENTS.md`, una migración ya aplicada no vuelve a correr. Creá una nueva con el siguiente número libre (por ejemplo, `0413_fix_scheduled_runs_rls.sql`):\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid)\n  WITH CHECK (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nConviene que el `DROP` y el `CREATE` corran en la misma transacción; confirmá que tu runner lo haga. No pongas otro `IF NOT EXISTS` por nombre: no compara el contenido de la policy y así se escondió este error.\n\nDespués aplicá las migraciones y volvé a correr `pytest tuqui_core/tests/test_rls.py -q`. En cada entorno, revisá el resultado con esto:\n\n```sql\nSELECT policyname, permissive, cmd, roles, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n\nSELECT relrowsecurity, relforcerowsecurity\nFROM pg_class WHERE oid = 'scheduled_runs'::regclass;\n```\n\n- **Policies:** `scheduled_runs_ws` tiene que mostrar el filtro por workspace. Mirá que no haya otra policy permisiva más abierta, porque las permisivas se suman con `OR`.\n- **RLS:** `relrowsecurity` tiene que ser `true`. El `grep` solo buscó el nombre de la policy, así que no muestra si RLS está activado. Si da `false`, la migración nueva también necesita `ALTER TABLE scheduled_runs ENABLE ROW LEVEL SECURITY;`.\n\nNo probé el arreglo ni consulté la base: el diagnóstico sale de la salida y las líneas que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10703,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1537,
+  "output_tokens_details": {
+   "thinking_tokens": 473
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10703,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1537,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10703,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10703
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega prod y prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no la tiene y el runner saltea el drop, ¿cómo y cuándo se aplica después? ¿El deploy sigue igual con la columna puesta?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega prod y prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no la tiene y el runner saltea el drop, ¿cómo y cuándo se termina aplicando en prod?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega prod y ese entorno tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no la tiene y el runner saltea el drop, ¿cómo y cuándo se aplica después? Revisalo en la config o en los docs de infra, porque con el fragmento no alcanza para saber si la migración llega a prod."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Qué rama despliega prod y prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no la tiene y el runner saltea el drop, ¿cómo y cuándo se aplica después? ¿El deploy sigue igual con la columna puesta?",
+ "followup_answer": "**El fragmento no dice qué rama despliega prod ni si prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`.** No puedo confirmarlo: el directorio de trabajo está vacío, así que no tengo el código ni la configuración. Que el gate acepte `main` y `staging` no prueba que prod salga de `main`. Para saberlo, mirá en Railway, en el servicio de prod, la rama que despliega, el valor de la variable y el `RAILWAY_GIT_BRANCH` que recibe. Revisá también que su deploy corra `python -m tuqui_core.db.migrate`.\n\n**Si el runner la saltea, cómo se aplica después:** como no queda registrada en `_migrations`, sigue pendiente. Según el contrato, debería aplicarse en la siguiente corrida del runner contra esa base que cumpla las dos condiciones: la variable en `1` y la rama `staging` o `main`. No se aplica sola por el paso del tiempo. Si a prod le falta la variable, todos sus deploys la van a saltear hasta que alguien la configure y el runner vuelva a correr, por ejemplo con un redeploy. El fragmento no describe un procedimiento manual para esto. Habilitar la variable alcanza a todas las migraciones destructivas pendientes, no solo a la tuya, así que revisalas antes y acordalo con quien administre prod. En ese conteo, que la variable quede fija o se ponga solo para ese deploy cambia qué pasa con los próximos drops.\n\n**Si el deploy sigue con la columna puesta:** el fragmento dice que el runner \"saltea\" el archivo, pero no dice con qué código termina, si sigue con las migraciones siguientes ni si el deploy continúa. Yo esperaría que saltearlo no corte el deploy, porque es lo que les pasa a los PR environments por diseño, pero es una inferencia no verificada. Para cerrarlo hay que leer `tuqui_core/db/migrate.py` o el log de un deploy o preview donde se haya salteado una migración.\n\nAunque el deploy siga, hay dos riesgos:\n- **Código nuevo con la columna puesta:** tiene que funcionar así. Por ejemplo, si la columna es `NOT NULL` sin valor por defecto y el código nuevo ya no la completa, los `INSERT` fallan.\n- **Migraciones posteriores:** si alguna da por hecho que la columna ya no está (por ejemplo, vuelve a crear una con el mismo nombre), puede fallar o comportarse distinto donde el drop se salteó.\n\nEn mi respuesta anterior puse \"Sí\" para el deploy de `staging` o `main` si tiene la variable. Eso describe la regla del runner, no confirma que prod la cumpla.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12343,
+  "cache_read_input_tokens": 47103,
+  "output_tokens": 1177,
+  "output_tokens_details": {
+   "thinking_tokens": 104
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12343,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 964,
+    "cache_read_input_tokens": 29584,
+    "cache_creation_input_tokens": 278,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 278
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "f304aff110"
+ }
+}

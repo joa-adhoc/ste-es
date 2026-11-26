@@ -1,0 +1,47 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Odoo intenta borrar una recepción vacía que él mismo crea al confirmar P00231, y `stock_ux` se lo impide.** No intenta borrar la 412 (WH/IN/00098). Esto sale de cruzar los datos con el código descrito, pero no lo reproduje.\n\n## Qué pasa\n1. El 11/11 la orden se confirmó (12:26) y registró las 2 unidades recibidas (12:27). El mismo usuario la canceló (13:26) y la volvió a solicitud de cotización (13:27). La 412 sigue en Hecho.\n2. Al confirmar de nuevo, Odoo crea otra recepción. Como las 2 unidades ya figuran recibidas, infiero que queda sin movimientos.\n3. Odoo intenta borrarla (`created_receipt.unlink()`).\n4. «Recepciones» tiene `block_picking_deletion` activado. Con eso alcanza para que `stock_ux` dé el error, cualquiera sea el estado del traslado.\n\n**415 y 416:** serían las recepciones temporales de cada intento. El error revierte la operación, así que no quedan en la base. PostgreSQL no reutiliza el número ya consumido, y por eso cambia al reintentar.\n\n## Cómo regularizar\nPropongo lo siguiente, **primero en una copia neutralizada de la base**:\n\n1. Confirmar con el cliente por qué canceló la orden y si corresponde confirmarla tal como está.\n2. Anotar el stock del producto, las recepciones y movimientos de la orden, las cantidades de la línea y los datos de la factura.\n3. En el tipo de operación «Recepciones», desactivar «Bloquear eliminación de traslados».\n4. Confirmar P00231.\n5. Volver a activar la opción, también si la confirmación falla.\n6. Comparar con lo anotado:\n   - La orden queda confirmada. Si queda pendiente de aprobación, todavía falta ese paso.\n   - La 412 sigue en Hecho y no aparecen recepciones ni movimientos nuevos.\n   - El stock no cambia.\n   - La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la línea.\n   - La fecha de confirmación puede cambiar; revisá si afecta algún reporte.\n\n**La prueba puede fallar:** sin el bloqueo, `stock_ux` todavía impide borrar traslados que no estén en borrador o cancelados. No sé en qué estado está la recepción temporal al borrarse. Si falla o algo no coincide, no lo apliques en producción.\n\nEn producción, hacelo en un momento de poca actividad. Mientras la opción esté desactivada, otros usuarios pueden borrar traslados en borrador o cancelados de «Recepciones».\n\nPara regularizar, evitá borrar o devolver la 412, anular la factura o cargar otra orden por la misma compra. Eso puede duplicar o desajustar stock y facturación. Tampoco cambiaría las cantidades ni forzaría estados por SQL.\n\n## Preguntas abiertas\n- **Cancelación:** ¿por qué se pudo cancelar una orden con una recepción hecha? No se leyó ese código. El material tampoco dice si la factura ya estaba contabilizada a las 13:26.\n- **Recepción vacía:** falta comprobarlo en la copia, o leer cómo se generan los movimientos y en qué estado queda el traslado.\n- **Producto:** el bloqueo de `stock_ux` choca con esta limpieza de Odoo estándar. Conviene reportarlo y evaluar una excepción acotada para la recepción vacía creada al confirmar. Desactivar la opción solo serviría para destrabar este caso. No cargué ningún reporte.\n\n## Respuesta sugerida al cliente\n> El error no se refiere a la recepción WH/IN/00098. Según nuestro análisis, al confirmar otra vez la orden, Odoo intenta eliminar una recepción temporal, y el bloqueo de eliminación lo impide. Vamos a probar la solución en una copia de la base para verificar que no cambien el stock ni la factura. ¿Nos cuentan por qué se canceló la orden el 11/11 y si debe quedar confirmada con los mismos datos? Mientras tanto, les pedimos no devolver la recepción, no anular la factura y no cargar otra orden por esta compra.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no pude cargar `tuqui_context` con las reglas de la empresa. Usé solo tu material, y no toqué la base ni envié nada. Revisá la respuesta antes de mandarla. Para dar de alta `tuqui-adhoc`, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11065,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3428,
+  "output_tokens_details": {
+   "thinking_tokens": 1749
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11065,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3428,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11065,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11065
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

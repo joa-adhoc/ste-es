@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Se borra la memoria más vieja según `created_at` (FIFO), en la misma transacción de base de datos. Como cuenta la fecha de creación, el texto no prevé que una memoria se salve por usarse seguido. El material lo llama \"silent eviction\", pero aclara que el modelo se entera por un mensaje en la respuesta de la tool; no dice que se le avise al usuario.",
+  "En cada turno entra solo un encabezado de cada memoria: el título más el `summary` o, si no hay `summary`, hasta 250 caracteres del cuerpo. Si en ese caso el cuerpo supera los 250, el encabezado termina en `... [read]`. Cada línea del ejemplo incluye además un tag y el `id`. Los encabezados van después del bloque `CURRENT USER` y antes del bloque del proyecto, en dos secciones: workspace (compartidas con el equipo) y usuario (personales). Los encabezados están sujetos al presupuesto `_MEMORY_BUDGET_CHARS`. Si el modelo necesita el cuerpo completo de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.",
+  "Si los encabezados superan `_MEMORY_BUDGET_CHARS` (12K caracteres, unos 3K tokens), rapidfuzz los puntúa contra el mensaje actual del usuario y quedan los top-N. Este límite filtra lo que entra al prompt, y el texto no indica que borre nada, así que una memoria excluida en un turno podría entrar en otro con un mensaje distinto. El texto infiere además que una memoria relevante pero escrita con otras palabras podría quedar afuera. No aclara si el presupuesto es por scope o para el total."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "07c7f9c536",
+  "control": "2fefeeffdf"
+ }
+}

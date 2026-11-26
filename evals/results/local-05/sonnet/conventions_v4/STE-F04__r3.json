@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Replicaste el error, pero con lo que leí no puedo confirmar que sea el comportamiento esperado.** El diseño documentado del módulo de sucursales (`account_multi_store`) apunta a otro criterio: **ver sí, publicar o modificar no**. La ayuda del campo de sucursal del diario dice:\n\n> «los usuarios que no son de esta sucursal solo pueden ver los registros de este diario, pero no pueden publicar ni modificar asientos»\n\n**Qué muestran las reglas**\n- **Sucursales:** las reglas sobre diarios, asientos y pagos no restringen la lectura. La de diarios limita solo modificar, crear y borrar.\n- **Usuarios por diario:** no deberían afectar al punto 22, porque ningún diario de venta tiene usuarios cargados.\n- **Compañía:** la regla del diario sí restringe la lectura. Habría que descartar que influyan las compañías del usuario o las que tiene activas.\n- **Filtro adicional:** además de las reglas, el módulo modifica la búsqueda de diarios. A un usuario como Encargado Norte solo le devuelve los diarios sin sucursal o de sus sucursales. Según el comentario del código, lo hicieron así para no bloquear la lectura y evitar errores en los campos relacionados con el diario.\n\n**Mi hipótesis (no verificada):** ese filtro termina bloqueando también la lectura. Por lo que sé de Odoo 18, al leer datos de un registro usa esa misma búsqueda. Si el diario no aparece, puede dar error de acceso. Entonces «Ver asientos» fallaría al pedir datos del diario Sur, en contra de lo que buscaba el módulo. Esto no explica por sí solo qué reglas nombra el mensaje.\n\n**Sobre la diferencia con el libro mayor:** todavía no sé por qué pasa, porque no leí el código de ninguno de los dos reportes. Que veas las facturas en el libro mayor tampoco prueba que desde ahí funcione «Ver asientos». Tampoco comparé con la 16, así que no le diría al cliente que se reforzaron los permisos.\n\n**Qué haría ahora**\n1. Con Encargado Norte, abrí **la misma factura** desde Contabilidad → libro mayor y tocá ⋮ → «Ver asientos». Si también falla, el problema probablemente está en esa acción y no en el reporte de origen. Si funciona, hay que comparar cómo llega cada camino.\n2. Copiá el **mensaje de error completo**, con el modelo (tipo de registro), la operación y las reglas que nombra. Si podés, activá el modo desarrollador y sumá el traceback (el detalle técnico del error).\n3. Con eso, hay que leer el código de «Ver asientos» y de los dos reportes en 18. Para afirmar qué cambió, también el de la 16.\n\n**Sobre el criterio:** coincido en unificarlo, pero yo iría por **«ve, pero no modifica»**, que es lo que describe el módulo. «Que no vea en ningún lado» sería cambiar ese diseño. Habría que restringir la lectura de asientos y pagos, y revisar los reportes. El riesgo es que un encargado vea una deuda parcial de un cliente que compra en las dos sucursales. Si el cliente necesita esa restricción, lo trataría como un pedido aparte.\n\nNo le daría la sucursal Sur al usuario solo para evitar el error: probablemente también le permita publicar y modificar en Sur.\n\n**Para el cliente, por ahora:** «Pudimos reproducir el error al usar \"Ver asientos\" en una factura de la sucursal Sur. Estamos revisando si ese bloqueo corresponde y por qué el comportamiento parece distinto según desde dónde se consulta. Todavía no podemos confirmar la causa».\n\nEn esta sesión no tengo disponible la conexión `tuqui-adhoc`, así que no cargué las reglas de la empresa y me basé solo en tu material. Para darla de alta, usá la guía `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11125,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3391,
+  "output_tokens_details": {
+   "thinking_tokens": 1982
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11125,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3391,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11125,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11125
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

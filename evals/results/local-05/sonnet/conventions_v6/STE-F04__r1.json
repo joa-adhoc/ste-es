@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con lo que leíste, no daría por bueno que el error sea correcto porque el usuario solo tiene Norte.** El criterio que declara el módulo es el contrario. La ayuda de `store_id` dice que quien es de otra sucursal **puede ver** los registros del diario, pero no publicarlos ni modificarlos. Las reglas de `account_multi_store` sobre diarios, asientos y pagos acompañan eso, porque tienen `perm_read` = False. Las de `account_journal_security` no aplican, porque los diarios de venta no tienen usuarios cargados. Así que ver las facturas del punto 22 en el libro mayor coincide con ese diseño.\n\n**Mi hipótesis es que el bloqueo viene del `_search` sobrescrito en `account.journal`.** La idea era ocultar los diarios ajenos en las búsquedas sin impedir su lectura. Pero, según lo que sé del core de Odoo 18 (no lo verifiqué en esta base), al leer campos de un registro que no está en caché, `fetch()` también pasa por `_search`. Si el diario queda filtrado ahí, Odoo lanza un error de acceso de lectura, aunque ninguna regla restrinja leerlo. «Ver asientos» podría estar haciendo esa lectura sobre el diario Sur. En otras pantallas podría no fallar si leen con `sudo`, consultan por SQL o no leen el diario.\n\nEsto todavía no explica el texto «las siguientes reglas lo impiden». La única regla de lectura de tu lista sobre diarios es la multi-compañía. Necesitamos ver qué modelo, registro y reglas nombra el error.\n\nPara confirmarlo:\n1. **Error completo y traceback:** muestran qué se intentó leer y desde qué método.\n2. **Prueba de lectura**, en un shell sobre una copia de la base, con el usuario Encargado Norte y sin `sudo`: `env['account.journal'].with_user(user).browse(journal_id).read(['name'])`. Antes corré `env.invalidate_all()`. Si falla con el diario Sur y funciona con uno Norte, esa lectura está bloqueada. Falta confirmar con el traceback que sea la misma que dispara el botón.\n3. **Código:** el `fetch()` de la versión desplegada, el `_search` del módulo y lo que ejecuta «Ver asientos».\n4. **Los dos reportes:** no leímos su código, así que todavía no sé por qué el de seguimiento al principio no muestra todas las facturas. Que falten en una vista y que dé error al abrir algo pueden tener causas distintas.\n\n**Sobre unificar:** yo tomaría como referencia «ve, pero no publica ni modifica». Si se confirma la hipótesis, lo que hay que corregir es que el filtro de búsqueda no bloquee la lectura, sin dejar de limitar los diarios que se ofrecen para elegir. «Si no ve, que no vea en ningún lado» sería cambiar el diseño: habría que restringir la lectura de asientos, pagos y reportes, y decidirlo como cambio funcional.\n\nTampoco afirmaría que en la 16 los permisos eran más livianos o que ahora se reforzaron: no leímos ese código. Al cliente, por ahora, le diría esto: «Reprodujimos el error. Estamos revisando por qué una pantalla deja ver las facturas de otra sucursal y otra lo impide; todavía no confirmamos que sea una restricción esperada». No le asignaría la sucursal Sur al usuario solo para destrabarlo, porque también le daría permiso para operar con los diarios de esa sucursal.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11145,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2905,
+  "output_tokens_details": {
+   "thinking_tokens": 1645
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11145,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2905,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11145,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11145
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

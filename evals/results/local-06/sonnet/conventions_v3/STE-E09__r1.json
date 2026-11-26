@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Si **al menos una** habilidad contesta, el usuario queda conectado y ve un aviso de conexión parcial. Si **no contesta ninguna**, el backend borra el token y el front muestra un error.\n\n## Antes de conectar\nEl admin registra el server con `auth_type=oauth_per_user`. Carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n## Conexión\n\n1. **Usuario → front:** abre `/connectors` y clickea **Connect** en el server.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve la `authorize_url` con un `state` protegido con AES-GCM, que vence a los 10 minutos.\n   - El `state` lleva `server_id`, `user_id`, `issued_at` y `nonce`.\n   - Puede llevar también `code_verifier` (PKCE) y, en conectores de plataforma, `scope_profile`.\n   - La URL incluye `access_type=offline` y `prompt=consent`. Google necesita los dos para emitir el refresh token. El primero lo pide y el segundo fuerza que lo emita en cada autorización. Así, desconectar y reconectar no deja al usuario sin refresh token. Según el material, los demás providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n4. **Front → provider:** redirige al usuario.\n5. **Provider → backend:** redirige a `GET /api/mcp-oauth/callback?code=...&state=...`. Es una redirección del navegador al callback.\n6. **Backend ↔ provider:** el backend valida el `state`, cambia el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n7. **Backend ↔ habilidades:** todavía en el callback, hace la prueba de humo. Introspecta en paralelo **todas las habilidades habilitadas**.\n8. **Backend → front:** redirige a la SPA con el resultado. El destino depende del dueño de la conexión, sin un parámetro `return_to` aparte:\n   - **Caso general:** `/w/{slug}/settings/connectors?connected={server_id}`.\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`.\n\n## Si fallan habilidades\n\n| Resultado de la prueba | Token | Redirect y pantalla |\n|---|---|---|\n| No contesta ninguna | Se borra | `connect_error=<motivo>`: la card muestra el banner de error |\n| Contesta al menos una, pero no todas | El usuario queda conectado | `connect_warning=<habilidades>`: banner de conexión parcial |\n\nO sea, el intercambio de tokens puede salir bien y la conexión fallar igual. En el caso parcial no se desconecta al usuario, porque todavía puede usar una parte del conector.\n\n## Después: refresh\nAl construir los toolsets, se ejecuta `refresh_if_expired`. Renueva el token de forma proactiva si le quedan menos de 60 segundos de validez. No es un paso que haga el usuario al conectar.\n\n## El parámetro `resource` (RFC 8707)\nEs la URI canónica del server. El discovery la guarda en `OAuthPerUserConfig.resource` cuando el server la declara en su protected-resource metadata.\n\nSi está guardada, viaja en tres momentos: la autorización (punto 3), el intercambio de tokens (punto 6) y el refresh. **Si no está guardada, no se manda.** Así siguen andando los conectores anteriores a ese campo. Adivinarla es peor, porque un servidor de autorización que la valida rechaza los valores que no reconoce.\n\n## Lo que el material no aclara\nNo lo des por supuesto. Para confirmarlo habría que revisar el código o la documentación completa, ya que el material tiene además un fragmento recortado (`[...]`).\n\n- **Errores previos a la prueba:** qué pasa si el usuario rechaza el consentimiento, si el `state` es inválido o venció, o si falla el intercambio.\n- **Reuso del `state`:** tiene un `nonce`, pero no dice si el backend impide usarlo dos veces.\n- **Criterio de \"no contesta\":** no indica el timeout, si hay reintentos ni qué pasa si no hay habilidades habilitadas.\n- **Aviso parcial:** supongo que `<habilidades>` son las que fallaron, pero no lo dice. Tampoco aclara si `connect_warning` va junto con `connected`, ni a qué destino van el aviso y el error.\n- **Fallo del refresh:** no dice qué pasa con el token ni qué ve el usuario.\n- **PKCE y `client_secret`:** el `code_verifier` es opcional, pero no dice cuándo se usa. Tampoco detalla cómo se envían él y el `client_secret` a `token_url`.\n\nUn detalle de términos: el material dice `state` \"firmado\" con AES-GCM. AES-GCM es cifrado autenticado: además de detectar cambios, oculta el contenido. No es solo una firma, y eso importa si el `state` lleva el `code_verifier`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11128,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2312,
+  "output_tokens_details": {
+   "thinking_tokens": 508
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11128,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2312,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11128,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11128
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

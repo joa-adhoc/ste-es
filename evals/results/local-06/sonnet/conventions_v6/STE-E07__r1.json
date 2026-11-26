@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Son dos problemas distintos, y en los dos casos conviene correr los tests con `make` desde la raíz del repo.\n\n**1. `pytest` desde la raíz.** La configuración de los tests está en `tuqui_core/pyproject.toml` y desde la raíz pytest no la lee. Pierde el modo asyncio, además junta `evals/tests` y puede dar miles de fallas que no son del código. El `conftest.py` de la raíz corta esa ejecución con un mensaje. No vi tu error, así que no puedo confirmar que sea ese.\n\n**2. `-k a or b`.** La expresión necesita sus propias comillas dentro de `ARGS`:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\nLas comillas simples hacen que todo llegue a `make` como un solo valor. Las dobles mantienen junto `a or b` cuando la receta se lo pasa a pytest. Sin las dobles, pytest toma `or` como un path.\n\nEl material no distingue un detalle: si escribiste `make test ARGS=-k a or b` sin ninguna comilla, `make` debería recibir `a`, `or` y `b` como targets aparte. El error `file or directory not found: or` es el esperable con `ARGS='-k a or b'`. Puede que el comando que copiaste no sea exactamente el que corriste (no probé ninguno de los dos).\n\n**Otros usos:**\n\n```bash\nmake test                                     # todos los unit tests, el mismo paso de pytest que corre CI\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto; los paths son relativos a tuqui_core/\n```\n\nPara otras suites están `make test-rls`, `make test-web` y `make test-evals` (los unit tests de `evals/`, no los benchmarks). `make lint` corre el chequeo de ruff y de formato.\n\n**Si necesitás `pytest` directo**, hacé antes `cd tuqui_core`. Si lo que probás lee variables de entorno directo de `os.environ`, cargá también `.env.test`, como hace el Makefile. `pytest tuqui_core/tests/test_x.py` desde la raíz también corre, pero el material advierte que así se saltea un \"lock\" que el fragmento no explica.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10906,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1240,
+  "output_tokens_details": {
+   "thinking_tokens": 474
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10906,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1240,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10906,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10906
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás cómo completar cada ID_ y columna desde la pantalla? Necesito saber qué campo de Odoo es cada columna (los nombres técnicos no los entiendo), cuáles son obligatorios, de dónde saco el identificador de cliente/proveedor, diario, método de pago e impuesto de retención, y en qué menú se importa cada archivo. Y confirmame con una prueba de importación que las columnas de cheques y retenciones mapean bien y que se respeta la factura elegida sin que se recargue toda la deuda ni se dupliquen las retenciones."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo consigo desde la pantalla los demás identificadores (cliente o proveedor, diario, método de pago, impuesto de retención y banco)? Explicame de dónde exporto cada uno y qué elijo en cada caso, sobre todo el método de pago para los archivos con cheques. De paso, aclarame qué es lo último que decís de `tuqui-adhoc` y `adhoc-way-guide`: ¿qué es lo que hay que \"dar de alta\" y tengo que hacer algo yo?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás los archivos explicados desde la pantalla y con un ejemplo completo? Necesito una tabla que diga, para cada columna, qué campo de Odoo es (nombre en pantalla), si es obligatorio y de dónde saco el valor. En especial: cómo consigo el identificador externo de cliente o proveedor, diario, método de pago e impuesto de retención, y qué va en las columnas de cheques y retenciones. Además, ¿podés probar una importación en una base de prueba (o decirme cómo probarla) para confirmar que esos nombres de columnas se reconocen, que se respetan las facturas elegidas y que las retenciones no se duplican?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me pasás cómo completar cada ID_ y columna desde la pantalla? Necesito saber qué campo de Odoo es cada columna (los nombres técnicos no los entiendo), cuáles son obligatorios, de dónde saco el identificador de cliente/proveedor, diario, método de pago e impuesto de retención, y en qué menú se importa cada archivo. Y confirmame con una prueba de importación que las columnas de cheques y retenciones mapean bien y que se respeta la factura elegida sin que se recargue toda la deuda ni se dupliquen las retenciones.",
+ "followup_answer": "**No puedo confirmarte la prueba de importación: no la hice.** La carpeta de trabajo está vacía, no tengo conexión a la base del cliente y no llegué a buscar Odoo en el resto de la máquina. Por eso siguen **sin verificar** el mapeo de cheques y retenciones, que se respete la factura y que no se dupliquen retenciones. Abajo tenés cómo probarlo.\n\nLos nombres en pantalla, menús y botones salen de mi conocimiento de Odoo, no del material. Pueden cambiar según la traducción o los módulos.\n\n## Columnas\n\"Sí\" en los datos del pago viene del material. \"Para este caso\" significa que la necesitás, aunque el material no la marca como obligatoria.\n\n### Datos del pago\n\n| Columna | Campo en pantalla | ¿Obligatoria? | Cómo completarla |\n|---|---|---|---|\n| `id` | ID externo | Recomendada | Inventalo, sin repetir: `imp_recibo_001`. Si reimportás el mismo, Odoo intenta actualizar ese pago. |\n| `partner_type` | Tipo de contacto | Sí | `customer` (cliente) o `supplier` (proveedor) |\n| `payment_type` | Tipo de pago | Sí | `inbound` (cobro) o `outbound` (pago) |\n| `partner_id/id` | Cliente / Proveedor | Sí | ID externo |\n| `date` | Fecha | Sí | `2026-11-26` |\n| `journal_id/id` | Diario | Sí | ID externo |\n| `payment_method_line_id/id` | Método de pago | Sí | ID externo |\n| `amount` | Importe | Para este caso, sin cheques | `1000.00`. Con cheques no va: es su suma. |\n| `to_pay_move_line_ids/id` | Deudas a pagar | Para este caso | ID externo del apunte, no el número de factura |\n\nEn los recibos va `customer` + `inbound`; en los pagos a proveedores, `supplier` + `outbound`. Entiendo que el importe no incluye las retenciones, pero verificalo con el total en la prueba.\n\n### Cheques\nTodas empiezan con `l10n_latam_new_check_ids/`.\n\n| Termina en | Campo | ¿Obligatoria? |\n|---|---|---|\n| `name` | Número | Para este caso |\n| `payment_date` | Fecha de pago | Para este caso |\n| `bank_id` | Banco (nombre exacto) | No; vacío, sale del cliente |\n| `issuer_vat` | CUIT del emisor | No; vacío, sale del cliente. Se valida. |\n| `amount` | Importe del cheque | Para este caso; mayor a 0 |\n\n### Retenciones\nTodas empiezan con `l10n_ar_withholding_line_ids/`. Si no hay retención, dejá las cuatro vacías.\n\n| Termina en | Campo | Si cargás una retención |\n|---|---|---|\n| `tax_id/id` | Impuesto | Obligatorio; ID externo |\n| `name` | Número | En recibos, el del certificado. En pagos a proveedores, vacío: lo pone la secuencia. |\n| `base_amount` | Base | Completala |\n| `amount` | Importe retenido | Completalo |\n\n## De dónde sacar los ID\nPara exportar, seleccioná los registros y andá a **Acciones › Exportar**. Marcá **«Quiero actualizar datos (exportación compatible con importación)»**, incluí un campo reconocible (nombre o número) y copiá la columna `id`.\n\n| Dato | Dónde |\n|---|---|\n| Cliente | Contabilidad › Clientes › Clientes, en vista lista |\n| Proveedor | Contabilidad › Proveedores › Proveedores, en vista lista |\n| Diario | Contabilidad › Configuración › Diarios |\n| Impuesto de retención | Contabilidad › Configuración › Impuestos. Elegí el de retención que corresponda a cobros o a pagos. |\n| Factura a saldar | Contabilidad › Apuntes contables. Filtrá la factura y la cuenta a cobrar o a pagar. Con cuotas, elegí las que vas a saldar. |\n| Método de pago | Exportá un pago existente con el mismo diario, método y sentido (cobro o pago). Incluí el campo «Método de pago» y copiá su ID externo, no el `id` del pago. |\n\nSi no hay un pago así, cargá uno en la base de prueba. Para varias deudas, usá una sola celda: `\"ID_1,ID_2\"`.\n\n## Dónde importar\n\n| Archivo | Menú |\n|---|---|\n| `recibos.csv` y `recibos_cheques.csv` | Contabilidad › Clientes › Pagos (o «Recibos») |\n| `pagos_proveedores.csv` y `pagos_proveedores_cheques.csv` | Contabilidad › Proveedores › Pagos |\n\nEn la lista, abrí el engranaje y elegí **Importar registros**. Subí el archivo, revisá a qué campo va cada columna y tocá **Probar**. Para ver los nombres técnicos junto a los campos, activá el modo desarrollador.\n\n## Cómo hacer la prueba\n**Probar** revisa la carga sin guardar, así que no alcanza para confirmar tus tres puntos. Hacé esto en una **base de prueba**, con un registro de cada archivo:\n\n1. Elegí un contacto con al menos dos facturas abiertas. Indicá solo una, preferentemente la más nueva. En los archivos con cheques, cargá dos; usá también dos retenciones distintas que correspondan.\n2. Tocá **Probar** y, si no hay errores, **Importar**.\n3. Abrí el borrador sin cambiar cliente, compañía ni tipo. Revisá:\n   - **Deudas:** está solo la elegida.\n   - **Cheques:** son dos, con sus datos correctos, y el importe es la suma.\n   - **Retenciones:** están las esperadas, sin repetidas, con impuesto, base e importe correctos. En proveedores, fijate si Odoo agregó o cambió alguna.\n4. Confirmá el pago. Revisá otra vez las retenciones y sus números. La factura elegida tiene que mostrar el pago aplicado (total o parcial) y la otra tiene que mantener su saldo.\n\nSi algo no coincide, no hagas la carga masiva. Pasame el mensaje de error exacto o lo que apareció distinto, y los encabezados del archivo, sin datos del cliente.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 14842,
+  "cache_read_input_tokens": 80929,
+  "output_tokens": 4927,
+  "output_tokens_details": {
+   "thinking_tokens": 2179
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14842,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4230,
+    "cache_read_input_tokens": 32058,
+    "cache_creation_input_tokens": 294,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 294
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e10c6fff5e",
+  "persona": "consultoria"
+ }
+}

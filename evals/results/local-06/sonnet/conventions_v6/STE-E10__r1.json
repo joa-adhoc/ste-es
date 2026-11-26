@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "La decisión tiene tres pasos: primero la lista de modelos con escritura habilitada, después los permisos del chat y, si pasan los dos, la tool se ejecuta. Esto sale solo del material que pegaste; no lo comparé con el código.\n\n1. **`workspace_write_models`** (Settings → Write Models): el admin permite o no cada operación por modelo. Si no la permite, se corta ahí y no se miran los permisos del paso 2. Ningún \"allow\" posterior lo levanta.\n2. **`evaluate_permission`**: devuelve ALLOW, DENY o ASK. Gana la primera regla que aplique:\n   1. El workspace dice `deny` → **DENY**.\n   2. Hay una preferencia del usuario en ese workspace → gana esa. Solo vale en canales con identidad personal.\n   3. El workspace dice `allow` o `ask` → vale eso.\n   4. No decidió ninguna de las anteriores → valor por defecto: **ASK** si el recurso está en `approval` (`\"ask\"` o `\"always\"`), y **ALLOW** si no. En tools de conector sin declaración en el REGISTRY se usan una heurística de verbos y las anotaciones MCP.\n3. **`tool.execute()`**: corre si el resultado fue ALLOW, o si fue ASK y se aprobó. Queda registrado en `tool_usage_log` con `permission_action`.\n\n**Admin en \"ask\", miembro en \"allow\":** en un canal con identidad personal el resultado es **ALLOW** y no le pregunta, siempre que haya pasado el paso 1. La preferencia del miembro se mira antes que el `ask` del workspace, y del admin solo el `deny` funciona como piso. Si el admin quiere que ese miembro no pueda usar la tool, con \"ask\" no alcanza: según estas reglas, `deny` la bloquea, pero no hay una forma descrita de obligar a que pregunte. En `exposure`, `webhook` o `scheduled`, ese mismo caso da **ASK**.\n\n**Agent por webhook:** el paso 1 se aplica según el diagrama, que no marca excepciones por canal. En el paso 2 **se ignora por completo la preferencia personal**, aunque el turno corra con la identidad prestada de un miembro. Queda así:\n\n| Configuración del workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `allow` | ALLOW |\n| `ask` | ASK |\n| Sin fila | El valor por defecto del punto 2.4 |\n\nEl resumen del diagrama (`deny → user → workspace → default`) no menciona esta excepción; está en el detalle del evaluator.\n\n**Lo que el material no dice:** qué pasa con un **ASK en un webhook**, donde puede no haber nadie para contestar: si se bloquea, queda pendiente o se resuelve de otra forma. No daría por hecho ninguna. Para saberlo, miraría cómo usan el resultado de `evaluate_permission` `tuqui_core/chat/client_facing_core.py` y quien lo llame, y lo probaría con una tool en `ask` disparada por webhook. Tampoco explica en qué se diferencian `\"ask\"` y `\"always\"`, ni qué resultado da cada caso de la heurística para conectores.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11180,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1571,
+  "output_tokens_details": {
+   "thinking_tokens": 444
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11180,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1571,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11180,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11180
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

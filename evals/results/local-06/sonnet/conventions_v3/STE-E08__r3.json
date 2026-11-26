@@ -1,0 +1,47 @@
+{
+ "case": "STE-E08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Va **skill**. Una tool que es un `odoo_create` con defaults es un wrapper 1→1: se puede componer con las tools genéricas, y los defaults los puede indicar la skill.\n\nEl criterio es que sea tool nativa solo si cumple al menos uno de estos ejes. Si no cumple ninguno, es skill.\n\n| Eje | Cuándo califica | ¿Tu caso, tal como lo describís? |\n|---|---|---|\n| **(a)** No componible | No se logra con las tools genéricas ni con otra tool existente | No: es un `odoo_create` |\n| **(b1)** Approval o identidad de policy propia | Vale **solo en chat** | Solo si necesitás esa approval o policy |\n| **(b2)** Whitelist más fina que el `create` o `execute` genérico | Vale en chat y en MCP. Tiene que reducir el alcance del daño frente a la genérica | Solo si restringe de verdad lo que se puede hacer |\n| **(c)** Procedimiento crítico | Si el LLM saltea un paso, hay un costo real (compliance dura) | Los defaults solos no lo prueban |\n| **(d)** Eficiencia o determinismo | Una call reemplaza ≥3 calls, un loop no acotado o un procedimiento con pasos que el LLM saltearía | Por cantidad de calls, no: el material excluye el wrapper 1→1, aunque ahorre tokens de esquema |\n\n**Con MCP saliente, sí cambia.** Ahí (b1) y (c) no sirven como justificación: no hay canal de approval (el router MCP ignora `requires_approval`) ni un turno donde forzar pasos. Solo cuentan **(a), (b2) y (d)**.\n\n- **Si tu único motivo es pedir approval:** puede justificar una tool de chat, pero por MCP esa protección no existe. No cuentes con ella como control.\n- **Precedente:** `odoo_schedule_activity` pasó a system skill. Era componible, su único diferencial era (b1) y ya estaba en `MCP_EXCLUDED_TOOLS`.\n\nLo que podría cambiar el veredicto es que la tool tenga un gate propio **más restrictivo** que el `create` genérico (b2), por ejemplo con modelo y campos limitados por whitelist. Fijar defaults que el LLM puede pisar no es una whitelist. Como inferencia mía, si quien la usa igual tiene `odoo_create` sobre ese modelo, revisá qué reduce en la práctica el gate nuevo. ¿Tu tool restringe algo o necesita approval, o solo completa valores?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11115,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 904,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11115,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 904,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11115,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11115
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

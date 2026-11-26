@@ -1,0 +1,44 @@
+{
+ "case": "STE-F08",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "## Borrador para el cliente\n\n> Hola. Van las respuestas en orden. Algunos puntos todavía los tenemos que confirmar y los marcamos como pendientes.\n>\n> **1. Permisos**\n> Hoy, Ajustes como Administrador es necesario. El chequeo de conexión lo exige en todas las versiones de Odoo, así que no alcanza con permisos de Ventas, Inventario y Facturación.\n>\n> El manual explica que sirve para leer la configuración de la base: aplicaciones, empresas y armado del catálogo. Tengan en cuenta que el conector además escribe: crea un campo técnico de precio en `product.product` y registros en `ir.model.data`.\n>\n> La configuración completa que pide el manual es:\n> - Administración: Ajustes\n> - Ventas: Administrador\n> - Inventario: Administrador\n> - Contabilidad: Facturación\n> - En Technical Settings: Gestión de Productos y Límite de crédito\n>\n> Las IP desde las que se conecta Odumbo están pendientes de confirmación. Antes de limitar el acceso por IP, esperen ese dato, porque podrían bloquear la conexión.\n>\n> **2. Kits**\n> Odumbo calcula el stock a publicar como cantidad «A la mano» menos cantidad «Saliente», en la ubicación configurada. Toma esos valores de cada producto en Odoo. Todavía no podemos confirmar que el resultado sea correcto para kits con lista de materiales, ni cómo se descuentan las patas en sus ventas. Antes de publicar kits, hay que validarlo con un caso de prueba.\n>\n> **3. Cambio desde el módulo actual**\n> No tenemos un procedimiento documentado para esta migración. Como precauciones generales, sugerimos:\n> 1. No activar la importación de ventas de Odumbo hasta que confirmemos cómo trata las ventas anteriores y las que ya están cargadas en Odoo.\n> 2. Probar antes el cambio en una copia de la base, sin conexión que pueda modificar las publicaciones o ventas reales.\n> 3. Definir fecha y hora de corte.\n> 4. En el corte, desactivar en el módulo actual la importación de ventas, la sincronización de stock, la facturación y la subida de facturas, incluidas sus tareas programadas. Revisar también las automatizaciones de Odoo que facturen.\n> 5. Antes de volver a facturar, comparar las ventas cercanas al corte entre Mercado Libre y Odoo. Revisar duplicadas, faltantes, ya facturadas y con la factura ya subida.\n>\n> Estos pasos reducen el riesgo, pero por sí solos no garantizan que no haya duplicados.\n>\n> **4. Facturación**\n> Odumbo no factura. Si facturan a mano en lote cada día, generen y validen las facturas en Odoo: Odumbo las detecta y las sube a la venta de Mercado Libre, entre 6 y 24 horas después. La subida de facturas aplica solo a Mercado Libre.\n>\n> Para que la factura salga sola al confirmar la venta, el manual recomienda tipos de pedido de venta. Está pendiente confirmar qué módulo los provee en Odoo 17 Enterprise.\n>\n> El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n>\n> **5. Datos**\n> Está pendiente confirmar qué datos se guardan además de las credenciales y qué se hace con ellos al dar de baja el servicio.\n\n## Notas para vos (no van al cliente)\n\n**Antes de enviar**\n- El borrador promete confirmaciones sin fecha. Alguien tiene que hacerse cargo de:\n  - las IP de salida;\n  - el trato de ventas y facturas anteriores;\n  - el módulo de tipos de pedido;\n  - la validación de kits;\n  - los datos guardados y la baja. Preguntá también qué pasa con el campo y los registros creados en la base del cliente.\n- El manual dice que Ajustes sirve para «leer», pero el código también escribe. Conviene corregirlo. El material tampoco demuestra que cada operación necesite ese permiso; solo que el chequeo lo exige.\n\n**Kits: hay dos riesgos para probar**\nLo que sigue sale de mi conocimiento general de Odoo. No está en el material ni lo probé.\n- **Stock de más:** con `mrp`, Odoo calcula las cantidades del kit a partir de sus componentes. Si redondea «A la mano» y «Saliente» por separado, puede sobrar un pack. Con 10 patas y 3 salientes quedan 7, o sea **1 pack**. Pero la cuenta por separado daría 2 − 0 = **2 packs**.\n- **Kit salteado:** el conector saltea los productos no almacenables, salvo los packs. No sé si un kit de Odoo cuenta como «pack» para el código. Si no cuenta y es no almacenable, quedaría afuera.\n- **Descuento de patas:** en Odoo estándar, vender un kit genera la entrega de sus componentes. Falta probarlo con una venta que entre por Odumbo.\n\nPara cerrarlo, probá en Odoo 17 ese caso de 10 y 3 con el kit almacenable y no almacenable. Mirá qué stock publica Odumbo. Después vendé un pack y revisá que la entrega tenga 4 patas.\n\n**Módulo para Odoo 17:** como pista a verificar, revisaría `sale_order_type` (OCA) y `sale_order_type_automation` (`ingadhoc/sale`). No confirmé que estén disponibles en 17 ni que cubran este caso, por eso no los nombré en el borrador.\n\nNo consulté `tuqui_context` porque `tuqui-adhoc` no está disponible en esta sesión. El borrador no está revisado contra las reglas de comunicación de la empresa. Para dar de alta la conexión, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11176,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 4201,
+  "output_tokens_details": {
+   "thinking_tokens": 2121
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11176,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 4201,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11176,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11176
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

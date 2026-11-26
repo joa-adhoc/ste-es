@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Tenés que tocar el backend en cualquier caso**, porque la API tiene que guardar y devolver el mapa de idiomas. Lo que depende del uso es si además el backend **elige el idioma**: si la descripción solo se ve en la SPA, lo elige el cliente.\n\nMi carpeta de trabajo está vacía, así que me baso solo en el texto que pegaste y no verifiqué nada en el código.\n\n## Antes de empezar\n1. **Fijate si la migración ya existe.** La guía cita `0201_platform_connectors_description_i18n.sql`, y por el nombre parece agregar esta columna. Si es tu tabla y ya está aplicada, no crees otra y revisá qué falta de los pasos siguientes. Si \"conectores\" es otra tabla, necesitás una migración nueva.\n2. **Averiguá quién usa la descripción.** Buscá dónde se lee en el backend, no solo en la SPA:\n   - **Solo labels, cards o listados:** el idioma lo elige el cliente.\n   - **También un prompt, un mail o el MCP saliente:** el backend también tiene que elegirlo.\n\n## Pasos\n1. **Migración** (si falta). No toques la columna `description`:\n   ```sql\n   ALTER TABLE <tabla> ADD COLUMN description_i18n JSONB;\n   ```\n   Si ya tenés datos en una columna `description_en`, mirá `0206_features_i18n.sql` para pasarlos.\n\n2. **API.** Devolvé `description_i18n` completo junto con `description`, sin filtrar por idioma en el serializer. Usá las funciones de `tuqui_core/i18n.py`, sin reimplementarlas:\n   - **Al escribir, `normalize_i18n_keys`:** pasa las claves a dos letras minúsculas y descarta las vacías.\n   - **Al leer, `decode_i18n`:** hace falta en todos los lectores, porque asyncpg puede devolver el JSONB como `str` o como dict.\n\n   Revisá también que los esquemas de entrada y salida y las consultas incluyan el campo nuevo.\n\n3. **Front.** Agregá el campo al tipo que uses y mostralo así, sin escribir el fallback a mano:\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   El orden es idioma exacto → `en` → `description`.\n\n4. **Editor del panel de admin.** Poné dos campos, ES y EN. Al guardar, mandá en `description_i18n` solo las claves con texto, y copiá `es || en` en `description`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n   Probá editar un conector que solo tenga `description`. Si los dos campos aparecen vacíos, guardar podría borrar el texto anterior, según cómo estén armados el formulario y la API. No lo completes como ES o EN sin saber en qué idioma está.\n\n5. **Backend, solo si hay un prompt, un mail o MCP.** Usá la misma cadena (idioma exacto → `en` → `description`). El idioma sale de `resolve_response_language(workspace_id, user_id)`, no de `Accept-Language`. Si además se muestra en la SPA, la API sigue devolviendo el mapa completo y el front hace el paso 3.\n\n6. **Caché.** Solo si el servidor devuelve a la SPA un texto ya resuelto según el idioma, incluí el idioma en el `queryKey` de react-query. Si devuelve el mapa completo, no hace falta, aunque el backend también elija el idioma para un prompt.\n\n## Qué probar\n- Con ES y EN cargados, cada idioma muestra su texto.\n- Con solo ES, un usuario en inglés ve `description`, que es la copia del texto en español.\n- Con solo EN, un usuario en español ve el texto en inglés.\n- Un conector sin `description_i18n` sigue mostrando `description`.\n- Si aplica el paso 5, el prompt, el mail o la salida MCP usan el mismo orden.\n\nLa guía menciona un bug de `agents` (\"ver el bug abajo\") que no está en lo que pegaste. Si la descripción de tus conectores se usa en la SPA y también en el backend, leelo antes de implementar.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11614,
+  "cache_read_input_tokens": 46269,
+  "output_tokens": 2288,
+  "output_tokens_details": {
+   "thinking_tokens": 701
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11614,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1938,
+    "cache_read_input_tokens": 28759,
+    "cache_creation_input_tokens": 365,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 365
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 2,
+ "is_error": false
+}

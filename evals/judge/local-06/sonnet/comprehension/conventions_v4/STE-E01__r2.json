@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/`, con el nombre en formato `NNNN_descripcion.sql`. Se crea con `supabase migration new <nombre>` y hay que revisar que el nombre generado respete ese formato.",
+  "RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y una policy creada con `CREATE POLICY` dentro de un bloque `DO $$` con `IF NOT EXISTS`. El filtro de la policy es `workspace_id = current_setting('app.current_workspace_id')::uuid`. El ejemplo, que el texto presenta como inventado para adaptar, define la columna como `workspace_id uuid NOT NULL`. Las tablas sin `workspace_id` son la excepción y hay que discutirlas antes de crearlas.",
+  "Porque el preview corre las migraciones contra la base real de staging, no contra una copia, usando el `DATABASE_ADMIN_URL` de staging. La migración se aplica al abrir el PR y se vuelve a aplicar si después se la renombra, porque el tracking es por nombre de archivo. Por eso el SQL tiene que poder correr varias veces sin error. Además, el texto advierte, como deducción propia, que `IF NOT EXISTS` evita el error pero no actualiza una tabla, índice o policy que ya existan con ese nombre, así que staging puede quedar con la versión vieja."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "d34ec89a6d",
+  "control": "cb1718959b"
+ }
+}

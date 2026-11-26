@@ -1,0 +1,47 @@
+{
+ "case": "STE-E18",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Una memoria se guarda en un alcance (la persona o el workspace), en cada turno entra al prompt como un encabezado corto, y se borra cuando es la más vieja y su alcance se llena. Esto sale solo del texto que pegaste; no lo comparé con el código.\n\n1. **Guardado.** La memoria queda en el alcance de usuario (personal) o de workspace (compartida con el equipo). El material no explica cómo la crea el modelo ni cuándo decide hacerlo. Solo muestra la herramienta `manage_memory` con la acción `read`.\n\n2. **Límite.** Cada usuario y cada workspace admiten 50 memorias. Al agregar la 51, en la misma transacción se borra la de `created_at` más antiguo. Es FIFO: según el texto, no importa cuánto se usa. El modelo se entera por la respuesta de la herramienta. El material la llama \"eviction silenciosa\", pero no aclara si la persona recibe algún aviso.\n\n3. **Entrada al prompt.** En cada turno, `_load_chat_setup` (en `tuqui_core/chat/agent.py`) inserta las memorias después del bloque `CURRENT USER` y antes del bloque del proyecto. Van primero las del workspace y después las personales. De cada una entra el título más:\n   - el resumen, si tiene;\n   - si no, el cuerpo hasta 250 caracteres. Si el cuerpo es más largo, se agrega `[read]`.\n\n   Cada línea lleva también el `id` y, en los ejemplos, una etiqueta como `[process:billing / default_due]`.\n\n4. **Lectura completa.** Si el modelo necesita todo el contenido de una memoria marcada con `[read]`, llama a `manage_memory(action='read', id=...)`.\n\n**Cuando hay muchas** actúan dos límites distintos:\n\n| Mecanismo | Cuándo actúa | Qué hace |\n|---|---|---|\n| Límite de 50 con FIFO | Al guardar | Borra la memoria más antigua de ese alcance |\n| Límite de contexto (`_MEMORY_BUDGET_CHARS`) | Al armar el prompt, si los encabezados superan 12.000 caracteres (unos 3.000 tokens) | Usa rapidfuzz para puntuar los encabezados contra el mensaje actual y deja los N mejores |\n\nSegún esa descripción, el segundo no borra nada: una memoria que queda afuera en un turno podría entrar en otro. Como rapidfuzz compara similitud de texto, una memoria útil pero escrita con otras palabras podría quedar afuera.\n\n**Los números no cierran del todo.** El texto dice que 50 memorias de tamaño máximo cuestan unos 3.000 tokens por turno. Pero 50 × 250 ya son 12.500 caracteres, sin contar títulos, etiquetas ni `id`, y eso supera los 12.000. Además, una persona en un workspace puede tener hasta 100 candidatas (50 y 50), o sea unos 25.000 caracteres de contenido si ninguna usa un resumen más corto. Entonces los 3.000 tokens no salen del límite de 50. Como mucho los garantiza el límite de contexto, si recorta sobre los dos alcances juntos.\n\n**Preguntas abiertas** que el material no responde:\n- ¿Cuánto vale N, o se agregan encabezados hasta llegar a los 12.000 caracteres?\n- ¿El modelo puede saber que quedaron memorias afuera, o buscarlas?\n- ¿El resumen tiene un largo máximo? Si hay resumen y el cuerpo es largo, ¿cómo sabe el modelo que hay más para leer? Según la regla, `[read]` solo aparece cuando no hay resumen.\n- ¿Editar una memoria cambia su `created_at`, y con eso su turno para ser borrada?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10782,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1645,
+  "output_tokens_details": {
+   "thinking_tokens": 310
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10782,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1645,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10782,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10782
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

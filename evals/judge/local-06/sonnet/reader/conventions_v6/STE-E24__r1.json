@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mergeé la columna nueva y el DROP en el mismo PR. ¿El tren tiene algún mecanismo para postergar el DROP al martes, o tengo que sacarlo de staging antes del tren del jueves? Si hay que sacarlo, ¿cómo lo hago (revert parcial, PR aparte) y quién me lo puede confirmar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Mergeé todo en un solo PR. ¿Hay algún mecanismo que postergue el DROP automáticamente, o tengo que sacarlo de staging antes del tren del jueves? Si hay que sacarlo, ¿cómo lo hago exactamente (revert, PR nuevo, qué archivos) y a quién le confirmo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Hay algún mecanismo en el pipeline para que el DROP de `members.lang` no suba en el mismo tren que el resto, o tengo que sacarlo sí o sí de staging? Mi PR tiene todo junto: si hay que sacarlo, ¿cómo lo hago (revert, PR nuevo) y hasta qué hora tengo antes del tren?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "Mergeé la columna nueva y el DROP en el mismo PR. ¿El tren tiene algún mecanismo para postergar el DROP al martes, o tengo que sacarlo de staging antes del tren del jueves? Si hay que sacarlo, ¿cómo lo hago (revert parcial, PR aparte) y quién me lo puede confirmar?",
+ "followup_answer": "**El extracto no menciona ningún mecanismo que postergue el `DROP`.** Dice que va en el tren siguiente, pero no cómo se logra, y no vi `release-train.yml`. Si no confirmás que existe, sacá el `DROP` de staging antes del tren.\n\n**Mirá primero la hora:** en mi sesión es jueves 26/11 y el tren sale a las 9:00 de Argentina. Si mergeaste ayer y ya pasó esa hora, revisá ya si `main` incluyó tu PR y si el `DROP` corrió en prod. Si salió o está corriendo, avisá enseguida al equipo que opera prod; sacarlo de staging no deshace el borrado.\n\n**Si todavía no salió,** no reviertas todo el PR. Hacé un PR nuevo contra staging que revierta solo el `DROP`:\n\n1. Creá una rama desde staging actualizado: `git fetch origin && git switch -c postergar-drop-lang origin/staging`.\n2. Sacá solo el `DROP`. Dejá `locale` y el código que ya no usa `lang`. Si tenés un esquema o snapshot de migraciones, tiene que quedar coherente con este paso.\n3. Revisá cómo registra las migraciones tu herramienta. Si la que tiene el `ADD` y el `DROP` ya corrió en staging, editarla puede no volver a ejecutarla o dar error de checksum. Además, `lang` no va a reaparecer sola en esa base. En ese caso, definí cómo corregirlo antes de mergear, y verificá que prod reciba el `ADD` y no el `DROP`.\n4. Mergealo antes de las 9:00 del tren, con el CI de staging en verde.\n5. Después de confirmar que el primer tren corrió y que el código nuevo quedó desplegado, abrí otro PR con el `DROP` en una **migración nueva**. Mergealo antes del tren siguiente. Si el primero sale el jueves 26/11, el siguiente es el martes 1/12. Antes, verificá que los datos de `lang` que haga falta conservar estén en `locale`.\n\nSi no llegás a corregirlo antes del tren, avisá antes de que salga y pedí que lo frenen. El extracto no explica cómo pausarlo, y no conviene romper el CI a propósito. Si el tren ya se salteó por CI en rojo, igual tenés que separar el `DROP`: si no, puede viajar con el código en el próximo.\n\n**Quién lo confirma:** el extracto no lo dice. A jjs lo nombra solo para aprobar releases manuales de hotfix. Podés preguntarle quién mantiene el tren, sin dar por hecho que es jjs. También sirve revisar el workflow (probablemente en `.github/workflows/`), los scripts de migración que use, y `CODEOWNERS` o el historial de esos archivos. Que el workflow no filtre el `DROP` no alcanza para descartarlo, porque el filtro podría estar en el deploy.\n\nPodés mandar este mensaje:\n\n> «Mi PR a staging agrega `members.locale`, borra `members.lang` y deja de usar `lang`. ¿Hay algo que impida que el `DROP` corra en el mismo tren que el código? Si no, voy a separarlo. ¿Quién puede confirmar cómo corregir la migración o frenar el tren si no llego?»",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11324,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2092,
+  "output_tokens_details": {
+   "thinking_tokens": 929
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11324,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2092,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11324,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11324
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "a7830588d2"
+ }
+}

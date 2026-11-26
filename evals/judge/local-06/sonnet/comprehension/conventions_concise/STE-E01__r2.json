@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Va en `supabase/migrations/` y se crea con `supabase migration new <nombre>`. El nombre del archivo tiene que ser `NNNN_descripcion.sql`.",
+  "Tiene que tener `workspace_id`, RLS activado con `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` y una policy creada dentro de un `DO $$` que primero chequea si ya existe. En el esqueleto de ejemplo, la columna es `workspace_id uuid NOT NULL` y la policy usa `workspace_id = current_setting('app.current_workspace_id')::uuid`. El texto aclara que el chequeo contra `pg_policies`, el schema `public` y el nombre de la policy los puso quien lo escribió, y que hay que compararlos con una migración existente. Si una tabla no lleva `workspace_id`, hay que discutirlo antes.",
+  "El texto no usa la expresión «no es una formalidad». Dice que la migración tiene que ser idempotente para que no te reboten, y que todo el archivo tiene que poder correr varias veces sin error. También advierte que el preview corre las migraciones sobre la misma base de staging, no sobre una copia, y que se aplican al abrir el PR. Además, como el tracking es por nombre de archivo, renombrar una migración la vuelve a aplicar. La idempotencia tiene un límite: `IF NOT EXISTS` solo mira si el objeto existe. Si después de abrir el PR cambiás columnas o la expresión de la policy, volver a correr esos bloques no actualiza lo que ya está en staging."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "9145fb8f4c",
+  "control": "cb1718959b"
+ }
+}

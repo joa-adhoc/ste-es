@@ -1,0 +1,47 @@
+{
+ "case": "STE-E15",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cuando un owner conecta su Odoo, el sistema valida las credenciales, las guarda **en el workspace** y, aparte y de forma opcional, vincula a quien conecta con un usuario de Odoo. Esto sale del material que pasaste (spec `0093_workspace_owns_odoo_credentials`); no lo contrasté con el código.\n\n## Recorrido de `connect_odoo`\n\nLa llamada es `POST /workspaces/{slug}/odoo`, requiere autenticación de owner o admin y ejecuta `connect_odoo(slug, payload, current_user_id)`.\n\n1. **Autenticación:** `_authenticate_odoo` prueba URL, base, login y API key contra Odoo, y obtiene `admin_uid`.\n2. **Permisos:** `_verify_odoo_admin_group` exige que ese usuario tenga `base.group_system`. Si no, lanza `ValueError`. El requisito es para la credencial usada, no para el rol en Tuqui.\n3. **Versión:** `get_version` detecta la versión. Lanza `ValueError` si no puede o si la versión mayor es menor que `MIN_SUPPORTED`.\n4. **Vinculación:** `_resolve_link_mode` decide si quien conecta queda asociado a un usuario de Odoo, y a cuál.\n5. **Guardado:** actualiza en `workspaces` los campos `odoo_url`, `odoo_db`, `odoo_login`, `odoo_uid`, `odoo_api_key` y `odoo_version`. El workspace queda conectado y los roles no cambian. Si otro workspace tiene el mismo `database.uuid`, responde `409 Conflict`, por el índice único parcial de la migración 0134.\n6. **Limpieza:** si cambió la URL, invalida los datos de Odoo de los miembros.\n7. **Vínculo:** en modo `auto` o `manual`, guarda `odoo_user_id` en el miembro actual y lanza `sync_user_api_key` con `asyncio.create_task`, sin esperar que termine.\n8. **Respuesta:** devuelve `WorkspaceConnectOdooResult`, que suma a los datos del workspace `members_invalidated`, `warning`, `link_status` y `linked_odoo_user_id`.\n\n## A qué usuario de Odoo vincula\n\n| Modo | Cuándo se usa | Resultado |\n|---|---|---|\n| `auto` | Por defecto, si el email de quien conecta es igual a `odoo_login` | Lo vincula a `admin_uid` |\n| `manual` | El frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id` | Verifica que ese `res.users` exista y lo vincula |\n| `none` | Por defecto, si no coinciden | No le asigna un vínculo nuevo |\n\nSer owner no implica tener usuario en Odoo: es un rol administrativo de Tuqui y puede haber varios. Por eso se puede conectar con una credencial técnica de administrador sin vincular a esa persona con ese usuario.\n\n## Qué pasa si cambia la URL\n\n- Se borran `odoo_user_id` y `odoo_api_key` de **todos los miembros**, incluido el owner, porque esas identidades pueden ser de otra instancia.\n- Después, con `auto` o `manual`, **solo quien conecta** recibe un vínculo nuevo y se dispara la sincronización de su API key. Con `none`, queda sin vínculo.\n- El flujo no muestra que los demás se vuelvan a vincular.\n- `members_invalidated` informa los miembros invalidados y es 0 si la URL no cambió. `warning` puede traer un mensaje para mostrar en la interfaz.\n- Las credenciales del workspace no entran en esa limpieza: quedan las nuevas que se guardaron en el paso 5.\n\n## Preguntas abiertas\n\nEl material no alcanza para responder esto; se puede revisar en la implementación de `connect_odoo` y sus tests:\n\n- **Cambio de base:** si cambia `odoo_db` con la misma URL, solo se menciona la limpieza por `url_changed`. Si esa condición no contempla la base, podrían quedar IDs de usuario de la base anterior. Tampoco dice si se normaliza la URL (por ejemplo, la barra final).\n- **`none` sin cambio de URL:** no dice si se conserva un vínculo anterior. El paso 7 no lo toca, aunque el comentario de `none` dice que deja al miembro sin `odoo_user_id`.\n- **Fallas parciales:** no se ve si todo corre en una transacción. Importa saber si un error al limpiar o vincular puede dejar el workspace actualizado a medias.\n- **Sincronización de la API key:** no dice cómo se manejan sus errores. Como no se espera que termine, la respuesta exitosa no confirma que la key se haya sincronizado.\n- **Detalles sin definir:** faltan cómo se obtiene `database.uuid`, qué respuesta HTTP produce cada `ValueError` o un usuario manual inexistente, qué pasa si se pide `auto` y los emails no coinciden, y si esa comparación distingue mayúsculas.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11304,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2241,
+  "output_tokens_details": {
+   "thinking_tokens": 448
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11304,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2241,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11304,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11304
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

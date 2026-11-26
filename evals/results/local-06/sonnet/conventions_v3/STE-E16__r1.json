@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Cada `save` sobre un artifact existente crea una versión nueva, pero no cambia lo que ve quien tiene el link.** El link sigue mostrando la versión publicada hasta que hagas `publish`. Todo esto sale del material que pegaste; no lo verifiqué contra el código.\n\n**Cómo funcionan las versiones**\n- **Primer guardado:** un `save` sin `artifact_id` crea la v1 y la publica. Así el link funciona desde el principio.\n- **Ediciones:** un `save` con `artifact_id` crea la v(n+1). Mueve `current_version_id`, pero no `published_version_id`.\n- **Publicar:** `publish(version?)` mueve la versión publicada. Si no indicás cuál, toma la última. Para revertir, publicás una anterior.\n\n**Qué ve cada uno después de editar**\n- **Quien usa el link con token:** ve siempre la versión publicada.\n- **Quien usa el viewer interno:** navega por la versión actual (`current_version`) y tiene un selector de versiones. El `save` avisa con `unpublished_changes: true` y el viewer muestra un banner.\n\n**Qué pasa al refrescar solo los datos**\n\nCada versión puede tener dos partes: `content`, que es la página completa, y `data`, que es un JSON opcional con los datos. Al mostrar la página, el front le inyecta esos datos.\n\nUn refresh crea una versión que trae solo `data`. Para mostrar la versión `n`, el sistema busca cada parte por separado, desde `n` hacia atrás:\n- el último `content` que exista hasta `n`;\n- el último `data` que exista hasta `n`.\n\nEntonces la versión nueva usa los datos nuevos con el último diseño guardado, y el refresh no puede romper el diseño. Ese \"último diseño\" puede ser uno que todavía no publicaste. Por lo que se deduce de esa regla, si después publicás la versión del refresh, se publica también ese diseño.\n\nEl material ubica este refresh en la fase 2 (dashboards regenerables) y no dice si ya está disponible. Tampoco dice si el refresh se publica solo. Si sigue la regla de un `save` con `artifact_id`, **quien tiene el link no ve los datos nuevos hasta que alguien haga `publish`**. No lo des por hecho: para confirmarlo, hay que revisar cómo está implementado el refresh.\n\n**Límites al guardar**\n- Si el artifact tiene un `data_schema` guardado, un `save` con `data` se valida contra él. Revisa las claves obligatorias y los tipos de las propiedades. Si no coinciden, rechaza el guardado antes de escribir.\n- `content` y `data` (serializada) admiten hasta 1 MB cada uno. Si te pasás, falla con un error explícito.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10776,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 964,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10776,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 964,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10776,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10776
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Cada guardado crea una versión nueva, pero editar no cambia lo que muestra el link.** Quien lo tiene sigue viendo la versión publicada hasta que publiques otra.\n\n### Versiones y publicación\nUna versión puede traer la página (`content`), los datos (`data`, un JSON opcional) o, en el caso de un refresco, solo los datos. Hay dos punteros: la versión actual (`current_version_id`) y la publicada (`published_version_id`).\n\n| Acción | Versión actual | Lo que muestra el link |\n|---|---|---|\n| Primer guardado | v1 | v1 (se publica sola) |\n| Guardar cambios sobre el artifact | pasa a v(n+1) | no cambia |\n| `publish(version?)` | no es una edición | la versión elegida, o la última si no indicás ninguna |\n\n- **Si editás un artifact compartido:** el guardado avisa con `unpublished_changes: true` y el visor muestra un aviso. En el visor interno podés recorrer las versiones; el link con token muestra siempre la publicada.\n- **Para volver atrás:** publicás una versión anterior.\n\n### Cuando solo se refrescan los datos\nSe crea una versión que solo tiene datos. Para mostrar la versión `n`, la página y los datos se buscan por separado: de cada uno se toma el último que haya hasta `n`. Así, el refresco reutiliza la página anterior y no toca el diseño.\n\n**Ojo:** esa página es la última guardada, aunque no esté publicada. Por ejemplo:\n\n1. v1 tiene página y datos, y está publicada.\n2. v2 cambia el diseño y no la publicás.\n3. v3 solo refresca los datos.\n\nEl link sigue en v1 mientras la publicada no cambie. Si publicás v3, se ve **el diseño de v2 con los datos de v3**. La misma regla vale al volver atrás: si publicás una versión anterior, la página y los datos quedan como estaban en esa versión.\n\nEl material **no dice si el refresco publica solo**. Presenta los refrescos como parte de la fase 2. Si usan el guardado común, el link no cambia hasta que publiques; si el objetivo es que un dashboard compartido se actualice solo, hace falta definir cómo se publica, cuidando de no publicar de paso un diseño pendiente como el de v2.\n\n### Límites al guardar\n- Si guardás `data` en un artifact que ya existe, se valida contra su `data_schema`. Si no cumple, se rechaza antes de escribir. La validación revisa las claves obligatorias y los tipos de las propiedades; es solo una parte de JSON Schema, así que no garantiza que la página funcione con cualquier dato que la pase.\n- La página y los datos ya serializados admiten hasta 1 MB cada uno. Si se pasan, da error.\n\nEsto sale solo del material que pegaste; no lo verifiqué en el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10910,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1545,
+  "output_tokens_details": {
+   "thinking_tokens": 548
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10910,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1545,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10910,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10910
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

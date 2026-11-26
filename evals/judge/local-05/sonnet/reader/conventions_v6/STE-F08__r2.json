@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en palabras simples lo que no entiendo y qué tengo que hacer antes de mandarlo? No sé qué son `tuqui-adhoc` y `adhoc-way-guide`, ni si tengo que dar de alta algo para revisar el borrador. En las notas tampoco entiendo qué son los \"productos no almacenables\", los \"packs\" del código, `sale_order_type` y `sale_order_type_automation`. ¿Un pack de 4 patas armado como kit se sincroniza o no? ¿Y a quién le pido cada dato pendiente (IPs, kits, cambio de conector, módulo, datos y baja)? ¿Puedo mandar la respuesta así o conviene esperar a tenerlos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me aclarás en palabras simples lo que no entiendo y qué tengo que hacer antes de mandarlo? No sé qué son `tuqui-adhoc` y `adhoc-way-guide`, ni si tengo que dar de alta algo y revisar las reglas de comunicación antes de enviar. Tampoco entiendo qué son los \"productos no almacenables\" y los \"packs\" que menciona el código, ni si con eso al cliente le puede fallar el stock de su pack de 4 patas. ¿Y a quién le pido cada pendiente (IPs, kits, cambio de conector, módulo y datos) para poder cumplir con la respuesta que le prometemos al cliente?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Puedo mandar el borrador así, con los pendientes, o espero? Explicame en palabras simples qué es eso de `tuqui-adhoc` y `adhoc-way-guide` y si tengo que hacer algo antes de enviarlo. También qué quiere decir en la nota de kits que el código saltea los \"productos no almacenables, salvo los packs\", y a quién le pregunto cada pendiente de la tabla."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás en palabras simples lo que no entiendo y qué tengo que hacer antes de mandarlo? No sé qué son `tuqui-adhoc` y `adhoc-way-guide`, ni si tengo que dar de alta algo para revisar el borrador. En las notas tampoco entiendo qué son los \"productos no almacenables\", los \"packs\" del código, `sale_order_type` y `sale_order_type_automation`. ¿Un pack de 4 patas armado como kit se sincroniza o no? ¿Y a quién le pido cada dato pendiente (IPs, kits, cambio de conector, módulo, datos y baja)? ¿Puedo mandar la respuesta así o conviene esperar a tenerlos?",
+ "followup_answer": "**Podés mandarla ahora como respuesta parcial, sin esperar los datos pendientes.** Antes cambiá el punto 2 y asegurate de que alguien pueda seguir esos pendientes.\n\n## Qué hacer antes de mandarla\n1. Reemplazá todo el punto 2 por este texto. Corrige algo que escribí impreciso: al confirmar la venta, las patas quedan pendientes de salida; recién salen de \"A la mano\" al validar la entrega.\n\n   > **2. Kits**\n   > Todavía no podemos confirmar que un pack armado como kit se sincronice. Odumbo publica la cantidad \"A la mano\" menos la \"Saliente\" que informa Odoo, y no tiene un tratamiento específico para kits. En Odoo estándar, al confirmar la venta de un kit se genera la entrega de sus componentes, y el stock \"A la mano\" baja al validarla.\n   >\n   > Hay que probarlo, idealmente en un entorno de prueba que no modifique publicaciones reales. Partiendo de 10 patas, sin otras salidas pendientes:\n   > - Se deberían publicar 2 packs.\n   > - Al confirmar la venta de 1 pack, la entrega debería incluir 4 patas y se debería publicar 1 pack.\n   > - Al validar la entrega, deberían quedar 6 patas y seguir publicado 1 pack.\n   >\n   > En otra prueba desde 10 patas, al confirmar la venta de 3 patas sueltas quedan 7 disponibles: se debería publicar solo 1 pack.\n\n   La última prueba la sumo porque sospecho que, con patas sueltas, la resta podría dar 2 packs. No lo verifiqué.\n2. Confirmá quién va a conseguir los datos, porque el mensaje promete responderlos.\n3. Copiá solo el mensaje, sin las \"Notas para vos\".\n\nSi el cliente exige una respuesta completa, o nadie puede seguir los pendientes, no la mandes todavía. El aviso de **no activar Odumbo en producción** del punto 3 tiene que quedar.\n\n## Qué es cada cosa\n- **`tuqui-adhoc`:** es la conexión del asistente con la información de Adhoc, como tu identidad y las reglas de la empresa.\n- **`adhoc-way-guide`:** es la guía del asistente para configurar esa conexión.\n- **¿Tenés que darla de alta?** No hace falta para entender o mandar el borrador. Sirve para que yo pueda consultar las reglas de comunicación, que no revisé. No reemplaza las confirmaciones técnicas.\n- **Producto no almacenable:** en Odoo 17, es uno cuyo tipo no es \"Producto almacenable\", por ejemplo un consumible o un servicio. Odoo no lleva para él un stock propio como el de un almacenable.\n- **\"Packs\" del código:** son la excepción por la que un producto no almacenable no se saltea. El material no dice cómo los reconoce, así que **que vos lo llames pack no prueba que el código lo trate así**.\n- **`sale_order_type` y `sale_order_type_automation`:** son nombres de módulos. Por lo que recuerdo, el primero agrega tipos de pedido de venta y el segundo permite automatizar pasos según el tipo, como la factura. No verifiqué que sirvan para este caso en Odoo 17 Enterprise, por eso no van en el mensaje.\n\n## ¿El kit de 4 patas se sincroniza?\n**No lo sabemos todavía.**\n- **Si está como almacenable:** el filtro de no almacenables no lo saltea. Falta probar que la cantidad publicada sea correcta.\n- **Si no está como almacenable:** se saltea, salvo que el código lo reconozca como pack. Tener una lista de materiales tipo kit no alcanza para asegurarlo.\n\n## A quién pedirle cada dato\nEl material no dice quién se ocupa de cada tema. Esta es mi sugerencia por función; si no sabés quién la cumple, empezá por el responsable de Odumbo para que lo derive.\n\n| Dato | A quién | Qué preguntarle |\n|---|---|---|\n| IPs | Infraestructura de Odumbo | \"¿Desde qué IPs se conecta a Odoo? ¿Son fijas? ¿Cómo se avisan los cambios?\" |\n| Kits | Quien desarrolla el conector | \"¿Qué considera un pack? ¿Incluye un kit de Odoo? ¿Calcula bien el stock en Odoo 17, también con patas sueltas vendidas?\" |\n| Cambio de conector | Equipo de producto o implementación de Odumbo | \"¿Desde qué fecha trae ventas y cómo se activa? ¿Cómo reconoce las que ya existen? ¿Qué pasa con las facturas pendientes o ya subidas?\" |\n| Módulo | Alguien funcional o técnico que conozca Odoo 17 | \"¿Qué módulo y dependencias hacen falta en Enterprise para que la factura salga sola según el tipo de pedido?\" |\n| Datos y baja | Responsable de privacidad o legales, con apoyo técnico de Odumbo | \"¿Qué datos se guardan además de las credenciales y para qué? En la baja, ¿se borran o conservan, cuándo y por cuánto tiempo?\" |\n\nSi el cliente no puede dar el permiso de Administrador por seguridad, llevá ese caso al equipo de producto. El código lo exige, pero eso no demuestra que cada operación lo necesite.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13457,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3504,
+  "output_tokens_details": {
+   "thinking_tokens": 1582
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13457,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3504,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13457,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13457
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cacbb49409",
+  "persona": "comercial"
+ }
+}

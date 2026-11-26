@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Primero actúa la whitelist del admin, después el evaluator de permisos y recién ahí se ejecuta la tool. Esto sale del material que pegaste; no lo verifiqué contra el código.\n\n## Orden de decisión\n\n1. **`workspace_write_models`** (Settings → Write Models): es un sí o no por modelo. Si no permite la operación, la tool se corta ahí y no llega al paso 2.\n2. **`evaluate_permission(ctx)`** (`tuqui_core/chat/permissions.py`): devuelve ALLOW, DENY o ASK. Gana la primera regla que aplique:\n   1. El workspace dice `deny` → **DENY**. Ninguna preferencia personal lo levanta.\n   2. Hay una fila en `user_tool_approvals` para ese usuario, workspace y tool → gana esa. En `exposure`, `webhook` y `scheduled` este paso **se saltea**.\n   3. El workspace dice `allow` o `ask` → se aplica eso.\n   4. Si ninguna regla anterior resolvió, se usa el default. Si el recurso está en `approval` (`\"ask\"` o `\"always\"`) → **ASK**; si no → **ALLOW**. En tools de conector sin declaración en el REGISTRY se usan la heurística de verbos y las annotations MCP.\n3. **`tool.execute()`**: corre si el resultado es ALLOW, o si es ASK y se aprueba. Queda auditado en `tool_usage_log` con `permission_action`.\n\n## Caso 1: admin en \"ask\", miembro en \"allow\"\n\nEn un canal donde vale la identidad personal, el resultado es **ALLOW** y no se le pregunta nada. Esto supone que el paso 1 permite la operación y que la preferencia es de ese mismo workspace.\n\nEl \"ask\" del admin no es un piso: la preferencia del miembro (2.2) se evalúa antes que él (2.3). **Del workspace, solo `deny` le gana al usuario.** Entonces, si el admin puso \"ask\" para obligar a confirmar, esta grilla no lo garantiza.\n\n## Caso 2: agent que corre por webhook\n\nLa preferencia del miembro **se ignora**, aunque el turno corra con su identidad prestada. Con el paso 1 permitido, queda así:\n\n| Grilla del workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `ask` | ASK |\n| `allow` | ALLOW |\n| Sin fila | Default del 2.4 |\n\nSi la configuración es la del caso 1 (workspace \"ask\", miembro \"allow\"), por webhook da **ASK**, no ALLOW.\n\nLa razón es que la preferencia personal de quien presta la identidad no es política del canal. Lo define `ChannelProfile.personal_identity_applies`.\n\n**Pregunta abierta:** el material no dice qué pasa con un ASK en un webhook, donde puede no haber nadie para contestar. No des por hecho que se bloquea, que queda esperando o que se aprueba solo. Para saberlo, revisá cómo el código maneja ese ASK en canales sin identidad personal, o probalo con una tool inofensiva en \"ask\".\n\nEl diagrama tampoco muestra que el paso personal se saltea en esos canales; eso aparece solo en la sección \"Evaluator\". Si lo lee alguien sin esa sección, puede creer que el \"allow\" del miembro también vale por webhook.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11048,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1734,
+  "output_tokens_details": {
+   "thinking_tokens": 560
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1734,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11048,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11048
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

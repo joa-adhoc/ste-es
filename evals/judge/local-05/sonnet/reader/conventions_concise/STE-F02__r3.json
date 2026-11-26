@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás como lo vería desde la pantalla de Odoo? No sé qué son `partner_to`, `email_cc`, `reply_to`, `account_ux` ni `tuqui_context`, ni quiénes son C1 y C2 (¿contactos o usuarios? ¿cuál es cuál?). Decime en qué menú y campo de la plantilla o del usuario se configura cada opción y cómo hago las pruebas que proponés."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en términos de pantalla? No sé qué son `partner_to`, `email_cc`, `reply_to`, `account_ux` ni `tuqui_context`, ni quiénes son C1 y C2. Decime qué contacto o usuario es cada uno, en qué menú y campo de la plantilla o de las preferencias se toca cada opción, y qué es eso que envía el correo solo al validar."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en palabras de pantalla? No entiendo qué son `partner_to`, `email_cc`, `reply_to`, `account_ux`, `tuqui_context`, C1 y C2. Para las pruebas 1 y 2 y la opción «Agregar / Quitar seguidores», decime en qué menú entro, qué campo de la plantilla o del usuario toco y qué pongo en cada uno, y cuál de las dos casillas o usuarios de Administración es C1 y cuál C2."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás como lo vería desde la pantalla de Odoo? No sé qué son `partner_to`, `email_cc`, `reply_to`, `account_ux` ni `tuqui_context`, ni quiénes son C1 y C2 (¿contactos o usuarios? ¿cuál es cuál?). Decime en qué menú y campo de la plantilla o del usuario se configura cada opción y cómo hago las pruebas que proponés.",
+ "followup_answer": "**Las plantillas y la preferencia del usuario se cambian desde la pantalla, pero ninguna saca seguidores.** Los menús son los de Odoo 18 estándar según lo que conozco. No los verifiqué en esta base, así que algún nombre puede variar.\n\n## Quiénes son C1 y C2\nSon **dos contactos** que se llaman «Administración» y tienen el mismo correo. C1 y C2 son etiquetas del material para distinguirlos.\n\n| | Qué es | Preferencia de notificación | Facturas de clientes de 2026 que sigue (aprox.) |\n|---|---|---|---|\n| **C1** | Solo un contacto, sin usuario | No tiene usuario donde elegirla | 500 |\n| **C2** | El contacto del usuario interno «Administración» | «Gestionar en Odoo» | 4.600 |\n\nEn Odoo todo usuario tiene un contacto asociado, y en los seguidores figura ese contacto. Como los nombres son iguales, hacé clic en cada uno y compará el ID en la URL con el del contacto del usuario.\n\n**Usuario A y Usuario B** son otros dos usuarios internos. **Seguidores** son los del ícono de persona con un número, en el chatter de la factura. Al editar uno con el lápiz se ve si tiene tildado «Debates».\n\n## Los nombres técnicos\n| Dije | Qué es |\n|---|---|\n| `partner_to` | Campo de la plantilla **Para (socios)**: contactos, cargados por su ID |\n| `email_cc` | Campo **CC** de la plantilla |\n| `reply_to` | Campo **Responder a** de la plantilla |\n| `account_ux` | Un módulo. Según el material, envía la factura al validarla |\n| `tuqui_context` | Una herramienta del asistente para consultar contexto de Adhoc. No se configura en la plantilla ni en el usuario |\n\n## Dónde se configura\n**Plantilla:** activá el modo desarrollador y entrá en **Ajustes → Técnico → Correo electrónico → Plantillas de correo electrónico**. Abrí la de factura y andá a la pestaña **Configuración de correo**.\n- **CC:** la dirección de Administración.\n- **Para (socios):** conservá lo que ya está para el cliente y agregá, separado por coma, el ID de C1.\n- **Responder a:** la dirección de Administración.\n- Si está tildado **Destinatarios predeterminados**, Para y CC se ocultan. No lo destildes sin completar el destinatario del cliente.\n\nPara saber qué plantillas revisar, entrá en **Contabilidad → Configuración → Diarios** y mirá la de envío automático en los cinco diarios electrónicos. No confirmé en qué pestaña está. Revisá aparte cuál usan las notas de crédito.\n\n**Usuario:** **Ajustes → Usuarios y compañías → Usuarios → Administración → pestaña Preferencias → Notificación → Por correo electrónico**. Vale para todas las notificaciones de ese usuario, no solo las de facturas.\n\n## Cómo probar\n**Antes de empezar**\n- Usá una copia de prueba y confirmá que no emite comprobantes electrónicos reales.\n- Reemplazá los correos del cliente, Administración, vendedores y usuarios que puedan recibir algo por casillas tuyas. En C1 y C2 usá la misma, para reproducir la situación.\n- Para probar respuestas, la base tiene que poder enviar y recibir correo. Las copias de prueba suelen tenerlo desactivado. Si no se puede habilitar de forma controlada, esa parte queda sin probar.\n\n**Prueba 1: Responder a**\n1. Anotá el valor actual de **Responder a** y poné tu casilla que simula Administración.\n2. Creá una factura al cliente de prueba, validala y mirá qué casillas la reciben.\n3. Respondé desde la casilla del cliente.\n4. Mirá a qué casillas llega la respuesta y si aparece en el chatter.\n5. Restaurá el valor anterior.\n\n**Prueba 2: usuario C2**\n1. Con la plantilla como estaba, cambiá la notificación a **Por correo electrónico**.\n2. Validá otra factura y confirmá que C2 es seguidor con «Debates». Si no está, agregalo para la prueba y anotá que hubo que hacerlo a mano.\n3. Respondé como cliente y mirá quién recibe: C2, Usuario A y cualquier otro.\n4. Antes de proponerlo en la base real, estimá qué otros documentos sigue C2.\n\n**En las dos pruebas:** repetí con un vendedor agregado como seguidor y con una nota de crédito. Mirá por separado quién recibe el envío inicial y quién la respuesta. Que Administración reciba no alcanza: anotá también si siguen recibiendo vendedores o internos.\n\n## Agregar y quitar seguidores\nEsto corresponde a Consultoría; probalo solo en la copia.\n- **Acción:** en **Ajustes → Técnico → Acciones → Acciones de servidor**, creá una sobre «Asiento contable» de tipo **Quitar seguidores** o **Agregar seguidores** y elegí los contactos.\n- **En forma masiva:** usá **Crear acción contextual**. Después, en **Contabilidad → Clientes → Facturas**, seleccioná dos o tres y ejecutala desde **Acciones**. Las notas de crédito están en su propio menú.\n- **Automática:** se crea en **Ajustes → Técnico → Automatización → Reglas de automatización**, si el menú está disponible. Filtrá solo facturas y notas de crédito de clientes. Al validar, revisá quién recibió el correo y quién quedó como seguidor al final: que la lista termine bien no prueba que el envío haya salido bien.\n\nQuitá solo los contactos que correspondan, sin incluir al cliente, sus contactos ni Administración.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12899,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3828,
+  "output_tokens_details": {
+   "thinking_tokens": 1766
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12899,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3828,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12899,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12899
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "608778a816",
+  "persona": "soporte"
+ }
+}

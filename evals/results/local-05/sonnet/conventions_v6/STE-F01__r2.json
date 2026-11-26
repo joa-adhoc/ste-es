@@ -1,0 +1,47 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El error del ticket 140512 fue, con casi toda seguridad, **transitorio y de la actualización**: la base ya tenía las reglas de acceso nuevas, pero el pod A, que seguía atendiendo, no tenía el método que esas reglas llaman. Con estos datos no veo un bug que corregir en el módulo.\n\n**Hora (UTC, 04/11)** | **Qué pasó**\n--- | ---\n15:06:29 | Arranca el pod A.\n15:07:39 y 15:08:01 | Figuran actualizados los dos módulos. Las reglas 507 y 508 se reescriben a las 15:08:01.\n15:08:36–39 | El pod A recarga el registro y el uid 31 recibe tres veces el error.\n15:08:40 | En el pod A falla el cron de cotizaciones porque falta otro método, en `res.company`.\n15:08:53 y 15:08:58 | Arranca el pod B, con la imagen nueva, y se apaga el A.\n15:09–15:30 | No hay errores en el pod B.\n\n**Por qué pasó (inferencia):** recargar el registro vuelve a leer la base, pero normalmente no vuelve a importar el Python que el proceso ya tiene cargado. Así, el pod A habría combinado reglas nuevas con código viejo. Que falten dos métodos en dos modelos distintos apoya esta explicación. Que hoy el método esté en el código no la contradice, porque eso no muestra qué código corría en el pod A.\n\n**Lo que no está confirmado**\n- **Versión del pod A:** el material no dice con qué imagen arrancó ni qué proceso actualizó la base. Para cerrarlo, hay que comparar esa imagen con la del pod B y ver si tenía los dos métodos.\n- **Demora hasta el primer error:** puede que 15:08:01 sea el inicio de la transacción y que el cambio se haya confirmado más tarde. Los logs de la actualización lo mostrarían.\n- **Hora del ticket:** informa 15:09:12, cuando el A ya se había apagado y el B no registra errores. Puede ser la hora en que se vio o copió el cartel, pero no lo comprobé.\n- **Después de las 15:30:** no tengo datos, así que no puedo asegurar que no haya vuelto a pasar.\n\n**Qué falta hacer**\n1. **Carga de stock:** confirmar con el cliente que quedó bien. No sabemos qué operación falló ni si la repitió. Antes de cargar de nuevo, tiene que revisar que no esté ya registrada, para no duplicarla.\n2. **Cotizaciones:** verificar que el cron «Consolidation: bring currency rates in» haya corrido bien después y que no falten cotizaciones. Que no haya errores en el pod B no prueba que se haya ejecutado.\n3. **Despliegue:** pasar el caso a quien lo mantiene, para revisar por qué el pod A seguía atendiendo con la base ya actualizada. Si se confirma, puede repetirse en otras actualizaciones, aunque cerremos este ticket.\n4. **Ticket:** como causa, anotaría «actualización / despliegue». Si hay que cargar un módulo, `stock_account_multicompany_ux` es el relacionado con el método del traceback, pero eso no significa que tenga un bug.\n\n**Respuesta sugerida para el cliente:**\n> Hola. El error que viste al cargar stock coincidió con una actualización de tu base el 04/11, cerca de las 12:08 (hora argentina). Todo indica que fue algo momentáneo de ese proceso. En los registros que revisamos, de 12:09 a 12:30, no vimos nuevos errores. ¿Pudiste completar la carga? Antes de repetirla, fijate que no haya quedado registrada. Si el error te vuelve a aparecer, avisanos con la hora y lo que estabas haciendo.\n\n**Alcance de la revisión:** usé solo la introspección y los logs que pegaste; no hice consultas en vivo. Intenté buscar el código de los módulos en esta máquina, pero el comando requería aprobación y no se ejecutó, así que no revisé el código. Tampoco tengo disponible el MCP `tuqui-adhoc`, por lo que no pude cargar tu identidad ni las reglas de la empresa; hay que darlo de alta o autenticarlo (guía: `adhoc-way-guide`). No cambié el ticket ni envié la respuesta al cliente.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11629,
+  "cache_read_input_tokens": 46077,
+  "output_tokens": 3563,
+  "output_tokens_details": {
+   "thinking_tokens": 1795
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11629,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3110,
+    "cache_read_input_tokens": 28567,
+    "cache_creation_input_tokens": 572,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 572
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 2,
+ "is_error": false
+}

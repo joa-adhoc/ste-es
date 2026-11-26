@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás una versión para enviar sin la jerga técnica (o explicada en criollo: qué es el \"campo técnico\" en `product.product`, los registros en `ir.model.data`, \"productos no almacenables, salvo los packs\" y `mrp`)? Si el cliente pregunta qué escribe el conector en su Odoo, o si su pack entra en esa excepción, hoy no sabría explicarlo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Antes de mandarlo, ¿me explicás en palabras simples la parte que va al cliente sobre \"un campo técnico de precio en `product.product` y registros en `ir.model.data`\" y la de los productos \"no almacenables, salvo los packs\"? No sé qué significa que el conector escriba eso en su Odoo, si les modifica o les pone en riesgo algún dato, ni si tiene que ver con que pidamos Administrador. Si el cliente me lo pregunta, no lo puedo explicar. Dame una versión para el borrador sin nombres técnicos, o decime si conviene sacarlo."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me das una versión del borrador lista para mandar al cliente, sin tecnicismos? No entiendo qué son `product.product`, `ir.model.data`, «campo técnico», «productos no almacenables, salvo los packs» ni `mrp`. Explicame en criollo qué escribe el conector en el Odoo del cliente y si eso le afecta en algo, y si su pack de 4 patas puede quedar sin stock publicado. Decime también quién tiene que confirmar los pendientes (IP, cambio de módulo, módulo de facturación en Odoo 17 y datos), así sé a quién pedírselos antes de enviar."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me pasás una versión para enviar sin la jerga técnica (o explicada en criollo: qué es el \"campo técnico\" en `product.product`, los registros en `ir.model.data`, \"productos no almacenables, salvo los packs\" y `mrp`)? Si el cliente pregunta qué escribe el conector en su Odoo, o si su pack entra en esa excepción, hoy no sabría explicarlo.",
+ "followup_answer": "Abajo va la versión para enviar y, después, la explicación de cada término para las repreguntas.\n\n## Para enviar\n\n> Hola. Van las respuestas; algunos puntos todavía los tenemos que confirmar.\n>\n> **1. Permisos**\n> Hoy el usuario necesita Ajustes como Administrador. La comprobación de la conexión lo exige en todas las versiones de Odoo, así que no alcanza con permisos de Ventas, Inventario y Facturación. En Odoo 19, si falta ese permiso, la comprobación se corta antes de revisar el resto. La lista completa de permisos está en el manual.\n>\n> Odumbo no solo lee información: entre otras cosas, agrega a los productos un campo interno de precio y crea registros en una tabla que Odoo usa para identificar datos.\n>\n> Las direcciones IP desde las que se conecta Odumbo las tenemos que confirmar. Antes de restringir el acceso a su servidor, pidan los datos técnicos de la conexión con un ticket.\n>\n> **2. Kits**\n> Para publicar el stock, Odumbo toma del producto la cantidad \"A la mano\" menos la \"Saliente\", en la ubicación de stock configurada. No tiene un tratamiento propio para los kits, y todavía no podemos confirmar que su caso funcione de punta a punta. Además, deja afuera los productos en los que Odoo no lleva control de stock, con una excepción para los packs. Falta confirmar si su kit, tal como está configurado, queda incluido.\n>\n> Recomendamos probar con un solo pack antes de habilitar el resto:\n> - Comparar el stock que Odoo calcula para el kit en la ubicación configurada con el stock publicado.\n> - Confirmar una venta y revisar que la entrega incluya las patas, en la cantidad correcta.\n> - Revisar que el stock publicado se actualice después.\n>\n> **3. Cambio desde su módulo actual**\n> Todavía no tenemos un procedimiento para recomendarles que evite duplicar ventas o facturas. Lo tenemos que confirmar, y sugerimos no hacer el cambio hasta tenerlo definido. Lo que ya les podemos decir es que Odumbo no genera facturas.\n>\n> **4. Facturación**\n> Pueden facturar a mano, de a una o en lote una vez por día. Odumbo detecta las facturas generadas y validadas en Odoo y las sube a la venta entre 6 y 24 horas después. Ese plazo se suma al tiempo que pase hasta que facturen. La subida de facturas aplica solo a Mercado Libre.\n>\n> El stock se descuenta aunque no facturen, porque al confirmar la venta Odoo genera la entrega.\n>\n> Para que la factura salga sola al confirmar la venta, el manual recomienda usar tipos de pedido de venta. Qué módulo ofrece esa función en Odoo 17 Enterprise lo tenemos que confirmar.\n>\n> **5. Datos**\n> Qué datos guarda Odumbo además de las credenciales, y qué pasa con ellos si dan de baja el servicio, lo tenemos que confirmar. Preferimos no responderles sin esa confirmación.\n\n## Para vos\nLas definiciones generales de Odoo salen de lo que sé del estándar; no las verifiqué acá. Lo que hace el conector sale del material.\n\n- **`product.product` y el campo técnico:** `product.product` es el modelo de las variantes de producto (por ejemplo, una mesa en un color puntual). El conector le agrega un campo de precio, como una columna nueva. No sabemos cómo se llama, qué valores guarda, para qué se usa ni qué pasa con él en la baja.\n- **`ir.model.data`:** es la tabla de identificadores externos de Odoo (los \"XML ID\"). Cada registro asocia un nombre estable con un dato de la base, para poder encontrarlo después. No sabemos qué identifican los que crea el conector. No des por hecho que son solo para el campo de precio.\n- **Si preguntan qué escribe:** podés nombrar esas dos cosas, pero no presentarlas como la lista completa. El material no permite armarla. Podés responder: \"Sabemos que crea esto; el detalle completo de lo que escribe lo tenemos que confirmar\".\n- **Producto almacenable:** es el que tiene control de stock en Odoo. En la versión 17 es el tipo \"Producto almacenable\", distinto de \"Consumible\" y \"Servicio\".\n- **\"Salvo los packs\":** el conector saltea los no almacenables, pero exceptúa lo que considera un pack. El material no dice cómo lo reconoce, así que el nombre comercial \"pack de 4 patas\" no alcanza.\n    - Si el producto del kit es almacenable, ese filtro no lo saltea. Eso no prueba que el stock publicado sea correcto.\n    - Si no es almacenable, hay que ver en el código si entra en la excepción.\n- **`mrp` y `phantom`:** `mrp` es el nombre técnico de Fabricación, y `phantom` el del tipo de lista de materiales \"Kit\". Que no aparezcan significa que no se encontró lógica propia del conector para kits. El cálculo puede hacerlo Odoo cuando el conector le pide las cantidades, pero hay que probarlo.\n\nPara cerrar la duda del pack, pedile al cliente el tipo de producto que tiene el kit y revisá cómo define \"pack\" el código. La prueba con un pack sirve para validar el resultado completo.\n\nAntes de enviar, asigná quién va a confirmar los pendientes: las IP, el cambio de módulo, los tipos de pedido en Odoo 17 y los datos. Si el cliente pregunta por lo que escribe el conector, sumá ese detalle a la lista.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13073,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 3288,
+  "output_tokens_details": {
+   "thinking_tokens": 1285
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13073,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3288,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 13073,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13073
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "9108c96e7a",
+  "persona": "comercial"
+ }
+}

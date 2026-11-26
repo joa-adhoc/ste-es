@@ -1,0 +1,44 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Odoo no intenta borrar la recepción 412.** Intenta borrar una recepción nueva y vacía que crea al confirmar, y `stock_ux` lo bloquea. Revisé solo el material que pasaste: no consulté la base ni reproduje el error.\n\n## Qué pasa\n\n1. Al confirmar, `purchase_stock` crea una recepción para la orden.\n2. Si queda sin movimientos, la borra con `created_receipt.unlink()`.\n3. `_check_block_picking_deletion` rechaza el borrado porque «Recepciones» tiene `block_picking_deletion = True`. Eso alcanza, aunque el traslado esté en borrador.\n4. El error revierte la confirmación. Por eso la orden sigue en borrador.\n\nEsto explica los ids 415 y 416: cada intento crea un registro, consume un id y se revierte. PostgreSQL no devuelve el id consumido, así que esos traslados no existen. Tomo el mensaje como salido de ese `unlink()`: coincide con el código, pero no tengo el traceback.\n\n**Por qué queda vacía (inferencia):** la línea ya tiene 2 de 2 unidades recibidas, así que no habría nada pendiente. No está en el material el código que calcula los movimientos.\n\n**Cómo llegó a este estado:** el 11/11 la orden se confirmó (12:26) y se registraron las 2 unidades (12:27). Después se canceló (13:26) y volvió a borrador (13:27). La 412 sigue en Hecho.\n\n## Cómo regularizar\n\nPropongo probar esto **primero en una copia de la base**:\n\n1. Anotá el estado inicial: stock del producto, movimientos de la 412, cantidades de la línea, factura y traslados de la orden.\n2. Desactivá «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmá P00231.\n4. Volvé a activar la opción enseguida, también si la confirmación falla.\n5. Verificá el resultado:\n   - La orden queda en Orden de compra.\n   - La 412 sigue vinculada, en Hecho y con sus 2 unidades.\n   - No quedan recepciones ni movimientos nuevos.\n   - La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - El stock no cambia.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la línea.\n\nCon la opción desactivada, el traslado vacío debería poder borrarse si está en borrador. La validación por estado sigue activa. Pero la opción afecta a **todas las recepciones** de ese tipo de operación. En producción, hacelo en un momento sin actividad, con el acuerdo del cliente y solo si la prueba en la copia sale bien. Si aparece una recepción pendiente o cambia alguno de esos datos, no lo apliques en producción.\n\n**Para no desajustar stock ni factura, no hagas esto como arreglo:**\n- devolver, cancelar o borrar la 412;\n- pasar la factura a borrador o anularla;\n- cambiar las cantidades de la línea;\n- forzar el estado de la orden por SQL o escritura directa.\n\n## Preguntas abiertas\n\n- **¿Por qué se pudo cancelar la orden con una recepción hecha?** No se leyó el código que lo decide, así que no se puede decir si es un comportamiento estándar o un error.\n- **¿Cuándo se contabilizó la factura?** El historial que tengo no dice si fue antes o después de la cancelación.\n- **¿Por qué se canceló la orden?** Conviene preguntarle al cliente antes de reconfirmarla. Si la compra o la recepción estaban mal, reconfirmar no corrige eso.\n\n## Posible mejora en `stock_ux`\n\nEl bloqueo también frena la limpieza interna que hace Odoo estándar. Por el código descripto, puede repetirse siempre que la recepción recién creada quede vacía y su tipo de operación tenga la opción activa. Habría que evaluar una excepción acotada a ese traslado vacío en borrador, sin habilitar el borrado manual. Lo reportaría aparte, con `tuqui-report-feedback`; no cambié ni reporté nada.\n\nEn esta sesión no tengo las herramientas de `tuqui-adhoc`, así que no cargué `tuqui_context`: no validé esta propuesta contra las reglas de la empresa para operar Odoo. Revisá que esté registrado y autenticado antes de tocar la base; `adhoc-way-guide` te guía con el alta.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10948,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3410,
+  "output_tokens_details": {
+   "thinking_tokens": 1830
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10948,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3410,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10948,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10948
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Necesitás una migración idempotente con RLS y su policy, un test de aislamiento y un modelo Pydantic. Todo sale del material que pegaste; no revisé el repo.\n\n## Pasos\n\n1. **Creá la migración** con `supabase migration new <nombre>`. Tiene que quedar en `supabase/migrations/` como `NNNN_descripcion.sql`. El CLI de Supabase suele generar un prefijo con timestamp, así que compará con los archivos existentes. Si hay que renombrarlo, hacelo antes de abrir el PR.\n2. **Escribí el SQL** con todo lo de la sección siguiente.\n3. **Agregá el test de aislamiento** en `tuqui_core/tests/test_rls.py`.\n4. **Creá el modelo Pydantic** de la tabla.\n\n## Qué tiene que tener la migración\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`, con `workspace_id`.\n- **Índices, si agregás:** `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`, que ya es idempotente.\n- **Policy:** con `USING (workspace_id = current_setting('app.current_workspace_id')::uuid)`, dentro de un bloque `DO $$` que primero verifique si existe.\n- **Idempotencia total:** el archivo entero tiene que poder correr varias veces sin error. Vale también para cualquier otra sentencia que sumes.\n\nEste es un ejemplo que no probé. La tabla `mi_tabla`, el schema `public`, el índice y los nombres son ilustrativos:\n\n```sql\nCREATE TABLE IF NOT EXISTS public.mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL\n    -- table columns\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_id_idx\n    ON public.mi_tabla (workspace_id);\n\nALTER TABLE public.mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1 FROM pg_policies\n        WHERE schemaname = 'public'\n          AND tablename = 'mi_tabla'\n          AND policyname = 'mi_tabla_workspace_isolation'\n    ) THEN\n        CREATE POLICY mi_tabla_workspace_isolation ON public.mi_tabla\n            USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n    END IF;\nEND $$;\n```\n\n## Antes de abrir el PR\n\n- **El preview escribe en staging:** corre las migraciones contra la misma base de staging, no contra una copia. Tu migración se aplica ahí apenas abrís el PR.\n- **Si renombrás el archivo, se vuelve a aplicar**, porque el tracking es por nombre.\n- **Si editás una migración ya aplicada,** deduzco que con el mismo nombre no vuelve a correr. Aunque corriera, los `IF NOT EXISTS` no actualizan una tabla, un índice o una policy que ya existen. Revisá el SQL antes de abrir el PR.\n- **Más consecuencias:** están en `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\". Su contenido no está en el material, así que conviene que la leas.\n- **No dependas del filtro en la aplicación:** nunca filtres por `workspace_id` solo ahí. RLS es la defensa principal.\n\n## Una contradicción en el material\n\nLa sección de RLS pide el test en `tests/test_rls.py`, y la guía para tablas nuevas, en `tuqui_core/tests/test_rls.py`. Puede ser la misma ruta, relativa a `tuqui_core/`, pero no lo verifiqué. Fijate cuál existe en el repo y, si son dos archivos distintos, confirmá cuál corresponde.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10891,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1868,
+  "output_tokens_details": {
+   "thinking_tokens": 447
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10891,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1868,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10891,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10891
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

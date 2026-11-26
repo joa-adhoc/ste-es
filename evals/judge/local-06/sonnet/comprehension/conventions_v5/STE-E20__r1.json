@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto lo identifica como error `23502`: la migración `0415_terms_acceptance.sql` intentó poner `members.accepted_version` como `NOT NULL` y había filas con ese campo vacío. No dice el mensaje literal del error.",
+  "No, según el log staging no está caído: falló el paso de migración, la versión nueva no se publicó y la anterior sigue atendiendo. El autor aclara que no consultó el entorno en vivo.",
+  "Según `docs/infra-ci-cd.md`, hay que separar el cambio en dos trenes. En el primero va una migración que complete los valores vacíos (backfill), sin el `SET NOT NULL`, y conviene revisar que la aplicación ya no cree filas con el campo vacío. En un tren posterior va otra migración con el `SET NOT NULL`. Antes de escribir el backfill hay que definir qué valor corresponde a esas filas. Si el campo registra la versión de los términos aceptada (el texto lo supone por el nombre), completar con la versión actual podría dejar asentada una aceptación que nunca ocurrió. Si esas personas no aceptaron nada, hay que decidir cómo representarlo o si el campo realmente debe ser obligatorio."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "0b0b9f68ee",
+  "control": "a20a96ac5b"
+ }
+}

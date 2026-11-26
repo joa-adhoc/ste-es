@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_multi_store`, `perm_read`, `store_id`, `_search`, `fetch` ni el traceback. Decime en criollo por qué creés que falla «Ver asientos» si de otra sucursal se debería poder ver, y cómo lo compruebo desde la pantalla con ese usuario en una copia de prueba. Si la prueba por consola no se puede reemplazar, decime a quién se la paso, de dónde saco los dos IDs y qué resultado me tiene que devolver."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar en términos de pantalla y sin nombres técnicos? No entiendo qué son `account_multi_store`, `perm_read`, `store_id`, `_search`, `fetch` ni `account_journal_security`. Decime en simple por qué el usuario de Norte debería poder ver la factura del punto 22 pero le salta el error con «Ver asientos». También decime qué puedo probar yo desde la pantalla, con qué usuario y qué resultado confirma cada cosa. Si la prueba en `odoo shell` es imprescindible, ¿quién la tiene que correr, de dónde saco los dos IDs y cómo leo el resultado?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_multi_store`, `perm_read`, `store_id`, `_search` o `fetch`, y no sé usar el `odoo shell` ni sacar los IDs. En palabras de pantalla y de proceso: ¿por qué creés que falla «Ver asientos» si de otra sucursal se debería poder ver? ¿Qué pruebo yo desde la pantalla con el usuario de Norte, qué le paso a alguien técnico (y qué tiene que revisar), y qué le contesto mientras tanto al cliente?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_multi_store`, `perm_read`, `store_id`, `_search`, `fetch` ni el traceback. Decime en criollo por qué creés que falla «Ver asientos» si de otra sucursal se debería poder ver, y cómo lo compruebo desde la pantalla con ese usuario en una copia de prueba. Si la prueba por consola no se puede reemplazar, decime a quién se la paso, de dónde saco los dos IDs y qué resultado me tiene que devolver.",
+ "followup_answer": "**Creo que «Ver asientos» falla porque un filtro pensado para ocultar diarios de otra sucursal termina impidiendo leerlos.** Todavía es una hipótesis: no leí el código y no la probé.\n\n## Por qué podría fallar\nEn el sistema del cliente hay dos controles distintos sobre los diarios:\n\n1. **Los permisos por sucursal.** Limitan los cambios, no la lectura. Siguen valiendo otros límites, como el de compañía.\n2. **Un filtro extra en las búsquedas.** Si buscás diarios, te esconde los de otras sucursales.\n\nLa factura y su diario son datos separados. Supongo que «Ver asientos» necesita leer algo del diario Sur. Por lo que recuerdo de Odoo 18, para leerlo primero puede hacer una búsqueda interna. El filtro esconde el diario y Odoo responde «no tenés permiso».\n\nEs como un empleado autorizado a leer una carpeta que no figura en el índice que le dan: no llega a leerla. Creo que en la 16 la lectura no pasaba por esa búsqueda, pero tampoco lo verifiqué.\n\nEl error habla de reglas que lo impiden, y eso hay que mirarlo: **si nombra una que de verdad limita la lectura, mi explicación puede estar mal**. Tampoco sé por qué cambia según entres por seguimiento o por Contabilidad.\n\n## Qué probar desde la pantalla\nEn la copia de prueba, entrá como «Encargado Norte»:\n\n1. Activá el modo desarrollador: agregá `?debug=1` a la dirección, antes del `#` si lo hay. Si la dirección ya tiene un `?`, agregá `&debug=1`.\n2. Repetí tu recorrido: Contactos, el contacto, seguimiento, libro mayor, la factura del punto 22 y «Ver asientos».\n3. Copiá todo el mensaje. Anotá sobre qué dato falla (factura, diario u otro) y qué reglas nombra. El detalle puede no aparecer para ese usuario, aun con ese modo.\n4. Entrá al libro mayor desde Contabilidad, abrí **la misma factura** y tocá «Ver asientos». Anotá si funciona. Ver la factura en el listado no alcanza.\n5. Repetí el primer recorrido con una factura de Norte, si hay una disponible, para comparar.\n\n**La pantalla muestra dónde falla, pero no reemplaza la prueba por consola.** No separa «los permisos lo dejan leer» de «la lectura falla igual».\n\n## Para pasarle a quien haga la prueba\nPasásela a un desarrollador o técnico que pueda abrir la consola de Odoo en la copia de prueba. No sé quién tiene ese acceso en tu equipo. Podés mandarle esto:\n\n> En la copia de prueba, abrí un `odoo shell` nuevo. Primero buscá los dos ID:\n> ```python\n> env['res.users'].search([('name', '=', 'Encargado Norte')]).ids\n> env['account.journal'].search([('name', '=', 'FACTURA ELECTRONICA SUR')]).ids\n> ```\n> Cada búsqueda tiene que devolver un solo número. Si devuelve ninguno o varios, hay que identificar el correcto antes de seguir. Después reemplazá `ID_USUARIO` e `ID_DIARIO` y corré las líneas de a una:\n> ```python\n> journal = env['account.journal'].with_user(ID_USUARIO).browse(ID_DIARIO)\n> journal.check_access('read')  # permission check\n> journal.read(['name'])        # actual read\n> ```\n> Devolveme la salida completa de las dos últimas líneas, incluidos los errores.\n\nBusca los ID desde la consola porque ahí, normalmente, entra como superusuario, al que el filtro no se aplica. En pantalla, el diario puede estar oculto incluso para un administrador.\n\n## Cómo leer el resultado\n\n| Control de permiso (`check_access`) | Lectura real (`read`) | Qué significa |\n|---|---|---|\n| No muestra error (puede mostrar `None` o nada) | Da error de acceso | Es lo que espero: los permisos dejan leer, pero algo en la lectura lo impide. El filtro es el principal sospechoso |\n| No muestra error | Devuelve el ID y el nombre del diario | Esta prueba no reproduce el bloqueo. Mi explicación queda sin respaldo y hay que revisar qué más hace «Ver asientos» |\n| Da error de acceso | Cualquiera | Hay que revisar qué impide el permiso, incluida la compañía usada en la prueba. No alcanza para culpar al filtro |\n\nCualquier otro error quiere decir que la prueba no es concluyente. Aun con el primer resultado, falta confirmar que el filtro sea la causa y que «Ver asientos» falle sobre ese diario. Para eso, el técnico tiene que revisar el código y el recorrido del error.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12657,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3412,
+  "output_tokens_details": {
+   "thinking_tokens": 1678
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12657,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3412,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12657,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12657
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fe64beceb0",
+  "persona": "actualizacion"
+ }
+}

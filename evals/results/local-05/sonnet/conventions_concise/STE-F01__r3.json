@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El error del ticket 140512 fue transitorio, durante el despliegue del 2026-11-04.** El pod A siguió atendiendo cuando la base ya tenía las reglas nuevas, pero su código no tenía el método que esas reglas llaman. Con este material, no hace falta corregir el módulo.\n\nNo tengo acceso a `tuqui-adhoc` en esta sesión, así que no pude cargar `tuqui_context` ni consultar el ticket, la base o los logs. El análisis sale solo de lo que pegaste. Para dar de alta el MCP, usá `adhoc-way-guide`.\n\n**Secuencia (UTC; en Argentina, 3 horas menos)**\n\n| Hora | Qué pasó |\n|---|---|\n| 15:06:29–58 | Arranca el pod A, antes de las actualizaciones registradas en la base. |\n| 15:07:39 | Se actualiza `account_multicompany_ux`. |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro y el uid 31 recibe tres veces el `AttributeError`. |\n| 15:08:40 | En el pod A, el cron de cotizaciones falla porque falta otro método, en `res.company`. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y se apaga el pod A. |\n| 15:09–15:30 | El pod B no registra errores en las líneas filtradas. |\n\n**Causa:** recargar el registro vuelve a leer la base, pero normalmente no reimporta el código Python que el proceso ya tiene cargado. Que hoy el método exista y se importe no contradice el error. El fallo del cron apunta a lo mismo: código viejo en el pod A. Es una inferencia sólida, pero no verifiqué qué imagen o código tenía ese pod. Se confirma si su imagen no incluye `_get_branch_stock_root_ids`.\n\n**Lo que no cierra**\n- **Hora:** el ticket dice 15:09:12, pero los errores del uid 31 que figuran en los logs son de 15:08:37–38, y desde las 15:09 el pod B no muestra ninguno. Puede que esa hora sea la del reporte o la de cuando se copió el error, pero no lo verifiqué. Para cerrarlo, buscaría las requests del uid 31 entre 15:08:58 y 15:10 en todos los pods y en el proxy, sin filtrar solo errores.\n- **Ventana:** las reglas cambiaron a las 15:08:01 y el pod A empezó a apagarse a las 15:08:58. En ese lapso pudo haber otros afectados; los errores informados empiezan a las 15:08:37.\n- **Actualización:** el material no muestra qué proceso actualizó la base mientras el pod A seguía activo.\n\n**Qué haría**\n1. **Cliente:** pedirle que revise si la carga de stock quedó registrada y que repita solo lo que falte, para no duplicarla.\n2. **Cron:** confirmar que después de las 15:08:58 tuvo una ejecución correcta. Que no haya errores hasta las 15:30 no prueba que haya corrido.\n3. **Despliegue:** derivar a quien lo mantiene que el pod viejo atendió con la base ya actualizada. Corregir el módulo no evita que se repita con otro método.\n4. **Ticket:** cargar `stock_account_multicompany_ux` como módulo afectado, aclarando que el origen fue el despliegue. No modifiqué nada.\n\n**Borrador para el cliente** (sin contrastar con las reglas de comunicación de `tuqui_context`):\n\n> Hola. El 4/11, cerca de las 12:08 (hora argentina), registramos este error con tu usuario. Por lo que vimos, coincidió con una actualización del sistema: durante un momento, una parte seguía funcionando con la versión anterior. En los registros que revisamos de la versión nueva, entre las 12:09 y las 12:30, no aparecen errores. ¿Podés revisar si la carga de stock quedó registrada? Si falta algo, volvé a cargar solo eso. Si te aparece de nuevo el error, avisanos con la hora.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10914,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2848,
+  "output_tokens_details": {
+   "thinking_tokens": 1370
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10914,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2848,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10914,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10914
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

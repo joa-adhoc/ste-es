@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y lo que llame) y confirmarme dos cosas? Primero, si un workspace sin suscripción y sin exceso queda `active` el día que vence, y si el equipo puede seguir usando el asistente o deja de responderles a todos. De paso, confirmá que con exceso queda efectivamente `restricted`. Segundo, si a un workspace con suscripción activa igual le llegan los avisos de 7 días y del día 0."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y lo que bloquea al asistente) dos cosas? Primero, si un workspace sin suscripción y sin exceso de límites queda `active` y sigue teniendo el asistente cuando vence la prueba, o si deja de responder para todo el equipo. Segundo, si a un workspace con suscripción activa igual le llegan los avisos de 7 días y del día 0."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y lo que evalúa los límites) y confirmarme dos cosas? Primero, si un workspace sin suscripción y sin exceso queda `active` al vencer, y si el equipo puede seguir usando el asistente o deja de responder para todos. Segundo, si un workspace con suscripción activa recibe igual los avisos de 7 días y del día 0."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar en el código (`_run_trial_expiry` en `scheduler/billing_cron.py` y lo que llame) y confirmarme dos cosas? Primero, si un workspace sin suscripción y sin exceso queda `active` el día que vence, y si el equipo puede seguir usando el asistente o deja de responderles a todos. De paso, confirmá que con exceso queda efectivamente `restricted`. Segundo, si a un workspace con suscripción activa igual le llegan los avisos de 7 días y del día 0.",
+ "followup_answer": "No pude confirmar ninguno de los puntos en el código, porque no lo tengo: mi carpeta de trabajo (`/tmp/ste-es-eval-iqodspe8`) está vacía y no es un repo. Antes intenté buscar los archivos en todo el disco, pero ese comando pedía aprobación y no se ejecutó. No revisé nada fuera de esa carpeta.\n\n| Punto | Qué dice el material | En el código |\n|---|---|---|\n| Sin suscripción y sin exceso: ¿queda `active`? ¿El equipo sigue con el asistente? | Pasa a `plan='free'` y se evalúa el exceso. No dice con qué estado queda si no lo hay. | No verificado |\n| Con exceso: ¿queda `restricted`? | La tabla incluye el vencimiento de la prueba entre las causas de `restricted`, que bloquea el chat y el MCP. También figura el motivo `trial_expired_with_excess`. | No verificado |\n| Con suscripción activa: ¿llegan los avisos de 7 días y del día 0? | Solo dice que al vencer se limpian las marcas de la prueba y no se manda nada. | No verificado |\n\nPara cerrarlo, pasame la ruta del repo, con acceso, o pegá `_run_trial_expiry` y las funciones que llama. Esto es lo que habría que mirar:\n\n1. **Sin exceso:** qué valor queda en `account_status` después de pasar a free, incluso si antes no era `active`. Para el asistente no alcanza con ese campo: hay que ver qué controlan el chat y el MCP, por ejemplo `plan` o `billing_tier`, y si el cambio a free modifica los asientos.\n2. **Con exceso:** que la función que evalúa el exceso guarde `restricted` con el motivo `trial_expired_with_excess`, y que ningún paso posterior lo pise.\n3. **Avisos previos:** si la consulta que elige a quién avisar excluye los workspaces con suscripción viva, o si ese control se hace recién al vencer. También qué cuenta el código como suscripción \"viva\".\n\nLos tests pueden ayudar a ubicar estos casos, empezando por `tests/test_trial_notices.py`, que el material nombra por otro control (los nombres de planes en los catálogos de idioma). No sé si cubre estos tres.\n\nMientras tanto, no le prometería al cliente que va a seguir usando el asistente después del vencimiento, ni que con suscripción no va a recibir los avisos previos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12782,
+  "cache_read_input_tokens": 77482,
+  "output_tokens": 1390,
+  "output_tokens_details": {
+   "thinking_tokens": 281
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12782,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1124,
+    "cache_read_input_tokens": 30103,
+    "cache_creation_input_tokens": 189,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 189
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "cb1ab719f3"
+ }
+}

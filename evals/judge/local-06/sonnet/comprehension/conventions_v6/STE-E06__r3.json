@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo más probable es que los dos worktrees estén usando la misma base local. El `conftest` aplica las migraciones de cada rama, así que la base compartida termina con los cambios de las dos. Si la rama de tu compañero tiene una migración que borra o renombra una columna, tu código la sigue buscando y salta `UndefinedColumnError` en tests que no tocaste. Es una hipótesis basada en la documentación pegada: no se revisó tu base ni su rama.",
+  "No. El lock de `make test` solo evita corridas simultáneas y no separa los esquemas. Aunque las corridas vayan por turnos, el problema aparece igual.",
+  "1) Usá una base propia para este worktree. Si no tenés `tuqui_core/.env.test.local`, crealo con `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local` y editalo para que apunte a una base que no use ningún otro worktree. 2) Reconstruí esa base desde cero con `make migrate-reset`. Antes, confirmá a qué base apunta, porque la vacía: el texto no aclara si ese target carga `.env.test.local`, así que revisalo en el `Makefile`. Que solo toque bases locales no protege la compartida ni la de desarrollo. No lo reemplaces por `npx supabase db reset`, que aborta en el primer prefijo de migración repetido. 3) Volvé a correr los tests con `make test`. Si el error sigue, verificá qué base están usando de verdad y si la columna faltante la saca alguna migración de tu propia rama. Para que no se repita, cada worktree tiene que tener su propia base: repetí la configuración en cada uno nuevo y no copies el `.env.test.local` de otro sin cambiar la base. El lock podés dejarlo como está, esperando tu turno (hasta 15 min). Para correr tests en paralelo necesitás una base propia, un `REDIS_URL` con un índice propio (que no sea 0, ni 15, ni el de otro worktree) y un `TEST_LOCK` distinto, cuya definición hay que mirar en el `Makefile`. No cambies `TEST_LOCK` si todavía compartís la base o Redis, porque el cleanup borra filas globales (`users`, `workspaces`) y las corridas se van a pisar."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "8e5af3f6ac",
+  "control": "d71584ce60"
+ }
+}

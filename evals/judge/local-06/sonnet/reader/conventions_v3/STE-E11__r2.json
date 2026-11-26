@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, qué rama deploya ahí (y cómo se promueve de `staging` a `main`), y qué pasa con las instancias con el código viejo cuando se dropea la columna? ¿Puedo mergear el drop en el mismo PR que saca el uso de la columna, o tengo que separarlo en dos deploys?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar la config de Railway y el runner y confirmarme cómo llega el drop a prod? Necesito saber qué rama deploya a prod, cómo se promueve de `staging` a `main` y si ese environment tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. También necesito saber si puede quedar una instancia con el código viejo corriendo cuando se borra la columna. Si puede pasar, ¿tengo que separar el cambio en dos PRs (primero dejar de usar la columna y después dropearla)?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "Antes de mergear necesito cerrar lo de prod. ¿Podés revisar en el runner, la config de Railway y la doc qué rama deploya a prod, cómo se promueve de staging a main y si el environment de prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Confirmame también si durante ese deploy queda alguna instancia con código anterior corriendo cuando se dropea la columna. Si queda, ¿tengo que partirlo en dos deploys (primero sacar el uso de la columna y después dropearla)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, qué rama deploya ahí (y cómo se promueve de `staging` a `main`), y qué pasa con las instancias con el código viejo cuando se dropea la columna? ¿Puedo mergear el drop en el mismo PR que saca el uso de la columna, o tengo que separarlo en dos deploys?",
+ "followup_answer": "**Separalo en dos deploys.** El material no muestra que sea seguro hacerlo en uno. No pude revisar el repo: la sesión solo me deja buscar en `/tmp/ste-es-eval-86v2awqp`, y bloqueó la búsqueda que incluía `/home/joa`.\n\n| Pregunta | Qué se sabe | Cómo confirmarlo |\n|---|---|---|\n| ¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? | No verificado. | Mirá las variables del servicio de prod en Railway. |\n| ¿Qué rama deploya a prod? | No verificado. El gate admite `staging` y `main`, pero eso no dice cuál es prod. | Mirá en Railway la rama conectada al servicio de prod. |\n| ¿Cómo se promueve de `staging` a `main`? | No verificado. | Revisá `docs/infra-ci-cd.md` y los workflows de CI. No sé si el documento lo explica. |\n| ¿Qué pasa con las instancias viejas? | El material no dice si siguen activas mientras corre la migración. | Revisá en la configuración de deploy cuándo corre el runner y cuándo se apagan esas instancias. |\n\nSi una instancia vieja sigue activa después del drop, fallan sus consultas que usan la columna. `-- destructive: true` controla dónde se aplica la migración, pero el material no le atribuye ninguna coordinación entre instancias.\n\n**Cómo separarlo**\n\n1. **PR 1:** sacá todos los usos de la columna, sin el drop. Revisá también los modelos, los `SELECT *` que dependan de sus columnas, los jobs, los scripts y `seed.sql`.\n   - Si la columna es `NOT NULL` sin valor por defecto y el código nuevo deja de cargarla, sus `INSERT` van a fallar. En ese caso, este PR necesita una migración que lo evite, por ejemplo con `DROP NOT NULL`, si ninguna otra restricción lo impide.\n   - Si el código viejo sigue funcionando con esa migración, no lleva la marca. Entonces el preview del PR la puede aplicar en la base de staging.\n2. **Esperá a que el PR 1 llegue a prod.** Confirmá que no queden instancias, workers ni jobs con el código anterior. Que esté en staging no alcanza.\n3. **PR 2:** agregá el drop con `-- destructive: true`. Aunque ya no uses la columna, otros servicios o previews con código anterior pueden usarla sobre la base de staging. Cuando el drop se aplique ahí, los previews de ramas que no tengan el PR 1 se pueden romper.\n\n**Cuidado con la promoción:** si los dos PR se juntan en `staging` y pasan juntos a `main`, en prod vuelven a ser un solo deploy. No mergees el PR 2 hasta que el PR 1 esté en prod.\n\nSepararlo no hace reversible el drop. Después de aplicarlo, volver a un código que usa la columna puede fallar. Recrearla tampoco recupera sus datos, así que, si pueden hacer falta, asegurate antes de tener cómo recuperarlos.\n\nAntes de mergear el PR 2, confirmá también la variable y la rama de prod. Sin `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, o con una rama distinta de `staging` o `main`, el runner descrito saltea el drop sin registrarlo. Después del deploy, buscá el archivo en `_migrations` **de la base de prod** y verificá que la columna ya no esté.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12792,
+  "cache_read_input_tokens": 47309,
+  "output_tokens": 2185,
+  "output_tokens_details": {
+   "thinking_tokens": 645
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12792,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1753,
+    "cache_read_input_tokens": 29799,
+    "cache_creation_input_tokens": 503,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 503
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "68df705ccd"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás un ejemplo del test de aislamiento para `mi_tabla` en `test_rls.py`? Necesito saber qué casos tiene que cubrir para que pase el review (por ejemplo, que un workspace no pueda leer ni escribir filas de otro) y qué fixtures o helpers usa."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Cómo tiene que llamarse el archivo? `supabase migration new <nombre>` lo genera con un timestamp adelante (`<timestamp>_nombre.sql`), pero vos decís que tiene que quedar como `NNNN_descripcion.sql`. ¿Lo renombro con el número siguiente al de la última migración (antes de abrir el PR) o dejo el nombre que genera el comando?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "¿Me pasás un ejemplo del test de aislamiento para `mi_tabla` en `test_rls.py`? Necesito saber qué casos tiene que cubrir para que pase el review (por ejemplo, que un workspace no pueda leer ni escribir filas de otro) y qué fixtures o helpers usa.",
+ "followup_answer": "No pude ver tu `test_rls.py`: en mi directorio de trabajo no hay archivos y el material no muestra fixtures, helpers ni qué casos exige el review. Solo pide un test de aislamiento. El ejemplo de abajo es una propuesta que no ejecuté. Supone pytest y psycopg 3, y la fixture `conn` y el rol `rls_tester` son míos. Si el archivo ya tiene equivalentes, usá esos.\n\n**Cuidado con el rol:** con solo `ENABLE ROW LEVEL SECURITY`, el dueño de la tabla no pasa por las policies, y los superusuarios y roles con `BYPASSRLS` tampoco. Si probás con una conexión así, no estás probando el aislamiento. Por eso el ejemplo cambia a un rol común.\n\n```python\nimport os\nimport uuid\n\nimport psycopg\nimport pytest\n\nWS_A, WS_B = uuid.uuid4(), uuid.uuid4()\n\n\n@pytest.fixture\ndef conn():\n    # Admin connection to a local or disposable DB with the migration applied\n    conn = psycopg.connect(os.environ[\"TEST_DATABASE_URL\"])\n    try:\n        for ws in (WS_A, WS_B):\n            conn.execute(\"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (ws,))\n        conn.execute(\"CREATE ROLE rls_tester NOLOGIN\")\n        conn.execute(\"GRANT rls_tester TO CURRENT_USER\")\n        conn.execute(\"GRANT USAGE ON SCHEMA public TO rls_tester\")\n        conn.execute(\"GRANT SELECT, INSERT, UPDATE, DELETE ON mi_tabla TO rls_tester\")\n        conn.execute(\"SET LOCAL ROLE rls_tester\")\n        yield conn\n    finally:\n        conn.rollback()\n        conn.close()\n\n\ndef set_workspace(conn, ws):\n    conn.execute(\n        \"SELECT set_config('app.current_workspace_id', %s, true)\", (str(ws),)\n    )\n\n\n@pytest.mark.parametrize(\"own, other\", [(WS_A, WS_B), (WS_B, WS_A)])\ndef test_reads_only_own_rows(conn, own, other):\n    set_workspace(conn, own)\n    rows = conn.execute(\n        \"SELECT workspace_id FROM mi_tabla WHERE workspace_id IN (%s, %s)\",\n        (own, other),\n    ).fetchall()\n    assert rows == [(own,)]\n\n\ndef test_can_insert_own_row(conn):\n    set_workspace(conn, WS_A)\n    cur = conn.execute(\"INSERT INTO mi_tabla (workspace_id) VALUES (%s)\", (WS_A,))\n    assert cur.rowcount == 1\n\n\n@pytest.mark.parametrize(\n    \"query\",\n    [\n        \"INSERT INTO mi_tabla (workspace_id) VALUES (%(other)s)\",\n        \"UPDATE mi_tabla SET workspace_id = %(other)s WHERE workspace_id = %(own)s\",\n    ],\n)\ndef test_cannot_write_into_other_workspace(conn, query):\n    set_workspace(conn, WS_A)\n    with pytest.raises(psycopg.errors.InsufficientPrivilege, match=\"row-level security\"):\n        with conn.transaction():\n            conn.execute(query, {\"own\": WS_A, \"other\": WS_B})\n\n\n@pytest.mark.parametrize(\n    \"query\",\n    [\n        \"UPDATE mi_tabla SET workspace_id = workspace_id WHERE workspace_id = %s\",\n        \"DELETE FROM mi_tabla WHERE workspace_id = %s\",\n    ],\n)\ndef test_cannot_modify_other_rows(conn, query):\n    set_workspace(conn, WS_A)\n    assert conn.execute(query, (WS_B,)).rowcount == 0\n\n\ndef test_fails_without_workspace(conn):\n    errors = (psycopg.errors.UndefinedObject, psycopg.errors.InvalidTextRepresentation)\n    with pytest.raises(errors):\n        with conn.transaction():\n            conn.execute(\"SELECT * FROM mi_tabla\").fetchall()\n```\n\nLos casos que propongo cubrir son:\n- **Lectura:** cada workspace ve su fila y no la del otro.\n- **Alta propia:** confirma que la policy no bloquea el uso normal.\n- **Escritura cruzada:** insertar para otro workspace, o pasarle una fila propia, da error. La policy no tiene `WITH CHECK`, así que Postgres usa la condición de `USING` también para las filas nuevas.\n- **Filas ajenas:** `UPDATE` y `DELETE` no dan error, pero afectan 0 filas.\n- **Sin workspace:** con esta policy, la consulta falla en vez de devolver datos.\n\nAntes de usarlo:\n- **Base:** no apuntes `TEST_DATABASE_URL` a staging. La conexión tiene que poder crear roles e insertar los datos iniciales; el `rollback` descarta lo que hace el test.\n- **Columnas:** si `mi_tabla` tiene otras obligatorias o una clave foránea en `workspace_id`, completá los datos iniciales y creá antes los workspaces.\n- **Rol de la app:** este test prueba la policy con un rol de prueba, no que la app se conecte con un rol sujeto a RLS. Revisá eso en el repo.\n\nSi me pasás `test_rls.py` y el `conftest.py` que use, adapto el ejemplo a sus fixtures y convenciones.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12781,
+  "cache_read_input_tokens": 47474,
+  "output_tokens": 3005,
+  "output_tokens_details": {
+   "thinking_tokens": 885
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12781,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2745,
+    "cache_read_input_tokens": 29964,
+    "cache_creation_input_tokens": 327,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 327
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "bddc214cd3"
+ }
+}

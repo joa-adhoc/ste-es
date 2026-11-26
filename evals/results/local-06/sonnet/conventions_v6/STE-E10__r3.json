@@ -1,0 +1,47 @@
+{
+ "case": "STE-E10",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "El orden es el siguiente: primero el permiso por modelo, después el bloqueo del workspace, las preferencias y el valor por defecto. Esto sale del material que pegaste; no revisé el código.\n\n1. **`workspace_write_models`** (Settings → Write Models): si el workspace no permite esa operación sobre ese modelo, se corta ahí, antes de evaluar el resto.\n2. **`evaluate_permission`**, donde decide la primera regla que aplica:\n   1. El workspace dice `deny`: **DENY**. Ninguna preferencia personal lo levanta.\n   2. Hay una preferencia del usuario en ese workspace: vale esa. Este paso se saltea en `exposure`, `webhook` y `scheduled`.\n   3. El workspace dice `allow` o `ask`: vale eso.\n   4. No decidió nada de lo anterior: es **ASK** si el recurso declara `approval` (`\"ask\"` o `\"always\"`), y **ALLOW** si no. Para tools de conector sin declaración en el REGISTRY se usan además una heurística de verbos y las annotations MCP; el material no detalla qué resultado da cada una.\n3. **Ejecución:** si el resultado es ALLOW, o es ASK y se aprueba, corre `tool.execute()`. Queda auditado en `tool_usage_log` con `permission_action`.\n\n**Admin en `ask`, miembro en `allow`:** en un canal donde vale la identidad personal, el resultado es **ALLOW** y no le pregunta, siempre que pase el paso 1. La preferencia del miembro le gana al `ask` del admin, porque el único piso es `deny`. Con este orden, si el admin necesita que el miembro no pueda saltearlo, el material solo le da `deny`, que bloquea en vez de preguntar.\n\n**Agent por webhook:** la preferencia del miembro que le presta la identidad al turno no cuenta. Si pasa el paso 1, manda la grilla del workspace:\n\n| Workspace | Resultado |\n|---|---|\n| `deny` | DENY |\n| `ask` | ASK |\n| `allow` | ALLOW |\n| sin fila | el valor por defecto del punto 2.4 |\n\nEntonces, con el admin en `ask` y el miembro en `allow`, por webhook da **ASK**. El material no dice qué pasa con un ASK en un webhook, donde puede no haber nadie para aprobar: si queda pendiente, falla o se rechaza. No des por hecho que la tool se va a ejecutar. Para confirmarlo, habría que ver cómo maneja ese canal un ASK o probarlo con un turno por webhook.\n\nEl material tampoco explica en qué se diferencian `approval: \"ask\"` y `\"always\"`. En el orden descrito, los dos aparecen solo como valor por defecto, así que no frenarían un `allow` del usuario o del workspace. Si esperabas que `\"always\"` preguntara siempre, verificalo en `tuqui_core/chat/permissions.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11178,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1483,
+  "output_tokens_details": {
+   "thinking_tokens": 453
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11178,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1483,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11178,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11178
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

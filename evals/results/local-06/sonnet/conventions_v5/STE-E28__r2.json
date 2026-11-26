@@ -1,0 +1,47 @@
+{
+ "case": "STE-E28",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Encontré un problema bloqueante en el [PR 1840](https://github.com/ingadhoc/tuqui/pull/1840) (\"búsqueda de partners por CUIT\", de lav, contra `staging`): en `tuqui_core/odoo/partners.py:88` el SQL se arma con un f-string y permite inyección SQL, porque `cuit` viene del usuario.\n\n```python\nf\"SELECT id FROM res_partner WHERE vat = '{cuit}'\"\n```\n\nHay que pasar `cuit` como parámetro de la consulta, sin interpolarlo en el texto.\n\nTambién hay dos detalles menores:\n- `test_partners.py` no cubre un CUIT con guiones.\n- El docstring de `search_by_cuit` está en castellano y el repo pide inglés.\n\nLos checks de CI están en verde. No corrí los tests en local. De los archivos, el registro muestra que leí completos `tuqui_core/odoo/partners.py` y `tuqui_core/tests/test_partners.py`.\n\nTodavía no publiqué nada, ni en GitHub ni en la tarea.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10489,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 374,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10489,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 374,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10489,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10489
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

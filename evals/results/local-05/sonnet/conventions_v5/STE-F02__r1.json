@@ -1,0 +1,47 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Lo nativo cubre solo una parte: el CC en la plantilla manda la copia a Administración, pero no le hace llegar las respuestas ni saca a nadie.** Para el pedido completo hace falta personalizar, y yo lo derivaría a Consultoría para probar primero con acciones nativas, sin código. Esto sale del material que pasaste; no consulté la base ni probé nada.\n\n| Opción | Qué resuelve | Qué no resuelve |\n|---|---|---|\n| CC (`email_cc`) o destinatarios (`partner_to`) en la plantilla | Administración recibe la factura, con envío manual o automático | No la suma como seguidora, así que las respuestas no le llegan. Vendedores e internos siguen igual |\n| Que el usuario Administración (C2) reciba por correo en vez de «Gestionar en Odoo» | Le llegan por mail las notificaciones de lo que ya sigue | No cubre facturas donde no es seguidor, como la del ejemplo. Cambia todas sus notificaciones, no solo las de facturas |\n| Acciones «Agregar seguidores» y «Quitar seguidores» | Suman a Administración y sacan a quienes se indiquen, en forma automática o masiva (también históricos) | Es personalización por interfaz (Consultoría), y falta probar en qué momento corren |\n| OCA `mail_autosubscribe` | No aplica | Suscribe contactos de la empresa destinataria |\n\n**Riesgo a probar: el momento de la regla.** `account_ux` envía al validar, y Odoo suscribe como seguidor a quien envía.\n- Si la regla quita seguidores antes del envío, quien validó puede volver a quedar suscripto.\n- Si los quita después, los vendedores que ya seguían la factura pueden haber recibido el correo.\n- Un reenvío manual posterior vuelve a suscribir a quien lo hace.\n\nPor eso no daría por hecho que una sola regla al validar alcanza. Hay que probar validación con envío automático y reenvío manual, y mirar quién recibe el correo y quién queda como seguidor. Si con reglas no se logra, ahí se justifica el código. El que propone el ticket no sirve así, porque solo agrega.\n\n**El diagnóstico todavía no cierra:**\n- **Vendedores:** en la factura de ejemplo el vendedor no es seguidor. Hay seis vendedores portal siguiendo unas 4.100 facturas de 2026, pero el material no muestra qué los agrega. Usuario A sí tiene explicación probable: validó la factura, y eso dispara el envío.\n- **Usuario B:** según el cliente recibió la respuesta del 19/10, pero no figura entre los seguidores. Revisaría los destinatarios de ese mensaje; podrían haber cambiado los seguidores o haberle llegado por otra vía.\n\n**A definir con el cliente:** qué «Administración» quiere usar. Si trabaja por correo, probaría con el contacto C1, que no obliga a cambiar las preferencias de un usuario. Si trabaja desde la bandeja de Odoo, C2. También falta la lista exacta de quiénes hay que quitar.\n\n**El plazo del 25/10 ya venció** (hoy es 26/11), así que conviene confirmar la urgencia. Como paso provisorio se puede poner el CC en las plantillas que usan los cinco diarios, aclarando su límite y probando un envío automático.\n\nNota interna sugerida para el ticket:\n\n> Nativo, solo parcial: el CC en la plantilla envía copia a Administración, pero no recibe las respuestas ni se quita a vendedores o internos. Las acciones nativas de agregar y quitar seguidores podrían cubrir el resto sin código; es personalización (Consultoría) y falta probar el momento de ejecución respecto del envío automático. Pendiente: cómo se agregan los vendedores, por qué recibió la respuesta Usuario B, qué «Administración» usar y a quiénes quitar.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11422,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3181,
+  "output_tokens_details": {
+   "thinking_tokens": 1803
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11422,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3181,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11422,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11422
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

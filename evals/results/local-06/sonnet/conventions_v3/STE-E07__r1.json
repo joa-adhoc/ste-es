@@ -1,0 +1,47 @@
+{
+ "case": "STE-E07",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**El problema de `make test ARGS=-k a or b` son las comillas.** El shell parte la expresión y pytest lee `or` como un path (`ERROR: file or directory not found: or`). Poné la expresión entre comillas:\n\n```bash\nmake test ARGS='-k \"a or b\"'\n```\n\n`ARGS` se expande literal en la receta, así que las comillas internas funcionan.\n\n**El error de `pytest` desde la raíz** pasa porque la config de la suite está en `tuqui_core/pyproject.toml` (`asyncio_mode`, loop scopes, markers, `testpaths`). Desde la raíz, pytest no la ve: pierde el modo asyncio y colecta `evals/tests`. El resultado son miles de fallas que no son del código (hay una medición de 2302 fallidos y 2111 pasados). El `conftest.py` de la raíz corta esa invocación con un mensaje. No me pasaste el error que viste, así que no puedo confirmar que sea ese.\n\n**La forma correcta es usar `make` desde la raíz.** `make test` corre el mismo paso de pytest que el job `test` de CI:\n\n```bash\nmake test                                     # unit\nmake test ARGS=\"tests/test_rls.py -k policy\"  # un subconjunto (paths relativos a tuqui_core/)\nmake test-rls                                 # aislamiento multi-tenant\nmake test-web                                 # frontend (vitest)\nmake test-evals                               # unit tests de evals/ (no los benchmarks)\nmake lint                                     # ruff check + format check\n```\n\nEl bloqueo del `conftest.py` no cubre todos los casos. `pytest tuqui_core/tests/test_x.py` desde la raíz corre igual, porque resuelve su rootdir en `tuqui_core`, pero se saltea el lock de los tests.\n\nSi necesitás `pytest` directo, hacé primero `cd tuqui_core`. Si el código lee `os.environ` directo, cargá también `.env.test`, como hace el Makefile.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10774,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 682,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10774,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 682,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10774,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10774
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

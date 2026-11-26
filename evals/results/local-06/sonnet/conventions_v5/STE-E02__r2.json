@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El backend lo tenés que tocar siempre**: la migración, guardar el campo y devolverlo por la API. Lo que depende de quién usa la descripción es si el backend además **elige el idioma**.\n\n| Quién usa la descripción | Quién elige el idioma |\n|---|---|\n| Solo la SPA (cards, listados) | El cliente |\n| Solo un prompt, un mail o el MCP saliente | El backend |\n| La SPA y alguno de esos | Los dos |\n\nEn todos los casos el orden de fallback es `idioma exacto → en → columna legacy`.\n\n**Antes de empezar:** la guía cita `supabase/migrations/0201_platform_connectors_description_i18n.sql`. Por el nombre, `platform_connectors` ya podría tener la columna. No pude comprobarlo porque la carpeta de trabajo está vacía. Si ya existe, no crees otra migración y revisá qué pasos faltan. Si hablás de otra tabla de conectores, seguí desde el paso 1.\n\n1. **Consumidores:** buscá dónde se lee la descripción, incluido cómo se arman los prompts, los mails y las tools del MCP. En el repo, `rg -n \"platform_connectors\"` sirve para arrancar; seguí también los lugares que reciben esos datos. No sé si la de conectores llega al modelo, así que no des por hecho que es solo visual.\n\n2. **Migración:** usá el número que siga y dejá `description` como está.\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Para los registros viejos alcanza con el fallback a `description`. Si además hay una columna `description_en` con datos para pasar, mirá `0206_features_i18n.sql`.\n\n3. **API:** usá las funciones de `tuqui_core/i18n.py`:\n   - **Al escribir:** `normalize_i18n_keys` deja las claves en dos letras minúsculas y saca las vacías.\n   - **Al leer:** `decode_i18n` contempla que asyncpg devuelva el JSONB como `str` o como dict.\n\n   Devolvé `description_i18n` completo junto con `description`, sin filtrar por idioma. Revisá también que los esquemas de entrada y salida y las queries incluyan el campo nuevo.\n\n4. **Front:** agregá el campo al tipo y mostralo así, sin escribir el fallback a mano:\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n\n5. **Editor del panel de admin:** poné dos campos, ES y EN. Al guardar, mandá en `description_i18n` solo los que tengan texto y copiá `es || en` en `description`. La referencia es `AdminAgentEditorPage.tsx:95-115`.\n\n   Probá abrir y guardar un conector viejo, sin `description_i18n`: si los dos campos aparecen vacíos, `es || en` podría borrar la descripción actual. Para evitarlo, mostrá el valor legacy en el editor, en el campo de su idioma. No supongas que siempre está en español.\n\n6. **Resolución en el backend (solo si la usa un prompt, un mail o el MCP):** aplicá `lang → en → description`, con `lang` tomado de `resolve_response_language(workspace_id, user_id)`. No uses `Accept-Language`.\n\n7. **Caché:** si la API devuelve texto ya resuelto según el idioma, incluí el idioma en el `queryKey` de react-query. Si la SPA recibe el mapa completo y elige ella, no hace falta, aunque el backend también lo resuelva para un prompt.\n\n**Qué probar:**\n- La pantalla en español y en inglés.\n- Un conector con un solo idioma cargado. Si solo tiene ES y la pantalla está en otro idioma, el orden es `en` y después `description`, que tendrá la copia en español.\n- Un conector viejo sin mapa, tanto al verlo como al guardarlo.\n- Si hiciste el paso 6, que el prompt, el mail o el MCP reciban el mismo idioma según ese fallback.\n\nLa guía menciona un bug de `agents` (\"ver el bug abajo\"), pero esa parte no vino en lo que pegaste. Si me pasás el repo, puedo confirmar quién usa la descripción y qué pasos ya están hechos.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11564,
+  "cache_read_input_tokens": 46249,
+  "output_tokens": 2296,
+  "output_tokens_details": {
+   "thinking_tokens": 677
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11564,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1976,
+    "cache_read_input_tokens": 28739,
+    "cache_creation_input_tokens": 335,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 335
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 2,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Los dos worktrees usan la misma DB local, y las migraciones de la rama de tu compañero le cambiaron el esquema. Según el material, el caso típico es una migración destructiva: borra o cambia columnas que tu código todavía lee. Por eso aparece `UndefinedColumnError` en tests que no tocaste. No lo comprobé en tu máquina: para confirmarlo, fijate si su rama elimina o renombra la columna que figura en el error.\n\nEl lock (`flock`) no te protege de esto. Solo evita que corran dos pytest a la vez; no separa los esquemas, y la DB queda con las migraciones de las dos ramas.\n\n**Solución: una DB propia para tu worktree**\n\n1. Creá `tuqui_core/.env.test.local`, que está en `.gitignore`. Tomá como base `.env.test.local.example` y apuntá ahí a una DB local con un nombre propio de este worktree. Copiá del ejemplo o de `.env.test` el nombre de la variable de conexión, porque el material no lo dice. Si la DB todavía no existe, puede que tengas que crearla: el material no aclara si el reset lo hace.\n2. Corré `make migrate-reset`. Arma el esquema desde cero en unos 3 segundos. **Vacía la base a la que apunta**, así que antes confirmá que el target toma tu override y apunta a tu DB nueva, no a la compartida. El material dice que los targets de test cargan ese archivo, pero no que `migrate-reset` también lo haga. Si resetea la compartida, le podés romper la corrida o el esquema a tu compañero.\n3. Volvé a correr los tests. Si el error sigue, revisá a qué DB se conectan y si a tu propia rama le falta una migración.\n\nNo uses `npx supabase db reset`: aborta porque hay prefijos de migración repetidos.\n\n**Opcional: correr en paralelo con el otro worktree**\n\nCon la DB propia resolvés el problema del esquema, pero el lock sigue activo. Para soltarlo necesitás las tres cosas:\n- DB propia.\n- Redis propio: en `REDIS_URL`, usá un índice que no sea el 0 (server de desarrollo) ni el 15 (default de tests), y que no use otro worktree.\n- Un `TEST_LOCK` distinto.\n\nSi aislás solo la DB o solo Redis, dejá el lock como está: el cleanup de una corrida puede pisar a la otra en el recurso que sigue compartido.\n\nPara que no vuelva a pasar, configurá el `.env.test.local` en cada worktree nuevo. Si otros worktrees siguen usando la base compartida, se pueden seguir pisando entre ellos.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11015,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 925,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11015,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 925,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11015,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11015
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

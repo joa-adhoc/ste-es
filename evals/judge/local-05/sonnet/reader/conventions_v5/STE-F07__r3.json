@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás una tabla con cada columna de los tres archivos que diga a qué campo o solapa de la pantalla corresponde (con el nombre que veo en Odoo), si es obligatoria u opcional y qué valor va, con un ejemplo? No conozco los nombres técnicos como `to_pay_move_line_ids/id`, `payment_method_line_id` o `l10n_latam_new_check_ids`, y así no sé qué completar en cada una ni cuáles son los campos obligatorios que te pedí."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "Antes de importar, necesito algunas aclaraciones. Los nombres de columna que decís que pusiste según lo que conocés de Odoo (cheques y retenciones), ¿los podés confirmar, o me decís en pantalla qué campo es cada uno (en español, como se ve en la solapa de cheques y en la de retenciones) para asignarlos al importar? ¿Y cuáles columnas son obligatorias y cuáles puedo dejar vacías en cada archivo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me pasás, para cada columna de los tres archivos, a qué campo de la pantalla corresponde (con el nombre que veo en Odoo), si es obligatoria u opcional y qué valor va, con un ejemplo? Por ejemplo, no sé qué es `l10n_latam_new_check_ids` ni `base_amount`, y tampoco si el «identificador externo del apunte» es la columna ID del archivo que exporto desde Apuntes contables."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "aclaracion",
+ "followup": "¿Me pasás una tabla con cada columna de los tres archivos que diga a qué campo o solapa de la pantalla corresponde (con el nombre que veo en Odoo), si es obligatoria u opcional y qué valor va, con un ejemplo? No conozco los nombres técnicos como `to_pay_move_line_ids/id`, `payment_method_line_id` o `l10n_latam_new_check_ids`, y así no sé qué completar en cada una ni cuáles son los campos obligatorios que te pedí.",
+ "followup_answer": "Acá va la tabla. En el archivo, **dejá los encabezados técnicos tal cual** y reemplazá solo los valores.\n\n**Los nombres de pantalla no están en el material.** Los puse según lo que conozco de Odoo y no los verifiqué en la base del cliente, así que pueden variar. Los ejemplos son inventados.\n\n**Archivos:** R = `recibos.csv`, P = `pagos_proveedores.csv`, C = `recibos_cheques.csv`.\n\n**Obligatoriedad:** **Sí** indica que el material lo marca como obligatorio (o, en el monto del cheque, que exige que sea mayor a 0). «Completar» significa que el material no dice si es obligatorio, pero lo necesitás para cargar bien ese dato.\n\n### Datos del pago\n\n| Columna | Archivos | En pantalla | ¿Obligatoria? | Qué va | Ejemplo |\n|---|---|---|---|---|---|\n| `partner_type` | R, P, C | No es un campo a completar: lo define entrar por Clientes o Proveedores | Sí | R y C: `customer`; P: `supplier` | `customer` |\n| `payment_type` | R, P, C | Tipo de pago (Recibir / Enviar); puede no verse | Sí | R y C: `inbound` (cobro); P: `outbound` (pago) | `inbound` |\n| `partner_id` | R, P, C | Cliente o Proveedor | Sí | Nombre como figura en Odoo | `Comercial Ejemplo SA` |\n| `date` | R, P, C | Fecha | Sí | AAAA-MM-DD | `2026-11-26` |\n| `journal_id` | R, P, C | Diario | Sí | Nombre del diario | `Banco Ejemplo` |\n| `payment_method_line_id` | R, P, C | Método de pago | Sí | Un método de ese diario; en C, el de cheques | R: `Manual`; C: `Nuevos cheques de terceros` |\n| `amount` | R, P | Importe | Completar | Importe del pago, con punto decimal y sin separador de miles. En C no va: se suman los cheques | `121000.50` |\n| `to_pay_move_line_ids/id` | R, P, C | Deudas a pagar (líneas de deuda elegidas) | Opcional; completala para elegir qué factura saldar | Identificador externo de la línea de deuda, **no el número de factura**. Si son varios, separados por coma y entre comillas en el CSV | `__export__.account_move_line_1234_ab12cd34` |\n\n### Solapa de cheques (solo C)\n\nTodas empiezan con `l10n_latam_new_check_ids/`.\n\n| Final de la columna | En pantalla | ¿Obligatoria? | Qué va | Ejemplo |\n|---|---|---|---|---|\n| `name` | Número | Completar | Número del cheque | `00012345` |\n| `payment_date` | Fecha de pago | Completar | AAAA-MM-DD | `2026-12-26` |\n| `bank_id` | Banco | Opcional: si queda vacío, sale del cliente | Nombre del banco en Odoo | `Banco Ejemplo` |\n| `issuer_vat` | CUIT del emisor | Opcional: si queda vacío, sale del cliente | CUIT válido de quien emite el cheque | `30123456781` |\n| `amount` | Importe | **Sí, mayor a 0** | Importe de ese cheque | `60000.00` |\n\n### Retenciones\n\nTodas empiezan con `l10n_ar_withholding_line_ids/`. El bloque es opcional si el pago no tiene retención. La solapa o sección suele llamarse «Retenciones».\n\n| Final de la columna | Archivos | En pantalla | ¿Obligatoria? | Qué va | Ejemplo |\n|---|---|---|---|---|---|\n| `tax_id` | R, P, C | Impuesto | **Sí, en cada retención** | Nombre del impuesto de retención en Odoo | `Retención IIBB ejemplo` |\n| `name` | R, C | Número | Completar | Número de la retención que te hizo el cliente. En P no va: se asigna al confirmar | `0001-00001234` |\n| `base_amount` | R, P, C | Base | Completar | Importe sobre el que se calcula la retención | `100000.00` |\n| `amount` | R, P, C | Importe | Completar | Importe retenido | `2000.00` |\n\n### Para tener en cuenta\n- **Campos obligatorios del pago:** son `partner_type`, `payment_type`, `partner_id`, `date`, `journal_id` y `payment_method_line_id`. El talonario de recibos se calcula solo.\n- **Varios cheques o retenciones:** cada uno adicional va en una fila debajo, con los datos del pago vacíos.\n- **Identificador de la deuda:** en Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (o a pagar). Exportá con la opción «compatible con importación» y copiá el identificador.\n- **Prueba:** importá primero un pago de cada tipo. Antes de confirmarlo, compará los nombres con la pantalla y revisá deudas, total y retenciones. En pagos a proveedores, las retenciones se calculan solas según la posición fiscal: verificá que las importadas no queden duplicadas ni reemplazadas.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13458,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2964,
+  "output_tokens_details": {
+   "thinking_tokens": 1107
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13458,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2964,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13458,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13458
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "dc2422f30c",
+  "persona": "consultoria"
+ }
+}

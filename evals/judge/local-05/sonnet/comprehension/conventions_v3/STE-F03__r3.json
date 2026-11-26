@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al confirmar, `purchase_stock` crea una recepción nueva para la orden y, si queda sin movimientos, intenta borrarla con `created_receipt.unlink()`. `_check_block_picking_deletion` de `stock_ux` rechaza el borrado porque «Recepciones» tiene `block_picking_deletion = True`, aunque el traslado esté en borrador. El error revierte la confirmación y la orden sigue en borrador. No es la recepción 412 la que se intenta borrar. Que la recepción quede vacía porque ya se recibieron 2 de 2 unidades es una inferencia. El texto toma el mensaje como salido de ese `unlink()`, pero aclara que no tiene el traceback y que no se reprodujo el error.",
+  "El texto describe que el 11/11 la orden se confirmó (12:26), se registraron las 2 unidades (12:27) y después se canceló (13:26) y volvió a borrador (13:27), con la recepción 412 todavía en Hecho. No dice quién hizo esas acciones. Tampoco dice por qué se canceló la orden ni por qué se pudo cancelar con una recepción hecha.",
+  "Probar primero en una copia de la base:\n1. Anotar el estado inicial: stock del producto, movimientos de la 412, cantidades de la línea, factura y traslados de la orden.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Reactivar la opción enseguida, también si la confirmación falla.\n5. Verificar que la orden quede en Orden de compra; que la 412 siga vinculada, en Hecho y con sus 2 unidades; que no queden recepciones ni movimientos nuevos; que la línea siga con 2 pedidas, 2 recibidas y 2 facturadas; que el stock no cambie; y que BILL/2026/11/0007 siga contabilizada, con el mismo importe y vinculada a la línea.\n\nLa opción afecta a todas las recepciones de ese tipo de operación. En producción, aplicarlo solo si la prueba en la copia sale bien, en un momento sin actividad y con el acuerdo del cliente. Si aparece una recepción pendiente o cambia alguno de esos datos, no aplicarlo en producción.\n\nComo arreglo, no devolver, cancelar ni borrar la 412; no pasar la factura a borrador ni anularla; no cambiar las cantidades de la línea; y no forzar el estado de la orden por SQL o escritura directa.\n\nAdemás, el texto indica que conviene preguntarle al cliente por qué se canceló la orden antes de reconfirmarla, y revisar que `tuqui-adhoc` esté registrado y autenticado antes de tocar la base (`adhoc-way-guide` guía el alta), porque la propuesta no se validó contra las reglas de la empresa para operar Odoo."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "fb70ec573a",
+  "control": "cf4a8527a9"
+ }
+}

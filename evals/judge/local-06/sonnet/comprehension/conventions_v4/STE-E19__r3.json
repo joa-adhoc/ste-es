@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto nombra el test `tuqui_core/tests/test_rls.py` como el que hay que volver a correr, y dice que falló el aislamiento entre workspaces: el workspace B ve 2 filas de `scheduled_runs` del workspace A. No dice explícitamente el nombre del test que falló.",
+  "Según la causa probable, `0398_scheduled_runs_draft.sql` ya había creado una policy llamada `scheduled_runs_ws` con `USING (true)`, que no filtra por workspace. `0412` crea la correcta solo si no existe otra con ese nombre, y el `IF NOT EXISTS` mira el nombre, no la condición. Como el log dice `already exists, skipped`, quedó la policy abierta.",
+  "No. No hay que editar `0412`, porque las migraciones se trackean por nombre y no vuelve a correr en las bases donde ya se aplicó. Tampoco alcanza con editar `0398`. Hay que crear una migración nueva en `supabase/migrations/`, con el próximo número libre, que reemplace la policy."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "c5d118add7",
+  "control": "8368a6d09b"
+ }
+}

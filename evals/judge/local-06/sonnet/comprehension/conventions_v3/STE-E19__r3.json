@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el nombre del test que falló; indica volver a correr `pytest tuqui_core/tests/test_rls.py -q`. El fallo muestra que B ve 2 filas de A, porque la base conservó la policy del borrador, `USING (true)`, que deja ver las filas de cualquier workspace. Según el texto, es una falla de aislamiento real según el test y no la trataría como un test inestable.",
+  "Porque `0398_scheduled_runs_draft.sql` ya había creado `scheduled_runs_ws` con `USING (true)`, y `0412_scheduled_runs.sql` quiere crear la policy correcta con el mismo nombre. El `IF NOT EXISTS` solo mira el nombre, no la condición; como el nombre ya existe, saltea el `CREATE POLICY`.",
+  "No. Hay que crear una migración nueva con el próximo número libre (por ejemplo `0413_fix_scheduled_runs_rls.sql`) que haga `DROP POLICY IF EXISTS` y luego `CREATE POLICY` con `USING` y `WITH CHECK` limitados al workspace actual. No se deben editar 0398 ni 0412 porque, según `AGENTS.md`, una migración ya aplicada no vuelve a correr. Después hay que aplicarla, volver a correr el test, revisar `pg_policies` antes y después, verificar que no quede otra policy permisiva y revisar los otros entornos, sobre todo producción."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "25fd1ad1b4",
+  "control": "8368a6d09b"
+ }
+}

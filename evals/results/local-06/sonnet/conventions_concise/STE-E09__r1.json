@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Un admin configura el server una vez. Después, cada usuario autoriza en el provider, y el backend canjea el `code` por tokens, los guarda encriptados y prueba las habilidades. **Si al menos una contesta, el usuario queda conectado**, con una advertencia sobre las demás.\n\n## Flujo\n\n**0. Alta (admin).** Registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`.\n\n**1. Inicio (usuario → front).** El usuario abre `/connectors` y hace clic en **Connect**.\n\n**2. Armado de la URL (front → backend).** El front llama a `GET /api/mcp-oauth/{server_id}/start`. El backend devuelve la `authorize_url` con:\n- **`state`:** va cifrado y autenticado con AES-GCM y vence a los 10 minutos. Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Puede llevar además `code_verifier` (PKCE) y, en los conectores de plataforma, `scope_profile`.\n- **`access_type=offline` y `prompt=consent`:** Google necesita los dos para emitir un refresh token. El primero lo pide y el segundo fuerza que lo vuelva a emitir en cada autorización, así al desconectar y reconectar no queda sin él. Según la RFC 6749 §3.1, los providers ignoran los parámetros que no conocen.\n\n**3. Autorización (front → provider).** El front redirige al provider.\n\n**4. Vuelta (provider → backend).** El provider redirige a `GET /api/mcp-oauth/callback?code=...&state=...`.\n\n**5. Canje (backend ↔ provider).** El backend valida el `state`, canjea el `code` por tokens en `token_url` y los guarda encriptados en `user_mcp_oauth_tokens`.\n\n**6. Prueba de humo (backend → habilidades).** Dentro del mismo callback, consulta en paralelo **todas** las habilidades habilitadas para ver si responden.\n\n**7. Regreso (backend → front).** Redirige a la SPA según quién es el dueño de la conexión, sin usar un parámetro `return_to`:\n\n| Dueño | Destino |\n|---|---|\n| Usuario | `/w/{slug}/settings/connectors?connected={server_id}` |\n| Cuenta de servicio | `/w/{slug}/settings/members/{member_id}?connected=...` |\n\nEsa es la ruta de éxito. El resultado de la prueba puede agregar un error o una advertencia al redirect.\n\n**8. Renovación (backend → provider).** Al construir los toolsets, `refresh_if_expired` renueva el token si le quedan menos de 60 segundos de validez. Es una renovación anticipada, que se evalúa en ese momento.\n\n## Si algunas habilidades no contestan\n\n| Resultado | Token | Redirect | Lo que ve el usuario |\n|---|---|---|---|\n| No contesta **ninguna** | Se borra | `connect_error=<motivo>` | Banner de error en la card |\n| Contesta **alguna**, pero otras no | El usuario queda conectado | `connect_warning=<habilidades>` | Banner de conexión parcial |\n\nSi no contesta ninguna, se considera que el token no sirve. Si falla solo una parte, desconectar al usuario sería peor, porque le quitaría también lo que sí puede usar.\n\nPor lo tanto, que el canje de tokens salga bien no garantiza que la conexión quede hecha.\n\n## El parámetro `resource` (RFC 8707)\n\nEs la URI canónica del server. El discovery la toma de la protected-resource metadata y la guarda en `OAuthPerUserConfig.resource`. Se manda al pedir la autorización (paso 2), en el canje (paso 5) y en la renovación (paso 8).\n\n**Solo se manda si está guardada.** Los conectores anteriores a este campo siguen funcionando sin ella. No conviene adivinarla: un servidor de autorización que la valida rechaza los valores que no reconoce.\n\n## Lo que el material no dice\n- Qué cuenta como \"contestar\" en la prueba de humo, qué timeout tiene y si se reintenta.\n- Si una habilidad que falló se vuelve a probar después, y cuándo se va el banner de conexión parcial.\n- Qué pasa si el `state` es inválido o venció, si el usuario rechaza el permiso o si falla el canje.\n- Qué pasa si falla la renovación o no hay refresh token.\n- Cómo se inicia la conexión de una cuenta de servicio, y cómo queda identificada en el `state`.\n\nPara cerrar estos puntos hay que mirar el código del callback y de `refresh_if_expired`. Respondí solo con el material que pasaste, sin revisar la implementación.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11117,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 2013,
+  "output_tokens_details": {
+   "thinking_tokens": 344
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11117,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2013,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11117,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11117
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

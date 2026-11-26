@@ -1,0 +1,47 @@
+{
+ "case": "STE-E09",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El usuario autoriza en el provider, el backend canjea el `code` por tokens y después prueba las habilidades. **Si algunas no contestan, queda conectado con un aviso. Solo si no contesta ninguna, se borra el token.** Todo esto sale del material que pegaste; no lo contrasté con el código.\n\n## El flujo\n\n**Preparación (admin → backend).** El admin registra el server con `auth_type=oauth_per_user` y carga `client_id`, `client_secret`, `authorize_url`, `token_url` y `scopes`. Esta configuración es del server; los tokens son de cada usuario.\n\n1. **Usuario → front:** entra a `/connectors` y toca **Connect** en el server.\n2. **Front → backend:** llama a `GET /api/mcp-oauth/{server_id}/start`.\n3. **Backend → front:** devuelve la `authorize_url` con un `state` protegido con AES-GCM, que vence a los 10 minutos.\n   - Lleva `server_id`, `user_id`, `issued_at` y `nonce`. Según el caso, suma `code_verifier` (PKCE) y `scope_profile` (platform connectors).\n   - El material lo llama \"firmado\", pero AES-GCM además de detectar alteraciones cifra el contenido. Importa porque el `code_verifier` no tiene que quedar legible en la URL.\n   - La URL agrega `access_type=offline` y `prompt=consent`. Google necesita el primero para pedir el refresh token y el segundo para volver a emitirlo en cada autorización. Así, desconectar y reconectar no te deja sin refresh token. Según el material, los demás providers ignoran los parámetros que no conocen (RFC 6749 §3.1).\n4. **Front → provider:** redirige al usuario, que autoriza ahí.\n5. **Provider → backend:** redirige el navegador a `GET /api/mcp-oauth/callback?code=...&state=...`.\n6. **Backend ↔ provider:** valida el `state`, canjea el `code` en `token_url` y guarda los tokens cifrados en `user_mcp_oauth_tokens`. Después, todavía dentro del callback, hace la prueba de humo.\n7. **Backend → front:** redirige a la SPA según quién sea el dueño de la conexión, sin usar un `return_to` aparte:\n   - **Usuario:** `/w/{slug}/settings/connectors?connected={server_id}`\n   - **Cuenta de servicio:** `/w/{slug}/settings/members/{member_id}?connected=...`\n8. **Más adelante, backend ↔ provider:** al construir los toolsets, si al token le quedan menos de 60 s, `refresh_if_expired` lo renueva. Según esta descripción, el control se hace en ese momento; no menciona un proceso periódico.\n\n## El parámetro `resource` (RFC 8707)\n\nIndica para qué recurso se pide el token. Viaja en los pasos 3, 6 y 8, **solo si está guardado** en `OAuthPerUserConfig.resource`, que lo completa el discovery cuando el server declara su URI canónica.\n\nNo se adivina: un servidor de autorización que valida el valor rechaza el que no reconoce. Por eso los conectores anteriores a este campo siguen funcionando sin mandarlo.\n\n## Si después del canje algo no contesta\n\nEl callback consulta en paralelo **todas las habilidades habilitadas**:\n\n| Resultado | Token | Qué llega al front |\n|---|---|---|\n| Contestan todas | Queda guardado | El redirect normal del paso 7 |\n| Contesta al menos una | Queda guardado y el usuario está conectado | `connect_warning=<habilidades>`: aviso de conexión parcial |\n| No contesta ninguna | Se borra | `connect_error=<motivo>`: la card muestra el error |\n\nLa conexión parcial se mantiene porque desconectar al usuario por una habilidad rota le quitaría también las que sí puede usar.\n\nQue el canje salga bien, entonces, no alcanza para que la conexión quede hecha. De la regla deduzco que una caída general y pasajera de las habilidades también borraría el token y obligaría a conectar de nuevo.\n\n## Lo que el material no dice\n\nPara cerrar estos puntos habría que mirar el código:\n\n- Qué cuenta como \"no contestar\" (timeout, error de permisos, respuesta inválida), cuánto se espera y si hay reintentos. Tampoco dice si `connect_warning` lista las habilidades que fallaron o trae otro detalle; por el nombre y el contexto, parecen las que fallaron.\n- Si una conexión parcial se vuelve a probar sola o cómo se quita el aviso.\n- Qué pasa si no hay ninguna habilidad habilitada.\n- Qué pasa si el `state` venció o es inválido, si el usuario rechaza la autorización o si falla el canje.\n- Si el `nonce` se controla para que el `state` se use una sola vez. Que exista el campo y venza a los 10 minutos no lo garantiza.\n- Qué pasa si falla el refresh del paso 8.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11258,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2301,
+  "output_tokens_details": {
+   "thinking_tokens": 546
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11258,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2301,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11258,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11258
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

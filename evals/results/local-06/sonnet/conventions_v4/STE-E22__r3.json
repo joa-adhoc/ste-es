@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No lo corras todavía: `git reset --hard origin/staging` te borra trabajo que hoy no está en ningún otro lado.\n\n**Qué se pierde o se mueve:**\n- **Cambios sin commitear** en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`: se pierden y git no los puede recuperar, salvo lo que hayas pasado antes por `git add`.\n- **Los 3 commits sin pushear** (`a1b2c3d`, `d4e5f6a`, `0718293`): salen de la rama. Podrías recuperarlos un tiempo con `git reflog`, pero conviene no depender de eso.\n- **`supabase/migrations/0420_mcp_limits.sql`** (sin trackear): normalmente queda donde está, así que no arrancás de cero. Si `origin/staging` tiene un archivo trackeado en esa misma ruta, el reset lo pisa y tu versión se pierde.\n\n**Para empezar de cero sin perder nada**, guardá todo en una rama de respaldo y después reseteá:\n\n```bash\ngit switch -c backup/limite-mcp\ngit add tuqui_core/mcp/limits.py tuqui_core/tests/test_limits.py supabase/migrations/0420_mcp_limits.sql\ngit commit -m \"wip: respaldo antes de reset\"\ngit status -sb                      # no tienen que quedar cambios\ngit switch feat/limite-mcp\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nLa rama de respaldo conserva los 3 commits y el commit nuevo, que incluye la migración. Es solo local: no la pushees salvo que quieras una copia fuera de tu máquina. Si el repo tiene hooks de pre-commit y frenan el commit, revisá el error antes de seguir. No hagas el reset si el commit no se creó.\n\nDespués del reset, `feat/limite-mcp` puede seguir teniendo como upstream `origin/feat/limite-mcp`, así que va a figurar divergida. Para publicarla así habría que reescribir la rama remota. Antes de eso, fijate si el PR ya tuvo revisión de una persona o si alguien más pusheó ahí.\n\nSi en cambio querés **descartar todo para siempre**, incluida la migración, decímelo. El reset solo no alcanza, porque además hay que borrar ese archivo sin trackear.\n\nMe basé en la salida que pegaste; no ejecuté nada en tu repo.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10375,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 850,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10375,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 850,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10375,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10375
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

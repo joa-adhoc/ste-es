@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Tiene que pertenecer al grupo `base.group_system`; si no, se lanza `ValueError`. Es el usuario obtenido al validar URL, base, login y API key contra Odoo (`admin_uid`). El requisito se aplica a la credencial usada, no al rol en Tuqui.",
+  "Vincula en modo `auto`, que es el modo por defecto si el email de quien conecta es igual a `odoo_login`, y lo asocia a `admin_uid`. Por defecto, si no coinciden, el modo es `none` y no se le asigna un vínculo nuevo. También existe el modo `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, se verifica que ese `res.users` exista y se lo vincula. Sobre si en `none` sin cambio de URL se conserva un vínculo anterior, el texto no lo dice: el paso 7 no lo toca, aunque el comentario de `none` dice que deja al miembro sin `odoo_user_id`. Tampoco dice qué pasa si se pide `auto` y los emails no coinciden, ni si la comparación distingue mayúsculas.",
+  "Se invalidan los datos de Odoo de los miembros: se borran `odoo_user_id` y `odoo_api_key` de todos, incluido el owner, porque esas identidades pueden ser de otra instancia. Después, con `auto` o `manual`, solo quien conecta recibe un vínculo nuevo y se dispara la sincronización de su API key; con `none`, queda sin vínculo. El flujo no muestra que los demás se vuelvan a vincular. `members_invalidated` informa los miembros invalidados (es 0 si la URL no cambió) y `warning` puede traer un mensaje para mostrar en la interfaz. Las credenciales del workspace no entran en la limpieza: quedan las nuevas guardadas en el paso 5."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "c5595fdd35",
+  "control": "d70443294a"
+ }
+}

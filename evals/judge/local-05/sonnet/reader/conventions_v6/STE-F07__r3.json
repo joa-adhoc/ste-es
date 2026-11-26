@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo consigo desde la pantalla cada valor que va entre < >? Sobre todo <ID_EXT_METODO>, que no sé de dónde sacarlo: solo explicaste cómo exportar el ID externo de las facturas. Decime en qué menú está cada uno y qué tengo que poner en <IMPUESTO> y <CERTIFICADO>. Mostrame también una fila completa de ejemplo, con una tabla que diga a qué campo de la pantalla corresponde cada columna (por ejemplo, to_pay_move_line_ids o l10n_latam_new_check_ids) y cuáles son obligatorias."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo consigo desde la pantalla lo que va en <ID_EXT_METODO> y qué va exactamente en <DIARIO>, <IMPUESTO> y <CERTIFICADO>? Explicámelo con una fila completa de ejemplo y decime a qué campo de la pantalla corresponde cada columna, porque no conozco los nombres técnicos."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Cómo completo los datos entre < >? Sobre todo, ¿desde qué pantalla saco el ID externo del método de pago (<ID_EXT_METODO>)? Para las facturas me explicaste cómo exportarlo, pero para esto no. Y en cliente, diario, banco, impuesto y certificado, ¿qué escribo exactamente? Pasame una fila de ejemplo completa. Aclarame también qué son «el material», `tuqui-adhoc` y `adhoc-way-guide`, porque no los conozco y no sé si tengo que hacer algo con eso."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Cómo consigo desde la pantalla cada valor que va entre < >? Sobre todo <ID_EXT_METODO>, que no sé de dónde sacarlo: solo explicaste cómo exportar el ID externo de las facturas. Decime en qué menú está cada uno y qué tengo que poner en <IMPUESTO> y <CERTIFICADO>. Mostrame también una fila completa de ejemplo, con una tabla que diga a qué campo de la pantalla corresponde cada columna (por ejemplo, to_pay_move_line_ids o l10n_latam_new_check_ids) y cuáles son obligatorias.",
+ "followup_answer": "Casi todos los valores se pueden sacar exportando desde una lista. El del método de pago se saca exportando un pago que ya lo use. Los menús, los nombres en pantalla y los pasos para exportar salen de lo que conozco de Odoo 18. Salvo lo de los apuntes contables, no están en tu material ni los probé en la base del cliente, así que pueden cambiar.\n\n## Cómo exportar un ID externo\nEn la lista, tildá el registro y andá a **Acciones (⚙) › Exportar**. Marcá la opción de exportación compatible con importación (\"Quiero actualizar datos\") y exportá. La columna `id` es el ID externo de ese registro.\n\n## `<ID_EXT_METODO>`\nEl método de pago es una línea propia de cada diario. Lo podés ver en **Contabilidad › Configuración › Diarios**, en las solapas **Pagos entrantes** (recibos) o **Pagos salientes** (proveedores). Para sacar su ID:\n\n1. Entrá a la lista de pagos de **Clientes** o **Proveedores** (puede figurar como \"Pagos\" o \"Recibos\").\n2. Buscá un pago con el mismo diario, método y tipo (entrante o saliente) que vas a importar. Si no hay, creá uno en borrador con esos datos.\n3. Exportalo como arriba, agregando **Método de pago › ID externo** (`payment_method_line_id/id`). Acá te sirve esa columna, **no** `id`, que identifica al pago.\n\nEl valor tiene que ser un identificador, no un texto como \"Cheques\". Si solo sale el nombre o no te deja elegir el ID, revisá que el campo termine en `/id`. Si creaste un pago solo para esto, borralo después.\n\n## Dónde está cada valor\n\n| Valor | Menú | Qué poner |\n|---|---|---|\n| `<CLIENTE>` / `<PROVEEDOR>` | Contabilidad › Clientes › Clientes, o Proveedores › Proveedores | El nombre del contacto |\n| `<DIARIO>` / `<DIARIO_CHEQUES>` | Contabilidad › Configuración › Diarios | El nombre del diario |\n| `<ID_EXT_APUNTE>` (`_1`, `_2`) | Contabilidad › Apuntes contables (puede estar bajo un submenú Contabilidad) | Filtrá factura y cuenta a cobrar o pagar; copiá `id`. Si tiene varios vencimientos, puede haber varios apuntes |\n| `<BANCO>` | Contactos › Configuración › Cuentas bancarias › Bancos | El nombre del banco emisor del cheque |\n| `<IMPUESTO>` (`_1`, `_2`) | Contabilidad › Configuración › Impuestos | El nombre exacto del impuesto **de retención** que corresponde (cliente o proveedor), no el de IVA de la factura. Si el nombre se repite, usá su `id` y la columna `.../tax_id/id` |\n| `<CERTIFICADO>` (`_1`, `_2`) | No sale de un menú en un recibo nuevo | **Recibo:** el número del certificado de retención que te entregó el cliente. **Pago a proveedor:** vacío; lo pone la secuencia al confirmar |\n\nLa fecha, los importes, el número y la fecha de pago del cheque salen de tus comprobantes. El CUIT es el del **emisor del cheque**; si es el cliente, podés dejarlo vacío, igual que el banco si es el que figura en su contacto.\n\n## Fila de ejemplo: recibo con un cheque y una retención\nLos datos son inventados: reemplazalos antes de importar. Cancela 100.000 con un cheque de 98.000 y una retención de 2.000, suponiendo que el total se compone así (verificalo al probar).\n\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheques_0001,customer,inbound,Cliente Ejemplo SA,2026-11-26,Cheques de terceros,__export__.account_payment_method_line_15_a1b2c3d4,__export__.account_move_line_1234_e5f6a7b8,00000001,2026-12-15,Banco Ejemplo,,98000.00,Retención Ejemplo,0001-00001234,100000.00,2000.00\n```\n\n\"Sí\" indica obligatorio según tu material. \"Sin dato\" significa que el material no lo aclara; completalo cuando tengas el dato.\n\n| Columna | Campo en pantalla (aproximado) | ¿Obligatoria? |\n|---|---|---|\n| `id` | No se ve en el formulario; es el ID externo | Sin dato; lo recomiendo para reimportar sin duplicar |\n| `partner_type` | Tipo de contacto: cliente o proveedor (puede estar implícito en el menú) | Sí |\n| `payment_type` | Tipo de pago: recibir o enviar | Sí |\n| `partner_id` | Cliente / Proveedor | Sí |\n| `date` | Fecha | Sí |\n| `journal_id` | Diario | Sí |\n| `payment_method_line_id/id` | Método de pago | Sí |\n| `to_pay_move_line_ids/id` | Deudas a pagar | No figura entre las obligatorias; ponela para elegir la factura |\n| `l10n_latam_new_check_ids/name` | Cheques › Número | Sin dato; completala |\n| `l10n_latam_new_check_ids/payment_date` | Cheques › Fecha de pago | Sin dato; completala |\n| `l10n_latam_new_check_ids/bank_id` | Cheques › Banco | Se puede dejar vacía; sale del cliente |\n| `l10n_latam_new_check_ids/issuer_vat` | Cheques › CUIT del emisor | Se puede dejar vacía; sale del cliente |\n| `l10n_latam_new_check_ids/amount` | Cheques › Importe | En cada cheque, debe ser mayor a 0 |\n| `l10n_ar_withholding_line_ids/tax_id` | Retenciones › Impuesto | Sí, en cada línea de retención |\n| `l10n_ar_withholding_line_ids/name` | Retenciones › Número | Sin dato; en recibos poné el certificado |\n| `l10n_ar_withholding_line_ids/base_amount` | Retenciones › Base | Sin dato; completala en recibos |\n| `l10n_ar_withholding_line_ids/amount` | Retenciones › Importe | Sin dato; completala en recibos |\n\nEn los archivos sin cheques se agrega `amount` (**Importe**) y se sacan las columnas de cheques. En pagos a proveedores, las retenciones se calculan solas: probá primero sin esas columnas.\n\nLos nombres internos de las columnas **dentro** de cheques y retenciones tampoco están en el material. Confirmalos en la pantalla de importación y usá **Probar** antes de importar. Que pase esa prueba no asegura la conciliación: importá un caso en una base de prueba, revisá las deudas y retenciones en el borrador, confirmalo y mirá el saldo de la factura.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 13546,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 5264,
+  "output_tokens_details": {
+   "thinking_tokens": 2588
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13546,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 5264,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 13546,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 13546
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "60b04d8271",
+  "persona": "consultoria"
+ }
+}

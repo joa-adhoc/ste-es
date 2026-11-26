@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, en términos de pantalla y permisos del usuario? No entiendo qué son «perm_read = False», «account_multi_store», «account_journal_security», el «filtro en _search», «store_id», «account_followup» ni qué diferencia hay entre ocultar un diario en las búsquedas y una regla de registro. En concreto: según cómo está pensado, ¿un usuario que solo tiene Norte debería poder abrir una factura del punto 22 y tocar «Ver asientos», sí o no? ¿Y qué parte de lo que falta para cerrar la causa puedo probar yo desde la pantalla y cuál tiene que mirar alguien de desarrollo?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde la pantalla? No entiendo la tabla («perm_read», «account_multi_store», «account_journal_security», el filtro en «account.journal._search», «store_id», «account_followup»). En concreto: según cómo está pensado, ¿un usuario que solo tiene Norte debería poder abrir una factura del punto 22 y usar «Ver asientos», o no? ¿Por qué decís que lo sospechoso es el error? Y de los pasos para cerrar la causa, ¿cuáles puedo hacer yo desde la pantalla y cuáles, como leer el código, le tocan a otra persona?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo la tabla ni qué son «perm_read», «_search», «store_id», «account_multi_store», «account_journal_security» o «account_followup». En concreto: según el sistema, ¿un usuario que solo tiene Norte debería poder abrir una factura del punto 22 y ver sus asientos, sí o no? ¿Por qué eso te hace sospechar del error y no del libro mayor? ¿Y cuáles de los pasos para cerrar la causa puedo hacer yo desde la pantalla (incluido cómo sacar el «traceback») y cuáles le tengo que pedir a alguien de desarrollo?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos, en términos de pantalla y permisos del usuario? No entiendo qué son «perm_read = False», «account_multi_store», «account_journal_security», el «filtro en _search», «store_id», «account_followup» ni qué diferencia hay entre ocultar un diario en las búsquedas y una regla de registro. En concreto: según cómo está pensado, ¿un usuario que solo tiene Norte debería poder abrir una factura del punto 22 y tocar «Ver asientos», sí o no? ¿Y qué parte de lo que falta para cerrar la causa puedo probar yo desde la pantalla y cuál tiene que mirar alguien de desarrollo?",
+ "followup_answer": "**Sí. Según el criterio que describe la ayuda del sistema, alguien que solo tiene Norte debería poder ver lo de Sur, pero no publicarlo ni modificarlo.** «Ver asientos» parece una consulta, así que debería poder usarla. Eso todavía no prueba que el error sea una falla: no sabemos qué consulta ese botón por detrás ni qué permiso está fallando.\n\n**Qué permisos vimos**\n- **Por sucursal:** en diarios, asientos y pagos, los bloqueos por sucursal que revisamos limitan cambios, no la consulta. En los diarios son crear, modificar y borrar.\n- **Por usuario asignado al diario:** se puede limitar un diario a ciertas personas, pero ningún diario de venta tiene a nadie cargado. No afecta al del punto 22.\n- **Por compañía:** este sí puede impedir ver un diario, si es de una compañía que el usuario no tiene habilitada en ese momento. No sabemos si es lo que pasa acá.\n\n**Ocultar no es lo mismo que prohibir**\n- **Ocultar:** el diario de Sur no aparece cuando el sistema busca diarios para ese usuario, por ejemplo en una lista. Eso no le prohíbe abrir algo que usa ese diario, como una factura.\n- **Prohibir:** es un permiso que, al intentar ver o cambiar algo, lo frena y puede mostrar un error como el que viste.\n\nEl módulo de sucursales explica que ocultan en vez de prohibir la consulta para evitar errores en las pantallas que muestran datos de un diario. Por eso «que no vea en ningún lado» sería cambiar el criterio. Tampoco sabemos por qué los dos reportes se comportan distinto, ni si la versión 16 era más permisiva.\n\n**Lo que podés probar desde la pantalla**\n\nUsá el mismo usuario y la misma factura. Alcanza con consultar; no hace falta cambiar permisos ni datos.\n1. **Mensaje:** repetí el error y copiá todo el texto, sobre todo qué dice que no se puede leer y qué reglas nombra. Si aparecen más detalles con el modo desarrollador, copialos también.\n2. **Otro camino:** entrá por Contabilidad → libro mayor, abrí la factura y tocá **«Ver asientos»**, no solo la factura.\n    - Si también falla, el problema no es exclusivo del reporte de seguimiento.\n    - Si funciona, hay una diferencia entre los dos recorridos que desarrollo tiene que explicar.\n3. **Compañías:** en cada recorrido, anotá qué compañías están marcadas en el selector de arriba y cuál es la de la factura. Si podés consultarlas, anotá también la del diario y las habilitadas en la ficha del usuario; para esto quizás necesites un administrador.\n\n**Lo que tiene que mirar desarrollo**\n- Qué consulta «Ver asientos» y en qué paso se rechaza.\n- Todos los permisos de aquello que nombre el error, porque puede haber alguno que no vimos.\n- Cómo arman la información el reporte de seguimiento y el libro mayor, que todavía no revisamos.\n- El detalle interno del error, si la pantalla no alcanza.\n- Cómo funcionaba en la 16, si hace falta confirmar que cambió.\n\nPasale a desarrollo el mensaje completo y el resultado de las pruebas 2 y 3. Al cliente todavía no le diría que el error es lo esperado.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12540,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 1887,
+  "output_tokens_details": {
+   "thinking_tokens": 667
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12540,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1887,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 12540,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12540
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "84a8a6a1ad",
+  "persona": "actualizacion"
+ }
+}

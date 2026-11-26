@@ -1,0 +1,47 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**No hay una opción nativa que cumpla todo el pedido solo con configuración.** El CC de la plantilla resuelve el envío de la copia, pero no las respuestas ni los seguidores. Para eso iría por personalización por interfaz, o sea Consultoría.\n\n| Necesidad | Para/CC de la plantilla | Preferencia del usuario C2 | Acciones nativas de seguidores |\n|---|---|---|---|\n| Administración recibe la factura | Sí | No lo asegura | No la envían por sí solas |\n| Las respuestas le llegan por correo | No la suma como seguidora | Solo donde C2 ya es seguidor | Sí, si agregan un contacto que reciba por correo |\n| Sacar vendedores e internos | No | No | Sí, a quienes se configuren |\n| Corregir el histórico | No | No agrega ni saca seguidores | Sí, en forma masiva |\n\n- **CC en la plantilla:** sirve para el envío manual y el automático. Si el cliente usa «Responder a todos», quizás su correo incluya la dirección en CC. No lo verifiqué, y los seguidores internos seguirían recibiendo la notificación. Revisá también si `partner_to` o `email_cc` hoy incluyen vendedores.\n- **Preferencia de C2:** hoy usa «Gestionar en Odoo», así que lo que le llega como seguidor queda en la bandeja de Odoo. Pasarlo a notificaciones por correo es nativo, pero afecta todas sus notificaciones, no solo las de facturas.\n- **Acciones «Agregar seguidores» y «Quitar seguidores»:** son lo que más se acerca, con una regla automática para lo nuevo y una ejecución masiva para el histórico. Quizás no haga falta código, pero falta probarlo.\n\n**Qué cuidar si va a Consultoría**\n- **Momento de la regla:** `account_ux` envía al validar, y Odoo suscribe a quien envía. Si la regla corre antes de esa suscripción, el usuario interno queda igual. Un reenvío posterior puede volver a sumarlo. En una base de prueba, validá, reenviá y respondé como cliente.\n- **Qué «Administración»:** C2 es un usuario interno, y el pedido excluye usuarios internos. Propongo usar C1, que no tiene usuario, y definir si se quita C2. La otra opción es dejar C2 como excepción explícita.\n- **Histórico:** quitar seguidores en forma masiva requiere definir a quiénes sacar y conservar al cliente, sus contactos y Administración. Antes, exportaría los seguidores actuales para poder reponerlos.\n\n**Qué no cierra del diagnóstico**\n- **Vendedores:** el cliente dice que reciben copia por ser seguidores, pero en la factura de ejemplo el vendedor no lo es. Hay vendedores portal siguiendo facturas de 2026 (unas 4.100 para seis de ellos), pero eso no explica cómo les llega cada correo. Hace falta un envío donde un vendedor haya recibido copia, y ver sus destinatarios.\n- **Usuario B:** el cliente dice que la respuesta del 19/10 les llegó a A y B. En los seguidores que muestra la base está A, no B. Conviene revisar las notificaciones de ese mensaje.\n- **Usuario A:** validó la factura el 01/10. El envío automático y la suscripción del autor explican que sea seguidor. La creación por el cron no implica que el vendedor quede suscripto.\n\n**La fecha pedida, 25/10, ya pasó** (hoy es 26/11). Confirmá con el cliente si sigue siendo urgente y si el problema continúa.\n\n**Nota propuesta para el ticket:**\n> No encontramos una opción nativa que cubra todo solo con configuración. El CC de la plantilla envía copia, pero no suma seguidores ni quita a nadie. Recomendamos derivar a Consultoría para evaluar reglas automáticas con las acciones nativas de seguidores y la corrección del histórico. Falta probar el orden entre la regla y el envío, definir qué «Administración» usar y aclarar los casos de vendedores y Usuario B.\n\nMe basé solo en el material que pegaste: no consulté el ticket, la base ni el código. Tampoco tenía disponible `tuqui-adhoc`, así que no cargué las reglas de la empresa; para darlo de alta, usá `adhoc-way-guide`. No publiqué ni cambié nada.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11431,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3412,
+  "output_tokens_details": {
+   "thinking_tokens": 1852
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11431,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3412,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11431,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11431
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

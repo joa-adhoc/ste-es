@@ -1,0 +1,44 @@
+{
+ "case": "STE-F03",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "# Ticket 139447: revisión\n\n**Odoo no intenta borrar la recepción 412 (WH/IN/00098).** Todo indica que intenta borrar una recepción nueva y vacía que crea al confirmar la orden, y que `stock_ux` no lo deja.\n\n## Qué pasa\n1. Al confirmar, `purchase_stock` crea una recepción para la orden.\n2. Si queda sin movimientos, la borra. Acá lo más probable es que no haya nada pendiente: se pidieron 2 y ya se recibieron 2.\n3. `_check_block_picking_deletion` frena el borrado porque «Recepciones» tiene `block_picking_deletion = True`. Con eso alcanza, aunque la recepción esté en borrador.\n4. El error deshace la operación, así que la orden sigue en borrador y la recepción nueva no queda guardada. El número de ID que usó no se reutiliza (secuencia de PostgreSQL). Eso explica que aparezca el 415, después el 416, y que ninguno exista.\n\nEl historial muestra cómo se llegó acá el 11/11, con el mismo usuario: confirmación (12:26), recepción de 2 unidades (12:27), cancelación (13:26) y vuelta a borrador (13:27). La cancelación ocurrió con la recepción ya hecha. No leí el código que decide si eso se debe permitir, así que no puedo decir si es otra falla.\n\nLa explicación sale de los datos y del código descripto en el material; no la reproduje. El paso 2 supone que el movimiento de la 412 sigue vinculado a la línea de la orden y que Odoo lo descuenta de lo pendiente.\n\n## Cómo regularizar\nEsto sirve si la compra sigue vigente y la orden tiene que volver a estar confirmada. **Probalo primero en una copia de la base:**\n\n1. Anotar el stock del producto, y las cantidades recibida y facturada. Revisar que el movimiento de la 412 esté vinculado a la línea de P00231 y que la línea no haya cambiado.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231. Si pide aprobación, completarla.\n4. Volver a activar el bloqueo enseguida, también si la confirmación falla.\n5. Comprobar:\n   - La orden quedó confirmada.\n   - No hay recepciones ni movimientos nuevos.\n   - La 412 sigue en Hecho.\n   - El stock no cambió y la línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n   - BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden.\n\nSegún la condición descripta, sin el bloqueo la recepción vacía se debería poder borrar si está en borrador o cancelada. Mientras esté desactivado, afecta a todas las «Recepciones»: otros usuarios podrían borrar las que estén en esos estados. Conviene hacerlo en un momento de poco uso. Confirmar también puede actualizar la fecha de confirmación o disparar automatizaciones propias de la base; hay que mirarlo en la copia.\n\n**Para regularizar no haría** una devolución, no tocaría la factura ni las cantidades y no cambiaría el estado por SQL. Si en la copia aparece una recepción con movimientos pendientes, no hay que validarla ni seguir en producción: la hipótesis o los vínculos estarían mal.\n\n## Respuesta sugerida para el cliente\n> El traslado del error (415 o 416) no es la recepción WH/IN/00098. Por lo que revisamos, al confirmar la orden Odoo genera una recepción nueva que, al no haber nada pendiente, intenta eliminar. El bloqueo de eliminación de «Recepciones» lo impide, y por eso ese traslado no queda guardado. Vamos a probar la regularización en una copia de la base, controlando que no cambien el stock ni la factura. ¿Nos confirman que la compra sigue vigente y por qué se canceló la orden el 11/11?\n\n## Pendiente\n- **Corrección de fondo:** el bloqueo de `stock_ux` choca con una limpieza interna de Odoo estándar. Propondría exceptuar solo el borrado de la recepción vacía en ese flujo, sin liberar el borrado manual. Puede repetirse al confirmar otras órdenes que no generen movimientos en un tipo de operación con el bloqueo. No verifiqué si alguna versión más nueva del módulo ya lo corrige.\n- **Preguntas abiertas:** ¿por qué se canceló la orden? Si fue para anular la compra o corregir algo, el procedimiento de arriba puede no ser el que corresponde.\n- **Alcance de la revisión:** usé solo el material que pegaste; no consulté la base ni cambié nada. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que tampoco cargué las reglas de la empresa para operar Odoo. Para darlo de alta, usá `adhoc-way-guide`. La respuesta al cliente es un borrador y no la envié.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10466,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3328,
+  "output_tokens_details": {
+   "thinking_tokens": 1553
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10466,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3328,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10466,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10466
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

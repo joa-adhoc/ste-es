@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `_run_trial_expiry` en `scheduler/billing_cron.py` y lo que dependa de eso, y confirmarme dos cosas? Primero, si un workspace con suscripción viva recibe igual los avisos de 7 días antes y del día del vencimiento. Segundo, si uno sin suscripción y sin exceso, al pasar a Free, conserva o pierde el asistente en el chat y el MCP."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `_run_trial_expiry` en `scheduler/billing_cron.py` y confirmar dos cosas? Primero, si un workspace con suscripción viva igual recibe los avisos previos (el de 7 días y el del día del vencimiento). Segundo, si un workspace sin suscripción y sin exceso pasa a Free sin restricción, y si en ese caso el equipo pierde el asistente o lo conserva."
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés confirmarlo en `_run_trial_expiry` (`scheduler/billing_cron.py`) y el código que llama? Necesito saber: (1) si con una suscripción viva igual salen los avisos de 7 días antes y del día del vencimiento; (2) si un workspace sin suscripción y sin exceso de límites queda sin restricción y si conserva o pierde el asistente en el chat y el MCP."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Podés revisar `_run_trial_expiry` en `scheduler/billing_cron.py` y lo que dependa de eso, y confirmarme dos cosas? Primero, si un workspace con suscripción viva recibe igual los avisos de 7 días antes y del día del vencimiento. Segundo, si uno sin suscripción y sin exceso, al pasar a Free, conserva o pierde el asistente en el chat y el MCP.",
+ "followup_answer": "No pude confirmar ninguna de las dos cosas porque no llegué a ver el código. El directorio de trabajo (`/tmp/ste-es-eval-9icjwkyx`) está vacío. Quise buscar los archivos en `/home/joa` y `/tmp`, pero el comando requería aprobación y no se ejecutó. No sé si hay un clon en otra parte.\n\n| Pregunta | Qué dice el texto que pegaste | Estado |\n|---|---|---|\n| Con suscripción viva, ¿salen los avisos de 7 días y del día del vencimiento? | El \"no se manda nada\" está en el párrafo sobre qué pasa al vencer. No dice si los avisos previos excluyen a quienes tienen suscripción. | No verificado |\n| Sin suscripción y sin exceso, al pasar a Free, ¿conserva el asistente en el chat y el MCP? | `restricted` bloquea ambos, y el exceso al vencer es una de las causas. Pero no estar `restricted` no garantiza que el plan Free incluya el asistente. | No verificado |\n\nPara revisarlo, pasame la ruta del clon o abrí la sesión dentro del repo. También podés pegar `scheduler/billing_cron.py` y lo que use para decidir esto. En el código hay que mirar:\n\n1. **Avisos:** en `_run_trial_expiry`, a qué workspaces selecciona para cada hito y si filtra por suscripción antes de enviar, ya sea ahí o en la función de envío. También si el hito `0` usa un camino distinto del de 7 días.\n2. **Asistente en Free:** qué cambia al asignar `plan='free'`, en especial si toca el `billing_tier` de los miembros. Además, qué controles habilitan el chat y el MCP: pueden depender de `account_status`, del plan, del asiento o de una combinación, y el chat y el MCP pueden no usar el mismo.\n3. **Pruebas:** `tests/test_trial_notices.py` y las pruebas de esos controles pueden mostrar el comportamiento esperado, aunque haberlas leído no equivale a que pasen.\n\nHasta revisarlo, yo no le aseguraría al equipo que en Free sin exceso conserva el asistente, ni que con suscripción no va a recibir avisos previos.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12983,
+  "cache_read_input_tokens": 77419,
+  "output_tokens": 1334,
+  "output_tokens_details": {
+   "thinking_tokens": 175
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12983,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 850,
+    "cache_read_input_tokens": 30063,
+    "cache_creation_input_tokens": 430,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 430
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ca097f7005"
+ }
+}

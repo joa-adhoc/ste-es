@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**El ticket 140512 muy probablemente fue un error transitorio de la actualización del 04/11.** La base ya tenía las reglas nuevas y el pod A seguía atendiendo sin el método que esas reglas llaman. No veo motivo para corregir `stock_account_multicompany_ux`.\n\nAnalicé solo el material que pegaste. No consulté el ticket, la base ni los logs en vivo, porque en esta sesión no tengo las tools de `tuqui-adhoc`. Si querés que las use, revisá su alta con `adhoc-way-guide`.\n\n## Secuencia (04/11, UTC)\n\n| Hora | Qué pasó |\n|---|---|\n| 15:06:29–58 | Arranca el pod A. |\n| 15:07:39 | Se actualiza `account_multicompany_ux`. |\n| 15:08:01 | Se actualiza `stock_account_multicompany_ux` y se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro cuatro veces. El uid 31 recibe tres errores. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones, porque falta un método en `res.company`. |\n| 15:08:53 | Arranca el pod B con la imagen nueva. |\n| 15:08:58 | El pod A empieza a apagarse. |\n| 15:09–15:30 | El pod B no registra errores (39 líneas filtradas, conteo completo). |\n\n## Causa\n- **Qué falló:** las reglas 507 y 508 llaman a `user._get_branch_stock_root_ids(...)`, y el proceso del pod A no tenía ese método.\n- **Por qué recargar no alcanzó:** recargar el registro toma los cambios de la base, pero no vuelve a importar el Python que el proceso ya cargó.\n- **Segundo indicio:** el cron falla con el mismo patrón, esta vez en `res.company`. Eso apunta a un desfase entre base y código más que a un defecto de una regla.\n- **Código actual:** la introspección de hoy muestra el método definido y `res_users` importado.\n\nQue el pod A corriera la imagen anterior es una inferencia. El material no dice qué imagen tenía ni qué proceso actualizó los módulos. Para confirmarlo, compará la imagen de A con la de B y buscá el log de esa actualización. En el código de la imagen de A no debería estar el método.\n\n## Lo que no cierra\n- **Hora del cliente:** informa el error a las 15:09:12. Es 14 segundos después de que A empezara a apagarse, y B no registra errores desde las 15:09. Los errores del uid 31 que figuran son de 15:08:37–38, unos 35 segundos antes. Puede que la hora informada sea la de la captura o el reporte, pero no está verificado. El material tampoco muestra si A siguió atendiendo pedidos mientras se apagaba.\n- **Recurrencia:** el material llega hasta las 15:30 del 04/11. No sabemos si volvió a pasar entre ese momento y hoy. Antes de cerrar, buscaría `_get_branch_stock_root_ids` en los logs posteriores, hasta donde llegue la retención.\n\n## Qué haría\n1. **Ticket:** si no hay recurrencia, lo cerraría como incidente de actualización. Si lo categorizás por módulo, el relacionado es `stock_account_multicompany_ux`.\n2. **Despliegue:** avisaría a quien lo mantiene. En este caso hubo errores mientras el pod anterior seguía activo con la base ya modificada. Puede repetirse cuando datos nuevos llamen a código nuevo. Habría que revisar cómo evitar que el pod viejo atienda pedidos y ejecute crons durante ese lapso.\n3. **Cron:** verificaría que «Consolidation: bring currency rates in» haya corrido bien después y que no falten cotizaciones. El log sin errores no prueba que se haya vuelto a ejecutar.\n\n## Borrador para el cliente\nUsalo después de revisar la recurrencia. No lo contrasté con las reglas de comunicación de la empresa.\n\n> Hola. Revisamos el error que te apareció al cargar stock el 04/11. Todo indica que coincidió con una actualización del sistema: durante un lapso breve, una parte seguía funcionando sin los cambios nuevos. En los registros que revisamos, hasta las 12:30 (hora argentina) de ese día, no vimos errores en el sistema ya actualizado. ¿Podés confirmar que la carga de stock haya quedado registrada? Revisalo antes de volver a cargarla, para no duplicarla. Si el error te vuelve a aparecer, avisanos con la fecha y la hora.\n\nNo modifiqué el ticket ni envié nada al cliente.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10923,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3452,
+  "output_tokens_details": {
+   "thinking_tokens": 1790
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10923,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3452,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10923,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10923
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

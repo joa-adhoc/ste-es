@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y confirmar qué pasa si una hipótesis agota su tiempo o sus límites, si el Investigator no encuentra nada, si fallan el Planner, el Synthesizer o una consulta de contexto, o si el Synthesizer no genera teasers? Necesito saber en cuáles de esos casos no se muestra nada, si queda algún log o motivo registrado y si en ese caso se sigue viendo un insight anterior."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar el código y decirme en qué otros casos termina sin mostrar nada? Puntualmente: qué pasa si una hipótesis agota su tiempo o sus límites, si el Investigator falla o no encuentra nada, si falla el Planner, el Synthesizer o una consulta de contexto, y si el Synthesizer no genera ningún teaser antes de los filtros."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar el código y confirmar qué pasa si una hipótesis agota su tiempo o sus límites, si el Investigator no encuentra nada, si fallan el Planner, el Synthesizer o una consulta de contexto, o si el Synthesizer no genera teasers? Necesito saber en cuáles de esos casos no se muestra nada, si queda algún log o motivo registrado y si en ese caso se sigue viendo un insight anterior.",
+ "followup_answer": "**No pude confirmar ninguno de esos casos porque no tengo el código.** Busqué en `/tmp/ste-es-eval-ma0dfnlr`, mi directorio de trabajo, y está vacío. No busqué en otras carpetas ni en repos remotos. Todo lo que sigue sale del material que pegaste.\n\n| Caso | ¿No se muestra nada? | ¿Queda log o motivo? | ¿Se sigue viendo un insight anterior? |\n|---|---|---|---|\n| Una hipótesis agota su tiempo o sus límites | Sin confirmar. El material da los límites, pero no qué pasa al alcanzarlos. | Sin dato | Sin dato |\n| El Investigator no encuentra nada | Sin confirmar | Sin dato | Sin dato |\n| Falla el Planner | Sin confirmar | Sin dato | Sin dato |\n| Falla el Synthesizer | Sin confirmar | Sin dato | Sin dato |\n| Falla una consulta de contexto | Sin confirmar. No dice si se aborta o se sigue con contexto parcial. | Sin dato | Sin dato |\n| El Synthesizer no genera teasers, antes de los filtros | Sin teasers nuevos no habría nada nuevo para mostrar (es una inferencia). No sé cómo trata el código este caso. | Sin dato | Sin dato |\n\nEstos casos relacionados sí figuran en el material:\n- **El Planner devuelve cero hipótesis:** no se generan teasers. `PlannerOutput` tiene `silence_reason`, pero el material no dice si se guarda o se registra en un log.\n- **Los filtros rechazan todos los teasers:** devuelve `teasers=[]` con `debug_note=\"synth_all_rejected: ...\"`. Tampoco dice si esa nota se guarda.\n- **Falla la infraestructura del LLM Judge:** el teaser pasa ese filtro. Esta regla vale solo para el Judge; no permite deducir qué pasa si fallan otras etapas.\n\n**No generar teasers no implica que la pantalla quede vacía.** El material dice que los teasers se guardan con un upsert en `insights`. No dice qué pasa con las filas anteriores si no hay ninguno, ni cómo elige la pantalla cuáles mostrar. `insight_history` se usa para evitar repetidos, pero eso no indica que un insight anterior siga visible.\n\n**Corrijo mi respuesta anterior:** dije que la tabla de fuentes tenía una fila más que las 6 consultas, y es falso. Tiene 6 filas, contando por separado las dos de memoria, así que coincide con las 6 consultas.\n\nPara confirmarlo, pasame la ruta del repo o copialo en el directorio de trabajo. Necesito:\n- **Pipeline:** `context_assembler.py`, `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`, para ver errores, timeouts y logs.\n- **Ejecución:** el código que llama a las etapas y aplica `watchdog_sec`, porque ahí puede haber reintentos o manejo de errores.\n- **Guardado y lectura:** el upsert en `insights` y la consulta que usa la pantalla, para saber si sigue apareciendo uno anterior.\n\nCon el código puedo ver qué debería pasar y qué se registra. Para saber qué pasó en una corrida concreta, además hacen falta sus logs o datos.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 13539,
+  "cache_read_input_tokens": 48204,
+  "output_tokens": 1769,
+  "output_tokens_details": {
+   "thinking_tokens": 308
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13539,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1503,
+    "cache_read_input_tokens": 30694,
+    "cache_creation_input_tokens": 355,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 355
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "13168d3851"
+ }
+}

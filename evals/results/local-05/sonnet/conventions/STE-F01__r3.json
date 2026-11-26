@@ -1,0 +1,44 @@
+{
+ "case": "STE-F01",
+ "arm": "conventions",
+ "arm_hash": "d0caed58a3",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Diagnóstico:** lo más probable es un error transitorio del despliegue. El pod A habría usado reglas ya actualizadas en la base con código Python anterior, que no tenía el método. Con este material no veo que haga falta corregir el módulo.\n\nTrabajé solo con lo que pegaste. En esta sesión no tengo `tuqui-adhoc` (se puede dar de alta con `adhoc-way-guide`), así que no consulté el ticket, la instancia ni las reglas de operación de `tuqui_context`.\n\n**Secuencia (04/11, UTC)**\n\n| Hora | Qué pasó |\n|---|---|\n| 15:06:29–58 | Arranca el pod A y carga 233 módulos. |\n| 15:07:39 y 15:08:01 | Se actualizan los dos módulos. A las 15:08:01 se reescriben las reglas 507 y 508. |\n| 15:08:36–39 | El pod A recarga el registro y el uid 31 recibe tres veces el `AttributeError`. |\n| 15:08:40 | En el pod A falla el cron de cotizaciones porque falta otro método, esta vez en `res.company`. |\n| 15:08:53–58 | Arranca el pod B con la imagen nueva y el pod A empieza a apagarse. |\n| 15:09–15:30 | No hay errores en el pod B. |\n\n**Por qué pasa:** recargar el registro vuelve a leer la base, pero normalmente no reimporta el Python que el proceso ya tiene cargado. El fallo del cron apunta a lo mismo: otro método que el pod A no encuentra. Que hoy el método esté definido e importado muestra cómo está el código ahora, no qué tenía el pod A.\n\n**Lo que falta confirmar**\n- **Código del pod A:** el material solo dice que el B tiene la imagen nueva. Para cerrar la causa, hay que ver la imagen o el commit del A y buscar ahí `_get_branch_stock_root_ids`. También quién actualizó la base a las 15:07–15:08, porque el material no lo dice.\n- **Hora del ticket:** 15:09:12 no coincide con ninguno de los tres errores, que son 34 o 35 segundos anteriores. Es 14 segundos posterior al inicio del apagado del A. El tramo sin errores desde las 15:09 es del pod B, y no sé qué registró el A después de las 15:08:58. Revisaría esos logs y de dónde sale la hora del ticket (el error en sí o el momento en que se reportó).\n- **Reintento y cron:** que el B no tenga errores no prueba que el usuario 31 haya repetido la carga con éxito, ni que el cron haya vuelto a correr bien. Para eso hay que mirar los movimientos o quants de esa carga y las ejecuciones posteriores del cron. Pasaron 22 días, así que conviene ver también si hubo errores después de las 15:30.\n\n**Qué haría con el ticket**\n- **Código:** no agregaría un `hasattr` ni cambiaría las reglas. Eso taparía el desfasaje y tocaría un control de acceso.\n- **Clasificación:** lo trataría como un incidente de despliegue. `stock_account_multicompany_ux` es donde apareció el síntoma; si lo cargás como módulo, aclararía que no hay un defecto demostrado ahí.\n- **Prevención:** si se confirma la causa, lo derivaría a quien maneja los despliegues. Habría que evitar que un pod con código anterior atienda usuarios o corra crons mientras la base ya está actualizada. Puede repetirse cuando una versión agrega un método y datos que lo llaman.\n\n**Borrador para el cliente** (no lo envié ni modifiqué el ticket):\n\n> Hola. Revisamos el error que apareció el 04/11 cuando estabas cargando stock. Por lo que vimos, coincide con una actualización del sistema que se estaba aplicando en ese momento, alrededor de las 12:08 (hora argentina). En los registros de la versión nueva que revisamos, entre las 12:09 y las 12:30, no aparecen errores. ¿Nos confirmás si la carga quedó bien o si pudiste repetirla? Antes de volver a cargarla, fijate que no esté ya registrada, para no duplicarla. Si el error volvió a aparecer, mandanos la fecha y la hora.\n\nDejaría el ticket abierto hasta tener la respuesta del cliente y revisar el código y los logs del pod A.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10481,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3187,
+  "output_tokens_details": {
+   "thinking_tokens": 1639
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10481,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3187,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10481,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10481
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 1,
+ "is_error": false
+}

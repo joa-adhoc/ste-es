@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No lo corras todavía: `git reset --hard origin/staging` te borra los cambios sin commitear de `limits.py` y `test_limits.py`, y esos no se recuperan desde git. Además, saca de tu rama los 3 commits sin pushear (`a1b2c3d`, `d4e5f6a`, `0718293`). Esos quedan un tiempo en el reflog, pero ninguna rama los va a apuntar, salvo que estén en otra que no se ve en lo que pegaste.\n\nLa migración `0420_mcp_limits.sql` no está trackeada, así que en general el reset no la toca y te queda suelta en el árbol (si `origin/staging` tiene un archivo en esa misma ruta, la pisa). O sea que el reset solo tampoco te deja de cero.\n\nSi querés empezar limpio sin perder nada, guardá todo en una rama de respaldo y arrancá una nueva desde `origin/staging`. Antes confirmá que en esos tres archivos no haya cambios ajenos ni secretos.\n\n```bash\ngit switch -c backup/limite-mcp\ngit add tuqui_core/mcp/limits.py tuqui_core/tests/test_limits.py supabase/migrations/0420_mcp_limits.sql\ngit commit -m \"backup: trabajo en curso de limite-mcp\"\ngit fetch origin\ngit switch -c feat/limite-mcp-v2 origin/staging --no-track\n```\n\nEl respaldo queda solo en tu máquina, con los 3 commits y los cambios nuevos, y `feat/limite-mcp` sigue como está. Si algún hook frena el commit, pasame el error.\n\nSi lo que querés es **descartar todo** y conservar el nombre de la rama, eso es el `reset --hard` más borrar la migración a mano. Hacelo solo si estás seguro de que no vas a necesitar nada de eso. ¿Querés guardarlo o tirarlo?",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10364,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 654,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10364,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 654,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10364,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10364
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

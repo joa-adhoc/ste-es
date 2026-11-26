@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Sí, podés indicar la factura al importar el recibo: va en la columna `to_pay_move_line_ids/id`. Al confirmarlo, concilia contra esos apuntes hasta donde alcance el importe. **No lo probé importando en la base del cliente.**\n\n**No pude crear los archivos:** no se aprobó el permiso para escribirlos, y antes se había bloqueado un script que los generaba. Copiá cada bloque en un archivo de texto y guardalo como `.csv` en UTF-8. No pude verificar las columnas con un comando.\n\n### 1. `recibos.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_001,customer,inbound,ID_CLIENTE,2026-11-26,ID_DIARIO,ID_METODO_DE_PAGO,119000.00,\"ID_APUNTE_FACTURA_1,ID_APUNTE_FACTURA_2\",ID_IMPUESTO_RETENCION,NRO_CERTIFICADO,100000.00,2000.00\n```\n\n### 2. `pagos_proveedores.csv`\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_pago_001,supplier,outbound,ID_PROVEEDOR,2026-11-26,ID_DIARIO,ID_METODO_DE_PAGO,119000.00,ID_APUNTE_FACTURA_PROVEEDOR,ID_IMPUESTO_RETENCION,,100000.00,2000.00\n```\n\n### 3. `recibos_cheques.csv` (un recibo con dos cheques)\n```csv\nid,partner_type,payment_type,partner_id/id,date,journal_id/id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id/id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id/id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheque_001,customer,inbound,ID_CLIENTE,2026-11-26,ID_DIARIO_CHEQUES,ID_METODO_CHEQUES,ID_APUNTE_FACTURA_3,00000001,2026-12-10,,,60000.00,ID_IMPUESTO_RETENCION,NRO_CERTIFICADO,100000.00,2000.00\n,,,,,,,,00000002,2027-01-10,,,59000.00,,,,\n```\n\n### Cómo completarlos\n- **Valores de ejemplo:** reemplazá los textos en mayúsculas, las fechas, los números y los importes. `id` tiene que ser único por pago.\n- **Obligatorios:** `partner_type`, `payment_type`, el contacto, la fecha, el diario y el método de pago. El talonario se calcula solo. En los archivos sin cheques completá también `amount`.\n- **Cheques:** no incluí `amount` del pago porque es la suma de los cheques. Cada cheque lleva un monto mayor a 0. Si dejás banco y CUIT vacíos, salen del cliente; si cargás el CUIT, se valida.\n- **Varias líneas:** para otro cheque u otra retención, agregá una fila con las columnas del pago y la de deudas vacías. En cada retención el impuesto es obligatorio.\n- **Solapa de cheques:** entiendo que depende del método de pago elegido, pero el material no lo confirma. El tercer archivo es para cheques nuevos recibidos de clientes. No cubre cheques propios a proveedores ni la entrega de cheques de terceros.\n\n### Cómo vincular la factura\n1. Entrá a **Contabilidad › Apuntes contables**.\n2. Filtrá la factura y la cuenta a cobrar (o a pagar, para proveedores).\n3. Exportá con la opción **compatible con importación**.\n4. Copiá el identificador externo del apunte, no el de la factura.\n\nSi son varios apuntes, separalos con coma. En el CSV van entre comillas, como en el primer ejemplo. Tienen que ser de cuentas compatibles.\n\n### Antes de confirmar\nProbá con un solo registro de cada archivo, idealmente en una base de prueba. Los pagos quedan en borrador; revisá:\n- **Deudas:** que figuren solo las que indicaste. No dejes la columna vacía sin probar qué carga Odoo. Si en borrador cambiás cliente, compañía o tipo, se recalcula con **toda la deuda abierta**, y al confirmar podría conciliar otras facturas.\n- **Retenciones a proveedores:** normalmente se calculan solas según la posición fiscal. No sé si las importadas se conservan, se reemplazan o se duplican. Probá también sin esas cuatro columnas y compará. El número va vacío porque lo asigna la secuencia al confirmar.\n- **Importes:** que el total, las retenciones y el saldo sean los esperados. No verifiqué cómo se combinan `amount` y las retenciones para cancelar la deuda; los números del ejemplo no representan un cálculo.\n\nLos nombres de las columnas internas de cheques (`name`, `payment_date`, `bank_id`, `issuer_vat`, `amount`) y de retenciones (`tax_id`, `name`, `base_amount`, `amount`) no figuran en el material. Los puse según lo que conozco de Odoo: confirmalos en la pantalla de importación. Las columnas terminadas en `/id` llevan identificadores externos, que podés obtener exportando cada registro.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15872,
+  "cache_read_input_tokens": 77728,
+  "output_tokens": 7035,
+  "output_tokens_details": {
+   "thinking_tokens": 2369
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15872,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2550,
+    "cache_read_input_tokens": 31616,
+    "cache_creation_input_tokens": 1766,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1766
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 6,
+ "is_error": false
+}

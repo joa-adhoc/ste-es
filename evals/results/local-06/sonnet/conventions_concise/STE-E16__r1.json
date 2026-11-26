@@ -1,0 +1,47 @@
+{
+ "case": "STE-E16",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Cada `save` sobre un artifact existente crea una versión nueva, pero **no la publica**: quien tiene el link sigue viendo la versión publicada hasta que alguien haga `publish`.\n\n**Versiones**\n- El primer `save` (sin `artifact_id`) crea la v1 y la publica, así que el link funciona desde el principio.\n- Un `save` con `artifact_id` crea la v(n+1) y la deja como versión actual. La publicada no cambia. El resultado avisa con `unpublished_changes: true` y el viewer muestra un banner.\n- `publish(version?)` define qué versión se ve por el link. Si no indicás una, publica la última. Para volver atrás, publicás una versión anterior.\n\n**Qué ve cada uno**\n- **Con el link (ruta por token):** siempre la versión publicada.\n- **En el viewer interno:** se navega a partir de la versión actual, con un selector de versiones.\n\n**Refresco de datos**\n\nCada artifact separa la plantilla de la página (`content`) de un snapshot de datos en JSON (`data`, opcional). El material describe el refresco de datos como parte de la fase 2 (dashboards regenerables): crea una versión que trae solo `data`. Para mostrar una versión, el sistema toma por separado el último `content` y el último `data` que haya hasta ese número. La versión nueva combina así los datos nuevos con la plantilla anterior, y el refresco no puede romper el diseño.\n\n- **Esa plantilla puede no ser la publicada.** Es la última hasta esa versión. Si había una edición de diseño sin publicar, la versión refrescada la incluye, y al publicarla también se publica ese diseño.\n- **Quien tiene el link:** por la regla general, no debería ver los datos nuevos hasta que se publique esa versión. El material no aclara si el refresco publica automáticamente, así que eso queda sin confirmar.\n- **Validación:** un `save` sobre un artifact que tiene datos los valida contra el `data_schema` guardado (claves obligatorias y tipos). Si no coinciden, se rechaza antes de escribir.\n- **Límites:** `content` y `data` admiten hasta 1 MB cada uno, y si se pasan, falla con un error explícito.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10769,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 768,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10769,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 768,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10769,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10769
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

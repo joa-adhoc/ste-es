@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "No lo corras todavía: `git reset --hard origin/staging` te borra trabajo que, según lo que pegaste, no está guardado en ningún otro lado visible.\n\n**Qué perdés:**\n- **Cambios sin commitear** en `tuqui_core/mcp/limits.py` y `tuqui_core/tests/test_limits.py`. El reset los pisa y Git no permite recuperarlos si nunca pasaron por `git add`.\n- **3 commits sin pushear** a `origin/feat/limite-mcp`: `a1b2c3d` (tope por workspace), `d4e5f6a` (su test) y `0718293` (fix del mensaje). Tu rama deja de apuntar a ellos. Se pueden recuperar por `git reflog` por un tiempo, pero no conviene depender de eso.\n- **Lo ya pusheado en `origin/feat/limite-mcp`** que no esté en `staging` también sale de tu rama local. Sigue en el remoto.\n\n`supabase/migrations/0420_mcp_limits.sql` está sin trackear, así que normalmente el reset no lo toca. La excepción: si `origin/staging` trae un archivo en esa misma ruta, lo sobrescribe. Además, si queda en el directorio, no empezás realmente de cero.\n\n**Cómo empezar de cero sin perder nada:** creá una rama nueva desde `staging` y dejá la actual como respaldo. Primero guardá lo pendiente, incluido el archivo sin trackear:\n\n```bash\ngit stash push -u -m \"limite-mcp: pendiente antes de empezar de cero\"\ngit fetch origin\ngit switch --no-track -c feat/limite-mcp-v2 origin/staging\n```\n\n- Los 3 commits quedan en `feat/limite-mcp`, solo en tu máquina.\n- Los cambios y la migración quedan en el stash. Para recuperarlos, volvé a `feat/limite-mcp` y corré `git stash pop`.\n- `feat/limite-mcp-v2` es un nombre de ejemplo.\n\n**Si querés conservar el mismo nombre de rama**, después del stash y el fetch hacé primero una copia con `git branch backup/limite-mcp`. Recién ahí corré `git reset --hard origin/staging`. La rama va a quedar divergida de `origin/feat/limite-mcp`, y para pushearla vas a tener que forzar. Si alguien ya revisó el PR, no conviene reescribir esa historia.\n\nSi en cambio querés **descartar todo** a propósito, decímelo. En ese caso el reset solo no alcanza, porque la migración sin trackear queda en el directorio. No ejecuté nada: me basé en la salida que pegaste y no comparé contra `origin/staging`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10375,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 943,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10375,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 943,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10375,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10375
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

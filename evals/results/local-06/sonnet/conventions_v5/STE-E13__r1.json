@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Si no tiene una suscripción activa**, por defecto hay un aviso 7 días antes, otro el día del vencimiento (con el workspace todavía funcionando) y un mail cuando la prueba vence y pasa al plan free.\n\n**Cuándo:** el proceso corre todos los días a las 12:00 UTC (9 h de Argentina). Los días de aviso se configuran en `platform_config.billing_trial_warning_days_list` (por defecto, `{7, 0}`). Si vence la semana que viene, según la fecha exacta, el aviso de 7 días ya debería haber salido o está por salir. Si se extiende la prueba, vuelve a avisar para la nueva fecha.\n\n**A quién:** los avisos de prueba por vencer y vencida van a:\n- los owners y admins, siempre, aunque no tengan asiento;\n- los demás miembros con asiento (`billing_tier <> 'none'`).\n\nLos avisos indican qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar. Además, en el chat, quien perdió el asistente ve un cartel arriba del cuadro de mensaje (`PlanLapsedBanner`).\n\n**El día que vence sin suscripción:** pasa a `plan='free'`, se evalúa si excede los límites y sale el mail. Si hay exceso, corresponde que quede `restricted`, con el chat y el MCP bloqueados; el motivo previsto es `trial_expired_with_excess`.\n\nEl material no confirma qué pasa si **no** hay exceso. Se puede inferir que la cuenta sigue `active`, pero también dice que al terminar la prueba \"el asistente deja de responder para todo el equipo\", sin aclarar si depende del exceso. Antes de prometerle a alguien que va a seguir usando el asistente, habría que revisarlo en el código.\n\n**Si tiene una suscripción activa, cambia:** al vencer solo se limpian las marcas de la prueba y no se manda ningún aviso de vencimiento. El paso a free descrito arriba no se aplica. El cobro se avisa con su propio recibo, que va a los owners.\n\nEl material tampoco dice si a un workspace con suscripción se le mandan igual **los avisos previos** (7 días y día 0). Que no se mande nada al vencer no alcanza para descartarlos. Eso se puede confirmar en `_run_trial_expiry`, en `scheduler/billing_cron.py`. Respondí solo con el material que pasaste, sin revisar el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11285,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1503,
+  "output_tokens_details": {
+   "thinking_tokens": 643
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11285,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1503,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11285,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11285
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

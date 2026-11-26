@@ -1,0 +1,47 @@
+{
+ "case": "STE-E24",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Como muy temprano, está todo en prod con el tren del martes 1/12 a las 9:00 (hora argentina)**, contando que mergeaste el miércoles 25/11. Vale si el CI de staging está verde en los dos trenes y el `DROP` queda separado del primero.\n\n| Tren (12 UTC = 9:00 ARG) | Qué llega |\n|---|---|\n| Jueves 26/11 | El código nuevo y `members.locale` (migración aditiva) |\n| Martes 1/12 | El borrado de `members.lang` (migración destructiva) |\n\n- **Revisá cómo se separa el `DROP`:** según tu descripción, mergeaste un PR que agrega una columna y borra otra. El extracto prohíbe que el `DROP` corra en el mismo tren que el código que deja de usar `lang`, pero no dice que el pipeline lo postergue solo. Si ese código y el `DROP` están los dos en staging, confirmalo antes del primer tren. Si no lo posterga, hay que sacar el `DROP` de staging y volver a mergearlo después de ese tren y antes del siguiente.\n- **Si el CI está rojo:** el tren salta al próximo. Si se saltea el del 26/11, el código y `locale` llegan el 1/12, y el borrado de `lang` pasa como pronto al jueves 3/12. Un release manual no sirve para adelantarlo, salvo que sea un hotfix con aprobación de jjs.\n- **Fecha:** para mi sesión hoy es jueves 26/11, no miércoles. Si en realidad mergeaste hoy a las 15:00, ya pasó el tren de las 9:00. En ese caso, el código y `locale` llegan el 1/12 y el borrado el 3/12, con las mismas condiciones. Si mergeaste ayer, el primer tren ya tenía que haber salido hoy a las 9:00.\n\nNo revisé el CI, el pipeline ni prod; esto sale solo del extracto de `docs/release-train.md`. Las 9:00 son la hora en que el tren avanza `main`, y el extracto no dice cuánto tarda el deploy.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10357,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1290,
+  "output_tokens_details": {
+   "thinking_tokens": 556
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10357,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1290,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10357,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10357
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

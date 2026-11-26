@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**No daría por cerrado que el error sea un permiso reforzado a propósito.** El módulo dice lo contrario de «si no ve, que no vea en ningún lado». La ayuda del campo de sucursal del diario dice que los usuarios de otras sucursales **pueden ver** sus registros, pero no publicar ni modificar asientos. Que la réplica muestre un bloqueo no prueba que ese bloqueo sea intencional.\n\n**Lo que muestran las reglas leídas en la 18**\n- Las reglas de `account_multi_store` sobre diarios, asientos y pagos no restringen la lectura (`perm_read` = False).\n- Las dos de `account_journal_security` solo aplican a diarios con usuarios cargados, y ningún diario de venta los tiene.\n- De las reglas de diarios que leíste, la única que podría explicar que no se lea el del punto 22 es la de compañía. La sucursal, como regla, no lo explica.\n\n**Hipótesis principal**\nLa sucursal sí puede estar influyendo por otro lado: el cambio en `account.journal._search`, que le oculta el diario Sur a Encargado Norte en las búsquedas. Por lo que recuerdo del núcleo de Odoo 18 (no lo leí ahora), al cargar los datos de un registro también se usa `_search`. Si el registro existe pero queda filtrado, salta un error de acceso de lectura con el formato de los de reglas, aunque ninguna regla lo haya bloqueado.\n\nEntonces «Ver asientos» podría estar leyendo algún dato del diario y fallar ahí. Sería justo lo que el comentario del código quería evitar al no usar una regla de lectura. No explica por sí solo qué reglas nombra el mensaje, así que necesitamos el texto completo.\n\n**La diferencia con Contabilidad**\nTodavía no sabemos si son dos criterios distintos. Ver las facturas en un libro mayor y ejecutar «Ver asientos» son operaciones distintas. Con el mismo usuario y la misma factura del punto 22, probaría:\n\n1. Desde el libro mayor de Contabilidad: abrir la factura, tocar los tres puntitos y «Ver asientos». Si solo viste la factura en el listado o la abriste, la comparación está incompleta. Si ahí «Ver asientos» funciona, hay que ver qué cambia entre los dos recorridos.\n2. En los dos recorridos, anotar qué compañías están tildadas y el nombre exacto del libro mayor. En particular, si «el libro mayor de la empresa» es el de empresas (contactos) o el general.\n3. Guardar el error completo y el traceback: modelo, registro, reglas nombradas y la línea que dispara la lectura. Si el modelo es `account.journal` y el registro es el diario Sur, la hipótesis gana fuerza; el traceback tiene que confirmar que pasa por ese filtro. Si es otro modelo, hay que revisarla.\n\n**Criterio**\nPara este ticket tomaría como referencia el que declara el módulo: **puede consultar, no puede publicar ni modificar**. Si se confirma la hipótesis, lo que hay que corregir es el error al consultar, cuidando que el diario Sur siga sin ofrecerse para operar. La solución depende de qué línea lo lee.\n\nQue no vea nada de otras sucursales sería cambiar el diseño. Habría que definirlo para asientos, pagos y reportes, y un seguimiento filtrado así podría mostrar una deuda incompleta del contacto.\n\nQue en la 16 los permisos fueran más livianos está **sin verificar**, porque no se leyó ese código. Tampoco se leyó el del reporte de seguimiento ni el del libro mayor.\n\n**Al cliente le podés contestar:** «Pudimos reproducir el error. Estamos revisando por qué aparece al consultar una factura de otra sucursal y si corresponde ese bloqueo. Todavía no está confirmado que sea una restricción esperada».\n\nSi me pasás el traceback, seguimos desde la línea que falla.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11120,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3986,
+  "output_tokens_details": {
+   "thinking_tokens": 2586
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11120,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3986,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11120,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11120
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás sin nombres técnicos qué son `account_ux` y `mail_autosubscribe`? ¿El envío automático al validar se puede ver o cambiar desde alguna pantalla, y por qué lo segundo «no aplica»? Y con «Agregar seguidores» y «Quitar seguidores» en una regla automática, ¿dónde se configura y se puede cubrir todo el pedido, incluidas las respuestas, o hace falta programar?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo aclarás sin nombres técnicos? ¿Qué son `account_ux` y `mail_autosubscribe`, y por qué el segundo «tampoco aplica»? Y la regla automática con «Quitar seguidores» y «Agregar seguidores»: ¿es algo nativo que se configura desde pantalla o es una personalización que tiene que hacer Consultoría? Contame en dos o tres pasos qué haría esa regla y cuándo se ejecutaría para que no vuelva a quedar como seguidor quien envía la factura."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No sé qué es `account_ux` ni `mail_autosubscribe`. ¿Qué es lo que envía la factura al validar y se puede desactivar? Y «Agregar seguidores» y «Quitar seguidores» con una «regla automática», ¿dónde se configuran en Odoo y cómo funcionaría la regla, paso a paso, aplicada a este caso (cuándo corre, a quién agrega y a quién quita)?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás sin nombres técnicos qué son `account_ux` y `mail_autosubscribe`? ¿El envío automático al validar se puede ver o cambiar desde alguna pantalla, y por qué lo segundo «no aplica»? Y con «Agregar seguidores» y «Quitar seguidores» en una regla automática, ¿dónde se configura y se puede cubrir todo el pedido, incluidas las respuestas, o hace falta programar?",
+ "followup_answer": "**Con las acciones nativas se puede armar buena parte sin programar, pero todavía no puedo asegurar que cubran todo, sobre todo las respuestas.** Quise revisar el código público, pero los comandos no se ejecutaron porque requerían revisión o aprobación. Lo de pantallas y menús sale de lo que sé de Odoo, sin verificar en esta base.\n\n**Qué es cada módulo**\n- **`account_ux`:** un agregado de Adhoc con mejoras de uso para la facturación. Acá importa una: al validar una factura, la envía sola por correo.\n- **`mail_autosubscribe`:** un agregado de OCA, la comunidad que publica módulos para Odoo. Suma como seguidores a ciertos contactos de la empresa que recibe el documento. Por ejemplo, el contador de tu cliente en las facturas de ese cliente.\n\nEl segundo **no aplica** porque la Administración que hay que sumar no es un contacto de cada cliente final. Además, no resuelve quitar vendedores ni usuarios internos.\n\n**Dónde se ve el envío automático**\nDebería estar en Contabilidad → Configuración → Diarios, abriendo cada diario de venta, en el campo de la plantilla de correo. No confirmé el nombre del campo ni la pestaña. El material indica que los cinco diarios electrónicos tienen una cargada.\n\nCambiar la plantilla cambia qué correo sale. Vaciarla debería frenar el envío automático de ese diario, pero hay que probarlo. Eso tampoco quita seguidores, y quien después envíe a mano vuelve a quedar como seguidor.\n\n**Dónde se configura la regla**\nCon el modo desarrollador activo, en Ajustes → Técnico → Reglas de automatización (si la función está instalada):\n1. Se crea sobre los asientos contables, filtrando solo facturas y notas de crédito de clientes.\n2. Se elige que corra al pasar a publicado.\n3. Se cargan «Agregar seguidores», con Administración, y «Quitar seguidores», con la lista de contactos a sacar.\n\nPara los documentos anteriores se usan acciones de servidor (Ajustes → Técnico → Acciones de servidor), habilitadas en el menú «Acción» de la lista de facturas. Hay que filtrar y seleccionar solo documentos de clientes.\n\n**Qué se cubre**\n\n| Necesidad | Sin programar |\n|---|---|\n| Sumar Administración y quitar una lista fija | Sí |\n| Corregir documentos anteriores | Sí, con las acciones en forma masiva |\n| Detectar solo a cualquier vendedor o usuario interno nuevo | No con la lista fija: hay que mantenerla a mano |\n| Que no vuelva a quedar quien envía | No está garantizado |\n| Que las respuestas lleguen solo a quien corresponde | Hay que probarlo |\n\nPara las respuestas, Administración tiene que ser seguidora, estar suscripta a «Debates» y recibir por correo. El contacto C1, sin usuario, es el candidato más simple, porque no obliga a cambiar la preferencia del usuario interno. Si C1 ya sigue una factura, revisá que tenga «Debates»; no doy por hecho que agregarlo otra vez lo corrija. Usuario B recibió la respuesta y no figura como seguidor, así que puede haber otra causa que la regla no toque.\n\n**Prueba para decidir**, en una base de prueba con correo controlado:\n1. Validar una factura con envío automático y revisar los seguidores **después** del envío.\n2. Responder como cliente y ver a quién le llega.\n3. Reenviar a mano, responder otra vez y repetir el control.\n4. Repetir con una factura generada por la suscripción, una nota de crédito y un documento anterior.\n\nSi quien envía reaparece, se puede probar otro momento de ejecución de la regla, como el envío de un mensaje; no verifiqué que corra después de la suscripción. Si ninguna variante nativa funciona, o la lista tiene que calcularse sola, hace falta código. Puede ser una acción con Python o un módulo. En cualquier caso, según la nota del analista, la configuración queda fuera de Asistencia y corresponde a Consultoría.",
+ "followup_usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 14501,
+  "cache_read_input_tokens": 111235,
+  "output_tokens": 3925,
+  "output_tokens_details": {
+   "thinking_tokens": 1656
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14501,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2847,
+    "cache_read_input_tokens": 31601,
+    "cache_creation_input_tokens": 410,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 410
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "b0627b1999",
+  "persona": "soporte"
+ }
+}

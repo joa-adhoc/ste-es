@@ -1,0 +1,47 @@
+{
+ "case": "STE-E02",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Tenés que tocar el backend sí o sí:** la migración, guardar el mapa y devolverlo por la API. Lo que depende del caso es si el backend además **elige el idioma**. Me baso solo en la guía que pegaste; no revisé el código.\n\n## Antes de empezar\n\n- **Puede que una parte ya esté hecha.** La guía cita `0201_platform_connectors_description_i18n.sql`. Por el nombre, `platform_connectors` ya tendría la columna. Revisá esa migración, la API, el front y el editor. Si \"conectores\" es otra tabla, seguí todos los pasos para esa.\n- **Fijate quién usa la descripción.** Buscá dónde se lee, no solo dónde se pinta:\n\n| Quién la usa | Quién elige el idioma |\n|---|---|\n| Solo la SPA | El cliente |\n| Solo un prompt LLM, un mail o el MCP saliente | El backend |\n| La SPA y alguno de los anteriores | Los dos |\n\nEn los dos lados el orden es el mismo: `idioma exacto → en → columna legacy`.\n\n## Paso a paso\n\n1. **Migración**, si falta. Usá un número de migración nuevo y no toques la columna `description`:\n   ```sql\n   ALTER TABLE platform_connectors ADD COLUMN description_i18n JSONB;\n   ```\n   Si además existe una columna `description_en` con datos para pasar, mirá como referencia `0206_features_i18n.sql`.\n\n2. **Escritura en la API:** aceptá `description_i18n` y pasalo por `normalize_i18n_keys`, de `tuqui_core/i18n.py`. Esa función deja las claves en dos letras minúsculas y descarta las vacías. Guardá también `description`.\n\n3. **Lectura en la API:** usá `decode_i18n`, del mismo archivo, porque el JSONB puede llegar como `str` o `dict`. Devolvé `description` y el mapa completo, sin filtrar por idioma en el serializer. Revisá que la consulta y el esquema de respuesta incluyan el campo nuevo.\n\n4. **Front:** en cada lugar que muestra la descripción (y en sus tipos, si hace falta), usá:\n   ```ts\n   localizedField(row.description_i18n, row.description, i18n.language)\n   ```\n   No escribas el fallback a mano.\n\n5. **Editor del panel de admin:** poné dos campos, ES y EN. La referencia es `AdminAgentEditorPage.tsx:95-115`. Al guardar:\n   - mandá en `description_i18n` solo las claves con texto;\n   - copiá en `description` el valor `es || en`.\n\n6. **Backend que consume el texto**, solo si hay un prompt, mail o MCP saliente:\n   - obtené `lang` con `resolve_response_language(workspace_id, user_id)`, no con `Accept-Language`;\n   - resolvé con `lang → en → description`.\n\n   Esto es para ese consumidor. La API que usa la SPA sigue devolviendo el mapa completo.\n\n7. **Caché:** si la API devuelve el mapa y elige el cliente, no hace falta sumar el idioma al `queryKey`. Si alguna respuesta que consulta react-query llega ya resuelta por el servidor, el `queryKey` **tiene** que incluir el idioma.\n\n## Qué probar\n\n- **Registros viejos:** sin mapa, tienen que seguir mostrando `description`. Ojo al editarlos: si los campos ES y EN abren vacíos, `es || en` podría borrar ese texto al guardar. Revisá cómo lo maneja el editor de referencia. Una opción es precargar el texto viejo en el campo de su idioma.\n- **Fallback:** probá con los dos idiomas, solo ES y solo EN. Con solo ES, quien use inglés va a ver `description`, que es la copia del texto en español.\n- **Borrado:** vaciá ES y EN y confirmá que el resultado es el que querés. Verificá que no reaparezca una traducción anterior.\n- **Dos consumidores:** si aplica, la SPA y el backend tienen que elegir el mismo texto para el mismo idioma. La guía menciona un bug de este caso en `agents`, pero el detalle no vino en lo que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11238,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2217,
+  "output_tokens_details": {
+   "thinking_tokens": 745
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11238,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2217,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11238,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11238
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

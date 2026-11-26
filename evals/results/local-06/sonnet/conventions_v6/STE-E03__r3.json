@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Primero corré `make worktree-setup` desde el worktree. Linkea al clone principal lo que no viaja en git (`tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect`, `.env.eval`). Sin eso, `make test` falla con \"Venv no encontrado\".\n\n**Dependencia de Python:** no corras `make install` en el worktree linkeado. Escribiría en el venv del clone principal y le repuntaría el editable install (el target se niega). Tenés dos opciones:\n- **Instalarla en el clone principal.** No hace falta reinstalar nada por worktree, y los tests siguen corriendo el código del worktree. Pero el venv es compartido, así que el cambio alcanza al clone principal y a todos los worktrees linkeados.\n- **Borrar el link `tuqui_core/.venv` y armar un venv propio en el worktree.** Aísla la dependencia. Borrá solo el link, no el contenido del venv al que apunta.\n\n**`web/package.json`:** antes de `make test-web`, corré `npm ci` en el worktree, en la carpeta del `package.json` (`web/`). El material avisa que `web/node_modules` es un link al del clone principal, pero no dice si `npm ci` reemplaza el link o escribe a través de él. Como `npm ci` borra `node_modules` antes de instalar, revisá primero con `ls -ld web/node_modules`. Si sigue siendo un link, sacalo con `rm web/node_modules` (sin `-r` y sin barra final) y después corré `npm ci`. Así se crea una carpeta propia y no se toca la del clone principal.\n\nDespués, desde el worktree:\n\n```bash\nmake test        # unit; para un subconjunto: ARGS=\"tests/test_rls.py -k policy\" (paths relativos a tuqui_core/)\nmake test-web    # frontend (vitest)\nmake lint        # ruff check + format check\n```\n\nSegún lo que toques, también tenés `make test-rls` (aislamiento multi-tenant) y `make test-evals` (unit tests de `evals/`, no los benchmarks).\n\nMe basé solo en el texto que pegaste: no revisé el Makefile ni corrí nada. Si estás en un workspace de Tuqui Work (`ADHOC_RUNTIME=managed`), no bajes un `node_modules` grande ni corras suites largas ahí: pusheá y mirá el CI.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10810,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 851,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10810,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 851,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10810,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10810
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

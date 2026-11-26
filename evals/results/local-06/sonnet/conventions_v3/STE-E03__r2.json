@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Corré `make worktree-setup` en el worktree. Después resolvé aparte la dependencia de Python y las de web, porque el setup las deja compartidas con el clone principal.\n\n**1. Setup**\n\n```bash\nmake worktree-setup\n```\n\nLinkea `tuqui_core/.venv`, `tuqui_core/.env`, `node_modules`, `web/node_modules`, `.mcp.json`, `.env.dev-connect` y `.env.eval`. Sin esos links, `make test` falla con \"Venv no encontrado\".\n\n**2. Dependencia de Python**\n\n**No corras `make install` en el worktree linkeado.** Escribiría en el venv del clone principal y le repuntaría el editable install. El target se niega a correr. Tenés dos opciones:\n\n- **Instalarla en el clone principal:** es la más simple, pero cambia el venv que usan todos los worktrees. Ojo: si tu dependencia está declarada solo en tu branch, un `make install` en el clone principal podría no incluirla. Es una inferencia mía: instalá ese paquete puntual en ese venv.\n- **Armar un venv propio en el worktree:** es la que aísla el cambio. Primero borrá solo el link:\n  ```bash\n  rm tuqui_core/.venv    # sin -r y sin barra final\n  ```\n  Con `rm -rf tuqui_core/.venv/` borrarías el contenido del venv del clone principal. El material no dice con qué comando crear el venv nuevo, así que miralo en el `Makefile`.\n\nNo hace falta un venv propio para que los tests usen tu código: con el compartido, corre el código del worktree.\n\n**3. Dependencias de web**\n\nComo tocás `web/package.json`, corré `npm ci` en el worktree antes de `make test-web`. Como precaución, yo sacaría antes el link:\n\n```bash\n[ -L web/node_modules ] && rm web/node_modules   # sin barra final\n(cd web && npm ci)\n```\n\nEl material solo pide `npm ci`. No verifiqué qué hace con un `web/node_modules` linkeado; al sacar el link, evitás que toque el del clone principal. Si cambiás dependencias, revisá también que el lockfile esté actualizado, porque `npm ci` falla si no coincide con `package.json`.\n\nSi estás en un workspace de Tuqui Work, no instales un `node_modules` grande: dejá esa validación al CI.\n\n**4. Tests**\n\n```bash\nmake test ARGS=\"tests/<tu_test>.py\"   # subconjunto, path relativo a tuqui_core/\nmake test-web                         # frontend (vitest), después del npm ci\nmake lint                             # ruff check + format check\n```\n\nTambién tenés `make test` (los unit, el mismo paso de pytest del job `test` de CI), `make test-rls` (aislamiento multi-tenant) y `make test-evals` (unit tests de `evals/`, no los benchmarks). Localmente corré lo acotado y dejá las suites largas al CI.\n\nNo ejecuté ninguno de estos comandos; la respuesta sale del material que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10676,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1745,
+  "output_tokens_details": {
+   "thinking_tokens": 697
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10676,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1745,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10676,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10676
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E17",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "Cuando una tool tira una excepción, el modelo no la recibe cruda: le llega como resultado de la tool un texto con la clase del error y un mensaje. Esto sale solo del material que pasaste; no lo comprobé en el código.\n\n**Del error al modelo**\n\n1. La tool falla y `_wrap_tool` (en `agent.py`) captura la excepción.\n2. Si ya es un `ToolError`, la usa directamente. Si es otra, `classify_unknown(exc)` asigna un `ErrorClass` a las excepciones de Python y httpx.\n3. `_wrap_tool` devuelve `exc.for_llm()`, que reemplaza al string genérico de antes:\n   ```\n   [TOOL_ERROR class=X]: message\n   ```\n\nLas clases son `TRANSIENT`, `RATE_LIMIT`, `PERMISSION`, `CONNECTION`, `ODOO_NOT_CONNECTED`, `INVALID_INPUT`, `NOT_FOUND`, `CONTEXT_OVERFLOW` y `FATAL`. Dos se parecen, pero tienen textos distintos:\n- **`CONNECTION`:** Odoo está caído y falla el transporte.\n- **`ODOO_NOT_CONNECTED`:** nadie conectó Odoo para esa ejecución porque faltan las credenciales (`require_adapter`, en `tools/base.py`).\n\n`ToolError` también tiene `retry_after_seconds`, pero el formato de `for_llm()` no lo incluye. El material no dice si se usa en otro lado.\n\n**Cómo se corta la repetición**\n\n`DoomLoopGuard` (en `guards.py`) registra cada llamada con `record(tool_name, args, ok, error_class)`:\n- **Qué cuenta:** lleva un contador por cada combinación de tool, hash de los argumentos y clase de error. Si cambian los argumentos o la clase, es otro contador.\n- **Cuándo corta:** cuando un contador llega a 3, `record` devuelve `True`. Entonces `_wrap_tool` devuelve un `FATAL` e impide más llamadas idénticas.\n- **Cuándo se reinicia:** cualquier éxito borra **todos** los contadores, no solo el de esa llamada.\n\nPor cómo está descripto, un modelo que repite la misma llamada fallida, pero intercala otra que sale bien, nunca llegaría a 3. Tampoco acumularía si en cada intento cambia un poco los argumentos y eso cambia el hash.\n\nPara `CONNECTION` y `ODOO_NOT_CONNECTED`, el guard además **corta entre tools**, con un aviso distinto para cada una. El material no explica cómo lo hace: la clave descripta incluye `tool_name`, así que ese contador solo no alcanza para sumar fallas de tools distintas. Tampoco dice con qué umbral corta en ese caso ni cómo bloquea las llamadas siguientes. Para confirmarlo, habría que mirar `record` en `guards.py` y cómo usa `_wrap_tool` su resultado.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10838,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1320,
+  "output_tokens_details": {
+   "thinking_tokens": 251
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10838,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1320,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10838,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10838
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

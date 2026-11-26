@@ -1,0 +1,47 @@
+{
+ "case": "STE-F07",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No pude guardar los archivos porque no tengo permiso de escritura, así que te los dejo acá. Copiá cada bloque en un editor de texto y guardalo como `.csv` (UTF-8, separado por comas). Y sí, **podés indicar qué factura se salda**, con la columna `to_pay_move_line_ids/id`.\n\n**`recibos.csv`** (con dos retenciones; la segunda va en la fila de abajo)\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_0001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO>,<ID_EXT_METODO>,98000.00,\"<ID_EXT_APUNTE_1>,<ID_EXT_APUNTE_2>\",<IMPUESTO_1>,<CERTIFICADO_1>,100000.00,1500.00\n,,,,,,,,,<IMPUESTO_2>,<CERTIFICADO_2>,100000.00,500.00\n```\n\n**`pagos_proveedores.csv`** (el número de retención va vacío porque lo pone la secuencia al confirmar)\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id/id,amount,to_pay_move_line_ids/id,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_pago_0001,supplier,outbound,<PROVEEDOR>,2026-11-26,<DIARIO>,<ID_EXT_METODO>,98000.00,<ID_EXT_APUNTE>,<IMPUESTO>,,100000.00,2000.00\n```\n\n**`cheques.csv`** (un recibo con dos cheques nuevos; no lleva `amount` porque se suma de los cheques)\n```csv\nid,partner_type,payment_type,partner_id,date,journal_id,payment_method_line_id/id,to_pay_move_line_ids/id,l10n_latam_new_check_ids/name,l10n_latam_new_check_ids/payment_date,l10n_latam_new_check_ids/bank_id,l10n_latam_new_check_ids/issuer_vat,l10n_latam_new_check_ids/amount,l10n_ar_withholding_line_ids/tax_id,l10n_ar_withholding_line_ids/name,l10n_ar_withholding_line_ids/base_amount,l10n_ar_withholding_line_ids/amount\nimp_recibo_cheques_0001,customer,inbound,<CLIENTE>,2026-11-26,<DIARIO_CHEQUES>,<ID_EXT_METODO>,<ID_EXT_APUNTE>,00000001,2026-12-15,<BANCO>,,50000.00,<IMPUESTO>,<CERTIFICADO>,100000.00,2000.00\n,,,,,,,,00000002,2027-01-15,<BANCO>,,48000.00,,,,\n```\n\n**Cómo completarlos**\n- Reemplazá todo lo que está entre `< >` y los datos de ejemplo. Si hay una sola factura o retención, sacá lo que sobra.\n- Los cheques van en el mismo archivo que su recibo o pago, no en una importación aparte. Para un pago con cheques nuevos, usá `supplier` y `outbound`. Este formato no cubre la entrega de cheques de terceros a proveedores.\n- Si dejás vacíos el banco o el CUIT, salen del contacto del pago (el material lo describe para el cliente). El CUIT se valida y cada monto debe ser mayor a 0.\n- `id` es un código que inventás, único por recibo o pago. Reimportar con el mismo código actualiza el registro en vez de duplicarlo. El talonario se calcula solo.\n\n**Facturas a saldar**\n- Andá a Contabilidad › Apuntes contables, filtrá la factura y la cuenta a cobrar (o a pagar, para proveedores) y exportá el ID externo con la opción «compatible con importación».\n- Si son varios, van en una misma celda, separados por coma.\n- Al confirmar, se concilia contra los apuntes elegidos **hasta donde alcance el pago**.\n- No dejes la celda vacía sin probarlo: en borrador, la deuda se puede completar con todo lo abierto. Cambiar el cliente, la compañía o el tipo reemplaza tu selección. No está probado que la importación la respete, así que revisala antes de confirmar.\n\n**Antes de la carga masiva:** nada de esto está probado importando, y tampoco pude validar los CSV con un programa. Probá primero en una base de prueba con un registro de cada tipo. Los pagos quedan en borrador. Revisá:\n- **Columnas de cheques y retenciones:** los nombres internos (`name`, `tax_id`, `base_amount`, etc.) no estaban en el material; los puse según lo que conozco de Odoo. Confirmalos en la pantalla de importación.\n- **Retenciones a proveedores:** se calculan solas según la posición fiscal. Fijate que las importadas no se dupliquen ni se reemplacen. Si el cálculo automático es correcto, probá sin esas columnas.\n- **Importes:** en el ejemplo supuse que el importe o los cheques (98.000) no incluyen la retención (2.000), para cancelar 100.000. Verificá ese total y el saldo de la factura al confirmar.\n- **Nombres repetidos:** si Odoo confunde un cliente, diario, banco o impuesto, usá su ID externo y agregá `/id` al nombre de la columna (en cheques y retenciones, al final: `.../tax_id/id`).\n\nNo tuve disponible `tuqui-adhoc`, así que me basé en tu material y no consulté el contexto de Adhoc ni la base del cliente. Para darlo de alta, la guía es `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 16364,
+  "cache_read_input_tokens": 78421,
+  "output_tokens": 7465,
+  "output_tokens_details": {
+   "thinking_tokens": 2777
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16364,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2469,
+    "cache_read_input_tokens": 32292,
+    "cache_creation_input_tokens": 1582,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1582
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 5,
+ "is_error": false
+}

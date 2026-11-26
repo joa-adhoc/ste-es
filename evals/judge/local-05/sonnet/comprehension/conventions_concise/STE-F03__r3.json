@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al reconfirmar, Odoo estándar crea una recepción nueva que queda sin movimientos e intenta borrarla. `_check_block_picking_deletion` de `stock_ux` frena ese borrado porque «Recepciones» tiene activo el bloqueo, y se revierte toda la confirmación. Lo más probable es que no se generen movimientos porque las 2 unidades ya están cubiertas por los de la recepción 412 (WH/IN/00098), aunque no se leyó el código que calcula esto. El texto aclara que es una deducción: no se reprodujo ni se consultó la base.",
+  "no lo dice. El texto cuenta que la orden se confirmó, la recepción se validó, luego la orden se canceló y volvió a borrador, y que al reconfirmarla falla. No dice que un usuario haya originado el problema. Menciona que el historial muestra quién canceló la orden, pero no identifica a esa persona ni el motivo.",
+  "Probar primero en una copia de la base y pasar a producción solo con el OK del cliente. Antes de reconfirmar, conviene preguntar al cliente por qué se canceló la orden y si había otra intención, como anular la compra. Pasos: 1) Revisar que los movimientos de la 412 sigan vinculados a la línea de P00231 y sumen 2 unidades, y anotar el stock del producto y los datos de la factura. 2) Desactivar «Bloquear eliminación de traslados» en «Recepciones», en un momento sin otra actividad porque afecta a todos los traslados de ese tipo. 3) Confirmar P00231 una sola vez. 4) Reactivar el bloqueo enseguida, aunque la confirmación falle. 5) Verificar que la orden esté confirmada (si queda «Por aprobar», aprobarla y revisar el resultado después); que la única recepción sea la 412, sin recepciones ni movimientos nuevos; que la línea siga con 2 pedidas, 2 recibidas y 2 facturadas; que el stock no haya cambiado; y que BILL/2026/11/0007 siga contabilizada, con el mismo importe y vinculada a la línea. Si en la copia aparece una recepción con movimientos pendientes, no seguir en producción, porque validarla duplicaría el ingreso. No hacer una devolución de la 412, no tocar la factura, no crear otra orden ni cambiar estados por SQL. Antes de actuar en la base o responder al cliente, dar de alta o autenticar `tuqui-adhoc` (guía `adhoc-way-guide`) y revisar las reglas de la empresa."
+ ],
+ "grades": [
+  "correct",
+  "not_stated",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "e8d8c32b57",
+  "control": "cf4a8527a9"
+ }
+}

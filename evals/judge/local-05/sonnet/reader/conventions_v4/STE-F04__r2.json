@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account.journal._search`, `account_journal_security` ni `account_followup`. En concreto: según el diseño, ¿un usuario que solo tiene Norte debería poder abrir una factura de Sur y entrar a «Ver asientos»? ¿Por qué el diario de Sur se le oculta en algunas pantallas y en otras no? Y de los pasos que faltan, ¿cuáles puedo hacer yo desde la pantalla y cuáles tiene que revisar alguien de desarrollo leyendo el código?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos, desde la pantalla y el proceso? No entiendo qué son `account_multi_store`, la ayuda de `store_id`, `perm_read` = False, `account_journal_security`, `account.journal._search` ni `account_followup`. En concreto: ¿qué dice que el usuario de la sucursal Norte debería poder ver y qué no? ¿Y qué es ese filtro que esconde el diario Sur en las búsquedas y cómo podría hacer que en el reporte de seguimiento vea unas facturas y en el libro mayor de Contabilidad otras?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos? No entiendo qué son `account_multi_store`, `store_id`, `perm_read` = False, `account_journal_security`, `account.journal._search` ni `account_followup`. En criollo, desde la pantalla: ¿el usuario de Norte debería poder ver y abrir las facturas de la sucursal Sur (incluido «Ver asientos») sin poder modificarlas? ¿Y qué tengo que hacer yo ahora, incluido el paso de «leer el código», o a quién se lo paso?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son `account_multi_store`, `store_id`, `perm_read`, `account.journal._search`, `account_journal_security` ni `account_followup`. En concreto: según el diseño, ¿un usuario que solo tiene Norte debería poder abrir una factura de Sur y entrar a «Ver asientos»? ¿Por qué el diario de Sur se le oculta en algunas pantallas y en otras no? Y de los pasos que faltan, ¿cuáles puedo hacer yo desde la pantalla y cuáles tiene que revisar alguien de desarrollo leyendo el código?",
+ "followup_answer": "**Según el diseño, el usuario de Norte debería poder abrir y ver una factura de Sur, pero no publicarla ni modificarla.** Como «Ver asientos» es una consulta, yo esperaría que funcione. Eso último lo deduzco: no sabemos qué revisa el sistema al tocar ese botón.\n\n**Qué indica el diseño**\n- La ayuda del campo de sucursal, en el diario, lo dice: los usuarios de otras sucursales pueden ver sus registros, pero no publicar ni modificar asientos.\n- Las restricciones por sucursal que revisamos sobre diarios, asientos y pagos no bloquean la lectura. La de diarios frena modificar, crear y borrar.\n- Hay otra restricción para diarios con usuarios autorizados cargados. Ningún diario de venta los tiene, así que no afecta a este caso.\n- En los diarios sigue valiendo el límite por empresa.\n\nPor eso, que tenga solo Norte no alcanza para explicar el error. El cartel dice que hay reglas que lo impiden, pero todavía no sabemos cuáles. No relevamos todas las del sistema.\n\n**Por qué el diario de Sur se oculta**\n\nAdemás de los permisos, hay un filtro que actúa **cuando el sistema busca diarios**. Deja solo los que no tienen sucursal y los de las sucursales del usuario. Se aplica a todos, salvo al superusuario interno del sistema.\n\nOcultar algo en una búsqueda no es lo mismo que prohibir verlo. Una nota de quienes lo programaron explica la elección: si prohibían ver los diarios, aparecerían errores en las pantallas que usan datos del diario.\n\n**No sabemos todavía por qué cambia entre pantallas.** Mi hipótesis es que algunas usan esa búsqueda filtrada y otras llegan a los datos por otro camino. Tampoco está probado que este filtro cause las facturas faltantes o el error de «Ver asientos».\n\n**Lo que podés hacer desde la pantalla**\n1. **Guardar el error.** Entrá como Encargado Norte y repetí tu recorrido. Copiá todo el cartel y, si lo ofrece, también el detalle técnico. Si no nombra las reglas, repetilo en una copia de la base con el modo desarrollador activado. Si no tenés una copia, pedila.\n2. **Comparar los dos caminos.** Con el mismo usuario, entrá al libro mayor de Contabilidad, abrí **la misma factura** y tocá «Ver asientos».\n\n| Resultado desde Contabilidad | Qué nos dice (si desde seguimiento sigue fallando) |\n|---|---|\n| Funciona | El resultado cambia según el camino. Falta saber por qué. |\n| Da error | Falla por los dos caminos. Compará los carteles: pueden ser errores distintos. |\n\nQue puedas ver la factura desde Contabilidad no confirma que «Ver asientos» también funcione.\n\n**Lo que tiene que revisar alguien de desarrollo** (si sos vos, esta parte requiere leer el código):\n- Qué consulta «Ver asientos» y qué restricción lo frena, usando el error que guardes.\n- Cómo buscan las facturas el reporte de seguimiento y el libro mayor, incluida la opción que elegís en el filtro.\n- Si el filtro de diarios influye en esas diferencias.\n- Cómo funcionaba en la 16. Todavía no podemos afirmar que antes los permisos fueran más livianos.\n\nSigo recomendando unificar así: **ve las facturas de otras sucursales, pero solo opera en las suyas**. Si el cliente necesita que Norte no vea nada de Sur, eso cambia el diseño y hay que confirmarlo como un pedido aparte. También habría que cuidar que el seguimiento no muestre una deuda parcial como si fuera la total.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12749,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2417,
+  "output_tokens_details": {
+   "thinking_tokens": 1072
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12749,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2417,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12749,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12749
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3dd6e8fcd5",
+  "persona": "actualizacion"
+ }
+}

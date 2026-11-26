@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Me podés conseguir lo que falta antes de que le responda al cliente? Son cinco cosas: (1) desde qué IP se conecta Odumbo y si son fijas; (2) si el pack de 4 patas se publica con el stock correcto y si al venderlo se descuentan las patas; (3) los pasos concretos para el día del cambio sin duplicar ventas ni facturas; (4) con qué módulo de Odoo 17 Enterprise se hace la factura automática; (5) qué datos guarda Odumbo y qué hace con ellos si el cliente da de baja el servicio. Para cada una, ¿a quién se la pido?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me explicás en criollo las partes técnicas? No entiendo qué es eso de que el conector crea un \"campo técnico de precio\" en `product.product` y \"registros en `ir.model.data`\": ¿le modifica o le puede romper algo al cliente? Tampoco entiendo qué es `mrp`, qué es un \"producto no almacenable, salvo los packs\" ni el ejemplo del redondeo. En concreto, ¿hay riesgo de que se publique más stock de packs del que hay y el cliente venda algo que no tiene? ¿Qué le puedo decir hoy sin meter la pata, y a quién de Odumbo le pido que pruebe el kit y confirme lo que falta (IP, cambio de módulo, facturación automática y datos)?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás en palabras simples, para poder defenderlo ante el cliente? No entiendo qué son el \"campo técnico de precio en `product.product`\" ni los \"registros en `ir.model.data`\". ¿Qué le cambia eso al cliente en su base y por qué se lo contamos? Tampoco entiendo qué es `mrp`, qué es un producto \"no almacenable\" ni si un \"pack\" del conector es lo mismo que el kit del cliente. En las notas internas, ¿qué quieren decir `sale_order_type_automation`, `ingadhoc/sale`, OCA y \"rama 17.0\", y a quién le tengo que pedir que lo verifique?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me explicás en criollo las partes técnicas? No entiendo qué es eso de que el conector crea un \"campo técnico de precio\" en `product.product` y \"registros en `ir.model.data`\": ¿le modifica o le puede romper algo al cliente? Tampoco entiendo qué es `mrp`, qué es un \"producto no almacenable, salvo los packs\" ni el ejemplo del redondeo. En concreto, ¿hay riesgo de que se publique más stock de packs del que hay y el cliente venda algo que no tiene? ¿Qué le puedo decir hoy sin meter la pata, y a quién de Odumbo le pido que pruebe el kit y confirme lo que falta (IP, cambio de módulo, facturación automática y datos)?",
+ "followup_answer": "## En criollo\n\n**¿Qué escribe en la base del cliente?**\n- **`product.product`** es la tabla de productos de Odoo (cada variante). Que el conector cree un \"campo técnico de precio\" quiere decir que **le agrega un casillero** a esa ficha.\n- **`ir.model.data`** es donde Odoo guarda identificadores internos, como etiquetas para volver a encontrar un registro. El conector agrega algunos.\n\nO sea, **no solo lee: también escribe**. Agregar un campo no suele cambiar los datos existentes, pero eso es conocimiento general de Odoo. El material no dice cómo se llama el campo, para qué se usa, cuándo se crea, si se borra con la baja ni si toca algo más. Por eso no le aseguraría que \"no puede romper nada\". En el borrador puse \"durante la verificación de la conexión o su uso\": el momento no está claro, así que sacaría esa frase.\n\n**Los otros términos**\n- **`mrp`:** es la app Fabricación de Odoo. Maneja las listas de materiales, incluidas las de tipo kit (`phantom` en el código). Que el conector no tenga nada específico para `mrp` no prueba que falle, porque el cálculo podría hacerlo Odoo.\n- **Producto no almacenable:** uno al que Odoo no le lleva stock propio. El conector los saltea, salvo los que considera \"packs\". No sé si un kit de Odoo entra en esa excepción.\n\n## ¿Puede vender packs que no tiene?\n\n**Es un riesgo posible, no comprobado.** Lo que sigue sale de lo que recuerdo del Odoo estándar, no del material.\n\nTienen **4 patas** y confirman la venta de **1 pata suelta**, todavía sin entregar. Quedan 3 libres, así que **no se puede armar ningún pack**. Pero Odoo podría convertir cada cantidad a packs enteros antes de que el conector las reste:\n\n| Cantidad | En patas | En packs enteros |\n|---|---|---|\n| A la mano | 4 | 1 |\n| Saliente | 1 | 0 |\n| A la mano − Saliente | 3 | **1 − 0 = 1** |\n\nSe publicaría **1 pack que no se puede entregar**. Con un kit hecho solo de 4 patas, este redondeo daría como máximo un pack de más, pero con poco stock eso alcanza para una venta imposible de cumplir.\n\nHay otra duda: si el conector saltea el kit, no actualizaría su stock. Habría que ver si en Mercado Libre queda publicada una cantidad vieja.\n\n## Qué le podés decir hoy\n\nPara kits:\n\n> Todavía no tenemos confirmado que el stock de los packs armados como kit se publique correctamente, ni cómo se descuentan sus componentes al vender. Hasta probarlo, recomendamos no confiar en la sincronización de stock para esos packs.\n\nSi ya está sincronizando, eso solo no lo protege: hay que revisar qué cantidad figura publicada. Antes de recomendar pausar o desconectar algo, confirmá cómo se hace.\n\nPara permisos:\n\n> Hoy la verificación de la conexión exige Ajustes como Administrador. Además de leer la configuración, el conector crea un campo técnico de precio en los productos y algunos registros internos en Odoo.\n\n## Qué pedir en Odumbo\n\nEl material no dice quién se ocupa de cada tema, así que no puedo darte un nombre. El manual solo indica **un ticket para los datos técnicos de la conexión**. Podés usarlo para la IP y pedir ahí que deriven el resto:\n\n> Para responder una consulta sobre Odoo 17 Enterprise necesitamos confirmar lo siguiente. Si alguno corresponde a otra área, ¿lo pueden derivar?\n> 1. **Kits (prueba técnica):** en un entorno de prueba, sin afectar publicaciones reales, con un kit de 4 patas:\n>    - Con 4 patas y 1 vendida suelta sin entregar, el resultado correcto es 0 packs. ¿Cuánto se publica?\n>    - Con 10 patas y 3 vendidas sueltas sin entregar, el resultado correcto es 1 pack. ¿Cuánto se publica?\n>    - Al cambiar el stock de las patas, ¿se actualiza el pack? Probar con la configuración de producto que usa el cliente.\n>    - Al vender un pack, ¿la entrega descuenta 4 patas?\n> 2. **Escrituras en Odoo:** ¿qué campo y registros se crean, cuándo, para qué, pueden afectar algo existente y qué pasa con ellos en la baja?\n> 3. **IP:** ¿desde cuáles se conecta Odumbo y son fijas?\n> 4. **Cambio de módulo:** ¿qué pasos evitan duplicar ventas y facturas? ¿Reconoce las ventas ya cargadas en Odoo?\n> 5. **Facturación automática:** ¿qué módulo recomiendan en Odoo 17 Enterprise para los tipos de pedido de venta?\n> 6. **Datos:** ¿qué se guarda además de las credenciales y qué se hace con esos datos en la baja?\n\nLa prueba de kits y las escrituras necesitan a alguien técnico que conozca el conector. La respuesta sobre datos tiene que venir de quien maneje privacidad o las condiciones del servicio.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12814,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3767,
+  "output_tokens_details": {
+   "thinking_tokens": 1885
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12814,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3767,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12814,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12814
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "3b458e5ad3",
+  "persona": "comercial"
+ }
+}

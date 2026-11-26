@@ -1,0 +1,47 @@
+{
+ "case": "STE-E03",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Corré `make worktree-setup` y, antes de instalar nada, separá del clone principal lo que tu rama cambia. El setup solo crea links a las dependencias, el `.env` y otros archivos del clone principal.\n\n**1. Setup**, desde la raíz del worktree:\n```bash\nmake worktree-setup\n```\n\n**2. Dependencia de Python:** no corras `make install` con el `.venv` linkeado (el target se niega). Tenés dos opciones:\n- **Venv propio (la que te recomiendo):** borrá solo el link, sin `-r` ni barra final, y armá un venv en el worktree:\n  ```bash\n  rm tuqui_core/.venv\n  ```\n  El fragmento que tengo no dice cómo crear el venv. Revisá en el `Makefile` si `make install` lo crea una vez borrado el link.\n- **Instalarla en el clone principal:** es más rápido, pero cambia el venv que usan todos los worktrees. Además, la dependencia puede estar declarada solo en tu rama, así que no des por hecho que un `make install` desde el clone principal la instale.\n\n**3. Cambios en `web/package.json`:** el material indica correr `npm ci` en el worktree antes de `make test-web`. Como `npm ci` borra el `node_modules` existente y el tuyo apunta al clone principal, por precaución sacaría antes el link:\n```bash\nrm web/node_modules      # sin -r ni barra final: borra solo el link\n(cd web && npm ci)\n```\nNo probé cómo se comporta `npm ci` con el link; sacarlo evita depender de eso. `npm ci` también requiere que `package-lock.json` esté actualizado con tu cambio en `package.json`. El `node_modules` de la raíz es otro link y para este cambio no hace falta tocarlo.\n\n**4. Tests:**\n```bash\nmake test        # unit; para un subconjunto: ARGS=\"tests/test_rls.py -k policy\" (relativo a tuqui_core/)\nmake test-web    # frontend\nmake lint        # ruff check y formato\n```\nSegún lo que toques, también tenés `make test-rls` (aislamiento multi-tenant) y `make test-evals` (unit tests de `evals/`, no los benchmarks).\n\nSi aparece \"Venv no encontrado\", falta el link o el venv propio: revisá el paso 1 o el 2. No corrí ningún comando; todo esto sale del fragmento que pegaste, salvo las precauciones que agregué.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10790,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1393,
+  "output_tokens_details": {
+   "thinking_tokens": 549
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10790,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1393,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10790,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10790
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

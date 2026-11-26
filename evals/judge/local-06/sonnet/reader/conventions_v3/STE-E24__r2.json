@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `release-train.yml` o la doc y confirmarme si el tren separa solo las dos migraciones? Mi PR ya está mergeado con la columna nueva y el `DROP COLUMN` juntos: ¿tengo que sacar el borrado a otro PR (y cómo, antes del tren de hoy o del jueves) o puedo dejarlo así sin que `members.lang` se borre en el mismo tren que el código?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿El tren separa solo las migraciones o tengo que sacar el DROP de `members.lang` a otro PR? Fijate en `release-train.yml` o en la doc. Si va junto como está, ¿qué pasa en prod y qué tengo que hacer antes del próximo tren?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar `release-train.yml` o el resto de la doc y confirmarme si el tren separa solo la migración que borra `members.lang`, o si tengo que sacar el `DROP COLUMN` a otro PR? Mi PR ya está mergeado en staging con los dos cambios, así que si hay que separarlo, decime qué tengo que hacer antes del próximo tren para que el borrado no salga junto con el código."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar `release-train.yml` o la doc y confirmarme si el tren separa solo las dos migraciones? Mi PR ya está mergeado con la columna nueva y el `DROP COLUMN` juntos: ¿tengo que sacar el borrado a otro PR (y cómo, antes del tren de hoy o del jueves) o puedo dejarlo así sin que `members.lang` se borre en el mismo tren que el código?",
+ "followup_answer": "**No puedo confirmarlo.** Busqué en mi directorio de trabajo, `/tmp/ste-es-eval-ebho50f8`, y está vacío: no tengo `release-train.yml` ni la doc completa. Tampoco es un repo git. Solo tengo el extracto que pegaste.\n\n**No des por hecho que el tren los separa.** El extracto dice que el borrado \"va en el tren siguiente\", pero no dice si eso lo hace el workflow o quien arma los PR. Además, el tren avanza `main` desde `staging`. Si avanza hasta la punta de la rama y nada filtra las migraciones, tu PR llega entero y el `DROP COLUMN` corre junto con el código. En ese deploy, la versión vieja podría seguir usando `members.lang` cuando la columna ya no exista.\n\n**Qué revisar** en el repo real:\n\n```bash\ngit fetch origin\ngit show origin/main:.github/workflows/release-train.yml   # ruta supuesta\ngit grep -niE 'drop.?column|destructiv|expand|contract|migrat' origin/staging\n```\n\nMirá también el workflow en `origin/staging` y los scripts de migración o deploy que llame. Dejalo junto solo si encontrás el mecanismo que posterga el `DROP` al tren siguiente y tu migración entra en él. Un comentario o la regla escrita en la doc no alcanzan.\n\n**Si no lo encontrás, separalo antes del próximo tren:**\n\n1. **Fijate si el tren de hoy ya corrió.** Por la fecha de mi sesión, hoy es jueves 26/11, aunque me dijiste miércoles. El tren sale a las 9:00 ART. Mirá la fecha real y las corridas con `gh run list --workflow=release-train.yml`. Si ya salió con tu merge adentro, revisá enseguida qué migraciones corrieron en prod y avisá a quien opera los releases.\n2. **Abrí un PR a `staging`, con la rama creada desde `origin/staging`, que saque el `DROP` pendiente.** Conservá la columna `locale` y el código que ya no usa `lang`. No alcanza con revertir todo el PR, salvo que quieras postergar todo. Cómo sacar el `DROP` depende de tu herramienta de migraciones. Si ya se aplicó en staging, borrar o editar el archivo puede romper el historial y no recupera la columna. Revisá eso antes.\n3. **Mergealo antes del tren, con el CI verde.** Si no llegás, avisá a quien maneja los releases para frenarlo. El extracto no dice cómo se frena. No cuentes con que un CI rojo a propósito sea la forma correcta.\n4. **Volvé a poner el `DROP` en otro PR.** Mergealo a `staging` solo después de confirmar que el código nuevo ya está en prod. Así va en un tren posterior. Podés dejarlo preparado antes, pero sin mergear.\n\nAntes de borrar `lang`, confirmá también si `locale` necesita los datos que hoy están en `lang`. Agregar la columna no los copia, y el `DROP` los elimina. Además, mientras convivan las dos versiones, la vieja puede seguir escribiendo en `lang`.\n\nSi me pasás la ruta del repo, o pegás el workflow y la migración, te digo si hay que separarlo y qué cambiar.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 11522,
+  "cache_read_input_tokens": 46268,
+  "output_tokens": 1370,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11522,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1163,
+    "cache_read_input_tokens": 28758,
+    "cache_creation_input_tokens": 274,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 274
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "d8a089a78e"
+ }
+}

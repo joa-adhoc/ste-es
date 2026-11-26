@@ -1,0 +1,47 @@
+{
+ "case": "STE-E05",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "No, ya no se pide correr la suite completa local antes de pedir review. Mientras iterás y antes de pushear, corré esto, y la suite completa dejala para CI:\n\n```bash\nmake test ARGS=<lo que tocaste>\nmake lint\n```\n\n**Por qué cambió:** la regla anterior se basaba en que CI no devolvía el resultado antes de lo que tardaba una corrida local. Según el texto, eso ya no pasa:\n\n- El job de `test` bajó de unos 11 min a unos 4, por bcrypt configurable en tests (PR #829) y más runners arm64.\n- CI corre en paralelo con tu trabajo, mientras que la suite completa local te bloquea toda la máquina.\n\n**Cuándo sí conviene correrla entera:**\n\n- **Cambios transversales:** si tocás `config`, `db.pool`, `chat.agent`, `workspaces.service` o `billing.service`. Arrastran cerca del 76% de los archivos de test (medido sobre el grafo de imports), así que probar solo \"lo que tocaste\" ya no sirve para acotar.\n- **Agentes de IA:** el texto pide correrla una sola vez, al final, antes de entregar. El agente no tiene el criterio del autor para elegir qué tests correr, e iterar contra CI genera pushes de ruido.\n\nEn todos los casos, si algo falla en CI y no sabés por qué, reproducilo local antes de volver a pushear. No pushees varias veces a ciegas.\n\n**Ojo si sos un agente:** la excepción para agentes choca con las convenciones de Adhoc que tengo cargadas. Dicen que las suites largas las corre CI, y que en local van solo lint y chequeos de segundos. Correr lo caro \"para estar seguro\" cuenta como error, sobre todo en un workspace de Tuqui Work (1 CPU y 2 GiB de RAM).\n\nUn proyecto puede apartarse de esa regla si lo declara donde lo revisa una persona, por ejemplo en `AGENTS.md §Overrides`. No sé de dónde sale el texto que pegaste ni si está declarado así, y tampoco verifiqué sus datos en el repo. Si no está declarado, yo seguiría la convención de Adhoc y reportaría la contradicción para que se corrija.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10851,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1165,
+  "output_tokens_details": {
+   "thinking_tokens": 381
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10851,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1165,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10851,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10851
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

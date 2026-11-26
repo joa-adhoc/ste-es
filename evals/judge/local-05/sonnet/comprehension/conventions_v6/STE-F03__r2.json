@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Según el código citado, al confirmar P00231 Odoo crea una recepción nueva y, si queda sin movimientos, intenta borrarla. `stock_ux` lo impide con `_check_block_picking_deletion` porque «Recepciones» tiene activo el bloqueo de eliminación, y eso alcanza aunque la recepción esté en borrador. El error revierte toda la operación. Lo más probable es que la recepción quede vacía porque las 2 unidades ya se recibieron en la 412, pero el texto aclara que no se vio el código que calcula esos movimientos. No se intenta borrar la recepción 412 (WH/IN/00098).",
+  "El texto no dice quién hizo las acciones ni atribuye expresamente el origen del problema a un usuario. Dice que el historial muestra cómo se llegó a esta situación: el 11/11 la orden se confirmó (12:26), se registraron las 2 unidades recibidas (12:27), se canceló (13:26) y volvió a borrador (13:27). Tampoco dice por qué se pudo cancelar la orden con una recepción hecha.",
+  "Es una propuesta sin probar, que primero se debe probar en una copia de la base:\n1. Anotar el stock del producto, las recepciones de la orden y las cantidades recibidas y facturadas.\n2. En el tipo de operación «Recepciones», desmarcar «Bloquear eliminación de traslados».\n3. Confirmar P00231 una sola vez.\n4. Volver a marcar la opción, también si la confirmación falla.\n5. Verificar que la orden figure como Orden de compra; que la única recepción siga siendo la 412, en Hecho, sin otra nueva; que el stock no haya cambiado; que la línea siga con 2 recibidas y 2 facturadas; y que BILL/2026/11/0007 siga contabilizada y vinculada a la orden.\n\nEn la copia también hay que revisar otros posibles efectos de la confirmación, como una aprobación o un cambio en la fecha de confirmación. Si aparece una recepción nueva o cambia alguno de los datos verificados, no se debe repetir en la base real. En la real, hay que hacerlo en un momento de poco uso, porque mientras la opción esté desmarcada el cambio afecta a todas las «Recepciones». El control de borrador o cancelado sigue activo, y la recepción vacía debería estar en borrador y pasarlo. Para esta regularización no hace falta tocar la 412 ni la factura, hacer una devolución, cambiar cantidades ni forzar el estado por base de datos. Además, antes de aplicar cambios o responder al cliente, el texto indica revisar el alta con `adhoc-way-guide`."
+ ],
+ "grades": [
+  "correct",
+  "not_stated",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "ab1cb0e246",
+  "control": "cf4a8527a9"
+ }
+}

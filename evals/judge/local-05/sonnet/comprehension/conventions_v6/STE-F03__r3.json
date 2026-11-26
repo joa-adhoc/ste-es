@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Al confirmar, Odoo (el estándar) crea una recepción nueva y, si queda sin movimientos, intenta borrarla. No es la WH/IN/00098 (412). `stock_ux` bloquea ese borrado porque «Recepciones» tiene activo el bloqueo de eliminación de traslados, y la confirmación se deshace. El bloqueo salta aunque la recepción nueva esté en borrador. Que la recepción quede vacía porque las 2 unidades ya están cubiertas por la 412 es una inferencia: falta ver el cálculo de movimientos.",
+  "La orden P00231 se confirmó a las 12:26 y las 2 unidades se recibieron a las 12:27. Después de recibir la mercadería, el 11/11, la orden se canceló (13:26) y se volvió a borrador (13:27), mientras la recepción 412 siguió en Hecho. El texto no dice quién lo hizo ni por qué. Tampoco dice por qué se pudo cancelar una orden con una recepción hecha.",
+  "Antes, confirmar con el cliente por qué se canceló la orden, que las 2 unidades entraron y no se devolvieron, y que la factura es correcta. Si algo de eso no se cumple, este camino no sirve. Si todo está bien, probar primero en una copia de la base:\n1. Anotar el stock del producto, sus movimientos, las cantidades de la línea y los datos de la factura.\n2. Desactivar «Bloquear eliminación de traslados» en «Recepciones».\n3. Confirmar P00231.\n4. Volver a activar la opción.\n5. Verificar que:\n- La orden quedó como Orden de compra (con doble aprobación, puede quedar pendiente de aprobar).\n- No hay recepciones ni movimientos nuevos, y la 412 sigue vinculada y en Hecho.\n- La línea sigue con 2 pedidas, 2 recibidas y 2 facturadas.\n- El stock no cambió.\n- BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la línea.\n\nTambién hay que revisar en la copia si la confirmación cambia la fecha de confirmación o dispara automatizaciones. Si aparece una recepción con movimientos pendientes, no hay que validarla ni pasar el cambio a producción. En producción, conviene hacerlo en un momento sin otras operaciones, porque con la opción desactivada se pueden borrar recepciones en borrador o canceladas (según el código descripto, las hechas siguen protegidas). Para regularizar, el autor no haría una devolución, una orden nueva ni una nota de crédito, y tampoco tocaría la 412 ni la base por SQL."
+ ],
+ "grades": [
+  "correct",
+  "partial",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "aa4786af36",
+  "control": "cf4a8527a9"
+ }
+}

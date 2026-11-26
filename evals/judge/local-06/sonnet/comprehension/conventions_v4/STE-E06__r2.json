@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Probablemente porque tu worktree y el de tu compañero usan la misma base de tests local. Según el material, el `conftest` aplica las migraciones de cada rama y la base queda con la unión de las dos. Si la rama de tu compañero trae una migración destructiva, la base pierde columnas que tu código todavía lee, y por eso aparece `UndefinedColumnError`. Es la causa más probable, pero no se verificó en tu máquina. Para confirmarla, fijate si la columna del error aparece borrada o renombrada en una migración de la otra rama.",
+  "No. El lock (`flock`) evita que dos corridas se pisen al mismo tiempo, pero no separa el esquema.",
+  "1) Dale a tu worktree una base propia: creá `tuqui_core/.env.test.local` a partir de `tuqui_core/.env.test.local.example` y declará ahí una base que no use otro worktree, copiando del ejemplo los nombres de las variables. El archivo está en `.gitignore`. 2) Armá la base desde cero con `make migrate-reset`. Este comando vacía la base y solo toca bases locales. Antes de correrlo, revisá que el override apunte a tu base nueva y no a la compartida. No se verificó que `migrate-reset` lea `.env.test.local`, así que mirá en el `Makefile` y en `scripts/reset_database.py` qué URL usa. Si la compartida está en uso, un reset le rompe la corrida a tu compañero. No uses `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido y el material cuenta 25. 3) Volvé a correr los tests (`make test` o el target que te fallaba). Hacé esto en cada worktree nuevo, con una base distinta en cada uno. Si cambiás de rama dentro del mismo worktree y el esquema queda mezclado, corré `make migrate-reset` de nuevo. Con la base propia solamente, dejá el lock como está. Opcionalmente, para correr tests en paralelo necesitás las tres cosas: base propia, un `REDIS_URL` con otro índice en `.env.test.local` (ni el 15, ni el 0, ni el que use otro worktree) y un `TEST_LOCK` distinto."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "35c0efa58d",
+  "control": "d71584ce60"
+ }
+}

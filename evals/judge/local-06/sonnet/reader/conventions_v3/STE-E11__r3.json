@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega prod y en qué orden llega la migración (staging y después main)? ¿El environment de prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Si no lo tiene, el deploy la saltea y la columna no se dropea. ¿Dónde lo verifico y quién lo configura?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama despliega prod y en qué orden llega ahí la migración (staging → main)? ¿El environment de prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene y el runner la saltea, ¿cómo y cuándo se aplica?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Qué rama o environment despliega prod, en qué orden llega el cambio desde el merge (staging y después main, o directo) y tiene prod `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? Si no lo tiene, la migración se saltea y no sé cómo ni cuándo se dropea la columna en prod."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Qué rama despliega prod y en qué orden llega la migración (staging y después main)? ¿El environment de prod tiene MIGRATIONS_ALLOW_DESTRUCTIVE=1? Si no lo tiene, el deploy la saltea y la columna no se dropea. ¿Dónde lo verifico y quién lo configura?",
+ "followup_answer": "No puedo confirmar ninguno de los tres puntos: el fragmento no los dice y el directorio de trabajo está vacío, así que no tengo código ni configuración para revisar.\n\n| Pregunta | Qué se sabe | Qué falta |\n|---|---|---|\n| ¿Qué rama despliega prod? | El runner deja pasar la migración destructiva en `staging` o `main`. | Eso no prueba que `main` sea prod. |\n| ¿Va primero a staging y después a `main`? | El fragmento dice que \"el deploy real posterior al merge la aplica\". | No dice a qué rama es el merge ni cómo se pasa de una a otra. |\n| ¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`? | Sin el flag no se aplica. | No dice si prod lo tiene ni quién lo configura. |\n\nTenés razón sobre el flag: si prod no lo tiene, el deploy saltea la migración sin registrarla y la columna no se dropea. Un deploy posterior que cumpla las dos condiciones la puede aplicar. El fragmento no dice si el salteo hace fallar el deploy o deja un aviso, así que no cuentes con enterarte por ahí.\n\n**Dónde verificarlo** (son lugares para revisar, todavía no los comprobé):\n1. **Rama y variable:** en Railway, abrí el servicio en el environment de prod. Mirá qué rama tiene conectada para deployar y si en sus variables está `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Revisá el valor en prod; que staging lo tenga no dice nada sobre prod.\n2. **Orden de las ramas:** en el repo, leé `docs/infra-ci-cd.md` y los workflows de CI/CD. El fragmento cita ese documento por otro tema, así que puede que no explique la promoción a prod.\n3. **Condiciones del runner:** confirmalas en `tuqui_core/db/migrate.py`.\n4. **Resultado después del deploy:** comprobá en la base de prod que el archivo figure en `_migrations` y que la columna ya no exista. Para la segunda comprobación podés usar esta consulta (PostgreSQL), reemplazando los nombres:\n\n```sql\nSELECT table_schema, table_name, column_name\nFROM information_schema.columns\nWHERE table_name = '<tabla>' AND column_name = '<columna>';\n```\n\nSi la columna ya no existe, no devuelve filas. Revisá que estés conectado a prod y que los nombres estén bien escritos, y usá un usuario con permisos sobre la tabla: en cualquiera de esos casos también podría salir vacía.\n\n**Quién lo configura:** el fragmento no lo dice. Preguntale a quien administre el environment de prod en Railway. No cambies la variable por tu cuenta sin hablarlo: habilita las migraciones destructivas en general, no solo la tuya. Además, una que haya quedado salteada podría aplicarse en el próximo deploy que cumpla las dos condiciones.\n\nSi me pasás la ruta del repo, puedo revisar el runner, el documento y los workflows. El valor real de la variable en prod puede no estar en el repo, así que probablemente haya que mirarlo en Railway.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12387,
+  "cache_read_input_tokens": 47074,
+  "output_tokens": 1401,
+  "output_tokens_details": {
+   "thinking_tokens": 130
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12387,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1135,
+    "cache_read_input_tokens": 29564,
+    "cache_creation_input_tokens": 333,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 333
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "0f35927ef5"
+ }
+}

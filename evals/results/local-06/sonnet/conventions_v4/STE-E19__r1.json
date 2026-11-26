@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 1,
+ "result": "El test falló porque en `scheduled_runs` quedó la policy del borrador, con `USING (true)`, que no filtra por workspace. Por eso el workspace B ve 2 filas del A. Es una falla de aislamiento real según este resultado, no un problema del assert.\n\n1. `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`.\n2. `0412_scheduled_runs.sql` crea la policy correcta solo si no existe otra con ese nombre.\n3. Como ya existe, la saltea. El log lo confirma: `policy \"scheduled_runs_ws\" already exists, skipped`.\n\n## Qué hacer\n\nNo edites `0398` ni `0412`. Según `AGENTS.md`, una migración ya aplicada no vuelve a correr. Creá una nueva, por ejemplo `supabase/migrations/0413_scheduled_runs_fix_policy.sql` (fijate que el número esté libre):\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nLas dos sentencias tienen que correr en la misma transacción. No sé si tu runner lo hace solo.\n\nDespués aplicá la migración en la base de test y corré de nuevo:\n\n```bash\npytest tuqui_core/tests/test_rls.py -q\n```\n\nRevisá también las policies que quedaron en la tabla:\n\n```sql\nSELECT schemaname, policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies WHERE tablename = 'scheduled_runs';\n```\n\nLas policies permisivas se combinan con `OR`. Si hay otra abierta, el arreglo de `scheduled_runs_ws` no alcanza. Tu `grep` solo buscó ese nombre.\n\n## Revisá los entornos desplegados\n**Corré esa consulta en staging y producción, si existen.** Donde `qual` sea `true` en `scheduled_runs_ws`, la policy no está aislando workspaces. Si la definición es la del borrador, sin `WITH CHECK`, tampoco limita las escrituras. El acceso efectivo depende además de los permisos y del rol que se conecta.\n\nSi producción estuvo así con datos de varios workspaces, avisá al equipo sin esperar al merge. Habría que revisar si hubo accesos o cambios cruzados. Con este material no se puede saber si pasó.\n\nNo corrí el test ni probé la migración: el diagnóstico sale de la salida y el `grep` que pegaste.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10712,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1494,
+  "output_tokens_details": {
+   "thinking_tokens": 564
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10712,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1494,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10712,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10712
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

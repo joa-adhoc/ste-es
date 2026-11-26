@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo explica como lo más probable, sin haberlo reproducido. Al confirmar, `purchase_stock` crea una recepción nueva. Si queda sin movimientos, intenta borrarla; acá lo más probable es que no haya nada pendiente, porque se pidieron 2 y ya se recibieron 2. `_check_block_picking_deletion`, de `stock_ux`, frena el borrado porque «Recepciones» tiene `block_picking_deletion = True`, aunque la recepción esté en borrador. El error deshace la operación: la orden sigue en borrador y la recepción nueva no queda guardada. Esto supone que el movimiento de la recepción 412 sigue vinculado a la línea de la orden y que Odoo lo descuenta de lo pendiente.",
+  "El historial muestra que el 11/11, con el mismo usuario, hubo una confirmación (12:26), una recepción de 2 unidades (12:27), una cancelación (13:26) y una vuelta a borrador (13:27). Así se llegó a la situación actual. La cancelación ocurrió con la recepción ya hecha. El texto no dice por qué se canceló la orden. Tampoco dice si esa cancelación se debía permitir o si es otra falla, porque quien hizo la revisión no leyó el código que lo decide.",
+  "Esto aplica si la compra sigue vigente y la orden tiene que volver a estar confirmada. Hay que probarlo primero en una copia de la base. 1) Anotar el stock del producto y las cantidades recibida y facturada, y revisar que el movimiento de la 412 esté vinculado a la línea de P00231 y que la línea no haya cambiado. 2) Desactivar «Bloquear eliminación de traslados» en «Recepciones». 3) Confirmar P00231 y, si pide aprobación, completarla. 4) Volver a activar el bloqueo enseguida, también si la confirmación falla. 5) Comprobar que la orden quedó confirmada; que no hay recepciones ni movimientos nuevos; que la 412 sigue en Hecho; que el stock no cambió y la línea sigue con 2 pedidas, 2 recibidas y 2 facturadas; y que BILL/2026/11/0007 sigue contabilizada, con el mismo importe y vinculada a la orden. Mientras el bloqueo esté desactivado, afecta a todas las «Recepciones» y otros usuarios podrían borrar las que estén en borrador o canceladas, así que conviene hacerlo en un momento de poco uso. Como confirmar puede actualizar la fecha de confirmación o disparar automatizaciones propias de la base, hay que revisarlo en la copia. No se recomienda hacer una devolución, tocar la factura ni las cantidades, ni cambiar el estado por SQL. Si en la copia aparece una recepción con movimientos pendientes, no hay que validarla ni seguir en producción, porque la hipótesis o los vínculos estarían mal."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "partial"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "2c52c8c4a1",
+  "control": "cf4a8527a9"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Las credenciales que se cargan tienen que ser de un admin de sistema de Odoo. Se verifica con `res.users.has_group(uid, 'base.group_system')` y, si no lo es, lanza `ValueError`. Quien conecta no necesita tener identidad en Odoo. Antes, las credenciales se autentican contra Odoo con `_authenticate_odoo`. En modo `manual`, el texto solo indica que se verifica que el `res.users` elegido exista y no muestra que se exija que sea admin.",
+  "Vincula en modo `auto`, que es el predeterminado si `current_user.email == odoo_login`: vincula a quien conecta con `admin_uid`, el usuario de las credenciales. Deja al member sin vínculo en modo `none`, que es el predeterminado si el email y el login no coinciden. Existe además el modo `manual`: el frontend manda `link_current_user_to_odoo='manual'` y `link_odoo_user_id`, y se vincula ese id después de verificar que el `res.users` existe. En `auto` o `manual` se guarda `odoo_user_id` en el member de quien conecta. El texto plantea como pregunta abierta el caso `none` sin cambio de URL: el comentario dice que el member queda sin `odoo_user_id`, pero según el pseudocódigo un vínculo anterior se conservaría. Tampoco dice qué pasa si se pide `auto` explícitamente y el email y el login no coinciden, ni si la comparación distingue mayúsculas.",
+  "Se borran `odoo_user_id` y `odoo_api_key` de todos los members, incluido el owner, porque esas identidades pueden apuntar a otra instancia. Después, solo en modo `auto` o `manual`, se vuelve a vincular a quien conecta; en `none` queda sin vínculo. El texto no muestra cómo se vuelven a vincular los demás members. La respuesta informa `members_invalidated`, que es 0 si la URL no cambió."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "23b51efb5b",
+  "control": "d70443294a"
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para la dependencia nueva de Python, ¿qué comandos exactos corro? Si la aíslo, ¿cómo armo el venv propio en `tuqui_core/.venv` después de borrar el link (¿sirve `make install` ahí?)? Si la instalo en el clone principal, ¿cómo lo hago, si el cambio de dependencias está solo en la rama del worktree, sin repuntar el editable install?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "Para no tocar el venv compartido, ¿qué comandos exactos corro para armar un venv propio en el worktree (después de borrar el link `tuqui_core/.venv`) e instalar ahí las dependencias, incluida la nueva? ¿Puedo usar `make install` una vez que saco el link?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "ejemplo",
+ "followup": "Para la dependencia nueva de Python, ¿qué comandos exactos corro? Si la aíslo, ¿cómo armo el venv propio en `tuqui_core/.venv` después de borrar el link (¿sirve `make install` ahí?)? Si la instalo en el clone principal, ¿cómo lo hago, si el cambio de dependencias está solo en la rama del worktree, sin repuntar el editable install?",
+ "followup_answer": "**Para agregar una sola dependencia, instalá solo ese paquete en el venv del clone principal.** No pude ver el repo porque la búsqueda del Makefile quedó frenada por permisos. Los comandos salen del material y del uso estándar de `pip`, y no los probé.\n\n**Opción A: en el venv compartido**\n\nNo hace falta cambiar de rama en el clone principal. Reemplazá `paquete==X.Y` por lo que declara tu rama, con comillas:\n\n```bash\nMAIN=$(git worktree list --porcelain | sed -n '1s/^worktree //p')\nPY=\"$MAIN/tuqui_core/.venv/bin/python\"\n\n\"$PY\" -m pip install --dry-run 'paquete==X.Y'   # muestra qué instalaría (pip 22.2 o más nuevo)\n\"$PY\" -m pip install 'paquete==X.Y'\n```\n\n- Así no repuntás el editable install, porque no le pasás a `pip` el proyecto. No uses `-e`, `.` ni rutas al código del worktree.\n- Si el dry-run muestra que cambia la versión de paquetes ya instalados, afecta a todos los worktrees. En ese caso conviene aislar.\n- Si el venv no tiene `pip` (por ejemplo, porque se creó con `uv`), usá `uv pip install --python \"$PY\" 'paquete==X.Y'`, también con `--dry-run` primero.\n\n**Opción B: venv propio**\n\n**No puedo asegurar que `make install` sirva después de borrar el link.** El material no dice cómo detecta que el worktree está linkeado, si crea el venv ni qué instala. Antes de correrlo, mirá el target desde la raíz del worktree:\n\n```bash\ngrep -n -A25 -E '^(install|worktree-setup)[[:space:]]*:' Makefile\nls -ld tuqui_core/.venv\n```\n\nSi `ls` muestra que es un link, borrá solo el link, sin `-r` ni barra final:\n\n```bash\nrm tuqui_core/.venv\n```\n\nDespués depende de lo que muestre el Makefile:\n- **Corré `make install`** solo si crea o usa el `tuqui_core/.venv` del worktree, incluidos los subtargets y scripts que llame. Revisá que no use rutas al clone principal ni un entorno ya activado (`VIRTUAL_ENV`; si tenés uno, corré antes `deactivate`).\n- **Si no crea el venv o sigue negándose**, no fuerces el control. Pasame la salida de `grep` y los scripts que llame, y armamos los comandos con el instalador y los extras que use el repo. Un `python -m venv` con `pip install` genérico podría dejar afuera dependencias de test o usar otra versión de Python.\n\nNo vuelvas a correr `make worktree-setup` sin revisar qué hace con un `.venv` que ya existe. En un workspace managed, además, un venv completo puede no entrar bien en el volumen de 2 GiB.\n\nCon cualquiera de las dos opciones, la dependencia tiene que quedar declarada en los archivos de tu rama. Instalarla a mano no la agrega, y CI no la va a tener.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12087,
+  "cache_read_input_tokens": 46662,
+  "output_tokens": 2043,
+  "output_tokens_details": {
+   "thinking_tokens": 757
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12087,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1734,
+    "cache_read_input_tokens": 29143,
+    "cache_creation_input_tokens": 463,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 463
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e1fde3c208"
+ }
+}

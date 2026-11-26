@@ -1,0 +1,47 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Con lo que hay, no daría por hecho que el usuario no tiene que ver esa factura.** Según el material, el criterio declarado del módulo es que **vea, pero no pueda publicar ni modificar**. El error puede ser un efecto no buscado, pero todavía no está probado.\n\n**Lo que muestra la base y el material**\n- **Reglas de los diarios:** la de sucursal no restringe la lectura. Las de `account_journal_security` no se aplican al diario Sur, porque no tiene usuarios cargados. La de compañía sí controla la lectura, pero no separa por sucursal.\n- **Asientos y pagos:** las reglas de `account_multi_store` tampoco restringen la lectura.\n- **Intención:** la ayuda de `store_id` dice que los usuarios de otras sucursales «solo pueden ver» los registros del diario.\n- **El filtro aparte:** el módulo modifica `account.journal._search` y le oculta al Encargado Norte los diarios de Sur en las búsquedas. El comentario dice que lo hicieron así, y no con una regla, para evitar errores al usar campos relacionados con el diario.\n\nTenés razón en que su sucursal influye en ese filtro. Pero eso no demuestra que hayan querido prohibirle la lectura.\n\n**Hipótesis (de memoria, sin verificar)**\n- En la 18, el ORM usa `_search` también al leer los campos de un registro. Así, el filtro que debía ocultar el diario en las búsquedas bloquearía además su lectura al abrir algo que lo use.\n- En la 16, la lectura aplicaba las reglas sin pasar por `_search`.\n\nSi es así, el cambio de comportamiento viene del ORM combinado con este filtro, no de permisos reforzados a propósito. Quise bajar el código de Odoo 16 y 18 para comprobarlo, pero los comandos pedían aprobación y no se ejecutaron. Tampoco leí el código de la 16 de `account_multi_store`.\n\n**Lo que no cierra todavía**\n- **El mensaje:** si es un error de lectura, no esperaría que nombre la regla de sucursal, porque no se aplica al leer. Necesito el texto completo y el traceback para ver el modelo, la operación, las reglas y la línea que lo dispara.\n- **El libro mayor:** no sabemos por qué desde Contabilidad se ve y desde seguimiento no. No leímos ninguno de los dos reportes. Tampoco sabemos qué ejecuta «Ver asientos». Que un reporte muestre las líneas no prueba que use los mismos controles que abrir el registro.\n\n**Para cerrarlo**\n1. Reproducí el error en una copia de prueba y guardá el traceback.\n2. Compará `fetch` y `_fetch_query` en `odoo/models.py` de la 18 con `_read` en la 16, y revisá el filtro en la versión 16 del módulo.\n3. En esa copia, sacá solo el filtro de `_search` y repetí los pasos. Si el error desaparece, el filtro interviene. Probá también que siga sin poder publicar ni modificar en Sur. Es una prueba, no la solución: también volverían a aparecerle los diarios de Sur al buscar o elegir uno.\n\n**Criterio que propondría:** puede consultar los comprobantes de otras sucursales, pero no operarlos; el filtro solo debería limitar qué diarios puede elegir. «Si no ve, que no vea en ningún lado» también es un criterio válido, pero va contra lo que hoy declara el módulo. Sería un requerimiento nuevo, que tendría que incluir facturas, pagos, apuntes y reportes, y definir qué saldo del cliente ve cada sucursal.\n\nAl cliente todavía no le diría que es el comportamiento esperado. Le diría: «Reprodujimos el error y estamos revisando si el bloqueo al abrir la factura es intencional».\n\nAdemás, en esta sesión no tuve disponible `tuqui_context`, así que no consulté las reglas de la empresa ni tu identidad; para dar de alta `tuqui-adhoc`, usá `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13949,
+  "cache_read_input_tokens": 76841,
+  "output_tokens": 4576,
+  "output_tokens_details": {
+   "thinking_tokens": 2343
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13949,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2108,
+    "cache_read_input_tokens": 30699,
+    "cache_creation_input_tokens": 760,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 760
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 4,
+ "is_error": false
+}

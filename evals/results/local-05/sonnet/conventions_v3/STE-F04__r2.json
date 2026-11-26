@@ -1,0 +1,44 @@
+{
+ "case": "STE-F04",
+ "arm": "conventions_v3",
+ "arm_hash": "6953693e1e",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Con lo que hay en el material, no daría por hecho que sea un permiso reforzado.** El criterio que declara `account_multi_store` es «de otra sucursal podés ver, pero no publicar ni modificar». No es «si no ve, que no vea en ningún lado».\n\n**Qué lo muestra**\n- Las reglas por sucursal de diarios, asientos y pagos tienen `perm_read` = False, así que no restringen la lectura.\n- La ayuda de `store_id` dice que los usuarios de otras sucursales «solo pueden ver» esos registros.\n- En el diario del punto 22, las reglas de `account_journal_security` no aplican porque no tiene usuarios cargados. La multicompañía sí limita la lectura, pero por compañía, no por sucursal.\n- La excepción es el `_search` sobrescrito, que oculta de las búsquedas los diarios de otras sucursales. Según su comentario, no usaron una regla justamente para evitar errores en campos relacionados con el diario.\n\n**Mi hipótesis principal (de memoria sobre el core, sin verificar)**\n- **En 18:** para leer campos desde la base, `fetch` pasa por `_search`. El filtro puede excluir el diario Sur, y Odoo lo informa como error de acceso.\n- **En 16:** la lectura aplicaba las reglas de registro sin pasar por `_search`.\n\nSi es así, nadie reforzó el permiso a propósito: un filtro pensado para búsquedas pasó a bloquear lecturas. Quise buscar el código en la máquina, pero el comando pedía aprobación y no se ejecutó. No leí el código de ninguna de las dos versiones.\n\n**Cómo comprobarlo**\n\nEn una copia de prueba, en un `odoo shell` recién abierto, reemplazando los dos IDs:\n\n```python\njournal = env['account.journal'].with_user(ID_ENCARGADO_NORTE).browse(ID_DIARIO_SUR)\njournal.check_access('read')  # record rules\njournal.read(['name'])        # actual read\n```\n\nSi `check_access` pasa y `read` falla, queda confirmado que las reglas permiten leer y que algo en la lectura lo bloquea, con `_search` como principal sospechoso. Si las dos pasan, hay que buscar en otro lado.\n\nTambién necesitamos el mensaje completo y el traceback de «Ver asientos». Fijate qué modelo, registro y reglas nombra. Si no es el diario Sur, la prueba de arriba no alcanza para explicar el error.\n\n**La diferencia con el libro mayor**\n\nTodavía no la puedo explicar. En tu recorrido, elegir el libro mayor en el filtro te deja ver las facturas; el error salta recién con «Ver asientos». Probá esa misma acción, con la misma factura y el mismo usuario, desde el libro mayor de Contabilidad. Que el listado muestre una factura no prueba que sus acciones funcionen. Tampoco sabemos si las facturas que faltan al principio se deben a permisos o a los filtros del reporte.\n\n**Qué criterio unificar**\n\nYo mantendría el declarado: **lectura permitida, publicación y modificación bloqueadas**. Si se confirma la hipótesis, hay que corregir el filtro para que siga ocultando diarios donde haga falta sin impedir leerlos. Antes de cambiarlo, hay que revisar que las restricciones de escritura sigan funcionando.\n\nSi el cliente quiere que Norte no vea nada de Sur, es un requisito distinto. Habría que restringir la lectura y definir qué pasa con los saldos del libro mayor y la deuda en seguimiento, que podrían verse parciales. Hasta tener la prueba, no le diría que el error es el comportamiento esperado en 18, ni le asignaría la sucursal Sur al usuario como solución: eso también le habilitaría operar en ella.\n\nNo tuve disponible `tuqui-adhoc`, así que no cargué el contexto ni las reglas de la empresa; el análisis sale solo de tu material. Para darlo de alta, la guía es `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12909,
+  "cache_read_input_tokens": 46034,
+  "output_tokens": 4393,
+  "output_tokens_details": {
+   "thinking_tokens": 2728
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12909,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2604,
+    "cache_read_input_tokens": 28524,
+    "cache_creation_input_tokens": 1895,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1895
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "num_turns": 2,
+ "is_error": false
+}

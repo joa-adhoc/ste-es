@@ -1,0 +1,47 @@
+{
+ "case": "STE-F06",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**El cliente no tiene personalizaciones en esto.** No hay módulos a medida ni campos manuales, y las tres vistas del asistente son de módulos estándar. Falta revisar las reglas de acceso y las acciones automatizadas sobre las sesiones de caja. **Tampoco hay tarea ni borrador sobre este error en 18.** Todo sale de tu material; no abrí el código ni las tareas.\n\n## 16 contra 18\nLa validación es igual: si el usuario requiere sesión y el asistente no la tiene, sale «Your user requires to use payment session on each tranfer». Cambia cómo se completa la sesión:\n\n| | 16 | 18 |\n|---|---|---|\n| ¿Se guarda? | Sí (`store=True`) | No |\n| ¿Cuándo se calcula? | Una vez, al abrir. La completa si el usuario tiene una sola sesión abierta | Se recalcula al cambiar el diario destino, y la sesión elegida se borra |\n| ¿Qué sesiones ofrece? | Las abiertas del usuario en la compañía | Solo las de cajas que manejan el diario destino |\n\nEn 18, el guardado se sacó en noviembre de 2025, sin tarea vinculada, así que no se sabe por qué. El filtro por diario se agregó en abril de 2026.\n\n**Hipótesis a probar (inferencia mía):** el asistente puede llegar sin sesión a la validación, por el borrado o el filtro. También puede pasar que, al no guardarse, la sesión elegida a mano se pierda al confirmar. Para probarlo, en una copia en 18 con un usuario que requiera sesión:\n1. Elegí primero el diario destino y después la sesión.\n2. Confirmá, y revisá en el código cómo se recalcula la sesión.\n\nSi falla con la sesión a la vista, apunta a que se pierde al confirmar. Si no aparece ninguna sesión, revisá qué cajas abiertas manejan ese diario. Si funciona, revisá en qué orden cargaron los datos y cuántas sesiones tenía abiertas el usuario.\n\n**`l10n_latam_check_ux`:** en setiembre de 2026 reescribió la creación de los pagos del asistente. En la base del cliente, sus vistas se actualizaron el 02/11 a las 05:11 y 05:26. Los intentos fallidos son de las 09:13 de ese día (hora argentina). No está probado que tenga relación, y no se ve por qué afectaría un control que ya existía.\n\n## Dónde se trató (proyecto de mejoras de I+D)\n**El borrador que aparece en el material es el de la 41004, pero es del cambio de `l10n_latam_check_ux`, no de este error.** La tarea está Realizada y salió en la imagen 18.0.2026.09.24, aunque su spec sigue diciendo «Borrador».\n\n- [41001 «Sesiones de caja v16»](https://www.adhoc.inc/odoo/project.task/41001): origen del módulo.\n- [41002 «Cashbox - Transferencia de cheques»](https://www.adhoc.inc/odoo/project.task/41002) (2023): ahí nació el asistente. En las pruebas ya apareció este error, en 16.\n- [41003 «Indicar sesión en transferencia masiva de cheques»](https://www.adhoc.inc/odoo/project.task/41003) (2023): pedido relacionado.\n- [41004 «Método de pago del diario destino»](https://www.adhoc.inc/odoo/project.task/41004) (18 y 19): el cambio y el borrador de arriba.\n- [41005](https://www.adhoc.inc/odoo/project.task/41005) (19): pide poder elegir la sesión antes que el diario. Dice que en 18 «se elegía la sesión y el diario se ajustaba».\n- [41006](https://www.adhoc.inc/odoo/project.task/41006) (otro cliente): el segundo pago de la transferencia no recibe la sesión.\n\n**Ojo con la 41005:** su descripción no coincide con el 18 actual, donde cambiar el diario borra la sesión. Puede describir un comportamiento anterior al filtro de abril de 2026, pero no está verificado. Revisá el historial del código antes de usarla como referencia de cómo funciona 18.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11317,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2559,
+  "output_tokens_details": {
+   "thinking_tokens": 1078
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11317,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2559,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11317,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11317
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

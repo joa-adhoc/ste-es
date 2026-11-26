@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué es el `_search` de `account.journal`, `perm_read` = False, `account_journal_security` ni `store_id`. En términos de pantalla y de lo que hace el usuario: ¿por qué al tocar «Ver asientos» le salta el error si se supone que puede ver? ¿Es una falla que hay que corregir o un comportamiento esperado? ¿Y cuáles de los pasos para confirmarlo puedo hacer yo (por ejemplo, cómo saco el mensaje completo y el traceback) y cuáles le tengo que pasar a un desarrollador?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin términos técnicos? No entiendo qué son `perm_read`, `account_journal_security`, `store_id`, el `_search` de `account.journal` ni el «núcleo». Contame, en términos de pantalla y de lo que le pasa al usuario, por qué puede ver la factura en el libro mayor pero le salta el error en «Ver asientos». Decime también qué puedo probar o conseguir yo (por ejemplo, cómo saco el «traceback») y qué tengo que pasarle a alguien de desarrollo, como la lectura del código."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `perm_read`, `account_journal_security`, `store_id`, el `_search` de `account.journal`, el «núcleo» ni el traceback. Contame en términos de pantalla y de proceso por qué el usuario de Norte debería poder ver la factura del punto 22 pero le salta el error en «Ver asientos». Decime también cuáles de los pasos para confirmarlo puedo hacer yo desde la pantalla (y cómo saco el mensaje completo del error) y cuáles le tengo que pasar a alguien de desarrollo."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué es el `_search` de `account.journal`, `perm_read` = False, `account_journal_security` ni `store_id`. En términos de pantalla y de lo que hace el usuario: ¿por qué al tocar «Ver asientos» le salta el error si se supone que puede ver? ¿Es una falla que hay que corregir o un comportamiento esperado? ¿Y cuáles de los pasos para confirmarlo puedo hacer yo (por ejemplo, cómo saco el mensaje completo y el traceback) y cuáles le tengo que pasar a un desarrollador?",
+ "followup_answer": "**Lo más probable es que sea una falla, pero todavía no está confirmado.** La configuración que se leyó apunta a que el usuario de Norte puede ver lo de Sur, aunque no publicarlo ni modificarlo.\n\n**Por qué saltaría el error**\n\nCada factura pertenece a un diario, y el del punto 22 es de la sucursal Sur. En el sistema hay dos cosas distintas:\n\n- **Los permisos.** Dicen qué puede ver y qué puede cambiar cada usuario. Los de sucursal que se revisaron limitan los cambios, no la lectura. Hay otros permisos por usuario asignado al diario, pero no afectan al punto 22 porque no tiene usuarios cargados. También hay uno por compañía que sí limita la lectura; falta confirmar que no sea la causa.\n- **Un filtro que esconde diarios.** El módulo de sucursales hace que, al buscar diarios, solo aparezcan los de tus sucursales y los que no tienen sucursal. La intención del módulo era filtrar sin prohibir la lectura.\n\nMi hipótesis es que, en la 18, Odoo usa esa búsqueda filtrada también para abrir un diario concreto. Si al tocar «Ver asientos» necesita leer el diario de la factura, el filtro no lo devuelve y Odoo lo trata como «no tenés permiso». Es como una lista que oculta una carpeta y un sistema que, al no encontrarla ahí, concluye que no podés abrirla.\n\nEsto sale de lo que sé de Odoo; no lo verifiqué en el código. Tampoco sé qué lee «Ver asientos» ni por qué el libro mayor de Contabilidad se comporta distinto. Y falta ver qué permisos nombra el error: si alguno prohíbe la lectura, la conclusión puede cambiar.\n\n**Lo que podés hacer vos**\n\nNo necesitás programar. Hacé las pruebas con el mismo usuario con el que reprodujiste el error, idealmente en una copia de la base.\n\n1. **Copiar el mensaje completo.** Activá el modo desarrollador (en la dirección, agregá `?debug=1` antes del `#`, si lo hay), repetí los pasos y copiá todo el texto del cartel.\n2. **Sacar el traceback**, que es el detalle interno de por dónde pasó el sistema hasta fallar. El cartel de falta de permiso normalmente no lo muestra, pero se puede buscar en el navegador (no lo probé en esta base):\n   - Antes de tocar «Ver asientos», apretá F12 y abrí la pestaña **Red** (**Network**).\n   - Tocá «Ver asientos».\n   - Revisá la respuesta (**Response**) de los pedidos nuevos hasta encontrar la que contiene `\"error\"`. Puede no aparecer marcada en rojo.\n   - Copiá toda la respuesta; el traceback suele estar en `\"debug\"`. Puede traer datos del cliente, así que compartila solo por un canal interno. No copies los encabezados del pedido, que pueden incluir datos de tu sesión.\n3. **Probar desde Contabilidad.** Entrá al libro mayor, abrí la misma factura y tocá «Ver asientos». Anotá si falla y con qué mensaje.\n4. **Probar con la sucursal Sur.** Solo en una copia, y si podés editar usuarios, agregale Sur al usuario y repetí. Si deja de fallar, sabemos que la sucursal influye, pero no si la causa es el filtro o un permiso. Si no tenés copia o acceso, pedíselo a quien los administre.\n\n**Lo que le pasaría a un desarrollador**\n\nPasale el mensaje, el traceback y los resultados de las pruebas, y pedile que:\n\n- revise qué intenta leer «Ver asientos» y dónde se bloquea;\n- compare cómo se lee un diario en la 16 y en la 18;\n- revise por qué el seguimiento y el libro mayor se comportan distinto;\n- si se confirma la hipótesis, corrija el filtro para que siga ocultando diarios donde corresponda, como al elegir uno, sin impedir ver el de una factura. Después hay que probar que el usuario de Norte siga sin poder publicar ni modificar lo de Sur.\n\nSi en cambio se quiere que «si no ve, que no vea en ningún lado», eso ya es decidir un cambio de funcionamiento. Habría que revisar todas las pantallas y reportes donde aparece información de otra sucursal.",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12779,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3151,
+  "output_tokens_details": {
+   "thinking_tokens": 1586
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12779,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3151,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12779,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12779
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "ac1505cf01",
+  "persona": "actualizacion"
+ }
+}

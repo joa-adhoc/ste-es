@@ -1,0 +1,47 @@
+{
+ "case": "STE-F02",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "**Hay opciones nativas, pero ninguna cumple todo el pedido.** El CC de la plantilla manda la factura a Administración, pero no hace que le lleguen las respuestas ni saca a nadie. Si el cliente mantiene el pedido completo, corresponde personalización (Consultoría).\n\n| Qué pide | Qué hay nativo | ¿Alcanza? |\n|---|---|---|\n| Que Administración reciba facturas y notas de crédito | `email_cc` o `partner_to` en la plantilla, en envío manual y automático | Sí para el envío. Hay que revisar todas las plantillas que usan los cinco diarios y la de notas de crédito |\n| Que las respuestas lleguen a Administración | Administración como seguidor, con notificaciones por correo | En parte: solo en las facturas donde ya es seguidor |\n| Que no reciban vendedores ni internos | No surge ninguna opción para evitarlo. Quien envía queda como seguidor, y `account_ux` envía al validar | No |\n| Corregir el historial | Acciones «Agregar seguidores» y «Quitar seguidores», en forma masiva | Técnicamente sirven, pero configurarlas es de Consultoría |\n\n**Para probar antes de derivar**\n- **Preferencia del usuario «Administración» (C2):** hoy está en «Gestionar en Odoo», así que no recibe esas notificaciones por correo aunque sigue unas 4.600 facturas de 2026. Pasarlo a notificaciones por correo es solo configuración. Afecta todo lo que sigue ese usuario, no solo facturas, y no saca a Usuario A ni a los vendedores. En la factura de ejemplo no alcanza, porque C2 no es seguidor.\n- **«Responder a» (`reply_to`) en la plantilla:** si el envío de facturas lo respeta, las respuestas irían directo a la casilla de Administración. No está verificado: el material solo confirma `partner_to` y `email_cc`. Se prueba en una base de prueba, enviando una factura (manual y automática) y respondiendo. Si la respuesta va solo a esa casilla, no queda en el historial de la factura ni notifica a los seguidores. No cambia quién recibe los demás mensajes.\n\nCon el CC más una de estas dos opciones se podría cubrir que Administración reciba, pero no que los demás dejen de recibir.\n\n**Correcciones al diagnóstico**\n- **Vendedor como seguidor:** en la factura de ejemplo no lo es. Usuario A sí, y la validó; con el envío al validar, eso explica que haya quedado como seguidor. Hay seis vendedores portal que siguen facturas (unas 4.100 en 2026), pero esa cifra no muestra cómo se agregaron. Tampoco está explicado el correo con copia al vendedor: hace falta un caso concreto y mirar sus destinatarios.\n- **Quitar seguidores con una regla:** no alcanza con hacerlo una vez, porque un envío posterior vuelve a suscribir a su autor. Además, una regla que corra al validar podría ejecutarse antes de esa suscripción. El orden hay que probarlo.\n- **Código del ticket y `mail_autosubscribe`:** el código solo agrega a Administración, y el módulo no aplica a este caso.\n\n**Antes de cerrar con el cliente**\n- **Fecha:** pedían resolverlo antes del 25/10 y hoy es 26/11. Hay que confirmar si sigue pendiente y con qué urgencia.\n- **Cuál «Administración»:** C1 y C2 tienen el mismo correo. Hay que definir cuál se usa y probar que no lleguen duplicados al combinar CC y seguidor.\n- **Alcance:** preguntar si les sirve que Administración reciba aunque los demás sigan recibiendo. Si no, va a Consultoría, con los envíos futuros y el historial.\n\n**Conclusión sugerida para el ticket:**\n> Hay una solución nativa parcial: la plantilla permite enviar copia de las facturas a Administración. Eso no hace que reciba las respuestas ni excluye a vendedores o usuarios internos. Quedan por probar las notificaciones por correo del usuario Administración y el «Responder a» de la plantilla. Para cumplir el pedido completo, derivar a Consultoría.\n\nMe basé solo en el material que pegaste: no consulté la base ni el código, y no cambié nada en el ticket. En esta sesión no tengo las herramientas de `tuqui-adhoc`, así que tampoco pude cargar el contexto ni las reglas de Adhoc. Para habilitarlo, la guía es `adhoc-way-guide`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11426,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 3718,
+  "output_tokens_details": {
+   "thinking_tokens": 2097
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11426,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3718,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11426,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11426
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, se deploya desde `main`, y cómo y cuándo pasa el cambio de `staging` a `main`? Si el flag no está y el runner saltea la migración, necesito saber cuándo y cómo se termina aplicando el `DROP` en prod."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y se despliega desde `main`? Si no tiene el flag, ¿cómo y cuándo se aplica ahí el `DROP` después de pasar de `staging` a `main`?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y se despliega desde `main`? Si no tiene el flag y el runner saltea el `DROP`, ¿cómo y cuándo se termina aplicando en prod, incluido el paso de `staging` a `main`?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`, se deploya desde `main`, y cómo y cuándo pasa el cambio de `staging` a `main`? Si el flag no está y el runner saltea la migración, necesito saber cuándo y cómo se termina aplicando el `DROP` en prod.",
+ "followup_answer": "**No puedo confirmar ninguna de las tres cosas: si prod tiene el flag, desde qué rama se deploya, ni cómo ni cuándo pasa el cambio de `staging` a `main`.** El fragmento que pegaste no lo dice, y la carpeta de trabajo está vacía, así que no pude revisar el repo ni la config. En la tabla anterior puse que prod es el deploy de `main`: era una suposición, no la tomes como dato.\n\n**Cuándo se aplicaría el `DROP`.** Según el fragmento, una migración salteada no queda registrada en `_migrations`, así que sigue pendiente. Se debería aplicar la próxima vez que el runner corra contra la base de prod con todo esto:\n- el código desplegado incluye el archivo;\n- `MIGRATIONS_ALLOW_DESTRUCTIVE=1`;\n- si es un deploy de Railway, `RAILWAY_GIT_BRANCH` es `staging` o `main`.\n\n**Si a prod le falta el flag**, cada deploy la va a saltear. Por lo que dice el fragmento, el paso del tiempo o un nuevo merge no alcanzan: hay que habilitar el flag y que el runner vuelva a correr. No sé si cambiar la variable en Railway dispara un deploy, ni cuál es el procedimiento del equipo para habilitarlo. Tampoco asumas que el deploy va a fallar o avisar: el fragmento solo dice que la saltea.\n\n**Cómo cerrarlo antes de contar con el `DROP`:**\n1. **Flag y rama:** en Railway, abrí el servicio de prod. Mirá en sus variables `MIGRATIONS_ALLOW_DESTRUCTIVE` y en su configuración la rama conectada. Confirmá también que su deploy corra `python -m tuqui_core.db.migrate` y que llegue `RAILWAY_GIT_BRANCH`. Si prod no está en Railway, buscá lo mismo donde se configure su deploy.\n2. **Paso de `staging` a `main`:** desde la raíz del repo, leé `docs/infra-ci-cd.md` y buscá el resto:\n   ```bash\n   git grep -nE 'MIGRATIONS_ALLOW_DESTRUCTIVE|RAILWAY_GIT_BRANCH|tuqui_core\\.db\\.migrate'\n   git grep -nwE 'staging|main' -- .github docs\n   ```\n   Si ahí no figura quién promueve ni cuándo, preguntale a quien maneje los deploys. El valor configurado en Railway puede no estar en el repo.\n3. **Después del deploy a prod:** verificá en la base de prod que la columna ya no exista. Revisá también `_migrations` para ver si el archivo quedó registrado. Un deploy exitoso por sí solo no lo prueba, porque no sé si saltear la migración lo hace fallar.\n\nSi prod no tiene el flag, no lo actives por tu cuenta solo para destrabar este PR. Primero confirmá con quien maneje prod si falta a propósito. Al habilitarlo, revisá qué otras migraciones destructivas siguen pendientes: según la regla del fragmento, también podrían aplicarse en esa corrida.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12563,
+  "cache_read_input_tokens": 47287,
+  "output_tokens": 1889,
+  "output_tokens_details": {
+   "thinking_tokens": 608
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12563,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1616,
+    "cache_read_input_tokens": 29777,
+    "cache_creation_input_tokens": 296,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 296
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "5e4f0f5e9e"
+ }
+}

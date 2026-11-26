@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "El texto no da el nombre del test que falló; para verificar indica correr `pytest tuqui_core/tests/test_rls.py -q`. El fallo muestra que quedó activa la policy del borrador y que el workspace B ve 2 filas del A: es una fuga de datos entre workspaces, no un test flaky.",
+  "Porque `0398_scheduled_runs_draft.sql` ya había creado `scheduled_runs_ws` con `USING (true)`. La `0412` encontró una policy con ese nombre y salteó la creación de la que filtra por workspace (log: `already exists, skipped`). El guard `IF NOT EXISTS` comprueba solo el nombre, no la condición.",
+  "No. El texto dice que no se editen `0398` ni `0412`: según `AGENTS.md`, el tracking es por nombre de archivo, así que donde ya se aplicaron no vuelven a correr. Hay que crear una migración nueva con el próximo número libre que haga `DROP POLICY IF EXISTS` y `CREATE POLICY` con el filtro por workspace, en la misma transacción. También indica revisar todas las policies de la tabla, porque otra policy permisiva abierta mantendría la fuga."
+ ],
+ "grades": [
+  "partial",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "3bc88bc915",
+  "control": "8368a6d09b"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E14",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los insights diarios salen de un paso que junta contexto y tres etapas en cadena (Planner, Investigator y Synthesizer con sus filtros), que terminan guardando de 0 a 2 teasers en la tabla `insights`. Esto sale solo del texto que pegaste; no miré el código.\n\n**0. Context Assembler** (`context_assembler.py`)\nCon los permisos (RLS) del usuario, corre 6 consultas en paralelo:\n- el perfil del workspace;\n- el perfil del usuario;\n- la memoria del workspace;\n- la memoria del usuario;\n- las conversaciones de los últimos 7 días (título y último mensaje, sin resumir con un LLM);\n- los datos mostrados en los últimos 14 días, como señal para no repetirlos.\n\nLe pasa al Planner un markdown de unos 2–4K tokens.\n\n**1. Planner** (`planner.py`)\nUn LLM (Gemini Flash según el diagrama, configurable con `platform_config.insights_planner_model`) responde en JSON con temperatura 1.0. Devuelve `hypotheses` (cero o más) y `silence_reason`. Cada hipótesis que pasa al Investigator tiene un registro, que define cuánto se la puede investigar.\n\n**2. Investigator** (`investigator.py`)\nUn agente de Pydantic AI investiga cada hipótesis con tools de solo lectura, sin las de `approval`. Investiga hasta 3 a la vez, y cada una dispone de `(watchdog_sec - 30) / n_hypotheses` de tiempo. Los límites dependen del registro:\n\n| Registro | Iteraciones máx. | Llamadas a tools máx. | Razonamiento |\n|---|---|---|---|\n| `dato` / `celebracion` | 4 | 6 | minimal |\n| `observacion` | 8 | 15 | low |\n| `alerta` / `analisis` | 12 | 25 | medium |\n\nLe pasa al Synthesizer los resultados (`InvestigationFindings`).\n\n**3. Synthesizer y filtros** (`synthesizer.py`, `guards.py`)\nUn LLM, también en JSON y con temperatura 1.0, redacta los teasers a partir de esos resultados. Después pasan por tres filtros en orden:\n1. **ResponseGuard:** con expresiones regulares, rechaza textos sospechosos como \"cliente A\", \"seguramente\" o \"[nombre]\".\n2. **StringGrounding:** cada entidad de `teaser.entities` y cada número de `teaser.dato` tiene que aparecer en el resumen combinado de la investigación (`partial_ratio >= 75`, con rapidfuzz).\n3. **LLM Judge:** el mismo modelo del Synthesizer, con temperatura cero, devuelve `{grounded, reason}`. Si falla por infraestructura, el teaser **pasa**, así que en ese caso se publica sin este control.\n\nLos que quedan, hasta 2, se guardan con un upsert en `insights`.\n\n**Cuándo no se muestra nada**\nEl material describe dos casos:\n- **El Planner no devuelve hipótesis.** Es un silencio válido y no se genera ningún teaser.\n- **Los filtros rechazan todos los teasers.** El resultado es `teasers=[]`, con `debug_note=\"synth_all_rejected: ...\"`.\n\nEl diagrama también permite que el Synthesizer produzca 0 teasers, pero el texto no explica otra causa además del rechazo total. Tampoco dice qué pasa si una hipótesis agota su tiempo o sus límites, si falla el Planner, el Investigator o el Synthesizer, o si falla una consulta de contexto. Por eso no se puede afirmar que esos casos terminen sin mostrar nada; para confirmarlo habría que revisar el código del pipeline.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11420,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1319,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11420,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1319,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11420,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11420
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

@@ -1,0 +1,69 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son «account_multi_store», «account_journal_security», «perm_read = False», «account.journal._search» ni «_search». Quiero saber por qué el usuario de sucursal Norte puede ver la factura del punto 22 pero le salta el error al tocar «Ver asientos», y si eso es una falla que hay que corregir o un permiso que está bien. Y el traceback que me pedís, ¿cómo lo saco desde la pantalla del error?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo explicás sin nombres técnicos (account_multi_store, perm_read, account_journal_security, account.journal._search)? En criollo: ¿por qué el usuario de sucursal Norte podría recibir el error al tocar «Ver asientos» si la sucursal no le debería impedir consultar? ¿Y cómo saco desde la pantalla el error completo y el traceback que me pedís para pasártelos?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "aclaracion",
+   "followup": "¿Me lo podés explicar sin nombres técnicos? No entiendo qué son `account_multi_store`, `account_journal_security`, `perm_read`, `_search` ni `account.journal`. En palabras de pantalla: ¿por qué «Ver asientos» daría error si el usuario puede consultar la otra sucursal? Y para probarlo, ¿cómo saco el traceback y reconozco en él si el problema es el diario Sur?"
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "aclaracion",
+ "followup": "¿Me lo explicás sin nombres técnicos, desde lo que se ve en pantalla? No entiendo qué son «account_multi_store», «account_journal_security», «perm_read = False», «account.journal._search» ni «_search». Quiero saber por qué el usuario de sucursal Norte puede ver la factura del punto 22 pero le salta el error al tocar «Ver asientos», y si eso es una falla que hay que corregir o un permiso que está bien. Y el traceback que me pedís, ¿cómo lo saco desde la pantalla del error?",
+ "followup_answer": "**Por lo que sabemos, parece una falla: ese usuario debería poder consultar la factura del punto 22, aunque no publicarla ni modificarla.** Así lo dice la ayuda del campo de sucursal del diario. Falta confirmar qué provoca el error.\n\n**Por qué ve la factura y después le salta el error**\n\nLa sucursal controla dos cosas distintas:\n\n- **Los permisos sobre diarios y facturas:** lo que revisamos de la sucursal no le prohíbe a Encargado Norte verlos. Frena los cambios.\n- **Las búsquedas de diarios:** hay un filtro aparte que le muestra solo los diarios sin sucursal o de las suyas. El de Sur le queda oculto.\n\nMi hipótesis es que puede ver la factura, pero al tocar «Ver asientos» el sistema necesita consultar algo de su diario, «FACTURA ELECTRONICA SUR». Ahí ese filtro, pensado para ocultarlo en las búsquedas, terminaría actuando como una prohibición de lectura. No lo comprobé: no sé qué consulta ese botón, y la idea de que el filtro puede causar este error sale de lo que recuerdo de Odoo.\n\nEl mensaje además nombra reglas, y la hipótesis no explica cuáles ni por qué. Si tiene que ver con las compañías tildadas o con otro dato que no es el diario, la conclusión puede cambiar.\n\nTampoco sabemos por qué en Contabilidad funciona. Confirmá si ahí llegaste a tocar «Ver asientos» sobre la misma factura y con el mismo usuario, o si solo la viste. Y que no vea nada de Sur en ningún lado es posible como pedido, pero sería cambiar lo que hoy describe esa ayuda.\n\n**Cómo sacar el traceback**\n\nEl traceback es el detalle interno del error: muestra por dónde pasó el sistema hasta fallar. Por lo que recuerdo de Odoo 18, la ventana de un error de permisos no lo muestra. Se puede buscar desde el navegador (en Chrome o Edge; no lo probé en esta base):\n\n1. Entrá con Encargado Norte y llegá hasta la factura, sin tocar todavía «Ver asientos».\n2. Apretá F12 y abrí la pestaña **Red** (**Network**). Elegí el filtro **Fetch/XHR** y limpiá la lista.\n3. Tocá «Ver asientos» y esperá el error.\n4. Hacé clic en cada pedido nuevo de la lista y mirá **Respuesta** (**Response**) hasta encontrar el que tenga `\"error\"`. Puede que no aparezca en rojo.\n5. Dentro de `\"error\"`, en `\"data\"`, copiá el contenido de `\"debug\"`. Ese es el traceback.\n\nPasame ese texto y el mensaje completo de la ventana, incluidas las reglas. Antes de compartirlos, tapá los datos del cliente que no hagan falta. No mandes «Copiar como cURL» ni el archivo HAR: pueden incluir la sesión abierta del usuario.\n\n**Al cliente, por ahora:** «Reprodujimos el error al tocar \"Ver asientos\" en una factura de otra sucursal. Estamos revisando si es una falla; todavía no lo tenemos confirmado».",
+ "followup_usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 12741,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 2393,
+  "output_tokens_details": {
+   "thinking_tokens": 1239
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12741,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2393,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 12741,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 12741
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "1779c3efe4",
+  "persona": "actualizacion"
+ }
+}

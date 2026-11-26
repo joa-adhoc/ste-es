@@ -1,0 +1,47 @@
+{
+ "case": "STE-E11",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "En el archivo poné esta línea, cerca del inicio, si al dropear la columna el código anterior deja de poder correr:\n\n```sql\n-- destructive: true\n```\n\nCon esa marca, el runner aplica la migración solo si el entorno lo habilita. En un deploy de Railway tienen que cumplirse **las dos** condiciones: `MIGRATIONS_ALLOW_DESTRUCTIVE=1` y que `RAILWAY_GIT_BRANCH` sea `staging` o `main`. Si no, la saltea **sin registrarla** en `_migrations`, así que un deploy habilitado la puede aplicar después.\n\n| Momento o entorno | ¿Se aplica? | Por qué |\n|---|---|---|\n| CI del PR (postgres de servicio de cada workflow) | Sí | El workflow activa el flag, porque la base es efímera y nadie más la usa. |\n| Stack e2e y base de pytest | Sí | Son efímeras y activan el opt-in (en pytest, con `allow_destructive=True` en el conftest). |\n| PR env de Railway | **No** | Hereda el flag de staging, pero su rama no es `staging` ni `main`. |\n| Local con `make migrate` | **No** | No activa el flag, porque la base local se comparte entre worktrees. |\n| Deploy de `staging` después del merge | Sí, con el flag en 1 | La rama está permitida. |\n| Prod (asumo que es el deploy de `main`) | Sí, con el flag en 1 | La rama está permitida. |\n\n- **Sin la marca:** el preview del PR puede aplicar el `DROP` en la base de staging. El servicio de staging sigue con el código anterior, así que se rompe para todos. Ya pasó que un preview aplicó `0180_chat_ga` contra la base compartida.\n- **Si Railway no informa la rama:** si hay marcadores de Railway pero no está la rama, el runner no aplica la migración.\n- **En el preview:** la columna sigue existiendo, así que probá que tu código nuevo también funcione así. Por ejemplo, si es `NOT NULL` sin valor por defecto y tu código deja de cargarla, los `INSERT` van a fallar. Además, que el preview ande no prueba que ande sin la columna.\n- **Si el archivo tiene también cambios aditivos:** por lo que entiendo, se saltea el archivo entero. Si el preview necesita esos cambios, ponelos en otra migración sin la marca. Esa sí se aplica a la base de staging desde el preview.\n\n**Sin confirmar con este material:**\n- **Prod:** no dice si tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1`. Revisalo antes de contar con el `DROP`: sin el flag, el runner la saltea.\n- **Paso de `staging` a `main`:** no explica cómo ni cuándo se hace.\n- **Efectos al mergear o renombrar el archivo:** el texto remite a `docs/infra-ci-cd.md`, sección \"Un PR preview escribe en la base de staging\". Solo vi el fragmento que pegaste, no ese documento ni el código del runner.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11028,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1608,
+  "output_tokens_details": {
+   "thinking_tokens": 521
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11028,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1608,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11028,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11028
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

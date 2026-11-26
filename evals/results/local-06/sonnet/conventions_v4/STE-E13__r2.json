@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El día que vence, un workspace sin suscripción viva pasa a `plan='free'`, se evalúa si tiene exceso y sale el mail de prueba vencida.\n\n**Avisos.** El cron corre todos los días a las 12:00 UTC (9 h de Argentina). Por defecto avisa en dos hitos (`{7, 0}`, configurables en `platform_config.billing_trial_warning_days_list`):\n- cuando falta una semana;\n- el día que vence, mientras el workspace todavía funciona.\n\nAdemás, al vencer sin suscripción sale el mail de vencida. El contenido se arma según el estado del workspace: qué planes tiene, cuánto cuestan hoy y qué deja de funcionar.\n\n**Destinatarios.** Los avisos de por vencer y de vencida les llegan:\n- siempre a owners y admins, aunque no tengan asiento (`billing_tier='none'`);\n- a todos los miembros con asiento (`billing_tier <> 'none'`).\n\nAparte, en el chat, quien perdió el asistente ve el aviso `PlanLapsedBanner` arriba del cuadro de texto.\n\n**Bloqueo.** Pasar a `free` no implica por sí solo quedar bloqueado. El material dice que el vencimiento de la prueba puede dejar `account_status='restricted'`, con el MCP y el chat bloqueados. Entre los motivos figura `trial_expired_with_excess`, así que se entiende que pasa cuando hay exceso, y los límites del plan free también pueden restringir. El texto no detalla qué cuenta como exceso ni qué pasa exactamente si no lo hay. Para confirmarlo hay que mirar el código.\n\n**Con suscripción viva** cambia lo que pasa al vencer: se limpian los flags de trial y **no se manda ningún mail de vencimiento**. El motivo es que el owner no ve ningún cambio, y el cobro se anuncia con su propio recibo. Según el material, los recibos van a los owners.\n\nEl material no aclara si con suscripción viva igual salen los avisos previos (la semana antes y el día del vencimiento). La regla de \"no se manda nada\" está dicha solo para el momento en que vence. Si el workspace en cuestión ya tiene suscripción, revisá ese filtro en `scheduler/billing_cron.py::_run_trial_expiry` antes de asegurar que no va a recibir nada.\n\nSi alguien extiende la prueba, vuelve a avisar para la nueva fecha. Esto es porque lo enviado se registra por fecha de fin (`trial_warning_for`) y por hito (`trial_warning_days`).\n\nEsta respuesta sale solo del texto que pasaste. No revisé el código.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11294,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 930,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11294,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 930,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11294,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11294
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

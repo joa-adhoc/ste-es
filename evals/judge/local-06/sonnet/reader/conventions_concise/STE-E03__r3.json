@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés verificar en el repo qué hace `npm ci` con los links `node_modules` y `web/node_modules`, y darme los comandos exactos para correrlo en el worktree sin tocar el clone principal (qué links saco y desde qué directorio lo corro)? Si además aíslo el venv de Python, ¿con qué comandos lo creo e instalo ahí la dependencia nueva para que `make test` lo use?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿`npm ci` en el worktree reemplaza los links `node_modules` y `web/node_modules` o escribe a través de ellos en el clone principal? Pasame los comandos exactos: qué links tengo que borrar y en qué directorio corro `npm ci` para no tocar el clone principal."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "ejemplo",
+   "followup": "¿Me pasás los comandos exactos para aislar el worktree? Para Python, cómo creo el venv propio e instalo ahí las dependencias con la nueva incluida (¿puedo usar `make install` una vez borrado el link?). Para web, ¿qué links tengo que borrar antes de `npm ci` (`node_modules`, `web/node_modules` o los dos) y desde qué directorio lo corro? Confirmalo en el repo, así no toco el clone principal."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": true,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés verificar en el repo qué hace `npm ci` con los links `node_modules` y `web/node_modules`, y darme los comandos exactos para correrlo en el worktree sin tocar el clone principal (qué links saco y desde qué directorio lo corro)? Si además aíslo el venv de Python, ¿con qué comandos lo creo e instalo ahí la dependencia nueva para que `make test` lo use?",
+ "followup_answer": "**No pude verificarlo en el repo.** El primer comando quedó frenado porque pedía aprobación, y no hay un `Makefile` en la raíz de mi directorio (`/tmp/ste-es-eval-d9b6wm6x`). No llegué a ver tuqui ni la versión de npm. Lo que sigue sale del material y de lo que sé en general de npm y Python.\n\n**`npm ci`:** limpia `node_modules` antes de instalar, pero no confirmé cómo trata un link en tu versión. No des por hecho que el clone principal está a salvo: sacá los links antes. Primero, desde la raíz del worktree, mirá qué es cada cosa:\n\n```bash\nls -ld node_modules web/node_modules\nls package.json package-lock.json web/package.json web/package-lock.json\ngrep -n workspaces package.json\n```\n\nDespués sacá los dos links. `rm` sin `-r` y sin `/` al final borra solo el link, y `test -L` evita tocar algo que no lo sea:\n\n```bash\ntest -L node_modules && rm node_modules\ntest -L web/node_modules && rm web/node_modules\nls -ld node_modules web/node_modules   # los dos deberían dar \"No such file\"\n```\n\nEl directorio donde correr `npm ci` depende de lo que muestren esos comandos:\n- **Con `workspaces` en la raíz que incluyan `web`, y el lock ahí:** `npm ci`\n- **Con `web/` independiente, con su propio lock:** `(cd web && npm ci)`. La raíz queda sin `node_modules`; si algo de ahí lo necesita, corré también `npm ci` en la raíz.\n\nSi agregaste una dependencia y el lock no está actualizado, `npm ci` falla. En ese caso, con los links ya sacados, corré `npm install` en ese mismo directorio y commiteá el lock.\n\n**Venv propio:** desde la raíz del worktree:\n\n```bash\ntest -L tuqui_core/.venv && rm tuqui_core/.venv\ngrep -n -A15 -E '^(install|worktree-setup|test):' Makefile\n```\n\nCon la salida a la vista, y si `install` crea o usa `tuqui_core/.venv` dentro del worktree, declará la dependencia en el manifiesto del proyecto y corré:\n\n```bash\nmake install\nmake test\n```\n\nEl material dice que `make install` se niega en un worktree *linkeado*, pero no cómo lo detecta. Si se sigue negando, no lo fuerces. No te doy un `pip install` o `uv` a mano porque no sé qué manifiesto, extras ni versión de Python usa tuqui; eso sale de la receta de `install`. Antes de instalar, revisá también que la receta no escriba fuera del worktree.\n\nNo vuelvas a correr `make worktree-setup` sin revisar su receta: no sé si respeta tu venv y tus `node_modules` propios o intenta linkearlos otra vez. `tuqui_core/.env` puede seguir linkeado, así que si lo editás, cambiás el del clone principal.\n\nSi estás en Tuqui Work, no armes el venv ni instales `node_modules` ahí por el límite de disco y memoria; para validar las dependencias nuevas usá el CI. Para cerrar lo que quedó sin verificar, pasame la ruta del worktree y la salida de los `ls` y los `grep`.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 12132,
+  "cache_read_input_tokens": 76019,
+  "output_tokens": 2091,
+  "output_tokens_details": {
+   "thinking_tokens": 688
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12132,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1768,
+    "cache_read_input_tokens": 29385,
+    "cache_creation_input_tokens": 266,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 266
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "c388f56cf2"
+ }
+}

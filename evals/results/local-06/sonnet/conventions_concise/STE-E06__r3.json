@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "Los worktrees comparten la misma DB local. La rama de tu compañero tiene migraciones, el `conftest` las aplicó en esa base, y si alguna es destructiva (borra o renombra columnas), tu código sigue leyendo columnas que ya no están. Por eso aparece `UndefinedColumnError` en tests que no tocaste. Es la explicación que coincide con el material, pero no la verifiqué en tu máquina.\n\nEl lock (`flock`) no te protege de esto: solo evita que corran dos pytest a la vez. El esquema queda con la unión de las migraciones de las dos ramas.\n\n**Solución: una base propia para tu worktree**\n\n1. Creá `tuqui_core/.env.test.local` a partir de `.env.test.local.example` (está en gitignore). Apuntalo a una base **con otro nombre**, que no use ningún otro worktree. Las variables exactas están en el ejemplo.\n2. Verificá que la URL apunte a tu base nueva y no a la compartida. Después corré `make migrate-reset`, que **vacía la base** y aplica las migraciones desde cero en unos 3 segundos (solo toca bases locales). El material no dice si el target crea la base cuando no existe, ni si lee el `.env.test.local` (solo lo afirma de los targets de test). Confirmalo en el `Makefile` antes de correrlo: si toma la base compartida, le borrás los datos a tu compañero.\n3. Volvé a correr los tests. Si el error sigue, revisá que se esté usando tu base. Si es así, la causa es otra.\n\nNo uses `npx supabase db reset`: aborta en el primer prefijo de migración repetido.\n\nCon esto no te vuelve a pasar el cruce de esquemas, siempre que cada worktree tenga su base. Si cambiás de rama dentro del mismo worktree y venías de una con migraciones, corré otra vez `make migrate-reset`.\n\n**Opcional: correr en paralelo.** Con la base propia, el lock sigue activo. Para soltarlo necesitás además un Redis propio y un `TEST_LOCK` distinto:\n- En `REDIS_URL`, usá un índice que no uses en otro worktree. No sirven el 15 (default compartido de `.env.test`) ni el 0 (server de desarrollo).\n- Aislar solo la base o solo Redis no alcanza: el cleanup y las corridas en paralelo se seguirían pisando en el recurso compartido.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11019,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 841,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11019,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 841,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 11019,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11019
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

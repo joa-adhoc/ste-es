@@ -9,9 +9,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections import Counter
 
-from common import JUDGE, NO_TOOLS, RESULTS, arm_hash, claude, is_cached, load_cases, parse_json_block, text_hash
+from common import JUDGE, NO_TOOLS, RESULTS, arm_hash, claude, persona, persona_key, is_cached, load_cases, parse_json_block, text_hash
 
-READER = """Sos un dev del equipo. Hiciste esta pregunta y recibiste esta respuesta. No tenés otro material.
+READER = """Sos {persona} Hiciste esta pregunta y recibiste esta respuesta. No tenés otro material.
 
 PREGUNTA:
 <<<
@@ -57,12 +57,12 @@ def read_one(run_id, model, reader_model, case, ans_path, reads):
     arm = ans_path.parent.name
     out_path = JUDGE / run_id / model / "reader" / arm / ans_path.name
     ans = json.loads(ans_path.read_text())
-    key = {"reader_model": reader_model, "reads": reads, "answer": text_hash(ans["result"])}
+    key = {"reader_model": reader_model, "reads": reads, "answer": text_hash(ans["result"]), **persona_key(case)}
     if is_cached(out_path, **key):
         return "skip"
     if ans.get("arm_hash") != arm_hash(arm):
         raise RuntimeError("the arm changed since this answer was generated; the follow-up would use other rules")
-    prompt = READER.format(question=question_of(case["prompt"]), answer=ans["result"])
+    prompt = READER.format(persona=persona(case), question=question_of(case["prompt"]), answer=ans["result"])
     votes = [parse_json_block(claude(prompt, model=reader_model, extra=NO_TOOLS)["result"]) for _ in range(reads)]
     follow_votes = [bool(v.get("needs_followup")) for v in votes]
     first_votes = [bool(v.get("first_sentence_answers")) for v in votes]

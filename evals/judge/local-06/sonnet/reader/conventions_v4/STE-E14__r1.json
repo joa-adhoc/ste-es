@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": true,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (los módulos de cada etapa y el que los coordina) qué pasa si fallan el contexto, el Planner o el Synthesizer, si una investigación falla, hace timeout, llega a sus topes o no encuentra nada útil, y en cuáles de esos casos no se muestra nada? Confirmá también si el Synthesizer puede devolver 0 teasers antes de los controles."
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Podés revisar en el código (orquestador, planner.py, investigator.py, synthesizer.py y guards.py) qué pasa si falla el contexto, el Planner o el Synthesizer, si una investigación falla, agota el tiempo o los topes, o si ninguna trae hallazgos útiles? Decime en cuáles de esos casos no se muestra nada, si el Synthesizer puede devolver 0 teasers antes de los controles y qué campos de InvestigationFindings pasan a la etapa siguiente."
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": true,
+ "unanimous_followup": false,
+ "unanimous_first": true,
+ "type": "dato",
+ "followup": "¿Podés revisar en el código (los módulos de cada etapa y el que los coordina) qué pasa si fallan el contexto, el Planner o el Synthesizer, si una investigación falla, hace timeout, llega a sus topes o no encuentra nada útil, y en cuáles de esos casos no se muestra nada? Confirmá también si el Synthesizer puede devolver 0 teasers antes de los controles.",
+ "followup_answer": "No pude revisar el código, así que **no puedo confirmar ninguno de los casos que preguntás**. Listé el directorio de trabajo, `/tmp/ste-es-eval-0_3xipe_`, y está vacío. Antes intenté una búsqueda más amplia, que incluía `/tmp` y `/home/joa`. Requería aprobación y no se ejecutó, así que no sé si hay una copia del código fuera de este directorio.\n\n| Caso | Qué se sabe por el material | Qué falta ver en el código |\n|---|---|---|\n| Falla el contexto | No lo dice | Si una consulta fallida o vacía corta todo, o si sigue con datos parciales |\n| Falla el Planner | No lo dice. Solo cubre que devuelva 0 hipótesis: no genera teasers | Reintentos, manejo de excepciones y respuestas con JSON inválido |\n| Falla el Synthesizer | No lo dice | Lo mismo que en el Planner |\n| Falla una investigación | No lo dice | Si el error afecta solo a esa hipótesis o a toda la corrida |\n| Timeout | Solo da el tiempo por hipótesis | Si se descarta la investigación o se conservan hallazgos parciales, y qué hace el watchdog |\n| Llega a los topes | Solo da los límites por registro | Si lanza un error o devuelve lo que tenga |\n| No encuentra nada útil | No lo dice | Si el Synthesizer se llama igual y qué recibe |\n| El Synthesizer devuelve 0 antes de los controles | El rango \"0-2\" no alcanza para confirmarlo | El esquema de salida, el prompt y qué hace con una lista vacía |\n| El juez falla por infraestructura | El teaser pasa ese control | Confirmarlo en `guards.py` y ver qué errores cuentan como de infraestructura |\n\nSegún el material, no se generan teasers si el Planner no devuelve hipótesis. Tampoco quedan teasers si los controles rechazan todos. Ninguno de los dos casos está verificado en el código.\n\nTampoco sé qué pasa en la tabla `insights` cuando no hay teasers nuevos. Para saber qué ve la persona, hay que revisar el código que guarda los resultados y el que los muestra. Podrían quedar insights anteriores, pero es solo una posibilidad a comprobar.\n\nPara revisarlo, pasame la ruta del repo en esta máquina y habilitame la lectura si te la pide. Si no lo tenés acá, decime qué repo es o copiá los cinco módulos: `context_assembler.py`, `planner.py`, `investigator.py`, `synthesizer.py` y `guards.py`. Sumá el código que los coordina y las funciones que usen para reintentos, límites y guardado.",
+ "followup_usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13780,
+  "cache_read_input_tokens": 79252,
+  "output_tokens": 1529,
+  "output_tokens_details": {
+   "thinking_tokens": 206
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13780,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1097,
+    "cache_read_input_tokens": 31041,
+    "cache_creation_input_tokens": 249,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 249
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "e8743f241c"
+ }
+}

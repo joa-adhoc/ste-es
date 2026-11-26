@@ -1,0 +1,47 @@
+{
+ "case": "STE-E22",
+ "arm": "conventions_concise",
+ "arm_hash": "b0c0501a3b",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Todavía no: así tal cual perdés los cambios sin commitear y los 3 commits dejan de estar en tu rama.**\n\n- **`limits.py` y `test_limits.py` (modificados, sin commit):** se pierden, y git no te los puede recuperar si nunca pasaron por `git add`.\n- **`a1b2c3d`, `d4e5f6a`, `0718293`:** no están en `origin/feat/limite-mcp`. Quedarían solo accesibles por reflog, por un tiempo, salvo que otra rama o remoto los tenga.\n- **`0420_mcp_limits.sql` (sin trackear):** en general el reset lo deja en su lugar, así que no empezás de cero. Pero si `origin/staging` tiene un archivo en esa misma ruta, lo pisa.\n- **Commits ya pusheados:** los de `origin/feat/limite-mcp` que no estén en staging también salen de tu rama local. Siguen en el remoto. El material no muestra cuántos son.\n\nSi querés empezar de cero sin perder nada, primero guardá un respaldo. El stash vacío indica que hoy no tenés nada guardado ahí.\n\n```bash\ngit stash push -u -m \"respaldo limite-mcp\"   # modificados + la migración\ngit branch backup/limite-mcp                 # los 3 commits\ngit fetch origin\ngit reset --hard origin/staging\n```\n\nEl respaldo queda solo en esta máquina. El stash no incluye archivos ignorados.\n\nEl reset no cambia el remoto. Como la rama queda divergida de `origin/feat/limite-mcp`, un push normal va a ser rechazado. Antes de forzarlo con `--force-with-lease`, revisá si el PR ya tuvo revisión humana (en ese caso no se reescribe) y si alguien más usa la rama. Otra opción es dejarla como está y crear una nueva: después del stash, `git switch -c <rama-nueva> --no-track origin/staging`, y no hace falta ningún reset.\n\nSi en realidad querés **descartar** todo ese trabajo, confirmalo. El `reset --hard` no borra la migración, así que habría que eliminarla aparte.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10249,
+  "cache_read_input_tokens": 17519,
+  "output_tokens": 743,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10249,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 743,
+    "cache_read_input_tokens": 17519,
+    "cache_creation_input_tokens": 10249,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10249
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

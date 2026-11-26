@@ -1,0 +1,47 @@
+{
+ "case": "STE-E20",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 2,
+ "result": "El deploy falló en el paso de migración y **staging no debería estar caído**: según el log, el deploy nuevo no se promovió y el anterior sigue sirviendo (`previous deployment keeps serving`). No lo verifiqué contra el entorno; para confirmarlo, abrí staging o mirá su healthcheck.\n\n**Causa:** `0415_terms_acceptance.sql` intentó poner `members.accepted_version` como `NOT NULL`, pero hay filas con ese valor en null (`SQLSTATE 23502`). El build había terminado bien. El log también muestra el rollback de la 0415.\n\n**Cómo arreglarlo:** `docs/infra-ci-cd.md` pide separar el cambio en dos trenes, si la columna ya existía:\n\n1. **Este tren:** una migración que solo complete los valores en null (backfill), sin el `SET NOT NULL`.\n2. **Un tren posterior:** otra migración con el `SET NOT NULL`.\n\nReintentar el deploy sin cambios va a fallar igual mientras sigan esas filas en null. No vi el SQL completo de la 0415, así que no sé si ya trae un backfill o si crea la columna. Antes de separarla, revisá eso y definí qué valor les corresponde a las filas viejas. Como es una aceptación de términos, no pondría una versión cualquiera, porque podría dejar registrado que alguien aceptó algo que no aceptó.\n\nTambién conviene revisar que el código que sigue escribiendo en `members` complete `accepted_version`. Si no lo hace, pueden aparecer nulls nuevos antes del segundo paso.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10462,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 556,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10462,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 556,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10462,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10462
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

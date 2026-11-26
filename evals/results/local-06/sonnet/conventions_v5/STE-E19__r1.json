@@ -1,0 +1,47 @@
+{
+ "case": "STE-E19",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Falló el aislamiento entre workspaces: B ve 2 filas de `scheduled_runs` que son de A. Según el log y el `grep`, la causa es que quedó activa la policy del borrador:\n\n1. `0398_scheduled_runs_draft.sql` crea `scheduled_runs_ws` con `USING (true)`, que deja ver todas las filas.\n2. `0412_scheduled_runs.sql` quiere crearla con el filtro por `workspace_id`, pero solo si no existe una con ese nombre. Como ya existe, no la crea; el log lo muestra (`already exists, skipped`).\n\n**Qué hacer:** agregá una migración nueva, con el número que siga en la secuencia, que reemplace la policy:\n\n```sql\nDROP POLICY IF EXISTS scheduled_runs_ws ON scheduled_runs;\nCREATE POLICY scheduled_runs_ws ON scheduled_runs\n  USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n```\n\nNo edites `0398` ni `0412`: según `AGENTS.md`, una migración ya aplicada no vuelve a correr, así que las bases que ya las tienen seguirían con la policy abierta.\n\nDespués corré de nuevo `pytest tuqui_core/tests/test_rls.py -q`. No apliqué la migración ni corrí los tests, así que el arreglo está sin verificar.\n\n**Aviso de seguridad:** revisá cuanto antes las bases compartidas, sobre todo producción. Si tienen la policy del borrador, puede haber datos expuestos entre workspaces. Si la definición es la de `0398`, sin `FOR` ni `WITH CHECK`, `USING (true)` tampoco restringe por workspace las escrituras: un rol con permisos sobre la tabla y sujeto a esta policy podría insertar, modificar o borrar filas ajenas. No sé en qué bases se aplicó. Esta consulta, de solo lectura, muestra qué hay en cada una:\n\n```sql\nSELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check\nFROM pg_policies\nWHERE tablename = 'scheduled_runs';\n```\n\nFijate también que no haya otra policy permisiva en la tabla: las permisivas se combinan con `OR` y una abierta anularía el filtro nuevo. Además, el chequeo de `0412` busca solo por `policyname`, sin `tablename`, así que una policy con el mismo nombre en otra tabla también haría que la saltee.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 10705,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1305,
+  "output_tokens_details": {
+   "thinking_tokens": 429
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 10705,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1305,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 10705,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 10705
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

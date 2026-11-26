@@ -1,0 +1,68 @@
+{
+ "reads": [
+  {
+   "first_sentence_answers": false,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en su environment, y cómo llega el cambio de `staging` a `main`? Si el flag no está, ¿el código nuevo se deploya igual con la columna sin dropear, y cómo y cuándo se aplica después el drop?"
+  },
+  {
+   "first_sentence_answers": true,
+   "needs_followup": true,
+   "type": "dato",
+   "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en su environment, y cómo llega el cambio de `staging` a `main`? Si prod no tiene el flag cuando se deploya, ¿qué hay que hacer para que el drop se aplique?"
+  },
+  {
+   "first_sentence_answers": false,
+   "needs_followup": false,
+   "type": null,
+   "followup": null
+  }
+ ],
+ "needs_followup": true,
+ "first_sentence_answers": false,
+ "unanimous_followup": false,
+ "unanimous_first": false,
+ "type": "dato",
+ "followup": "¿Prod tiene `MIGRATIONS_ALLOW_DESTRUCTIVE=1` en su environment, y cómo llega el cambio de `staging` a `main`? Si el flag no está, ¿el código nuevo se deploya igual con la columna sin dropear, y cómo y cuándo se aplica después el drop?",
+ "followup_answer": "No puedo confirmar ni que prod tenga el flag ni cómo pasa el cambio de `staging` a `main`: el material no lo dice, y el directorio de trabajo está vacío. También corrijo mi tabla: di por hecho que prod es el deploy de `main`, pero el fragmento solo dice que `main` es una de las ramas habilitadas.\n\n**Si el flag no está**\n- **La migración:** si el runner ve que falta el permiso, la saltea y no la registra en `_migrations`.\n- **El código nuevo:** supongo que se deploya igual, con la columna todavía presente, pero **no está verificado**. El fragmento no dice si al saltearla el runner termina bien, avisa en el log o sigue con las demás migraciones. Tampoco dice si alguna posterior depende de ese drop.\n- **Cuándo se aplica:** como no quedó registrada, la puede aplicar una corrida posterior del runner que cumpla las dos condiciones, siempre que el archivo siga en el código deployado. Según el material, el runner corre al deployar, así que yo no contaría con que agregar la variable alcance: confirmá que haya un deploy nuevo y que el runner corra. Mientras falte el flag, los deploys siguientes la siguen salteando.\n\nRevisá que tu código nuevo funcione **con la columna todavía ahí**. Por ejemplo, si es `NOT NULL` sin valor por defecto y el código deja de completarla, los `INSERT` van a fallar.\n\n**Cómo cerrar lo que falta**\n\n| Duda | Dónde mirar |\n|---|---|\n| Flag en prod | Las variables del servicio en el environment de prod, en Railway. Fijate que valga `1` y de qué rama sale el deploy. |\n| Paso de `staging` a `main` | `docs/infra-ci-cd.md` y los workflows de CI. Solo sé que la doc tiene una sección sobre previews; no sé si explica este paso. |\n| Qué pasa al saltearla | `tuqui_core/db/migrate.py`: si termina bien o con error, qué loguea y si sigue con las demás. |\n| Si el drop ya se aplicó | Después del deploy, el log del runner, la tabla `_migrations` de esa base y si la columna todavía existe. |\n\nSi me pasás `migrate.py`, la doc de CI/CD y los workflows, reviso el recorrido. El valor del flag hay que mirarlo en Railway; alcanza con que me pases ese dato, sin el resto de las variables.",
+ "followup_usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 12389,
+  "cache_read_input_tokens": 47119,
+  "output_tokens": 1602,
+  "output_tokens_details": {
+   "thinking_tokens": 581
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12389,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1337,
+    "cache_read_input_tokens": 29609,
+    "cache_creation_input_tokens": 290,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 290
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "key": {
+  "reader_model": "sonnet",
+  "reads": 3,
+  "answer": "fcff2b4970"
+ }
+}

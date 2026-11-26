@@ -1,0 +1,47 @@
+{
+ "case": "STE-E01",
+ "arm": "conventions_v6",
+ "arm_hash": "c707a13bc7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "Para que no te rebote, la tabla tiene que venir con migración idempotente, RLS si lleva `workspace_id`, test de aislamiento y modelo Pydantic. Esto sale del material que pegaste; no lo contrasté con el repo.\n\n**Pasos**\n1. Creá la migración con `supabase migration new <nombre>`. Queda en `supabase/migrations/` y el nombre tiene que ser `NNNN_descripcion.sql`.\n2. Escribí la migración con lo de abajo.\n3. Agregá el test de aislamiento en `tuqui_core/tests/test_rls.py`. En la sección de RLS figura como `tests/test_rls.py`; supongo que es el mismo archivo con la ruta abreviada, pero confirmalo en el repo.\n4. Creá el modelo Pydantic correspondiente.\n\n**Qué tiene que tener la migración**\n\nTiene que poder correr varias veces sin error:\n\n- **Tabla:** `CREATE TABLE IF NOT EXISTS`, con `workspace_id`.\n- **Índices**, si agregás: `CREATE INDEX IF NOT EXISTS`.\n- **RLS:** `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`, que ya es idempotente.\n- **Policy:** dentro de un bloque `DO` que primero chequee si existe.\n\nUn esqueleto, donde `mi_tabla`, las columnas y los nombres del índice y de la policy son de ejemplo:\n\n```sql\nCREATE TABLE IF NOT EXISTS mi_tabla (\n    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n    workspace_id uuid NOT NULL\n);\n\nCREATE INDEX IF NOT EXISTS mi_tabla_workspace_id_idx\n    ON mi_tabla (workspace_id);\n\nALTER TABLE mi_tabla ENABLE ROW LEVEL SECURITY;\n\nDO $$ BEGIN\n  IF NOT EXISTS (\n    SELECT 1 FROM pg_policies\n    WHERE schemaname = 'public'\n      AND tablename = 'mi_tabla'\n      AND policyname = 'mi_tabla_workspace_isolation'\n  ) THEN\n    CREATE POLICY mi_tabla_workspace_isolation ON mi_tabla\n      USING (workspace_id = current_setting('app.current_workspace_id')::uuid);\n  END IF;\nEND $$;\n```\n\nEl chequeo con `pg_policies`, el schema `public`, la clave `id`, el `NOT NULL` y el índice por `workspace_id` son propuestas mías; el material no los pide. Compará con una migración existente.\n\nFiltrar por `workspace_id` solo en la aplicación no alcanza: la defensa principal es RLS.\n\n**Cuidado con el preview del PR:** corre las migraciones **contra la base de staging misma**, no contra una copia. Tu migración se aplica ahí apenas abrís el PR, así que revisala antes. Si después la renombrás, se vuelve a aplicar, porque el seguimiento es por nombre de archivo.\n\n`IF NOT EXISTS` evita el error, pero no actualiza lo que ya existe. Si después de abrir el PR cambiás columnas o la policy en ese mismo archivo, no esperes que esos cambios lleguen a staging solo por volver a correrlo. Antes de tocarla, leé la sección \"un PR preview escribe en la base de staging\" de `docs/infra-ci-cd.md`, que el material cita pero no incluye.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11013,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1238,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11013,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1238,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11013,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11013
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

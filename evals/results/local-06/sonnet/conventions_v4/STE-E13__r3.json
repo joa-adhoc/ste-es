@@ -1,0 +1,47 @@
+{
+ "case": "STE-E13",
+ "arm": "conventions_v4",
+ "arm_hash": "379fbdb224",
+ "model": "sonnet",
+ "run": 3,
+ "result": "**Con la configuración por defecto, salen un aviso 7 días antes y otro el día del vencimiento, con el workspace todavía funcionando. Si al vencer no tiene una suscripción viva, pasa a `free` y sale un mail.** Esto sale solo del material que pasaste; no lo contrasté con el código.\n\n**Cuándo salen**\n- Un proceso diario los manda a las 12:00 UTC (9 h en Argentina).\n- Los días salen de `platform_config.billing_trial_warning_days_list`, por defecto `{7, 0}`. Si ese valor se cambió, cambian las fechas.\n- Si vence la semana que viene y no se cambiaron los días ni la fecha de fin, el aviso de 7 días cae entre el 23/11 y el 29/11. Según el día exacto, ya debería haber salido o está por salir. No verifiqué si salió.\n- Si se extiende la prueba, vuelve a avisar para la nueva fecha.\n\nLos avisos dicen qué planes tiene el workspace, cuánto cuestan hoy y qué deja de funcionar.\n\n**A quién le llegan** (por vencer y vencida)\n- A owners y admins siempre, aunque no tengan plan asignado.\n- A todos los miembros con asiento (`billing_tier <> 'none'`).\n\nAdemás, a quien pierde el asistente le aparece un aviso en el chat, arriba del cuadro para escribir (`PlanLapsedBanner`).\n\n**Qué pasa al vencer sin suscripción viva**\n1. El workspace pasa a `plan='free'`.\n2. Se evalúa si excede los límites.\n3. Sale el mail.\n\nSi hay exceso, queda `restricted`, con el chat y el MCP bloqueados. El motivo correspondiente de la lista es `trial_expired_with_excess`. El material no dice expresamente en qué estado queda si no hay exceso. Tampoco hay que suponer que sigue todo igual: al describir a los destinatarios, dice que el asistente deja de responder para todo el equipo.\n\n**Si ya tiene una suscripción viva, sí cambia**\n- Al vencer, solo se limpian las marcas de prueba y no se manda ningún aviso de vencimiento.\n- El cobro se anuncia aparte, con su recibo, que les llega a los owners.\n\n**Sin definir en el material:** no aclara si un workspace con suscripción recibe igual los avisos previos, el de 7 días y el del día 0. El \"no se manda nada\" se refiere a lo que pasa al vencer. Para confirmarlo, revisá el filtro de `_run_trial_expiry` en `scheduler/billing_cron.py`.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11292,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 1637,
+  "output_tokens_details": {
+   "thinking_tokens": 723
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11292,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1637,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11292,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11292
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}

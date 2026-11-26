@@ -1412,3 +1412,400 @@ cases:
       - q: "¿Cuánto espacio liberó?"
         a: "Pasó de 3,4 GB a 2,2 GB."
     source: "sintético"
+
+  # --- Functional profiles (support, upgrades, consulting, sales), from real follow-ups in Tuqui Work ---
+  # Source: casos-funcionales.yml, task 77063, anonymized. F05-F07 take part of their material from an agent answer.
+
+  # --- Soporte (Servicio de Asistencia) ---
+
+  - id: STE-F01
+    category: diagnosis
+    structure: false
+    requires: []
+    perfil: soporte
+    prompt: |
+      Revisá el ticket 140512, mirá con introspección y logs en caso de ser necesario.
+
+      Material:
+      ---
+      Ticket 140512 — «Error ValueError al evaluar regla de acceso de stock»
+      - Base del cliente: Odoo 19.0, imagen 19.0.2026.11.04. Etapa Nuevo, sin asignar, sin producto ni módulo cargados.
+      - Descripción del cliente: «Estaba cargando stock y apareció el error. User: 31. Error date (UTC): 2026-11-04 15:09:12».
+      - Traceback: al evaluar una regla de acceso (safe_eval), `AttributeError: 'res.users' object has no attribute '_get_branch_stock_root_ids'`.
+
+      Introspección de la base (hoy):
+      - El método `_get_branch_stock_root_ids` está definido en `stock_account_multicompany_ux/models/res_users.py`, y `models/__init__.py` importa `res_users`.
+      - Módulos: `account_multicompany_ux` instalado 19.0.1.10.0 (actualizado 2026-11-04 15:07:39 UTC); `stock_account_multicompany_ux` instalado 19.0.1.7.0 (actualizado 15:08:01 UTC).
+      - Reglas de acceso cuyo dominio llama a `user._get_branch_stock_root_ids(...)`: 507 «Location multi-company: read (branch stock aware)» y 508 «stock_quant multi-company: read (branch stock aware)». Las dos se reescribieron el 2026-11-04 a las 15:08:01 UTC.
+
+      Logs de la instancia, 2026-11-04, en UTC (hora argentina = UTC − 3):
+      - 15:06:29–15:06:58: arranca el pod A y carga 233 módulos.
+      - 15:08:36–15:08:39: el pod A recarga el registro cuatro veces seguidas. En el medio, tres errores del uid 31 (15:08:37, 15:08:38, 15:08:38): `AttributeError: 'res.users' object has no attribute '_get_branch_stock_root_ids'`.
+      - 15:08:40: en el pod A falla el cron «Consolidation: bring currency rates in»: `AttributeError: 'res.company' object has no attribute '_cron_update_consolidation_rates'`.
+      - 15:08:53: arranca el pod B, con la imagen nueva. 15:08:58: el pod A se apaga («Stopping workers gracefully»).
+      - 15:09 a 15:30: ningún error en el pod B (39 líneas filtradas, conteo completo, sin páginas pendientes).
+      ---
+    pass_criteria:
+      - fact: "No hay que actualizar la imagen ni ningún módulo: la base ya tiene la imagen y los módulos nuevos, y el método existe en el código que corre hoy."
+        condition: false
+      - fact: "Fue un error pasajero durante la actualización del 04/11: por unos segundos (alrededor de las 12:08 hora argentina) un pod con el código anterior leyó las reglas nuevas, que llaman a un método que ese código no tenía. Desde que arrancó el pod nuevo no se repitió."
+        condition: false
+      - fact: "Lo que el usuario estaba cargando en ese momento no se guardó: tiene que volver a cargarlo."
+        condition: false
+      - fact: "Solo si al reintentar vuelve a fallar es otro problema y hay que seguir investigando."
+        condition: true
+      - fact: "El fallo del cron de consolidación tiene probablemente la misma causa; se confirma en su próxima corrida, y si vuelve a fallar es otro problema."
+        condition: true
+      - fact: "Que el pod viejo siga atendiendo mientras se actualizan los módulos es un tema de infraestructura, no del cliente."
+        condition: false
+    control:
+      - q: "¿Hay que actualizar la imagen o algún módulo?"
+        a: "No: la base ya tiene todo actualizado y el método existe en el código actual; fue un corte de segundos durante la actualización."
+      - q: "¿Qué tiene que hacer el cliente?"
+        a: "Volver a cargar el stock que intentaba guardar a las 12:08; ahora debería funcionar."
+      - q: "¿Qué tiene que hacer el analista ahora?"
+        a: "Contestarle al cliente que fue un corte momentáneo de la actualización y que reintente, mirar la próxima corrida del cron de consolidación y, si quiere, reportar a infraestructura lo del pod viejo."
+    repregunta_real: "PERO ¿QUÉ HAY QUE HACER? ¿Actualizar la imagen, algún módulo? Decime próximos pasos."
+    fuente: "pod Tuqui Work, 2026-11"
+
+  - id: STE-F02
+    category: explanation
+    structure: false
+    requires: []
+    perfil: soporte
+    prompt: |
+      Revisá el ticket 138210. ¿Hay algo nativo? ¿CC en las plantillas de correo? ¿Algo por el estilo?
+
+      Material:
+      ---
+      Ticket 138210 — «Que las notificaciones de facturas de cliente lleguen a Administración y no a vendedores ni usuarios internos (urgente, antes del 25/10)». Base del cliente en Odoo 18. Etapa Revisión Técnica.
+
+      Descripción del cliente:
+      - Los correos de las facturas se envían con copia a los vendedores asociados a las suscripciones, que son usuarios de portal. Según el cliente, pasa porque el vendedor se agrega solo como seguidor de la factura con el subtipo «Debates».
+      - Cuando el cliente final responde el correo, la notificación le llega al seguidor de la factura (dos usuarios internos, Usuario A y Usuario B) y no a Administración. Ejemplo: factura FA-E 00003-00001234, respuesta del 19/10 a las 14:01.
+      - Los seguidores de la suscripción no se copian a la factura, así que corregirlos ahí no resuelve nada.
+      - Resultado esperado: todas las facturas y notas de crédito de clientes con Administración como destinataria, y sin vendedores ni usuarios internos.
+
+      Descripción interna (analista anterior):
+      - La base no tiene personalizaciones ni reglas automáticas activas.
+      - El pedido incluye: una política automática de destinatarios para facturas y notas de crédito; quitar ciertos seguidores conservando al cliente, sus contactos y Administración; corregir en forma masiva los documentos históricos; cubrir la validación y el envío posteriores.
+      - El código que propone el ticket solo agrega Administración: no saca a nadie.
+      - Acciones automáticas y de servidor están fuera del alcance de Asistencia: recomienda derivar a Consultoría.
+      Chatter: el líder del equipo dejó el ticket en Revisión Técnica «para verificar una opción nativa que cumpla con las expectativas del cliente o ir por personalización».
+
+      Lo que muestra la base:
+      - La factura de ejemplo la creó el cron de suscripciones. Seguidores: el cliente final y Usuario A (interno, recibe notificaciones por correo). El vendedor de la factura no es seguidor.
+      - Usuario A la validó el 01/10. Los cinco diarios de venta electrónicos tienen plantilla de envío automático, y el módulo `account_ux` manda la factura al validarla. El código de Odoo suscribe como seguidor al autor de cada envío, sin opción para apagarlo.
+      - Hay dos «Administración» con el mismo correo: el contacto C1, sin usuario, y el usuario interno «Administración» (contacto C2), configurado como «Gestionar en Odoo» (las notificaciones quedan en la bandeja de Odoo, no van al correo).
+      - Seguidores de facturas de cliente de 2026: usuario «Administración» (C2) en unas 4.600; seis vendedores con usuario portal en unas 4.100; Usuario A en unas 1.100; contacto C1 en unas 500.
+      - Para/CC de la plantilla: en 18 el envío de facturas toma `partner_to` y `email_cc` de la plantilla, manual o automático. Manda copia de la factura, pero no suma seguidores: las respuestas no le llegan.
+      - Existen las acciones de servidor nativas «Agregar seguidores» y «Quitar seguidores», usables en una regla automática o en forma masiva. Configurarlas es personalización por interfaz (Consultoría).
+      - El módulo OCA `mail_autosubscribe` no aplica: suscribe contactos de la empresa destinataria, no un contacto propio.
+      ---
+    pass_criteria:
+      - fact: "El cliente quiere que las respuestas de sus clientes a los correos de factura y nota de crédito le lleguen a Administración, y no a vendedores ni a usuarios internos."
+        condition: false
+      - fact: "Para eso pide que los seguidores de toda factura y nota de crédito de cliente sean solo el cliente, sus contactos y Administración, también en las históricas, y que nadie vuelva a sumarse al validar o enviar."
+        condition: false
+      - fact: "Hoy la respuesta le llega a quien sigue la factura; en el ejemplo es el usuario interno que la validó y la envió, porque Odoo suscribe al autor del envío. El vendedor no era seguidor."
+        condition: false
+      - fact: "Poner Administración en Para o CC de la plantilla le manda copia de la factura, pero no la hace seguidora: las respuestas le siguen sin llegar."
+        condition: true
+      - fact: "Automatizar el alta y la baja de seguidores y corregir lo histórico es personalización por interfaz y va a Consultoría."
+        condition: true
+      - fact: "Antes de automatizar hay que preguntarle al cliente cuál de las dos «Administración» es la correcta."
+        condition: true
+    control:
+      - q: "¿Qué quiere el cliente, en una frase?"
+        a: "Que cuando un cliente responde el correo de una factura, la respuesta le llegue a Administración y no a vendedores ni a usuarios internos."
+      - q: "¿Por qué hoy no le llega a Administración?"
+        a: "Porque la respuesta va a los seguidores de la factura, y Administración no lo es; el usuario que valida y envía queda como seguidor."
+      - q: "¿Alcanza con poner Administración en CC de la plantilla?"
+        a: "No: recibe copia de la factura, pero no queda como seguidora, así que no le llegan las respuestas."
+    repregunta_real: "No entiendo qué quiere bien el cliente, resumímelo y explicámelo bien claro."
+    fuente: "pod Tuqui Work, 2026-10"
+
+  - id: STE-F03
+    category: flow
+    structure: true
+    requires: []
+    perfil: soporte
+    prompt: |
+      Revisá el ticket 139447.
+
+      Material:
+      ---
+      Ticket 139447 — «Error al confirmar P00231 — traslado 416». Base del cliente en Odoo 19.0. Producto: Compras.
+      Texto del ticket: «Al intentar CONFIRMAR ORDEN la orden de compra P00231 del Proveedor A, Odoo muestra: "No puedes eliminar los traslados porque 'Bloquear eliminación de traslados' está establecido en el tipo de operación 'Recepciones' o el estado de los traslados no es borrador o cancelado. id de los traslados: [416]". La orden figura como borrador. Tiene asociada la recepción WH/IN/00098, en estado Hecho, con 2 unidades recibidas. La factura de proveedor BILL/2026/11/0007 está contabilizada. El error inicial mencionaba el traslado 415, y al reintentar mencionó el 416; en la orden, la recepción vinculada es la 412. ¿Podrían revisar qué traslado intenta eliminar Odoo y cómo regularizar la orden sin desajustar el stock ni la factura?»
+
+      Datos en la base:
+      - Orden P00231: estado borrador; recepción 412; factura BILL/2026/11/0007; una línea de 2 unidades, 2 recibidas y 2 facturadas.
+      - Recepción 412 (WH/IN/00098): Hecho, validada el 11/11 a las 12:27. Los traslados 415 y 416 no existen en la base.
+      - Factura BILL/2026/11/0007: contabilizada, unos $70.000, origen P00231.
+      - Historial de la orden, todo el 11/11 y por el mismo usuario: 12:26 Solicitud de cotización → Orden de compra; 12:27 cantidad recibida 0 → 2; 13:26 Orden de compra → Cancelado; 13:27 Cancelado → Solicitud de cotización.
+      - Tipo de operación «Recepciones»: `block_picking_deletion` = True.
+
+      Código:
+      - `stock_ux` (módulo de Odoo by Adhoc), `stock_picking.py`, `_check_block_picking_deletion`: al borrar un traslado, si su tipo de operación tiene «Bloquear eliminación de traslados» o el traslado no está en borrador o cancelado, lanza ese error.
+      - Odoo estándar, `purchase_stock/models/purchase_order.py` (líneas 383-404): al confirmar, crea la recepción de la orden; si esa recepción queda sin movimientos, la borra (`created_receipt.unlink()`).
+      - No se leyó el código que decide si una orden con recepciones hechas se puede cancelar.
+      ---
+    pass_criteria:
+      - fact: "Al confirmar, Odoo crea una recepción nueva; como las 2 unidades ya se recibieron, queda vacía y Odoo la intenta borrar."
+        condition: false
+      - fact: "stock_ux impide ese borrado porque Recepciones tiene «Bloquear eliminación de traslados»; sale el error y se deshace todo. Por eso el número de traslado cambia en cada intento y esos traslados no existen."
+        condition: false
+      - fact: "La recepción WH/IN/00098 y la factura están bien; es la única recepción real."
+        condition: false
+      - fact: "El problema empezó cuando el usuario canceló la orden ya recibida y facturada y la volvió a borrador; el historial muestra que Odoo lo permitió, pero por qué lo permite no está verificado en el código."
+        condition: true
+      - fact: "Para regularizar: desmarcar un momento «Bloquear eliminación de traslados» en Recepciones, confirmar la orden y volver a marcarla enseguida, porque mientras está desmarcada cualquiera puede borrar recepciones en borrador."
+        condition: true
+      - fact: "Antes conviene saber por qué cancelaron la orden: si querían cambiar cantidad o precio, hay que verlo antes de reconfirmar. Y lo ideal es probarlo primero en una base de test."
+        condition: true
+    control:
+      - q: "¿Por qué falla la confirmación?"
+        a: "Odoo crea una recepción nueva que queda vacía y la quiere borrar, y stock_ux bloquea el borrado de recepciones."
+      - q: "¿Qué hizo el usuario que originó el problema?"
+        a: "Canceló la orden después de recibir y facturar, y la volvió a borrador; al reconfirmarla aparece el error."
+      - q: "¿Qué tiene que hacer el analista para regularizar?"
+        a: "Desmarcar un momento el bloqueo en Recepciones, confirmar la orden y volver a marcarlo; antes, saber por qué la cancelaron."
+    repregunta_real: "No entiendo por qué Odoo deja cancelar una orden de compra con recepciones confirmadas."
+    fuente: "pod Tuqui Work, 2026-11"
+
+  # --- Actualización de versión ---
+
+  - id: STE-F04
+    category: diagnosis
+    structure: false
+    requires: []
+    perfil: actualizacion
+    prompt: |
+      Ayer seguí analizando el ticket y pude replicar el problema. Pasa así: el usuario entra al menú Contactos, busca el contacto, entra al formulario y va al reporte de seguimiento. Como ahí no ve todas las facturas, en el filtro elige el libro mayor de la empresa, y ahí sí las ve. Abre una factura del punto 22, toca los tres puntitos, «Ver asientos», y le sale el error que nos pasó el cliente: que no tiene permiso para leer, y que las siguientes reglas lo impiden. Le encuentro lógica: no puede ver lo que no tiene permiso, porque él solo tiene la sucursal Norte. Entiendo que en la 16 los permisos estaban más livianos y ahora se reforzaron. Lo confuso es que el mismo usuario desde ese reporte no puede ver, pero si va al libro mayor de Contabilidad, sí. Habría que unificar o entender el criterio: si no ve, que no vea en ningún lado.
+
+      Material:
+      ---
+      Base productiva del cliente, Odoo 18.0 (actualizada desde 16), leída por introspección:
+      - Reglas de registro sobre `account.journal`:
+        - «Journal multi-company»: por compañía; lectura y escritura.
+        - «Journal multi-store» (módulo `account_multi_store`): diarios sin sucursal o de las sucursales del usuario; `perm_read` = False (solo restringe escribir, crear y borrar).
+        - «Journals modifiable by users» y «Journals restricted to users» (módulo `account_journal_security`): solo aplican a diarios con usuarios cargados.
+      - Ningún diario de venta tiene usuarios cargados en `user_ids` ni en `modification_user_ids`.
+      - El diario del punto 22 («FACTURA ELECTRONICA SUR») es de la sucursal Sur. El usuario «Encargado Norte» tiene sucursal Norte y ningún diario asignado.
+      - `account_multi_store`, reglas sobre asientos y pagos: también con `perm_read` = False.
+      - `account_multi_store`, ayuda del campo `store_id` del diario: «los usuarios que no son de esta sucursal solo pueden ver los registros de este diario, pero no pueden publicar ni modificar asientos».
+      - `account_multi_store` sobrescribe `account.journal._search`: a todo usuario que no sea superadmin le agrega el filtro «diario sin sucursal o de sus sucursales». Comentario del código: lo hicieron en la búsqueda y no con una regla de permiso, porque si los usuarios no pueden ver los diarios hay errores en cualquier lugar donde se use un campo relacionado con el diario.
+      - No se leyó el código del reporte de seguimiento (`account_followup`) ni del libro mayor, ni el de la 16. Falta el traceback del error.
+      ---
+    pass_criteria:
+      - fact: "El usuario es de la sucursal Norte y la factura del punto 22 es de un diario de la sucursal Sur; el bloqueo viene de las sucursales, no de la restricción de diarios por usuario, que no está configurada."
+        condition: false
+      - fact: "Por diseño, el módulo de sucursales deja ver los registros de diarios de otra sucursal y solo impide modificarlos: sus reglas no restringen la lectura."
+        condition: false
+      - fact: "Hipótesis: el filtro que el módulo agrega a la búsqueda de diarios esconde los de otras sucursales, y «Ver asientos» desde el reporte de seguimiento pasa por ese filtro, mientras que el libro mayor no. No está verificado."
+        condition: true
+      - fact: "Si se confirma, es un defecto del producto (módulo account_multi_store) y no algo para cambiar en la configuración del cliente: el usuario debería poder ver la factura en los dos lugares."
+        condition: true
+      - fact: "Para confirmarlo falta el traceback del error al repetirlo, con los logs de la instancia."
+        condition: false
+    control:
+      - q: "¿Cuál es la hipótesis, sin campos técnicos?"
+        a: "El módulo de sucursales quiere que un usuario vea, sin modificar, lo de otras sucursales, pero un filtro del mismo módulo esconde esos diarios en algunas pantallas, como «Ver asientos» desde el reporte de seguimiento."
+      - q: "¿Hay que cambiar la configuración del cliente?"
+        a: "No: apunta a corregir el módulo de sucursales; por diseño el usuario debería poder ver la factura."
+      - q: "¿Qué prueba puede hacer el analista?"
+        a: "Repetir el caso con los logs para obtener el traceback y ver qué falla exactamente."
+    repregunta_real: "Paramos de vuelta, porque mandaste muchos campos y no termino de entender lo de store_id y demás. Bajámelo más a tierra, resumido: cuál sería la hipótesis de lo que está pasando, qué producto sería, por dónde podría venir y si puedo hacer alguna prueba. El detalle funcional, resumido."
+    fuente: "pod Tuqui Work, 2026-11"
+
+  - id: STE-F05
+    category: explanation
+    structure: false
+    requires: []
+    perfil: actualizacion
+    prompt: |
+      Revisá este informe y decime bien a qué hace referencia el punto 8:
+
+      «8 · Datos por compañía del cliente — Leer el plazo de pago de un cliente con el reemplazo de res.company.property. — Hay reemplazo. En la 19 lo cubre base_company_dependent: un ícono al lado de cada campo que varía por compañía abre la edición por compañía. Por ahora solo para campos que apuntan a otro registro (plazo de pago, cuentas, lista de precios). Responde bien en la copia. En pantalla (27/10): el ícono aparece al lado de Términos de pago, Método de pago, Lista de precios, Posición fiscal y otros; abre «Valores por compañía» con el valor y el estado de cada compañía. El plazo se ve «Pago inmediato» (el «Immediate Payment» del ORM era por consultar sin idioma). Una leyenda del diálogo quedó en inglés sin traducir; es del módulo, no del cliente.»
+
+      Material:
+      ---
+      Informe «Historias de uso» del cliente, para la actualización de Odoo 17 a 19:
+      - Resume qué hicieron los usuarios en 39 días de logs, cruzado con conteos de la base productiva y con lo verificado en la base nueva en 19. Es para que el funcional marque cada historia como real, mal armada o inexistente; ese paso todavía no se hizo.
+      - El cliente tiene una sola compañía.
+      - «Lo que cambia en la 19»: seis modelos que el cliente usa no existen en 19. Uno es `res.company.property`, que afecta a la historia 8, Tesorería.
+      - Historia 8 (Tesorería): dos usuarios de Tesorería editan datos de la compañía por cliente con `res.company.property`, 134 y 54 veces en el período. Pregunta abierta para el funcional: ¿para qué lo editan? Hay que confirmar que el reemplazo de la 19 les alcance.
+      - La prueba del punto 8 se hizo el 26/10 por ORM y el 27/10 en pantalla, en una copia neutralizada de la base nueva, como administrador.
+      ---
+    pass_criteria:
+      - fact: "En la 17, dos usuarios de Tesorería abren la ficha de clientes y editan datos que pueden variar por compañía, como el plazo de pago, las cuentas contables o la lista de precios, con la pantalla de res.company.property."
+        condition: false
+      - fact: "En la 19 esa pantalla no existe; la reemplaza un ícono al lado de cada campo que varía por compañía, que abre «Valores por compañía»."
+        condition: false
+      - fact: "El reemplazo solo cubre campos que apuntan a otro registro, como plazo de pago, cuentas o lista de precios."
+        condition: true
+      - fact: "Se probó con el plazo de pago de un cliente en una copia y funciona; la única diferencia es una leyenda del diálogo que quedó en inglés."
+        condition: false
+      - fact: "Falta confirmar con el cliente para qué editan esos datos y si el reemplazo les alcanza."
+        condition: true
+    control:
+      - q: "¿Qué hace el usuario en la 17, en concreto?"
+        a: "Desde la ficha del cliente, edita datos que varían por compañía, como el plazo de pago, las cuentas o la lista de precios; dos usuarios de Tesorería lo hicieron 134 y 54 veces."
+      - q: "¿Cómo lo hace en la 19?"
+        a: "Con el ícono al lado de cada campo, que abre «Valores por compañía»."
+      - q: "¿Qué falta confirmar con el cliente?"
+        a: "Para qué editan esos datos, y que el reemplazo, que solo cubre campos que apuntan a otro registro, les alcance."
+    repregunta_real: "Claro, pero ¿me traducís a qué hace referencia ese punto 8? Es decir, qué es lo que hace el usuario, porque no entendimos."
+    fuente: "pod Tuqui Work, 2026-10"
+
+  - id: STE-F06
+    category: comparison
+    structure: false
+    requires: []
+    perfil: actualizacion
+    prompt: |
+      Cosas para ver; el código que tenés que comparar es el de 16 y el de 18. ¿El cliente tiene alguna personalización en esto? ¿Me podés traer dónde se trató en el proyecto, dónde está ese borrador o tarea?
+
+      Material:
+      ---
+      Contexto: el cliente se actualizó de Odoo 16 a 18. Al depositar o transferir cheques con el asistente de transferencia masiva (`l10n_latam.payment.mass.transfer`), el asistente corta con «Your user requires to use payment session on each tranfer». Los intentos fallidos son del 02/11, a las 09:13 hora argentina.
+
+      Módulo `account_cashbox_l10n_latam_check`, asistente de transferencia, 16 contra 18:
+      - En las dos versiones la validación es la misma: si el usuario tiene marcado «requiere sesión de caja» y el asistente no tiene sesión, lanza ese error.
+      - 16: la sesión se guarda (`store=True`). Se calcula una vez al abrir: si el usuario tiene una sola sesión abierta, la pone. El desplegable ofrece las sesiones abiertas del usuario en la compañía.
+      - 18: la sesión no se guarda. Se recalcula cuando cambia el diario destino, y solo ofrece sesiones de cajas que manejan ese diario. Al cambiar el diario destino, la sesión elegida se borra.
+      - El guardado de la sesión se sacó en noviembre de 2025 y el filtro por diario se agregó en abril de 2026. El cambio que sacó el guardado no tiene tarea vinculada: no se sabe por qué se hizo.
+      - Otro cambio de 18: `l10n_latam_check_ux` reescribió la creación de los pagos del asistente (setiembre de 2026). En la base del cliente, sus vistas se actualizaron el 02/11 a las 05:11 y 05:26 hora argentina, la misma mañana de los errores. No se ve por qué eso haría fallar el control de sesión, que es anterior. No está probado.
+
+      Personalizaciones del cliente: ninguna en esto. No hay módulos a medida; las tres vistas del asistente vienen de módulos estándar; no hay campos manuales. No se revisaron reglas de acceso ni acciones automatizadas sobre las sesiones de caja.
+
+      Antecedentes en el proyecto de mejoras de I+D:
+      - Tarea 41001 «Sesiones de caja v16»: origen del módulo.
+      - Tarea 41002 «Cashbox - Transferencia de cheques» (2023): nació el asistente; en las pruebas apareció el mismo error, en 16.
+      - Tarea 41003 «Indicar sesión en transferencia masiva de cheques» (2023): pedido relacionado.
+      - Tarea 41004 «Método de pago del diario destino» (18 y 19): el cambio de `l10n_latam_check_ux`; Realizada, salió en la imagen 18.0.2026.09.24. Su borrador de spec sigue diciendo «Borrador», aunque ya está en producción.
+      - Tarea 41005 (19): permitir elegir la sesión antes que el diario. Describe que en 18 «se elegía la sesión y el diario se ajustaba».
+      - Tarea 41006 (otro cliente): el segundo pago de la transferencia no recibe la sesión.
+      - No hay tarea ni borrador sobre este error en 18.
+      ---
+    pass_criteria:
+      - fact: "En 16 la sesión que se elegía en el asistente quedaba guardada; en 18 no se guarda y depende del diario destino: si se cambia el diario se borra, y solo se ofrecen sesiones de cajas que manejan ese diario."
+        condition: false
+      - fact: "El control que da el error es el mismo en las dos versiones: si el usuario requiere sesión y el asistente llega sin sesión, corta."
+        condition: false
+      - fact: "El cliente no tiene personalizaciones en esto."
+        condition: false
+      - fact: "No está tratado: no hay tarea ni borrador sobre este error en 18; solo antecedentes relacionados, como el mismo error en 16 en 2023 y el cambio de 19 para elegir la sesión antes que el diario."
+        condition: false
+      - fact: "Un cambio de l10n_latam_check_ux llegó la misma mañana de los errores; coincide en el tiempo, pero no está probado que los cause."
+        condition: true
+      - fact: "No se sabe por qué se sacó el guardado de la sesión: ese cambio no tiene tarea vinculada."
+        condition: true
+    control:
+      - q: "¿Qué cambió de 16 a 18, en términos funcionales?"
+        a: "En 16 la sesión elegida quedaba fija; en 18 depende del diario destino y se borra si se cambia el diario, así que el asistente puede llegar sin sesión y cortar."
+      - q: "¿El cliente tiene personalizaciones en esto?"
+        a: "No."
+      - q: "¿Es algo que ya se trató?"
+        a: "No: no hay tarea ni borrador de este error en 18; hay antecedentes relacionados (el mismo error en 16 en 2023, el cambio de 19 y un caso de otro cliente)."
+    repregunta_real: "No me termina de quedar claro entonces. ¿Me podés bajar todo lo que me dejaste en modo funcional? ¿Es algo que ya se trató?"
+    fuente: "pod Tuqui Work, 2026-11"
+
+  # --- Consultoría funcional ---
+
+  - id: STE-F07
+    category: conditional
+    structure: false
+    conditional: true
+    requires: []
+    perfil: consultoria
+    prompt: |
+      ¿Te puedo pedir que me armes un archivo de importación masiva de recibos y otro de pagos a proveedores, con los campos obligatorios? Haceme uno separado para cheques, porque creo que se abre la solapa de cheques. Agregá también las líneas de retención, porque tiene retenciones. ¿Y es posible indicar, al importar el recibo, en el campo de deudas, qué factura se está saldando, para que al confirmarlo se concilie contra esa factura?
+
+      Material:
+      ---
+      Código de Odoo by Adhoc 18 (módulos instalados en la base del cliente: `account_payment_pro`, `account_payment_pro_receiptbook`, `l10n_latam_check_ux`, `l10n_ar_withholding`, `l10n_ar_tax`):
+      - `account.payment`, obligatorios: `partner_type` (customer / supplier), `payment_type` (inbound / outbound), `partner_id`, `date`, `journal_id`, `payment_method_line_id`. El talonario de recibos (`receiptbook_id`) se calcula solo.
+      - `amount`: en pagos con cheques se calcula como la suma de los cheques.
+      - Cheques nuevos: `l10n_latam_new_check_ids` (número, fecha de pago, banco, CUIT del emisor, monto). Monto mayor a 0; el CUIT se valida; banco y CUIT, si quedan vacíos, salen del cliente.
+      - Retenciones: `l10n_ar_withholding_line_ids` (impuesto obligatorio, número, base, importe). En pagos a proveedores se calculan solas según la posición fiscal; el número lo pone la secuencia al confirmar.
+      - Deudas: `to_pay_move_line_ids`, Many2many a `account.move.line` («las líneas que el usuario eligió pagar»). Guardado y editable. En borrador, al cambiar cliente, compañía o tipo, se recalcula con toda la deuda abierta del cliente.
+      - Al confirmar (`_reconcile_after_post`), concilia el pago contra los apuntes de `to_pay_move_line_ids` que alcanza a cubrir.
+      - Control: los apuntes de deuda tienen que ser de cuentas compatibles (`@api.constrains("to_pay_move_line_ids")`).
+      - Al importar, un campo Many2many se completa con la columna `to_pay_move_line_ids/id` y el identificador externo de cada apunte, separados por coma. Ese identificador sale de exportar los apuntes (Contabilidad › Apuntes contables, filtrando la factura y la cuenta a cobrar o a pagar) con la opción «compatible con importación».
+      - Los pagos importados quedan en borrador.
+      - Nada de esto se probó importando en la base del cliente.
+      ---
+    pass_criteria:
+      - fact: "Sí se puede indicar qué factura salda el recibo: la solapa Deudas es el campo to_pay_move_line_ids, y al confirmar el recibo se concilia contra lo que tenga cargado."
+        condition: false
+      - fact: "La columna no lleva el número de la factura sino el identificador del apunte contable de la factura en la cuenta a cobrar (o a pagar), que se obtiene exportando los apuntes con la opción compatible con importación."
+        condition: true
+      - fact: "Si no se completa la columna, Odoo carga toda la deuda abierta del cliente y al confirmar concilia lo que alcance a cubrir el importe."
+        condition: true
+      - fact: "El apunte tiene que estar abierto y ser del mismo cliente."
+        condition: true
+      - fact: "Los recibos importados quedan en borrador y se concilian al confirmarlos."
+        condition: false
+      - fact: "No está probado importando en la base del cliente: conviene probarlo primero en una base de test."
+        condition: true
+    control:
+      - q: "¿Puede poner en una columna el número de la factura que salda?"
+        a: "No directamente: la columna to_pay_move_line_ids/id lleva el identificador del apunte de la factura, que sale de exportar los apuntes de esa factura."
+      - q: "¿Qué pasa si deja esa columna vacía?"
+        a: "Se carga toda la deuda abierta del cliente y, al confirmar, se concilia lo que alcance a cubrir el importe."
+      - q: "¿Cuándo se concilia?"
+        a: "Al confirmar los recibos, que quedan en borrador después de importar."
+    repregunta_real: "Pará, entonces no entendí, ¿no puedo tener una columna con el número de la factura que se está saldando al importar el recibo?"
+    fuente: "pod Tuqui Work, 2026-11"
+
+  # --- Comercial ---
+
+  - id: STE-F08
+    category: fact
+    structure: false
+    requires: []
+    perfil: comercial
+    prompt: |
+      Ayudame a responder esto:
+
+      1. Permisos: la documentación pide un usuario con Ajustes como Administrador. ¿Es imprescindible, o alcanza con permisos de Ventas, Inventario y Facturación? ¿Desde qué direcciones IP se conecta Odumbo, así limitamos el acceso a nuestro servidor?
+      2. Kits: un pack de 4 patas es en Odoo un kit (lista de materiales tipo kit). ¿Odumbo publica como stock lo que Odoo calcula para el kit, y al vender descuenta las patas?
+      3. El cambio desde nuestro módulo actual, que también trae las ventas y factura: ¿qué pasos recomiendan para no duplicar ventas ni facturas el día del cambio?
+      4. Facturación automática: recomiendan tipos de pedido de venta para que la factura salga sola. ¿Con qué módulo se hace en Odoo 17 Enterprise? Si facturamos a mano en lote cada día, ¿Odumbo las sube igual?
+      5. Datos: ¿qué datos nuestros guarda Odumbo además de las credenciales, y qué hacen con ellos si damos de baja el servicio?
+
+      Material:
+      ---
+      Manual público de Odumbo:
+      - Permisos del usuario de la conexión: Administración: Ajustes; Ventas: Administrador; Contabilidad: Facturación; Inventario: Administrador; en Technical Settings, Gestión de Productos y Límite de crédito. Ajustes «le permite a Odumbo leer la configuración de tu base: qué aplicaciones tienes instaladas, qué empresas existen y cómo está armado el catálogo».
+      - Firewall o lista de IPs permitidas: «si necesitas los datos técnicos de la conexión para pasárselos, pídelos con un ticket». No figura ninguna IP.
+      - Stock publicado = cantidad «A la mano» − cantidad «Saliente», en la ubicación de stock configurada. El stock se descuenta aunque no factures: al confirmar la venta, Odoo genera la entrega.
+      - Facturas: Odumbo no factura. Las facturas se generan y validan en Odoo, en forma individual o masiva, y Odumbo las detecta y las sube a la venta de Mercado Libre, entre 6 y 24 horas después. Para que la factura salga sola al confirmar la venta, se recomiendan los tipos de pedido de venta. La subida de facturas aplica solo a Mercado Libre.
+
+      Código del conector:
+      - El chequeo de conexión exige «Settings / Administrator» en todas las versiones de Odoo; en 19, si falta, corta antes de revisar el resto. También crea un campo técnico de precio en `product.product` y registros en `ir.model.data`.
+      - Para el stock lee `qty_available` y `outgoing_qty` de cada producto, con la ubicación configurada en el contexto. No hay nada específico de kits (`mrp`, `phantom`). Saltea los productos no almacenables, salvo los packs.
+
+      Sin fuente en el manual, las specs ni el código: las IPs de salida, el cambio desde otro conector, qué datos guarda Odumbo además de las credenciales, qué pasa con ellos en la baja, y qué módulo da los tipos de pedido de venta en Odoo 17 Enterprise.
+      ---
+    pass_criteria:
+      - fact: "El permiso de Administración: Ajustes es necesario: el chequeo de conexión lo exige y corta si falta, así que con Ventas, Inventario y Facturación no alcanza."
+        condition: false
+      - fact: "Las IPs no están documentadas: se piden por ticket o hay que confirmarlas antes de responder."
+        condition: true
+      - fact: "Odumbo publica lo que Odoo informa como A la mano menos Saliente en la ubicación configurada; para kits no hay fuente, así que conviene probarlo en una base de prueba antes de pasar a producción."
+        condition: true
+      - fact: "Odumbo no factura: sube las facturas validadas en Odoo, también las generadas en forma masiva, entre 6 y 24 horas después."
+        condition: false
+      - fact: "El cambio desde el módulo actual, los datos guardados y su destino en la baja, y el módulo de tipos de pedido en 17 Enterprise no tienen fuente: quedan para confirmar antes de mandar la respuesta."
+        condition: true
+    control:
+      - q: "¿Hace falta el permiso de Ajustes?"
+        a: "Sí: el chequeo de conexión lo exige; con Ventas, Inventario y Facturación no alcanza."
+      - q: "Si facturan a mano en lote, ¿Odumbo las sube?"
+        a: "Sí: sube las facturas validadas en Odoo, individuales o masivas, entre 6 y 24 horas después."
+      - q: "¿Qué no se le puede contestar todavía al cliente?"
+        a: "Las IPs, cómo se comporta con kits (hay que probarlo), el cambio desde su módulo actual, los datos guardados y la baja, y el módulo de tipos de pedido en 17 Enterprise."
+    repregunta_real: "Más corto, tipo mail."
+    fuente: "pod Tuqui Work, 2026-11"

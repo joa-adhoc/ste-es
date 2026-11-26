@@ -26,7 +26,7 @@ npx skills add joa-adhoc/ste-es -g -y
 node ~/.agents/skills/ste-es/scripts/install.mjs
 ```
 
-This installs two skills: `ste-es` and `html-plan` (see [Plans](#plans)). To install only `ste-es`, add `--skill ste-es`.
+Earlier versions also installed `html-plan`. It is no longer part of this repo: if you got it from here, remove it with `npx skills remove html-plan -g -y`, or install it from its own plugin.
 
 A skill is loaded on demand, so installing it is not enough: in the eval, an installed but inactive skill was never loaded. `install.mjs` turns it on for every session by adding one plain-text block to the global instructions of each agent it finds:
 
@@ -55,14 +55,6 @@ Version 1 added a `SessionStart` hook that ran this script in every session. **I
 
 To skip the script, paste the block into the files above by hand. The skill works the same.
 
-## Plans
-
-`/html-plan <what to build>` writes an implementation plan as one interactive HTML page: a tree of claims, each shown by a mockup, state machine, call stack, schema or code, with the decisions placed where they matter. Its structure is used as is. Its prose follows the ste-es rules in Spanish instead of English STE, with a budget of about 500 words: see [`patches/html-plan-words.md`](patches/html-plan-words.md).
-
-Plans use the Adhoc look: [`themes/adhoc.css`](themes/adhoc.css) holds the brand values and maps html-plan's variables to them, dark only: the page stays dark even where the host forces light, as claude.ai does. To go back to html-plan's own colors, run `node scripts/sync-html-plan.mjs --theme anthropic`.
-
-`skills/html-plan/` is a copy of [html-plan](https://github.com/anthropics/claude-plugins-community/tree/main/html-plan) by Thariq Shihipar (MIT), pinned to the commit in `skills/html-plan/UPSTREAM`. Two changes on top: its "Words" section is replaced by the patch above, and the theme is appended to its CSS. To update it, run `node scripts/sync-html-plan.mjs`, review the diff and commit.
-
 ## What was measured
 
 [`evals/`](evals/) compares plain Claude Code with this skill and with the alternatives: 29 cases, 3 runs per case, isolated Claude Code, Sonnet (run `local-04`, 2026-11-18).
@@ -82,5 +74,21 @@ This version beats the previous one 47 to 40, and wins back the flow cases (18 t
 Against the built-in `Concise` style it ties (44 to 42): in Claude Code, `Concise` gives about the same with fewer tokens, and ste-es adds voseo, the answer first and fewer incorrect claims.
 
 On top of adhoc-way's `conventions.md`, the rules beat the conventions alone (56 to 31) but tie with the conventions plus `Concise` (44 to 42), which uses fewer tokens and loses less in the precision cases (the rules lose them 3 to 9). The rules also raise follow-ups against the conventions alone (0.54 to 0.61).
+
+### Functional cases and today's model (2026-11-26)
+
+Eight cases from real follow-ups of support, upgrade, consulting and sales people in Tuqui Work (run `local-05`), and the 29 dev cases again with `claude-sonnet-5-5` (run `local-06`). All arms load adhoc-way's `conventions.md`; `conventions_v4` rewrites rule 2 for someone who does not code.
+
+| | Functional: preference | Functional: follow-ups | Dev: preference against `Concise` | Dev: follow-ups |
+|---|---|---|---|---|
+| `conventions` + `Concise` | — | 100% | — | 37% |
+| `conventions_v3` | 11 to 13 against `Concise` | 100% | 25 to 62 | 37% |
+| `conventions_v4` | 15 to 9 against `Concise` | 88% | 30 to 57 | 31% |
+| `conventions_v5` | 15 to 9 against `Concise` | 92% | 50 to 36 | 32% |
+| `conventions_v6` | 15 to 9 against `Concise` | 100% | 45 to 40 | 36% |
+
+- With today's model, `Concise` beats the rules in the dev cases. On 2026-11-18 they tied (44 to 42); v4 and v3 tie with each other (42 to 44), so the change comes from the model, not from v4.
+- `conventions_v5` writes `Concise` as text, in our words, so it works in any agent, and adds rule 2 for someone who does not code. It beats `Concise` in Claude Code, but in the functional cases it keeps only 57% of the conditions. `conventions_v6` adds one sentence ("lo que no verificaste o no probaste se dice siempre") and keeps 68% of them, like v4, while it still beats `Concise` (45 to 40 in dev, 15 to 9 in functional cases).
+- In the functional cases no arm answers in functional language: answers have about 540 words, keep 73% to 76% of the facts, and the reader asks again almost every time. v4 helps a little.
 
 Limits: one model only, and the judge and the reader are Claude too. Codex and opencode are not measured. Earlier versions and their results are in the git history.

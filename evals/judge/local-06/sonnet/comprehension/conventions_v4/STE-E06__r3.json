@@ -1,0 +1,17 @@
+{
+ "answers": [
+  "Lo más probable es que los dos worktrees usen la misma base local. El `conftest` aplica las migraciones de cada rama sobre esa base, que queda con la unión de las dos. Si la otra rama borra o renombra una columna que tu código todavía lee, salta `UndefinedColumnError` en tests que no tocaste. El texto aclara que es una deducción a partir del material y de lo que contaste, sin haber mirado tu repo ni tu base. Para confirmarlo, hay que buscar la columna del error en las migraciones de la otra rama: tendría que haber una que la borre o la renombre.",
+  "No. El lock de los tests (`flock`) evita que dos corridas se pisen al mismo tiempo, pero no separa los esquemas.",
+  "Con una base propia para tu worktree. 1) Creás el override sin pisar el `.env.test.local` si ya existe: `cp -n tuqui_core/.env.test.local.example tuqui_core/.env.test.local`. 2) En ese archivo (que está en el `.gitignore`) ponés un nombre de base que no use ningún otro worktree. 3) Antes de resetear, revisás en el `Makefile` y en `scripts/reset_database.py` qué URL toma `make migrate-reset`, porque vacía la base a la que apunta (incluso la compartida o la de desarrollo, si son locales). El material dice que los targets de test cargan el override, pero no que `migrate-reset` lo haga; tampoco dice si el script crea la base cuando no existe. 4) Cuando sepas que apunta a tu base nueva, corrés `make migrate-reset` (unos 3 segundos). 5) Volvés a correr `make test`. Si el error sigue, revisás que los tests usen la base nueva; si la usan, la causa puede ser otra, por ejemplo un desajuste entre el código y las migraciones de tu propia rama. No hay que usar `npx supabase db reset`, porque aborta en el primer prefijo de migración repetido (el material dice que hoy hay 25). Para que no vuelva a pasar, usás una base por worktree y repetís los pasos en cada worktree nuevo; tu compañero también debería usar una propia si sigue en la compartida. El lock se deja como está salvo que quieras correr tests en paralelo: para soltarlo con un `TEST_LOCK` distinto necesitás base y también Redis propios (en `REDIS_URL`, mismo servidor con otro índice, que no sea 0 ni 15 ni uno que use otro worktree). Si seguís compartiendo Redis, mantené el lock."
+ ],
+ "grades": [
+  "correct",
+  "correct",
+  "correct"
+ ],
+ "key": {
+  "model": "sonnet",
+  "answer": "07d2a448d6",
+  "control": "d71584ce60"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "case": "STE-E06",
+ "arm": "conventions_v5",
+ "arm_hash": "6130da7fb7",
+ "model": "sonnet",
+ "run": 1,
+ "result": "**Casi seguro es la base de tests compartida:** la rama de tu compañero tiene una migración destructiva (borra o renombra columnas), se aplicó sobre esa base y tu código todavía lee esas columnas. Por eso fallan tests que no tocaste. El lock de `flock` no lo evita: impide dos corridas a la vez, pero no aísla el esquema, así que la base queda con la unión de las migraciones de las dos ramas. Lo deduzco del material y del síntoma; no revisé tu base ni las ramas.\n\n**Arreglo y prevención:** dale a tu worktree una base propia.\n\n1. Creá `tuqui_core/.env.test.local` (está en el `.gitignore`) a partir de `tuqui_core/.env.test.local.example`. Apuntalo a una base **local** con un nombre que no use otro worktree. Tomá del ejemplo el nombre de la variable de conexión, porque el material no lo dice. Si la base todavía no existe, puede que tengas que crearla antes: el material no aclara si el target la crea.\n2. Antes del reset, confirmá que el override apunta a tu base nueva y que `make migrate-reset` lo toma. El material solo dice que lo cargan los targets de test. El reset **vacía la base**: si apunta a la compartida, le borrás los datos y el esquema a tu compañero.\n3. Corré `make migrate-reset`, que arma la base desde cero con las migraciones de tu rama en unos 3 segundos. No uses `npx supabase db reset`: aborta en el primer prefijo de migración repetido.\n4. Volvé a correr los tests que fallaban. Si el error sigue con una base limpia y propia, revisá las migraciones y el código de tu rama.\n\nCada worktree que compartas con migraciones distintas puede volver a causar esto, así que conviene que cada uno tenga su base, incluido el de tu compañero.\n\n**El lock, opcional:** con la base propia resolvés el choque de esquemas, pero dejá el lock como está mientras compartas Redis. Para correr en paralelo necesitás las tres cosas:\n\n- Base propia.\n- `REDIS_URL` con un índice propio en `.env.test.local`. No uses el 15, que es el de `.env.test`, ni el 0, que es el del server de desarrollo, ni el de otro worktree.\n- Un `TEST_LOCK` distinto.\n\nSi aislás solo la base o solo Redis y soltás el lock, las corridas se pueden seguir pisando.",
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 11138,
+  "cache_read_input_tokens": 17510,
+  "output_tokens": 854,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11138,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 854,
+    "cache_read_input_tokens": 17510,
+    "cache_creation_input_tokens": 11138,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 11138
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_ids": [
+  "claude-sonnet-5-5"
+ ],
+ "num_turns": 1,
+ "is_error": false
+}
